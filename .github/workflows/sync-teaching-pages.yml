@@ -26,7 +26,7 @@ jobs:
       - name: Copy into deep-learning-aau folder
         run: |
           mkdir -p deep-learning-aau
-          rm -rf deep-learning-aau/exercises
+          rm -rf deep-learning-aau/*
           cp teaching/index.html deep-learning-aau/index.html
           cp -r teaching/exercises deep-learning-aau/exercises
           cp -r teaching/lectures deep-learning-aau/lectures
