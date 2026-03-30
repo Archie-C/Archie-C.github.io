@@ -3,7 +3,7 @@ name: Sync deep-learning-aau to Pages
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 * * * *"
+    - cron: "0 0 * * 0"
 
 permissions:
   contents: write
@@ -29,6 +29,7 @@ jobs:
           rm -rf deep-learning-aau/exercises
           cp teaching/index.html deep-learning-aau/index.html
           cp -r teaching/exercises deep-learning-aau/exercises
+          cp -r teaching/lectures deep-learning-aau/lectures
 
       - name: Add .nojekyll
         run: touch .nojekyll
