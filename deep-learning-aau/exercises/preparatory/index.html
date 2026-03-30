@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Preparatory Exercises</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:wght@600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <style>
+    :root {
+      --background: #f5f7fb;
+      --surface: #ffffff;
+      --surface-muted: #f9fbfd;
+      --border: #dbe3ee;
+      --text: #16202f;
+      --muted: #566273;
+      --accent: #2c6db2;
+      --shadow: 0 10px 30px rgba(21, 38, 63, 0.06);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+      color: var(--text);
+      background: var(--background);
+    }
+
+    main {
+      width: min(920px, calc(100% - 2rem));
+      margin: 0 auto;
+      padding: 3rem 0 4rem;
+    }
+
+    .hero,
+    .exercise-card {
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      padding: 2.2rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .eyebrow {
+      margin: 0 0 1rem;
+      color: var(--accent);
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    h1,
+    h2,
+    h3 {
+      font-family: "Source Serif 4", Georgia, serif;
+      letter-spacing: -0.02em;
+      margin-top: 0;
+    }
+
+    h1 {
+      margin-bottom: 1rem;
+      font-size: clamp(2.2rem, 4vw, 3.4rem);
+      line-height: 1.05;
+    }
+
+    .lead {
+      margin: 0;
+      max-width: 62ch;
+      color: var(--muted);
+      font-size: 1.02rem;
+      line-height: 1.7;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+
+    .hero-stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.85rem;
+    }
+
+    .stat {
+      padding: 1rem 1.05rem;
+      border-radius: 14px;
+      background: var(--surface-muted);
+      border: 1px solid var(--border);
+    }
+
+    .stat strong {
+      display: block;
+      margin-bottom: 0.3rem;
+      color: var(--text);
+      font-size: 1rem;
+    }
+
+    .stat span {
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.5;
+    }
+
+    .exercise-card {
+      padding: 2rem 2.2rem;
+    }
+
+    .exercise-label {
+      display: inline-block;
+      margin-bottom: 0.7rem;
+      color: var(--accent);
+      font-size: 0.82rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .exercise-card h2 {
+      margin-bottom: 0.8rem;
+      font-size: clamp(1.6rem, 3vw, 2.15rem);
+    }
+
+    .problem-intro {
+      margin: 0 0 1.35rem;
+      color: var(--muted);
+      line-height: 1.7;
+      max-width: 72ch;
+    }
+
+    .split-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(240px, 0.75fr);
+      gap: 1rem;
+      align-items: start;
+    }
+
+    .panel {
+      padding: 1.2rem 1.25rem;
+      border-radius: 14px;
+      background: var(--surface-muted);
+      border: 1px solid var(--border);
+    }
+
+    .panel h3 {
+      margin-bottom: 0.8rem;
+      font-size: 1.05rem;
+    }
+
+    ul,
+    ol {
+      margin: 0;
+      padding-left: 1.25rem;
+    }
+
+    li {
+      margin-bottom: 0.65rem;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    li::marker {
+      color: var(--accent);
+    }
+
+    .tasks ol > li {
+      padding-left: 0.15rem;
+    }
+
+    .tasks ul {
+      margin-top: 0.6rem;
+    }
+
+    .callout {
+      border-left: 3px solid var(--accent);
+      padding-left: 0.95rem;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    @media (max-width: 880px) {
+      .hero-grid,
+      .split-layout,
+      .hero-stats {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      main {
+        width: min(100% - 1rem, 920px);
+        padding-top: 1rem;
+      }
+
+      .hero,
+      .exercise-card {
+        padding: 1.35rem;
+        border-radius: 14px;
+      }
+
+      .lead,
+      .problem-intro,
+      li {
+        font-size: 0.98rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="hero">
+      <div class="hero-grid">
+        <div>
+          <p class="eyebrow">AAU Deep Learning Course</p>
+          <h1>Preparatory exercises</h1>
+          <p class="lead">
+            These exercises are designed to prepare you for the course material. They are not graded, but they will
+            help you refresh the mathematical and computational foundations used throughout the course.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="exercise-card">
+      <span class="exercise-label">Exercise 1</span>
+      <h2>Basic Probability</h2>
+
+
+
+    <div class="panel">
+        <h3>Scenario</h3>
+              <p class="problem-intro">
+        An agentic AI system writes code blocks using two models, Model A and Model B. A code block is selected at
+        random.
+      </p>
+        <ul>
+        <li>Model A is used 60% of the time and has a 5% chance to produce a code block that contains an error.</li>
+        <li>Model B is used 40% of the time and has a 2% chance to produce a code block that contains an error.</li>
+        </ul>
+    </div>
+
+
+    <div class="panel tasks" style="margin-top: 1.2rem;">
+        <h3>Tasks</h3>
+        <ol>
+            <li>Find the probability that the selected code block contains an error.</li>
+            <li>Given that the selected code block contains an error, find the probability that it was produced by Model A.</li>
+            <li>
+                Find the probability that a code block is either:
+                <ul>
+                    <li>produced by Model A, <strong>or</strong></li>
+                    <li>defective.</li>
+                </ul>
+            </li>
+        </ol>
+        </div>
+    </section>
+    </main>
+</body>
+</html>
