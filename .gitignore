@@ -1,0 +1,120 @@
+# =========================
+# Python
+# =========================
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# =========================
+# Virtual Environments
+# =========================
+# Standard names
+venv/
+.venv/
+env/
+.env/
+ENV/
+
+# Embedded / nested venvs anywhere
+**/venv/
+**/.venv/
+**/env/
+**/.env/
+
+# Virtualenv metadata
+pyvenv.cfg
+
+# =========================
+# Pip / Poetry / Conda
+# =========================
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Poetry
+poetry.lock
+
+# Pipenv
+Pipfile.lock
+
+# Conda
+*.conda
+*.env.bak
+*.env
+
+# =========================
+# Jupyter
+# =========================
+.ipynb_checkpoints/
+
+# =========================
+# VSCode
+# =========================
+.vscode/
+
+# =========================
+# PyCharm / JetBrains
+# =========================
+.idea/
+
+# =========================
+# OS files
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# Logs
+# =========================
+*.log
+
+# =========================
+# Testing / coverage
+# =========================
+.coverage
+.coverage.*
+.cache/
+pytest_cache/
+htmlcov/
+
+# =========================
+# Type checkers
+# =========================
+.mypy_cache/
+.pyre/
+.pytype/
+
+# =========================
+# Environments / secrets
+# =========================
+.env
+.env.*
+*.env
+
+# =========================
+# Misc
+# =========================
+*.swp
+*.swo
+*~
+
+.codex
