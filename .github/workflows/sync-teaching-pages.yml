@@ -1,4 +1,4 @@
-name: Sync exercises to Pages
+name: Sync deep-learning-aau to Pages
 
 on:
   workflow_dispatch:
@@ -23,19 +23,20 @@ jobs:
           ref: main
           path: teaching
 
-      - name: Copy exercises into deep-learning-aau folder
+      - name: Copy into deep-learning-aau folder
         run: |
-          mkdir -p docs/deep-learning-aau
-          rm -rf docs/deep-learning-aau/*
-          cp -r teaching/exercises/* docs/deep-learning-aau/
+          mkdir -p deep-learning-aau
+          rm -rf deep-learning-aau/exercises
+          cp teaching/index.html deep-learning-aau/index.html
+          cp -r teaching/exercises deep-learning-aau/exercises
 
       - name: Add .nojekyll
-        run: touch docs/.nojekyll
+        run: touch .nojekyll
 
       - name: Commit and push if changed
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs
-          git diff --cached --quiet || git commit -m "Sync exercises"
+          git add deep-learning-aau .nojekyll
+          git diff --cached --quiet || git commit -m "Sync deep-learning-aau"
           git push
