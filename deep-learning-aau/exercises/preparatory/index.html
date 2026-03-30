@@ -144,6 +144,12 @@
       max-width: 72ch;
     }
 
+    .problem-text {
+      color: var(--muted);
+      line-height: 1.7;
+      max-width: 72ch;
+    }
+
     .split-layout {
       display: grid;
       grid-template-columns: minmax(0, 1.25fr) minmax(240px, 0.75fr);
@@ -238,8 +244,8 @@
     </section>
 
     <section class="exercise-card">
-      <span class="exercise-label">Exercise 1</span>
-      <h2>Basic Probability</h2>
+      <span class="exercise-label">Question 1</span>
+      <h2>Probability</h2>
 
 
 
@@ -271,6 +277,157 @@
         </ol>
         </div>
     </section>
+    <br>
+    <section class="exercise-card">
+      <span class="exercise-label">Question 2</span>
+      <h2>Probability</h2>
+
+    <div class="panel">
+        <h3>Scenario</h3>
+        <p class="problem-text">
+          A bank uses an automated system to flag potentially fraudulent transactions.
+        </p>
+        <ul>
+        <li>Only 1% of all transactions are actually fraudulent.</li>
+        </ul>
+        <p class="problem-text">
+          Two independent detection systems are used:
+        </p>
+        <ul>
+        <li><strong>System A</strong> (Behavioural Model)
+          <ul>
+            <li>Detects fraud correctly with probability 0.95</li>
+            <li>Incorrectly flags a legitimate transactions with probability 0.08</li>
+          </ul>
+        </li>
+          <li><strong>System B</strong> (Rule-based Model)
+          <ul>
+            <li>Detects fraud correctly with probability 0.85</li>
+            <li>Incorrectly flags a legitimate transactions with probability 0.03</li>
+          </ul>
+        </li>
+        </ul>
+        <p class="problem-text">
+          Assume the systems are <strong>independent given whether the transaction is fraudulent or not.</strong>
+        </p>
+    </div>
+
+
+    <div class="panel tasks" style="margin-top: 1.2rem;">
+        <h3>Tasks</h3>
+        <ol>
+            <li>Find the probability that a randomly selected transaction is flagged by both systems.</li>
+            <li>Given that a transaction is flagged by <strong>both systems</strong>, find the probability that it is actually fraudulent.</li>
+            <li>
+                A transaction is flagged by <strong>System A only</strong>. Find the probability that is is actually fraudulent.
+            </li>
+            <li>Explain why the assumption of independence is important in this problem, and what might happen if the systems were not independent.</li>
+            <li><strong>OPTIONAL CHALLENGE:</strong><br> The bank adds a third AI model with: 
+              <ul>
+                <li> True positive ratio = 0.90</li>
+                <li> False positive ratio = 0.02</li>
+              </ul>
+              If all three systems flag a transaction, should the bank automatically block it? Justify your answer quantitatively.
+            </li>
+            
+        </ol>
+        </div>
+    </section>
+
+
+    <br>
+    <section class="exercise-card">
+      <span class="exercise-label">Question 3</span>
+      <h2>Probability</h2>
+
+    <div class="panel">
+        <h3>Scenario</h3>
+        <p class="problem-text">
+          Use the three axioms of probability (Kolmogorov's axioms) to prove that for arbitrary events, \(\mathcal{A}\) and \(\mathcal{B}\), the following four statements:
+        </p>
+    </div>
+
+
+    <div class="panel tasks" style="margin-top: 1.2rem;">
+        <h3>Tasks</h3>
+        <ol>
+            <li>Complement rule: \(\mathbb{P}[\mathcal{A}^c] = 1 - \mathbb{P}[\mathcal{A}]\).</li>
+            <li>Impossible event: \(\mathbb{P}[\emptyset] = 0\).</li>
+            <li>If \(\mathcal{A}\) is contained in \(\mathcal{B}\), \(\mathcal{A} \subseteq \mathcal{B}\), then \(\mathbb{P}[\mathcal{A}] \leq \mathbb{P}[\mathcal{B}]\).</li>
+            <li>General addition rule: \(\mathbb{P}[\mathcal{A} \cup \mathcal{B}] = \mathbb{P}[\mathcal{A}] + \mathbb{P}[\mathcal{B}] - \mathbb{P}[\mathcal{A} \cap \mathcal{B}]\).</li>
+        </ol>
+        </div>
+    <p>
+    </p>
+    </section>
+
+    <br>
+    <section class="exercise-card">
+      <span class="exercise-label">Question 4</span>
+      <h2>Probability</h2>
+
+    <div class="panel">
+        <h3>Scenario</h3>
+        <p class="problem-text">
+          A delivery company tracks daily performance:</p>
+          <ul>
+            <li>\(X\): number of deliveries completed (in hundreds)</li>
+            <li>\(Y\): total delay time due to traffic (in hours)</li>
+          </ul>
+          <p class="problem-text">
+            The random variables satisfy:
+            $$\mathbb{E}[X] = 8, \quad \mathbb{E}[Y] = 3$$
+            $$\text{Var}(X) = 4, \quad \text{Var}(Y) = 2$$
+            $$\text{Cov}(X, Y) = -1.5$$
+          </p>
+    </div>
+
+
+    <div class="panel tasks" style="margin-top: 1.2rem;">
+        <h3>Tasks</h3>
+        <ol>
+            <li>Find the expected value of:$$Z = 5X - 2Y$$</li>
+            <li>Find the variance of \(Z\).</li>
+            <li>Interpret the negative covariance between \(X\) and \(Y\) in this context.</li>
+            <li>The company defines efficiency as:
+              $$E = X - Y$$
+              Would reducing the variability of \(Y\) necessarily reduce the variability of \(E\)? Justify your answer quantitatively.
+            </li>
+            <li><strong>Optional Challenge:</strong>
+            <br>If \(X\) and \(Y\) were independent, how would your answer to part (b) change?</li>
+        </ol>
+        </div>
+    <p>
+    </p>
+    </section>
+
+    <br>
+        <section class="exercise-card">
+      <span class="exercise-label">Challenge</span>
+      <h2>Challenge: Star Gazing</h2>
+
+
+    <div class="panel">
+        <h3>Scenario</h3>
+        <p class="problem-text">
+          We are enjoying a planetary parade during the beginning of this month here on Earth, but my alien friend from the distant planet Pyrknot (well modeled as a perfect sphere) isn’t too impressed. 
+          Their single-star system has six planets other than Pyrknot with such chaotic orbits that each night these planets independently appear in uniformly random locations in the Pyrknothian sky (the planets aren’t visible in daylight). 
+          If at a given moment there exists somewhere on Pyrknot that all six planets are visible, then from my friend’s position on the surface they have an α probability of also seeing all of the planets.
+        </p>
+    </div>
+
+
+    <div class="panel tasks" style="margin-top: 1.2rem;">
+        <h3>Tasks</h3>
+        <p class="problem-text">
+          My friend is considering building a tower to improve their chances of seeing these planetary parades. 
+          Assume the tower allows the viewing of every celestial body that could be seen from at least one location on the surface of Pyrknot less than a distance r from the base of the tower. In the limit of r being small compared to the radius R of Pyrknot, the new probability of seeing the planetary parade from the top of the tower is linearly approximated by α + β·(r/R). 
+          <strong>Find α and β in exact terms.</strong>
+        </p>
+        </div>
+        <p>Credit to Jane Street Puzzles March 2026</p>
+    </section>
+    
     </main>
 </body>
 </html>
