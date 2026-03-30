@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Archie C | Homepage</title>
+  <title>Archie C | Personal Website</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -28,10 +28,6 @@
       box-sizing: border-box;
     }
 
-    html {
-      scroll-behaviour: smooth;
-    }
-
     body {
       margin: 0;
       min-height: 100vh;
@@ -47,23 +43,19 @@
     }
 
     .hero,
+    .about,
     .sections,
-    .about {
+    .experience {
       border: 1px solid var(--border);
       border-radius: 18px;
       background: var(--surface);
       box-shadow: var(--shadow);
+      padding: 1.3rem;
+      margin-bottom: 1.25rem;
     }
 
     .hero {
-      padding: 2.3rem;
-      margin-bottom: 1.25rem;
-    }
-
-    .about,
-    .sections {
-      padding: 1.25rem;
-      margin-bottom: 1.25rem;
+      padding: 2.2rem;
     }
 
     .eyebrow {
@@ -76,30 +68,44 @@
     }
 
     h1,
-    h2 {
+    h2,
+    h3 {
       margin-top: 0;
       font-family: "Source Serif 4", Georgia, serif;
       letter-spacing: -0.02em;
     }
 
     h1 {
-      margin-bottom: 1rem;
+      margin-bottom: 0.75rem;
       font-size: clamp(2.4rem, 4vw, 3.8rem);
       line-height: 1.05;
     }
 
     h2 {
-      margin-bottom: 0.9rem;
+      margin-bottom: 1rem;
       font-size: 1.6rem;
     }
 
+    h3 {
+      margin-bottom: 0.35rem;
+      font-size: 1.15rem;
+    }
+
     .lead,
-    .about p {
+    .about p,
+    .experience p {
       margin: 0;
-      max-width: 68ch;
+      max-width: 70ch;
       color: var(--muted);
       font-size: 1.02rem;
       line-height: 1.7;
+    }
+
+    .hero-meta {
+      margin: 0 0 1rem;
+      color: var(--muted);
+      font-size: 0.98rem;
+      line-height: 1.6;
     }
 
     .hero-actions {
@@ -121,20 +127,22 @@
       transition: border-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
     }
 
-    .button:hover,
-    .button:focus-visible,
-    .card:hover,
-    .card:focus-visible {
-      border-color: rgba(44, 109, 178, 0.35);
-      box-shadow: 0 8px 24px rgba(21, 38, 63, 0.08);
-      transform: translateY(-1px);
-      outline: none;
-    }
-
     .button.primary {
       background: var(--accent);
       border-color: var(--accent);
       color: #ffffff;
+    }
+
+    .button:hover,
+    .button:focus-visible,
+    .card:hover,
+    .card:focus-visible,
+    .timeline-item:hover,
+    .timeline-item:focus-within {
+      border-color: rgba(44, 109, 178, 0.35);
+      box-shadow: 0 8px 24px rgba(21, 38, 63, 0.08);
+      transform: translateY(-1px);
+      outline: none;
     }
 
     .grid {
@@ -154,7 +162,8 @@
       transition: border-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
     }
 
-    .card-meta {
+    .card-meta,
+    .timeline-meta {
       margin: 0 0 0.35rem;
       color: var(--accent);
       font-size: 0.8rem;
@@ -170,6 +179,25 @@
     }
 
     .card-description {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    .timeline {
+      display: grid;
+      gap: 0.9rem;
+    }
+
+    .timeline-item {
+      padding: 1.1rem 1.15rem;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: var(--surface-muted);
+      transition: border-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .timeline-text {
       margin: 0;
       color: var(--muted);
       line-height: 1.65;
@@ -195,7 +223,8 @@
 
       .hero,
       .about,
-      .sections {
+      .sections,
+      .experience {
         padding: 1.35rem;
         border-radius: 14px;
       }
@@ -206,7 +235,7 @@
 
       .button {
         width: 100%;
-        text-align: center;
+        text-align: centre;
       }
     }
   </style>
@@ -214,55 +243,87 @@
 <body>
   <main>
     <section class="hero">
-      <p class="eyebrow">Welcome</p>
+      <p class="eyebrow">Personal website</p>
       <h1>Archie C</h1>
+      <p class="hero-meta">
+        Student, researcher, and teacher with interests in machine learning, deep learning, and technical education.
+      </p>
       <p class="lead">
-        A simple homepage for course material, projects, and notes. This site acts as a central entry point
-        for content that is published over time.
+        This website brings together my teaching material, project work, and personal profile. It serves both as a
+        homepage for resources and as a simple online CV.
       </p>
 
       <div class="hero-actions">
-        <a class="button primary" href="./deep-learning-aau/">Deep Learning Course</a>
+        <a class="button primary" href="./deep-learning-aau/">Course material</a>
+        <a class="button" href="./cv/">CV</a>
         <a class="button" href="./projects/">Projects</a>
-        <a class="button" href="./notes/">Notes</a>
+        <a class="button" href="./contact/">Contact</a>
       </div>
     </section>
 
     <section class="about">
-      <h2>About this site</h2>
+      <h2>About</h2>
       <p>
-        This homepage is intended to keep everything in one place. You can use it to link to teaching
-        material, exercise sets, worked examples, lecture pages, or any other project you want to publish
-        through GitHub Pages.
+        I am interested in machine learning, recommender systems, and teaching. This site collects my academic work,
+        course pages, technical projects, and general information about my background and experience.
       </p>
     </section>
 
     <section class="sections">
-      <h2>Sections</h2>
+      <h2>Main sections</h2>
       <div class="grid">
         <a class="card" href="./deep-learning-aau/">
-          <p class="card-meta">Course</p>
+          <p class="card-meta">Teaching</p>
           <p class="card-title">Deep Learning AAU</p>
           <p class="card-description">
-            Access the course homepage, exercises, and future teaching material.
+            Course homepage, exercises, and future lecture content.
           </p>
         </a>
 
         <a class="card" href="./projects/">
-          <p class="card-meta">Workspace</p>
+          <p class="card-meta">Work</p>
           <p class="card-title">Projects</p>
           <p class="card-description">
-            A place for project pages, demos, experiments, and technical write-ups.
+            A collection of technical projects, experiments, and write-ups.
           </p>
         </a>
 
-        <a class="card" href="./notes/">
-          <p class="card-meta">Reference</p>
-          <p class="card-title">Notes</p>
+        <a class="card" href="./cv/">
+          <p class="card-meta">Profile</p>
+          <p class="card-title">Curriculum Vitae</p>
           <p class="card-description">
-            Short notes, summaries, and supporting material collected in one area.
+            Education, experience, skills, and other professional details.
           </p>
         </a>
+      </div>
+    </section>
+
+    <section class="experience">
+      <h2>Highlights</h2>
+      <div class="timeline">
+        <div class="timeline-item">
+          <p class="timeline-meta">Research</p>
+          <h3>Machine learning and recommender systems</h3>
+          <p class="timeline-text">
+            Interested in applied machine learning, reproducibility, and modern recommendation methods.
+          </p>
+        </div>
+
+        <div class="timeline-item">
+          <p class="timeline-meta">Teaching</p>
+          <h3>Course and exercise development</h3>
+          <p class="timeline-text">
+            Develop teaching material, exercises, and supporting resources for technical subjects.
+          </p>
+        </div>
+
+        <div class="timeline-item">
+          <p class="timeline-meta">Projects</p>
+          <h3>Practical technical work</h3>
+          <p class="timeline-text">
+            Build and document code projects, experiments, and tools related to data science and software.
+          </p>
+        </div>
       </div>
     </section>
 
