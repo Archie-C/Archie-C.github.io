@@ -12,7 +12,7 @@
 
   <!-- highlight.js (Monokai) -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js/styles/monokai.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/highlight.js/lib/common.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/highlight.js@11/highlight.min.js"></script>
   <!-- chart.js  -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
@@ -878,32 +878,15 @@
     </div>
     In general, the aim is balance the bias and variance to find a model that fits the data well but also generalises to unseen data.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   </article>
 
 </div>
 
 <script>
-  hljs.highlightAll();
+
+  if (typeof hljs !== "undefined") {
+    hljs.highlightAll();
+  }
 
   // Active TOC highlighting
   const links = document.querySelectorAll(".toc a");
@@ -936,17 +919,28 @@
   const mobileToc = document.getElementById("mobile-toc");
 
   if (mobileToc) {
-    document.addEventListener("click", event => {
-      if (mobileToc.open && !mobileToc.contains(event.target)) {
-        mobileToc.open = false;
-      }
-    });
+    const closeMobileToc = () => {
+      mobileToc.open = false;
+    };
 
-    document.addEventListener("touchstart", event => {
-      if (mobileToc.open && !mobileToc.contains(event.target)) {
-        mobileToc.open = false;
+    const clickedInsideMobileToc = event => {
+      if (typeof event.composedPath === "function") {
+        return event.composedPath().includes(mobileToc);
       }
-    }, { passive: true });
+
+      return mobileToc.contains(event.target);
+    };
+
+  document.addEventListener("pointerdown", event => {
+    if (mobileToc.open && !clickedInsideMobileToc(event)) {
+      closeMobileToc();
+    }
+  }, true);
+    mobileToc.querySelectorAll("a").forEach(link => {
+      link.addEventListener("click", () => {
+        closeMobileToc();
+      });
+    });
   }
 </script>
 <script src="./chart.js"></script>
