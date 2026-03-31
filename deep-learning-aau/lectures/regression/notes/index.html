@@ -64,6 +64,12 @@
       height: 100% !important;
     }
 
+    img,
+    svg {
+      max-width: 100%;
+      height: auto;
+    }
+
     /* Layout */
     .layout {
       display: grid;
@@ -72,6 +78,7 @@
       max-width: 1200px;
       margin: 0 auto;
       padding: 2rem;
+      min-width: 0;
     }
 
     /* TOC */
@@ -84,6 +91,7 @@
       background: var(--surface);
       padding: 1.2rem;
       box-shadow: var(--shadow);
+      min-width: 0;
     }
 
     .toc h3 {
@@ -111,6 +119,10 @@
       font-weight: 600;
     }
 
+    .toc-mobile {
+      display: none;
+    }
+
     /* Content */
     .content {
       border: 1px solid var(--border);
@@ -118,6 +130,7 @@
       background: var(--surface);
       padding: 2.5rem;
       box-shadow: var(--shadow);
+      min-width: 0;
     }
 
     h1, h2, h3 {
@@ -161,21 +174,149 @@
       border-radius: 12px;
     }
 
+    mjx-container[jax="CHTML"][display="true"] {
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding-bottom: 0.25rem;
+    }
+
     /* Mobile */
     @media (max-width: 900px) {
       .layout {
         grid-template-columns: 1fr;
+        gap: 1rem;
+        padding: 1rem;
       }
 
       .toc {
-        position: relative;
-        top: 0;
+        display: none;
+      }
+
+      .toc-mobile {
+        display: block;
+        position: sticky;
+        top: 0.75rem;
+        z-index: 10;
+        margin: 0 auto 1rem;
+        max-width: 1200px;
+        padding: 0 1rem;
+      }
+
+      .toc-mobile details {
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(10px);
+        box-shadow: var(--shadow);
+      }
+
+      .toc-mobile summary {
+        cursor: pointer;
+        list-style: none;
+        padding: 0.95rem 1rem;
+        font-size: 0.92rem;
+        font-weight: 600;
+        color: var(--accent);
+      }
+
+      .toc-mobile summary::-webkit-details-marker {
+        display: none;
+      }
+
+      .toc-mobile nav {
+        padding: 0 1rem 1rem;
+      }
+
+      .toc-mobile a {
+        display: block;
+        padding: 0.55rem 0;
+        color: var(--muted);
+        text-decoration: none;
+        font-size: 0.95rem;
+      }
+
+      .toc-mobile a:hover,
+      .toc-mobile a:focus-visible {
+        color: var(--accent);
+      }
+
+      .content {
+        padding: 1.5rem;
+      }
+
+      .chart-wrap {
+        height: 300px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      body {
+        font-size: 0.96rem;
+      }
+
+      .layout {
+        padding: 0.75rem;
+      }
+
+      .toc-mobile {
+        top: 0.5rem;
+        padding: 0 0.75rem;
+      }
+
+      .toc,
+      .content {
+        border-radius: 14px;
+      }
+
+      .toc {
+        padding: 1rem;
+      }
+
+      .content {
+        padding: 1.15rem;
+      }
+
+      h1 {
+        font-size: 2rem;
+      }
+
+      h2 {
+        margin-top: 2rem;
+      }
+
+      pre {
+        padding: 0.85rem;
+      }
+
+      code {
+        font-size: 0.82rem;
+      }
+
+      .chart-wrap {
+        height: 240px;
+        padding: 0.75rem;
       }
     }
   </style>
 </head>
 
 <body>
+
+<div class="toc-mobile">
+  <details id="mobile-toc">
+    <summary>Jump to section</summary>
+    <nav>
+      <a href="#intro">Introduction</a>
+      <a href="#prerequisites">Prerequisites</a>
+      <a href="#model">The Model</a>
+      <a href="#multiple-input-dimensions">Multiple Input Dimensions</a>
+      <a href="#multiple-output-dimensions">Multiple Output Dimensions</a>
+      <a href="#non-linear-basis-functions">Non-Linear Basis Functions</a>
+      <a href="#regularisation">Regularisation</a>
+      <a href="#the-bias-variance-tradeoff">The Bias-Variance Tradeoff</a>
+    </nav>
+  </details>
+</div>
 
 <div class="layout">
 
@@ -791,6 +932,22 @@
       window.MathJax.typesetPromise();
     }
   });
+
+  const mobileToc = document.getElementById("mobile-toc");
+
+  if (mobileToc) {
+    document.addEventListener("click", event => {
+      if (mobileToc.open && !mobileToc.contains(event.target)) {
+        mobileToc.open = false;
+      }
+    });
+
+    document.addEventListener("touchstart", event => {
+      if (mobileToc.open && !mobileToc.contains(event.target)) {
+        mobileToc.open = false;
+      }
+    }, { passive: true });
+  }
 </script>
 <script src="./chart.js"></script>
 
