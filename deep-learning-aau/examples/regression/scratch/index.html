@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Regression - Notes</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:wght@600&display=swap" rel="stylesheet">
+
+    <link href="https://cdn.jsdelivr.net/npm/prismjs/themes/prism.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/prismjs/prism.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs/components/prism-python.min.js"></script>
+  <!-- chart.js  -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [["\\(", "\\)"], ["$", "$"]],
+        displayMath: [["\\[", "\\]"], ["$$", "$$"]]
+      }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+
+  <style>
+    :root {
+      --background: #f5f7fb;
+      --surface: #ffffff;
+      --surface-muted: #f9fbfd;
+      --border: #dbe3ee;
+      --text: #16202f;
+      --muted: #566273;
+      --accent: #2c6db2;
+      --shadow: 0 10px 30px rgba(21, 38, 63, 0.06);
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      font-family: "IBM Plex Sans", sans-serif;
+      background: var(--background);
+      color: var(--text);
+    }
+
+    .chart-wrap {
+      position: relative;
+      height: 360px;
+      margin: 1.5rem 0;
+      background: var(--surface);
+      border-radius: 12px;
+      padding: 1rem;
+      border: 1px solid var(--border);
+    }
+
+    canvas {
+      display: block;
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    img,
+    svg {
+      max-width: 100%;
+      height: auto;
+    }
+
+    /* Layout */
+    .layout {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      gap: 2rem;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+      min-width: 0;
+    }
+
+    /* TOC */
+    .toc {
+      position: sticky;
+      top: 2rem;
+      height: fit-content;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: var(--surface);
+      padding: 1.2rem;
+      box-shadow: var(--shadow);
+      min-width: 0;
+    }
+
+    .toc h3 {
+      margin-top: 0;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+    }
+
+    .toc a {
+      display: block;
+      padding: 0.35rem 0;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+
+    .toc a:hover {
+      color: var(--accent);
+    }
+
+    .toc a.active {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .toc-mobile {
+      display: none;
+    }
+
+    /* Content */
+    .content {
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: var(--surface);
+      padding: 2.5rem;
+      box-shadow: var(--shadow);
+      min-width: 0;
+    }
+
+    h1, h2, h3 {
+      font-family: "Source Serif 4", Georgia, serif;
+      letter-spacing: -0.02em;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      margin-top: 0;
+    }
+
+    h2 {
+      margin-top: 2.5rem;
+      scroll-margin-top: 100px;
+    }
+
+    p {
+      color: var(--muted);
+      line-height: 1.7;
+      max-width: none;
+    }
+
+    /* Code block container */
+    pre {
+    background: var(--surface-muted);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    overflow-x: auto;
+    box-shadow: var(--shadow);
+    margin: 1rem 0;
+    }
+
+
+    /* Code text */
+    code {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.9rem;
+    color: var(--text);
+    }
+
+    /* Inline code */
+    p code, li code {
+    background: var(--surface-muted);
+    border: 1px solid var(--border);
+    padding: 2px 6px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    }
+
+    /* Prism token tweaks (soft, professional look) */
+    .token.keyword { color: var(--accent); }
+    .token.string { color: #2f9e44; }
+    .token.function { color: #1c7ed6; }
+    .token.comment { color: var(--muted); font-style: italic; }
+    .token.number { color: #e67700; }
+
+    /* Mobile */
+    @media (max-width: 900px) {
+      .layout {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+        padding: 1rem;
+      }
+
+      .toc {
+        display: none;
+      }
+
+      .toc-mobile {
+        display: block;
+        position: sticky;
+        top: 0.75rem;
+        z-index: 10;
+        margin: 0 auto 1rem;
+        max-width: 1200px;
+        padding: 0 1rem;
+      }
+
+      .toc-mobile details {
+        position: relative;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(10px);
+        box-shadow: var(--shadow);
+      }
+
+      .toc-mobile summary {
+        cursor: pointer;
+        list-style: none;
+        padding: 0.95rem 1rem;
+        font-size: 0.92rem;
+        font-weight: 600;
+        color: var(--accent);
+      }
+
+      .toc-mobile summary::-webkit-details-marker {
+        display: none;
+      }
+
+      .toc-mobile nav {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: rgba(255, 255, 255, 0.98);
+        border: 1px solid var(--border); 
+        border-top: none; 
+        border-radius: 0 0 14px 14px; 
+        padding: 0 1rem 1rem;
+      }
+
+      .toc-mobile a {
+        display: block;
+        padding: 0.55rem 0;
+        color: var(--muted);
+        text-decoration: none;
+        font-size: 0.95rem;
+      }
+
+      .toc-mobile a:hover,
+      .toc-mobile a:focus-visible {
+        color: var(--accent);
+      }
+
+      .content {
+        padding: 1.5rem;
+      }
+
+      .chart-wrap {
+        height: 300px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      body {
+        font-size: 0.96rem;
+      }
+
+      .layout {
+        padding: 0.75rem;
+      }
+
+      .toc-mobile {
+        top: 0.5rem;
+        padding: 0 0.75rem;
+      }
+
+      .toc,
+      .content {
+        border-radius: 14px;
+      }
+
+      .toc {
+        padding: 1rem;
+      }
+
+      .content {
+        padding: 1.15rem;
+      }
+
+      h1 {
+        font-size: 2rem;
+      }
+
+      h2 {
+        margin-top: 2rem;
+      }
+
+      pre {
+        padding: 0.85rem;
+      }
+
+      code {
+        font-size: 0.82rem;
+      }
+
+      .chart-wrap {
+        height: 240px;
+        padding: 0.75rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="toc-mobile">
+  <details id="mobile-toc">
+    <summary>Jump to section</summary>
+    <nav>
+      <a href="#intro">Introduction</a>
+      <a href="#setup">Setup</a>
+      <a href="#dataset">Dataset</a>
+      <a href="#1d-linear-regression">1D Linear Regression</a>
+      <a href="#n-d-linear-regression">N-D Linear Regression</a>
+      <a href="#adding-basis-functions">Adding Basis Functions</a>
+    </nav>
+  </details>
+</div>
+
+<div class="layout">
+
+  <!-- Table of Contents -->
+  <nav class="toc">
+    <h3>Contents</h3>
+    <a href="#intro">Introduction</a>
+    <a href="#setup">Setup</a>
+    <a href="#dataset">Dataset</a>
+    <a href="#1d-linear-regression">1D Linear Regression</a>
+    <a href="#n-d-linear-regression">N-D Linear Regression</a>
+    <a href="#adding-basis-functions">Adding Basis Functions</a>
+  </nav>
+
+  <!-- Main Content -->
+  <article class="content">
+    <h1>Regression - from scratch</h1>
+
+    <h2 id="intro">Introduction</h2>
+    <p>
+      Before we dive into the examples I recommend reading through the <a href="../../../lectures/regression/notes/index.html">notes</a> on regression, as they cover the main concepts and mathematics behind what we're going to implement here.
+    </p>
+    <p>
+        In these examples we will implement some of the main regression techniques from scratch, without using any ML packages. This is a great way to understand the underlying principles. After going through these examples, I recommend trying to implement them in one of the major ML packages (PyTorch, TensorFlow, Jax) to get a feel for how to use those packages for regression tasks.
+    </p>
+
+    <h2 id="setup">Setup</h2>
+    <p>
+      Before we can run the examples, we need to set up our environment. Make sure you have Python installed, the examples are written in Python 3.13.
+    </p>
+    <p>
+        Good practice is to create a virtual environment for your project. I like to use <a href="https://docs.astral.sh/uv/getting-started/">uv</a> as a package manager, but you can also use 'conda' or just pip. 
+        If you want to follow along exactly, follow the aforementioned link to setup uv, then run the following commands in your terminal in your project root:
+
+    </p>
+    <pre><code class="language-bash">  uv venv --python 3.13
+  source .venv/bin/activate or .venv\Scripts\activate (windows)
+  uv pip install numpy matplotlib scikit-learn</code></pre>
+    <p>
+      This will create a virtual environment and install the necessary packages for this example.
+      We will be using:
+      <ul>
+        <li><p><a href="https://numpy.org/">NumPy</a> for numerical computations.</p></li>
+        <li><p><a href="https://matplotlib.org/">Matplotlib</a> for plotting.</p></li>
+        <li><p><a href="https://scikit-learn.org/stable/">Scikit-learn</a> for loading the California housing dataset and splitting it into train/test sets.</p></li>
+      </ul>
+    </p>
+    <p>
+      Lets first import the libraries into our python script or notebook:
+    </p>
+    <pre><code class="language-python">  import numpy as np
+  import matplotlib.pyplot as plt
+  from sklearn.datasets import fetch_california_housing
+  from sklearn.model_selection import train_test_split</code></pre>
+
+    <h2 id="dataset">Dataset</h2>
+    <p>
+      The California housing dataset contains information about housing prices in California. 
+      It contains 8 features:
+      <ul>
+        <li><p><code>MedInc</code>: median income in block group</p></li>
+        <li><p><code>HouseAge</code>: median house age in block group</p></li>
+        <li><p><code>AveRooms</code>: average number of rooms per household</p></li>
+        <li><p><code>AveBedrms</code>: average number of bedrooms per household</p></li>
+        <li><p><code>Population</code>: population in block group</p></li>
+        <li><p><code>AveOccup</code>: average number of household members</p></li>
+        <li><p><code>Latitude</code>: block group latitude</p></li>
+        <li><p><code>Longitude</code>: block group longitude</p></li>
+      </ul>
+    </p>
+    <p>
+      And one target variable:
+      <ul>
+        <li><p><code>MedHouseVal</code>: median house value in hundreds of thousands of dollars for California districts</p></li>
+      </ul>
+
+    </p>
+    <p>
+      We can load the dataset using scikit-learn's <code>fetch_california_housing</code> function, which will give us the features and target variable as NumPy arrays.
+    </p>
+    <pre><code class="language-python">  data = fetch_california_housing()
+  X = data.data
+  y = data.target</code></pre>
+    <p>
+      We then need to split the data set into a training set and a test set. 
+      It is quite self explanatory, but we use the training set to train the model and then evaluate its performance on the test set.
+      The idea behind this is to test the model's ability to generalise to unseen data.
+      It would be no good if our model learned to predict the training data well but then failed to predict the test data.
+      That would mean it basically just learned the training set by heart and overfit the data.
+    </p>
+    <p>To split the data, we can use the inbuilt <code>train_test_split</code> function from scikit-learn:</p>
+    <pre><code class="language-python">  X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)</code></pre>
+
+    <h2 id="1d-linear-regression">1D Linear Regression</h2>
+    <p>
+      If we remember from the notes, the most basic regression model we can implement is a linear regression model with one feature and 1 target variable.
+      We express the model mathematically as:
+    </p>
+    \[
+    \mathbf{y} = w_0 + w_1 \mathbf{x}
+    \]
+    <p>
+      We want to use the vector representations for the input and output because we want to fit the model on all of the data points at the same time, instead of just one data point.
+    </p>
+    <p>
+      Remember for this model we can learn the two parameters \(w_0\) and \(w_1\) using the closed form solution, which is derived by setting the derivative of the MSE loss function to zero and solving for the parameters. The closed form solution is given by:
+    </p>
+    \[
+    w_1 = \frac{\sum_{i=1}^N (x_i - \bar{x})(y_i - \bar{y})}{\sum_{i=1}^N (x_i - \bar{x})^2}
+    \]
+    \[
+    w_0 = \bar{y} - w_1 \bar{x}
+    \]
+    <p>
+      Now lets implement this in code.
+    </p>
+    <p>
+      Lets create a class called <code>LinearRegression1D</code> which will have two methods: <code>fit</code> and <code>predict</code>.
+      The <code>fit</code> method will take in the training data and learn the parameters \(w_0\) and \(w_1\) using the closed form solution.
+      The <code>predict</code> method will take in new data and use the learned parameters to make predictions.
+    </p>
+    <h4>Initialisation</h4>
+    <p>
+      We first need to define the class and its init method. The init method will just initialise the parameters to None for now, as we will learn them in the fit method. 
+      NOTE: if we were using an iterative optimisation method, we would need to be more careful with the initialisation.
+    </p>
+    <pre><code class="language-python">  class LinearRegression1D:
+      def __init__(self):
+          self.w0 = None
+          self.w1 = None</code></pre>
+        
+
+    <h4>The <code>fit</code> method</h4>
+    <p>
+      The fit method needs to take in the training data, which is both the feature and the target variable. 
+      We will call these <code>X</code> and <code>y</code> respectively.
+      We will also define two separate private functions in the class to compute the weight updates.
+      We will call these <code>_learn_w1</code> and <code>_learn_w0</code>. This step is not striclty necessary, but it makes the code cleaner and easier to read.
+    </p>
+    <p>
+      For the <code>_learn_w1</code> function, we only need two inputs <code>X</code> and <code>y</code> and if just apply the formula for \(w_1\) that we derived above. It looks like this:
+    </p>
+    <pre><code class="language-python">  def _learn_w1(self, X, y):
+      x_bar = np.mean(X)
+      y_bar = np.mean(y)
+      return np.sum((X - x_bar) * (y - y_bar)) / np.sum((X - x_bar) ** 2)</code></pre>
+    
+    <p>
+      For the <code>_learn_w0</code> function, we need the learned \(w_1\) parameter in addition to the training data. We can then apply the formula for \(w_0\) that we derived above. It looks like this:
+    </p>
+    <pre><code class="language-python">  def _learn_w0(self, X, y):
+      x_bar = np.mean(X)
+      y_bar = np.mean(y)
+      return y_bar - self.w1 * x_bar</code></pre>
+    <p>Then in the <code>fit</code> method, we can call these functions to learn the parameters:</p>
+    <pre><code class="language-python">  def fit(self, X, y):
+      self.w1 = self._learn_w1(X, y)
+      self.w0 = self._learn_w0(X, y)</code></pre>
+    <p>
+      You may have noticed, we don't actually need to pass the <code>w1</code> parameter into the <code>_learn_w0</code> function, since it is already a class variable and can be accessed using <code>self.w1</code>. 
+    </p>
+    <h4>The <code>predict</code> method</h4>
+    <p>
+      Once we have learned the two parameters, predicting values is very easy, we just use the original formula for the linear regression model:
+    </p>
+    <pre><code class="language-python">  def predict(self, X):
+      return self.w0 + self.w1 * X</code></pre>
+    <p>With that, the complete class should look something like this:</p>
+    <pre><code class="language-python">  class LinearRegression1D:
+      def __init__(self):
+          self.w0 = None
+          self.w1 = None
+
+      def _learn_w1(self, X, y):
+          x_bar = np.mean(X)
+          y_bar = np.mean(y)
+          return np.sum((X - x_bar) * (y - y_bar)) / np.sum((X - x_bar) ** 2)
+
+      def _learn_w0(self, X, y):
+          x_bar = np.mean(X)
+          y_bar = np.mean(y)
+          return y_bar - self.w1 * x_bar
+
+      def fit(self, X, y):
+          self.w1 = self._learn_w1(X, y)
+          self.w0 = self._learn_w0(X, y)
+
+      def predict(self, X):
+          return self.w0 + self.w1 * X</code></pre>
+      <h4>Experiments</h4>
+      <p>
+        Now that we have the class and we can learn the parameters and make predictions, we can run some experiments with the dataset we loaded earlier.
+        As we have only defined a model with one feature, we need to select one of the features from the dataset. To do that is quite trivial. We just need to select one column from the feature matrix:
+    </p>
+    <pre><code class="language-python">  train_X_0 = X_train[:, 0]
+  test_X_0 = X_test[:, 0]</code></pre>
+      <p>
+        The 0th feature is the median income in the block group, which we can expect to be a good predictor of the median house value.
+        We can then create an instance of the model, fit it on the training data and make
+        predictions on the test data:
+      </p>
+      <pre><code class="language-python">  model = LinearRegression1D()
+  model.fit(train_X_0, y_train)
+  predictions = model.predict(test_X_0)</code></pre>
+      <p>
+        Finally, we can evaluate the performance of the model by calculating the mean squared error between the predictions and the true values:
+      </p>
+      <pre><code class="language-python">  score = np.mean((predictions - y_test) ** 2)
+  print(f"Mean Squared Error: {score}")</code></pre>
+  <code>Mean Squared Error: 0.7091157771765549</code>
+        <p>This is a relatively low error, indicating that the model was able to learn a good amount of information about the relationship between X and y.</p>
+        <p>
+          We can also try this with the other features, for brevity I won't show the code, but the results look something like this:
+        </p>
+        <div class="chart-wrap">
+          <canvas id="mse-chart"></canvas>
+        </div>
+        <p>
+          As we can see most of the features have a relatively high mean squared error, which means either they are not very good predictors of house value on their own, or that the relationship between them and the target is not linear.
+        </p>
+    <h2 id="n-d-linear-regression">N-D Linear Regression</h2>
+    <p>
+      Now that we have implemented 1D linear regression, we can easily extend this to N-D linear regression, where we can use multiple features to predict the target variable. If you recall from the notes, the optimal solution for the parameters is given by:
+    </p>
+    \[
+    \mathbf{\theta} = (\mathbf{X}^T \mathbf{X})^{-1} \mathbf{X}^T \mathbf{y}
+    \]
+    <p>
+      In this case \(\mathbf{X}\) is the feature matrix with a column of ones added for the bias term, \(\mathbf{y}\) is the target variable and \(\mathbf{\theta}\) is the vector of parameters, which includes both the weights and the bias term.
+    </p>
+    <p>
+      Like before, we will implement this in a class called <code>LinearRegressionND</code>. Again we will have a <code>fit</code> and <code>predict</code> method. This time we only need to define one parameter, which is our vector of weights:
+    </p>
+    <pre><code class="language-python">  class LinearRegressionND:
+      def __init__(self):
+          self.theta = None</code></pre>
+    <p>
+      For the <code>fit</code> method, we need to first add a columns of ones to the feature matrix to account for the bias term. Then we can apply the formula above:
+    </p>
+    <pre><code class="language-python">  def fit(self, X, y):
+      n_samples, n_features = X.shape
+      bias = np.ones((n_samples, 1))
+      X = np.hstack((bias, X))
+      self.theta = np.linalg.inv(X.T @ X) @ X.T @ y</code></pre>
+    <p>NOTE: the <code>.T</code> operator denotes the transpose and the <code>@</code> is matrix multiplication. Then we can implement the <code>predict</code> method. Again first adding the bias column to the input:</p>
+    <pre><code class="language-python">  def predict(self, X):
+      bias = np.ones((X.shape[0], 1))
+      X = np.hstack((bias, X))
+      return X @ self.theta</code></pre>
+      <p>If we put it all together, it looks something like this.</p>
+    <pre><code class="language-python">  class LinearRegressionND:
+      def __init__(self):
+          self.theta = None
+
+      def fit(self, X, y):
+          n_samples, n_features = X.shape
+          bias = np.ones((n_samples, 1))
+          X = np.hstack((bias, X))
+          self.theta = np.linalg.inv(X.T @ X) @ X.T @ y
+
+      def predict(self, X):
+          bias = np.ones((X.shape[0], 1))
+          X = np.hstack((bias, X))
+          return X @ self.theta</code></pre>
+      <p>
+        We can then use it predict our house prices again, but this time using all of the features at once:
+      </p>
+      <pre><code class="language-python">  model = LinearRegressionND()
+  model.fit(X_train, y_train)
+  predictions = model.predict(X_test)
+  score = np.mean((predictions - y_test) ** 2)
+  print(f"Mean Squared Error: {score}")</code></pre>
+  <code>Mean Squared Error: 0.5558915986954801</code>
+  <p>
+    As you can see using all the features at once gives us a better prediction for the house prices than just using one of the features, which is not a surprise.
+    Interestingly, we can also look at the weights to see which features are the most important for the model.
+    And which features we can drop.
+    The weights also tell us the direction of the relationship between the feature and the target. 
+  </p>
+  <p>Here's a little script you can run yourself to see:</p>
+  <pre><code class="language-python">  dp = 4  # set desired decimal places
+
+  param_names = ["Bias"] + feature_names
+  rounded_theta = np.round(model.theta, dp)
+
+  for name, value in zip(param_names, rounded_theta):
+      print(f"{name}: {value:.{dp}f}")</code></pre>
+
+  <p>
+    For my particular run, the weights looked like this:
+    <ul>
+      <li><p><code>Bias: -37.0233</code></p></li>
+      <li><p><code>MedInc: 0.4487</code></p></li>
+      <li><p><code>HouseAge: 0.0097</code></p></li>
+      <li><p><code>AveRooms: -0.1233</code></p></li>
+      <li><p><code>AveBedrms: 0.7831</code></p></li>
+      <li><p><code>Population: -0.0000</code></p></li>
+      <li><p><code>AveOccup: -0.0035</code></p></li>
+      <li><p><code>Latitude: -0.4198</code></p></li>
+      <li><p><code>Longitude: -0.4337</code></p>
+    </ul>
+  </p>
+  <p>
+    From these, we can see that the average number of bedrooms is the most important feature, having the largest absolute value.
+    We can also see that the it has a positive relationship with the target. Which makes sense, you would expect that the more bedrooms a house has, the more expernsive it is.
+  </p>
+  <h2 id="adding-basis-functions">Adding Basis Functions</h2>
+  <p>
+    One of the limitations of linear regression is that is can only capture linear relationships between the features and target variable.
+    However, in reality, the relationship between quantities is often not linear.
+    One way to extend the model is to add basis functions. However, we will need a more suitable dataset for this.
+  </p>
+  <p>
+    The best way to show this is to use a dataset with only one feature, so we can easily visualise the relationship. Additionally if we use a synthetic
+    dataset, we can control the relationship exactly, and make it non-linear. For this, we can use the following code:
+  </p>
+  <pre><code class="language-python">  X = np.linspace(-1, 1, 2000)
+  y = 0.5 * np.sin(10 * X) + 2 * X ** 3 - X ** 2 + 0.2 * np.random.randn(2000)
+  X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+  </code></pre>
+  <p>
+    Which will give a dataset that looks something like this:
+  </p>
+  <div class="chart-wrap">
+    <canvas id="non-linear-data"></canvas>
+  </div>
+  <h4>Polynomial Basis Function</h4>
+  <p>
+    There are many different types of basis functions, perhaps the most simple being polynomial. Lets go ahead and add one to our regression model and see how it performs vs the simple linear model. 
+    We will start with a quadratic without interaction terms, which means we will add the square of each feature as new columns to our design matrix. 
+    We can however, design the class such that we can use any degree of polynomial we want. Let's start with intialising the class:
+  </p>
+  <pre><code class="language-python">  class PolynomialRegression:
+      def __init__(self, degree):
+          self.degree = degree
+          self.theta = None</code></pre>
+  <p>
+    Here we pass the degree of the polynomial we want to use as an argument to the init method. As before, we can initialise the weights to none as we won't learn them via an interative approach.
+  </p>
+  <p>
+    Next we need to define a private method to compute the basis functions. This method will take in the input data and return a new design matrix with the basis functions added as new columns. For example, if we have a feature \(x\) and we want to add a quadratic basis function, we would add a new column with \(x^2\). If we have multiple features, we would add the square of each feature as new columns. The code for this looks like this:
+  </p>
+  <pre><code class="language-python">  def _design_matrix(self, X):
+      n_samples, _ = X.shape
+      bias = np.ones((n_samples, 1))
+      X_poly = bias
+      for d in range(1, self.degree + 1):
+          X_poly = np.hstack((X_poly, X ** d))
+      return X_poly</code></pre>
+  <p>
+    We first create a bias column of ones, then we iterate over the degrees of the polynomial we want to add and add the corresponding basis matrix to our design matrix.
+    We should end up with a matrix of shape \((n\_samples, n\_features \times degree + 1)\), where the first column is the bias term and the rest of the columns are the basis functions, including the linear term.
+  </p>
+  <p>
+    Now we can implement the <code>fit</code> and <code>predict</code> methods, which are pretty much the same as before, just using the new design matrix instead of the original input data:
+  </p>
+  <pre><code class="language-python">  def fit(self, X, y):
+      design_matrix = self._design_matrix(X)
+      self.theta = np.linalg.inv(design_matrix.T @ design_matrix) @ design_matrix.T @ y
+
+  def predict(self, X):
+      design_matrix = self._design_matrix(X)
+      return design_matrix @ self.theta</code></pre>
+  <p>
+    Putting it all together, the complete class looks like this:
+  </p>
+  <pre><code class="language-python">class PolynomialRegression:
+    def __init__(self, degree):
+        self.degree = degree
+        self.theta = None
+    
+    def _design_matrix(self, X):
+        n_samples, _ = X.shape
+        bias = np.ones((n_samples, 1))
+        X_poly = bias
+        for d in range(1, self.degree + 1):
+            X_poly = np.hstack((X_poly, X ** d))
+        return X_poly
+
+    def fit(self, X, y):
+        design_matrix = self._design_matrix(X)
+        self.theta = np.linalg.inv(design_matrix.T @ design_matrix) @ design_matrix.T @ y
+
+    def predict(self, X):
+        design_matrix = self._design_matrix(X)
+        return design_matrix @ self.theta</code></pre>
+    <p>
+      We can then create an instance of the model and fit it to the synthetic dataset we created earlier. 
+      Given that the generating function for the data is cubic with a sinusiodal component, we would expect that we could get a reasonable fit for the data. 
+    </p>
+    <pre><code class="language-python">  model = PolynomialRegression(degree=3)
+  model.fit(X_train.reshape(-1, 1), y_train)
+  predictions = model.predict(X_test.reshape(-1, 1))
+  score = np.mean((predictions - y_test) ** 2)
+  print(f"Mean Squared Error: {score}")</code></pre>
+  <code>Mean Squared Error: 0.15510426445874098</code>
+  <p>
+    Now a mean sqaured error of 0.155 is quite hard to interpret on its own, but we can compare it to the mean squared error of the linear regression model by using <code>degree=1</code> when we create the instance:
+  </p>
+  <pre><code class="language-python">  model = PolynomialRegression(degree=1)
+  model.fit(X_train.reshape(-1, 1), y_train)
+  predictions = model.predict(X_test.reshape(-1, 1))
+  score = np.mean((predictions - y_test) ** 2)
+  print(f"Mean Squared Error: {score}")</code></pre>
+  <code>Mean Squared Error: 0.37886078479083424</code>
+  <p>
+    We can see that the cubic basis function gives a whopping 59% improvement in the mean squared error compared to the linear model.
+    Lets also visualise these predictions to see how well it is fitting the data. We can do this by plotting the true values and the true curve vs the functions given by the learned basis functions:
+  </p>
+  <div class="chart-wrap">
+    <canvas id="linear-vs-cubic"></canvas>
+    </div>
+      <p>
+    As we can see the linear function captures the general increasing trend of the data but fails to capture any of the local movements. 
+    The cubic function also only manages to capture the trend but better than the linear function. Both of the them, unsurprisingly, fail to capture the sinusoidal component of the data.
+  </p>
+  <p>
+    We can also try adding higher order polynomial basis functions, but we need to be careful with overfitting. 
+    Try a couple cases on your own and see how it affects the mean squared error. Also print the mean squared error on the training set. 
+    If there is a large gap between the training and test error, that is a sign of overfitting.
+  </p>
+  <p>For example:</p>
+  <div class="chart-wrap">
+    <canvas id="sextic-vs-decic"></canvas>
+  </div>
+  <p>
+    Here we see that the decic seems to fit the dataset really well, but it is likely that it is overfitting the data in this region. 
+    If we plot the predictions on a set that is outside the range of the training data, we can see that it fails to generalise at all.
+    It reaches very high values that are not at all close to the true values, which is a clear sign of overfitting.
+    You can hover over the chart to see the exact values.
+  </p>
+  <div class="chart-wrap">
+    <canvas id="decic-on-out-of-range"></canvas>
+  </div>
+  <p>
+    Now, of course we can also add other types of basis functions, and even combine different types, but I will leave that for the reader to try out.
+  </p>
+  </article>
+
+</div>
+
+<script>
+
+  // Active TOC highlighting
+  const links = document.querySelectorAll(".toc a");
+  const sections = document.querySelectorAll("h2");
+
+  window.addEventListener("scroll", () => {
+    let current = "";
+
+    sections.forEach(section => {
+      const top = section.offsetTop - 120;
+      if (scrollY >= top) {
+        current = section.getAttribute("id");
+      }
+    });
+
+    links.forEach(link => {
+      link.classList.remove("active");
+      if (link.getAttribute("href") === "#" + current) {
+        link.classList.add("active");
+      }
+    });
+  });
+
+  window.addEventListener("load", () => {
+    if (window.MathJax && typeof window.MathJax.typesetPromise === "function") {
+      window.MathJax.typesetPromise();
+    }
+  });
+
+  const mobileToc = document.getElementById("mobile-toc");
+
+  if (mobileToc) {
+    const closeMobileToc = () => {
+      mobileToc.open = false;
+    };
+
+    const clickedInsideMobileToc = event => {
+      if (typeof event.composedPath === "function") {
+        return event.composedPath().includes(mobileToc);
+      }
+
+      return mobileToc.contains(event.target);
+    };
+
+  document.addEventListener("pointerdown", event => {
+    if (mobileToc.open && !clickedInsideMobileToc(event)) {
+      closeMobileToc();
+    }
+  }, true);
+    mobileToc.querySelectorAll("a").forEach(link => {
+      link.addEventListener("click", () => {
+        closeMobileToc();
+      });
+    });
+  }
+</script>
+<script src="./chart.js"></script>
+</body>
+</html>
