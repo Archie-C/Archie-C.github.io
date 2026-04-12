@@ -29,9 +29,6 @@
       </section>
 
       <section data-auto-animate>
-        <h2 data-id="linear-regression">1. LINEAR REGRESSION</h2>
-      </section>
-      <section data-auto-animate>
         <svg width="700" height="450" viewBox="0 0 700 450">
         <!-- Axes -->
         <g stroke="var(--dark-text)" stroke-width="2">
@@ -68,12 +65,52 @@
         </svg>
       </section>
       <section data-auto-animate>
-        <p style="color: var(--dark-muted);">What happens when there are many inputs?</p>
-          <g>
-            <p>\(y(x) = mx + c\)</p>
-          </g>
-          <p class="fragment">\(y(\mathbf{x}, \mathbf{w}) = w_0 + w_1 x_1 + w_2 x_2 + \cdots + w_n x_n\)</p>
-          <p class="fragment">\(y(\mathbf{x}, \mathbf{w}) = \mathbf{w}^\top \mathbf{x}\)</p>
+        <p style="color: var(--dark-muted);">We want to formalize this a bit</p>
+        <p>\(y(x) = mx + c\)</p>
+      </section>
+        <section data-auto-animate>
+        <p style="color: var(--dark-muted);">We want to formalize this a bit</p>
+        <p>\(y(x) = w_1x + w_0\)</p>
+      </section>
+      <section data-auto-animate>
+        <svg width="700" height="450" viewBox="0 0 700 450">
+        <!-- Axes -->
+        <g stroke="var(--dark-text)" stroke-width="2">
+          <line x1="80" y1="380" x2="620" y2="380"></line> <!-- x-axis -->
+          <line x1="80" y1="380" x2="80" y2="60"></line>   <!-- y-axis -->
+        </g>
+
+        <!-- Axis labels -->
+        <g font-size="20" fill="var(--dark-text)">
+          <text x="630" y="385"><tspan font-style="italic">x</tspan></text>
+          <text x="70" y="50"><tspan font-style="italic">y</tspan></text>
+        </g>
+
+        <!-- Data points -->
+        <g fill="var(--dark-text)">
+          <circle cx="140" cy="320" r="6"></circle>
+          <circle cx="210" cy="290" r="6"></circle>
+          <circle cx="280" cy="250" r="6"></circle>
+          <circle cx="360" cy="220" r="6"></circle>
+          <circle cx="430" cy="180" r="6"></circle>
+          <circle cx="520" cy="140" r="6"></circle>
+        </g>
+
+        <!-- Regression line -->
+        <g stroke="var(--dark-accent-blue)" stroke-width="3">
+          <line x1="120" y1="330" x2="560" y2="140"></line>
+        </g>
+        <g class="fragment" stroke="var(--dark-accent-orange)" stroke-width="3">
+          <line x1="520" y1="140" x2="526" y2="156"></line>
+          <line x1="430" y1="180" x2="436" y2="194"></line>
+          <line x1="360" y1="220" x2="362" y2="226"></line>
+          <line x1="280" y1="250" x2="284" y2="260"></line>
+        </g>
+
+
+        </svg>
+        <p class="fragment"style="color: var(--dark-accent-orange);">\(L(w_0, w_1) = \sum_{i=1}^n (y_i - (w_1 x_i + w_0))^2\)</p>
+
       </section>
 
     </div>
