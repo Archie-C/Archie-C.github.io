@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Regression Exercises</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:wght@600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <style>
+    :root {
+      --background: #f5f7fb;
+      --surface: #ffffff;
+      --surface-muted: #f9fbfd;
+      --border: #dbe3ee;
+      --text: #16202f;
+      --muted: #566273;
+      --accent: #2c6db2;
+      --shadow: 0 10px 30px rgba(21, 38, 63, 0.06);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+      color: var(--text);
+      background: var(--background);
+    }
+
+    main {
+      width: min(920px, calc(100% - 2rem));
+      margin: 0 auto;
+      padding: 3rem 0 4rem;
+    }
+
+    .hero,
+    .exercise-card {
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      padding: 2.2rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .eyebrow {
+      margin: 0 0 1rem;
+      color: var(--accent);
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    h1,
+    h2,
+    h3 {
+      font-family: "Source Serif 4", Georgia, serif;
+      letter-spacing: -0.02em;
+      margin-top: 0;
+    }
+
+    h1 {
+      margin-bottom: 1rem;
+      font-size: clamp(2.2rem, 4vw, 3.4rem);
+      line-height: 1.05;
+    }
+
+    .lead {
+      margin: 0;
+      max-width: 62ch;
+      color: var(--muted);
+      font-size: 1.02rem;
+      line-height: 1.7;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+
+    .hero-stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.85rem;
+    }
+
+    .stat {
+      padding: 1rem 1.05rem;
+      border-radius: 14px;
+      background: var(--surface-muted);
+      border: 1px solid var(--border);
+    }
+
+    .stat strong {
+      display: block;
+      margin-bottom: 0.3rem;
+      color: var(--text);
+      font-size: 1rem;
+    }
+
+    .stat span {
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.5;
+    }
+
+    .exercise-card {
+      padding: 2rem 2.2rem;
+    }
+
+    .exercise-label {
+      display: inline-block;
+      margin-bottom: 0.7rem;
+      color: var(--accent);
+      font-size: 0.82rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .exercise-card h2 {
+      margin-bottom: 0.8rem;
+      font-size: clamp(1.6rem, 3vw, 2.15rem);
+    }
+
+    .problem-intro {
+      margin: 0 0 1.35rem;
+      color: var(--muted);
+      line-height: 1.7;
+      max-width: 72ch;
+    }
+
+    .problem-text {
+      color: var(--muted);
+      line-height: 1.7;
+      max-width: 72ch;
+    }
+
+    .split-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(240px, 0.75fr);
+      gap: 1rem;
+      align-items: start;
+    }
+
+    .panel {
+      padding: 1.2rem 1.25rem;
+      border-radius: 14px;
+      background: var(--surface-muted);
+      border: 1px solid var(--border);
+    }
+
+    .panel h3 {
+      margin-bottom: 0.8rem;
+      font-size: 1.05rem;
+    }
+
+    ul,
+    ol {
+      margin: 0;
+      padding-left: 1.25rem;
+    }
+
+    li {
+      margin-bottom: 0.65rem;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    li::marker {
+      color: var(--accent);
+    }
+
+    .tasks ol > li {
+      padding-left: 0.15rem;
+    }
+
+    .tasks ul {
+      margin-top: 0.6rem;
+    }
+
+    .callout {
+      border-left: 3px solid var(--accent);
+      padding-left: 0.95rem;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    @media (max-width: 880px) {
+      .hero-grid,
+      .split-layout,
+      .hero-stats {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      main {
+        width: min(100% - 1rem, 920px);
+        padding-top: 1rem;
+      }
+
+      .hero,
+      .exercise-card {
+        padding: 1.35rem;
+        border-radius: 14px;
+      }
+
+      .lead,
+      .problem-intro,
+      li {
+        font-size: 0.98rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="hero">
+      <div class="hero-grid">
+        <div>
+          <p class="eyebrow">AAU Deep Learning Course</p>
+          <h1>Regression exercises</h1>
+          <p class="lead">
+            These exercises are for the regression section of the course. 
+            They are mostly designed to be solved with pen and paper.
+            Obviously, I cannot stop you from using AI tools to solve them.
+            However, I encourage you to solve them yourself first as they <strong>WILL</strong> help in the exam. 
+            The exam questions will be similar in style.
+          </p>
+          <br/>
+          <p class="lead">
+            Please bring your solutions to the next session, we will discuss them together and then I will assess them and provide feedback.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="exercise-card">
+      <span class="exercise-label">Question 1</span>
+      <h2>Derivation</h2>
+
+
+
+    <div class="panel">
+        <h3>Scenario</h3>
+              <p class="problem-intro">
+        We would like to predict the price of a house based on its size (in square metres) and the number of bedrooms.
+        We have a dataset of \(N\) houses, where  we have the size \(x\), the number of bedrooms \(z\), and the price \(y\).
+        We want to fit a linear regression model of the form:
+      </p>
+      \[
+      y = w_0 + w_1 x + w_2 z
+      \]
+      <p class="problem-text">
+        Where \(w_0\) is the intercept, \(w_1\) is the coefficient for the size, and \(w_2\) is the coefficient for the number of bedrooms.
+      </p>
+    </div>
+
+
+    <div class="panel tasks" style="margin-top: 1.2rem;">
+        <h3>Task</h3>
+        <p class="problem-text">
+            Derive the closed-form solution for the parameters \(w_0, w_1, w_2\). Provide each step of the derivation.
+        </p>
+        </div>
+    </section>
+    <br>
+    <section class="exercise-card">
+      <span class="exercise-label">Question 2</span>
+      <h2>Basis Functions</h2>
+
+    <div class="panel">
+        <h3>Scenario</h3>
+        <p class="problem-text">
+          I would like to model the relationship between the air quality index (AQI), temperature, and the number of hospital admissions in a given city.
+          I have a dataset of \(N\) days, where for each day \(i\), i have the AQI \(x_i\), the temperature \(T_i\), and the number of hospital admissions \(y_i\).
+          My aim is to predict the number of hospital admissions based on the AQI and temperature using a regression model.
+        </p>
+    </div>
+
+
+    <div class="panel tasks" style="margin-top: 1.2rem;">
+        <h3>Tasks</h3>
+        <p class="problem-text">
+          <ol>
+            <li>Explain why a standard linear model may not be sufficient for this problem.</li>
+            <li>Define a suitable feature mapping \(\phi(x, T)\) that includes non-linear effects.</li>
+            <li>Show that the resulting model is still linear in the parameters.</li>
+          </ol>
+        </p>
+        </div>
+    </section>
+    <br>
+        <section class="exercise-card">
+      <span class="exercise-label">Question 3</span>
+      <h2>Generalisation</h2>
+    
+    <div class="panel">
+        <h3>Scenario</h3>
+        <p class="problem-text">
+        A student fits two regression models to the housing dataset as before:
+        </p>
+        <ul>
+            <li><strong>Model A:</strong> \(y = w_0 + w_1 x + w_2 z\)</li>
+            <li><strong>Model B:</strong> uses a polynomial basis function up to degree 5 for both features.</li>
+        </ul>
+        <p class="problem-text">
+        Model B achieves a much lower training error than Model A.
+        </p>
+    </div>
+
+
+    <div class="panel tasks" style="margin-top: 1.2rem;">
+        <h3>Tasks</h3>
+        <p class="problem-text">
+          <ol>
+            <li>Explain why you expect Model B to have a lower training error than Model A.</li>
+            <li>Explain why Model B might perform worse on unseen data.</li>
+            <li>Describe one method to select between Model A and Model B in practice.</li>
+          </ol>
+        </p>
+        </div>
+    </section>
+
+    
+    </main>
+</body>
+</html>
