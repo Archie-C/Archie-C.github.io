@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en" data-palette="paper">
+<head>
+<meta charset="utf-8"/>
+<link rel="stylesheet" href="../colors_and_type.css"/>
+<style>
+  body { padding: 22px 28px; }
+  .label { font-family: var(--font-mono); font-size: 10px; color: var(--fg-4); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 10px; }
+  .lettering { font-family: var(--font-mono); font-weight: 700; font-size: 56px; line-height: 1; letter-spacing: -0.02em; color: var(--fg); margin-bottom: 4px; }
+  .lettering .dot { color: var(--accent); }
+  .meta { font-family: var(--font-mono); font-size: 11px; color: var(--fg-3); }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 24px 32px; }
+  .alt { display: flex; flex-direction: column; gap: 6px; }
+  .alt .small { font-family: var(--font-mono); font-weight: 600; font-size: 22px; letter-spacing: -0.01em; color: var(--fg); }
+  .alt .full { font-family: var(--font-mono); font-weight: 600; font-size: 18px; letter-spacing: -0.005em; color: var(--fg); }
+  .note { grid-column: 1 / -1; font-family: var(--font-sans); font-size: 11.5px; color: var(--fg-3); line-height: 1.5; padding-top: 12px; border-top: 1px solid var(--rule); margin-top: 4px; max-width: 64ch; }
+</style>
+</head>
+<body>
+  <div class="row">
+    <div>
+      <div class="label">primary — lettering, not a logo</div>
+      <div class="lettering">a<span class="dot">.</span>c</div>
+      <div class="meta">JetBrains Mono · 700 · −0.02em</div>
+    </div>
+    <div class="alt">
+      <div class="label">when more is needed</div>
+      <span class="full">archie carpenter</span>
+      <span class="small">a<span style="color: var(--accent)">.</span>c</span>
+      <span class="meta">just the name, set in the headline font. no mark, no container.</span>
+    </div>
+    <p class="note">No logo. The name is the identity. Set the wordmark in JetBrains Mono at the weight and tracking shown above and we're done — no monogram badge, no enclosed square, no decorative glyph. The period stays accent-coloured because it's load-bearing typography (a · c, not ac), not a flourish. If a square icon is genuinely needed (favicon, app tile), use the same lettering on a flat ground — never an alternate mark.</p>
+  </div>
+</body>
+</html>

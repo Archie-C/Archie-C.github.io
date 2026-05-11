@@ -1,65 +1,13 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-palette="paper">
 <head>
   <meta charset="utf-8"/>
-  <title>Research — Archie Carpenter</title>
+  <title>research | archie carpenter</title>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400..700;1,400..700&family=Inter:wght@400..700&family=Source+Serif+4:opsz,wght@8..60,400..600&display=swap" rel="stylesheet"/>
+  <link rel="icon" href="../design_system/assets/favicon.svg"/>
+  <link rel="stylesheet" href="../design_system/colors_and_type.css"/>
   <style>
-    :root {
-      --bg:        #F6F1E7;
-      --bg-2:      #ECE6D6;
-      --bg-3:      #DCD2BC;
-      --bg-sunk:   #E8E1CC;
-      --fg:        #15120B;
-      --fg-2:      #3D362A;
-      --fg-3:      #6B6149;
-      --fg-4:      #A09373;
-      --rule:      #DCD2BC;
-      --accent:       #6B2C5C;
-      --accent-hover: #4F1E44;
-      --accent-soft:  #F0E2EA;
-      --font-mono:  'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
-      --font-sans:  'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-      --font-serif: 'Source Serif 4', 'Source Serif Pro', Georgia, 'Times New Roman', serif;
-      --ease:     cubic-bezier(0.2, 0, 0, 1);
-      --dur-fast: 120ms;
-      --page-max: 1180px;
-      --rail:     200px;
-    }
     *, *::before, *::after { box-sizing: border-box; }
-    html { color-scheme: light; }
-    body {
-      margin: 0;
-      background: var(--bg);
-      color: var(--fg);
-      font-family: var(--font-sans);
-      font-size: 1rem;
-      line-height: 1.6;
-      -webkit-font-smoothing: antialiased;
-      text-rendering: optimizeLegibility;
-    }
-    h1, h2, h3, h4, h5, h6 {
-      font-family: var(--font-mono);
-      font-weight: 600;
-      line-height: 1.15;
-      letter-spacing: -0.01em;
-      margin: 0;
-      color: var(--fg);
-    }
-    a {
-      color: var(--accent);
-      text-decoration: underline;
-      text-decoration-thickness: 1px;
-      text-underline-offset: 0.18em;
-      transition: color var(--dur-fast) var(--ease),
-                  text-decoration-thickness var(--dur-fast) var(--ease);
-    }
-    a:hover { color: var(--accent-hover); text-decoration-thickness: 2px; }
-    a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
-    ::selection { background: var(--accent-soft); color: var(--fg); }
 
     .page {
       display: grid;
@@ -68,6 +16,7 @@
       max-width: var(--page-max);
       margin: 0 auto;
     }
+
     .rail {
       padding: 40px 24px 32px;
       border-right: 1px solid var(--rule);
@@ -80,6 +29,7 @@
       height: 100vh;
       overflow-y: auto;
     }
+
     .rail .mark {
       font-family: var(--font-mono);
       font-weight: 700;
@@ -89,8 +39,14 @@
       color: var(--fg);
       text-decoration: none;
     }
+
     .rail .mark .dot { color: var(--accent); }
-    .rail nav { display: flex; flex-direction: column; }
+
+    .rail nav {
+      display: flex;
+      flex-direction: column;
+    }
+
     .rail nav a {
       font-family: var(--font-mono);
       font-size: 14px;
@@ -103,8 +59,17 @@
       transition: background var(--dur-fast) var(--ease),
                   color var(--dur-fast) var(--ease);
     }
-    .rail nav a:hover { background: var(--bg-2); color: var(--fg); }
-    .rail nav a.active { border-left-color: var(--accent); color: var(--fg); }
+
+    .rail nav a:hover {
+      background: var(--bg-2);
+      color: var(--fg);
+    }
+
+    .rail nav a.active {
+      border-left-color: var(--accent);
+      color: var(--fg);
+    }
+
     .rail .foot {
       margin-top: auto;
       font-family: var(--font-sans);
@@ -112,59 +77,81 @@
       color: var(--fg-3);
       line-height: 1.5;
     }
-    .rail .foot a { color: var(--fg-2); text-decoration-thickness: 1px; }
 
-    main { padding: 56px 64px 80px; max-width: 760px; }
-
-    .eyebrow {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      color: var(--fg-3);
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      margin-bottom: 14px;
+    main {
+      padding: 56px 72px 80px;
+      max-width: 920px;
+      width: 100%;
     }
-    h1.hero { font-size: 36px; line-height: 1.1; margin-bottom: 18px; }
-    .bio {
+
+    .eyebrow { margin-bottom: 14px; }
+
+    h1.hero {
+      font-size: 38px;
+      line-height: 1.1;
+      margin-bottom: 18px;
+      max-width: 24ch;
+    }
+
+    .intro {
       font-family: var(--font-sans);
       font-size: 17px;
       line-height: 1.55;
       color: var(--fg);
-      max-width: 60ch;
-      margin: 0 0 32px;
+      max-width: 72ch;
+      margin: 0 0 36px;
     }
 
     .section-head {
       display: flex;
       align-items: baseline;
       justify-content: space-between;
+      gap: 16px;
       margin-bottom: 16px;
     }
-    .section-head h2 { font-size: 17px; font-weight: 500; letter-spacing: -0.005em; }
 
-    hr.rule { margin: 36px 0 24px; border: 0; border-top: 1px solid var(--rule); }
+    .section-head h2 {
+      font-size: 17px;
+      font-weight: 500;
+      letter-spacing: -0.005em;
+    }
 
-    .papers { display: flex; flex-direction: column; }
-    .papers .item { padding: 14px 0; border-bottom: 1px solid var(--rule); }
-    .papers .item:last-child { border-bottom: 0; }
+    .paper-feature {
+      border-top: 1px solid var(--rule);
+      border-bottom: 1px solid var(--rule);
+      padding: 22px 0 24px;
+      margin-bottom: 36px;
+    }
+
+    .paper-label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--fg-3);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
 
     .paper-title {
       font-family: var(--font-mono);
       font-weight: 500;
-      font-size: 15px;
+      font-size: 21px;
       color: var(--fg);
       letter-spacing: -0.005em;
-      line-height: 1.35;
-      margin: 0 0 5px;
+      line-height: 1.25;
+      margin: 0 0 8px;
+      max-width: 34ch;
     }
+
     .paper-desc {
-      font-family: var(--font-sans);
-      font-size: 14px;
+      font-family: var(--font-serif);
+      font-size: 17px;
       color: var(--fg-2);
-      line-height: 1.5;
-      margin: 0 0 6px;
-      max-width: 58ch;
+      line-height: 1.6;
+      max-width: 70ch;
+      margin: 0 0 16px;
     }
+
     .paper-meta {
       font-family: var(--font-sans);
       font-size: 13px;
@@ -173,18 +160,101 @@
       gap: 14px;
       flex-wrap: wrap;
       align-items: center;
+      margin-bottom: 16px;
     }
-    .paper-meta .venue { color: var(--fg-2); font-family: var(--font-mono); font-size: 12px; }
-    .paper-meta .status {
+
+    .paper-meta .venue {
+      color: var(--fg-2);
+      font-family: var(--font-mono);
+      font-size: 12px;
+    }
+
+    .status {
       font-family: var(--font-mono);
       font-size: 11px;
       letter-spacing: 0.04em;
-      color: var(--fg-3);
+      color: var(--accent);
       border: 1px solid var(--rule);
-      padding: 1px 6px;
-      border-radius: 3px;
+      background: var(--accent-soft);
+      padding: 2px 7px;
+      border-radius: 4px;
     }
-    .paper-meta a { color: var(--fg-3); font-family: var(--font-mono); font-size: 12px; }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 500;
+      padding: 7px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--rule);
+      background: var(--bg-2);
+      color: var(--fg);
+      text-decoration: none;
+      transition: background var(--dur-fast) var(--ease),
+                  border-color var(--dur-fast) var(--ease);
+    }
+
+    .btn:hover {
+      background: var(--bg-3);
+      border-color: var(--fg-4);
+      color: var(--fg);
+      text-decoration: none;
+    }
+
+    .btn.primary {
+      background: var(--fg);
+      border-color: var(--fg);
+      color: var(--bg);
+    }
+
+    .btn.primary:hover {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--bg);
+    }
+
+    .research-list {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .research-list .item {
+      padding: 14px 0;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .research-list .item:last-child { border-bottom: 0; }
+
+    .work-title {
+      font-family: var(--font-mono);
+      font-weight: 500;
+      font-size: 15px;
+      color: var(--fg);
+      letter-spacing: -0.005em;
+      line-height: 1.35;
+      margin: 0 0 5px;
+    }
+
+    .work-desc {
+      font-family: var(--font-sans);
+      font-size: 14px;
+      color: var(--fg-2);
+      line-height: 1.5;
+      max-width: 72ch;
+      margin: 0 0 7px;
+    }
+
+    hr.rule {
+      margin: 36px 0 24px;
+      border: 0;
+      border-top: 1px solid var(--rule);
+    }
 
     .pagefoot {
       margin-top: 64px;
@@ -195,51 +265,90 @@
       color: var(--fg-4);
       display: flex;
       justify-content: space-between;
+      gap: 16px;
     }
-    .pagefoot a { color: var(--fg-3); text-decoration: none; }
+
+    .pagefoot a {
+      color: var(--fg-3);
+      text-decoration: none;
+    }
+
     .pagefoot a:hover { color: var(--fg); }
 
     @media (max-width: 720px) {
       .page { grid-template-columns: 1fr; }
-      .rail { height: auto; position: static; border-right: 0; border-bottom: 1px solid var(--rule); }
-      main { padding: 32px 24px 60px; max-width: none; }
-      h1.hero { font-size: 28px; }
+
+      .rail {
+        height: auto;
+        position: static;
+        border-right: 0;
+        border-bottom: 1px solid var(--rule);
+      }
+
+      main {
+        padding: 32px 24px 60px;
+        max-width: none;
+      }
+
+      h1.hero { font-size: 30px; }
+
+      .paper-title { font-size: 18px; }
+
+      .pagefoot {
+        flex-direction: column;
+      }
     }
   </style>
 </head>
 <body>
 <div class="page">
-
   <aside class="rail">
     <a href="../" class="mark">a<span class="dot">.</span>c</a>
-    <nav>
+    <nav aria-label="Main navigation">
       <a href="../">home</a>
       <a href="./" class="active">research</a>
-      <a href="../courses/">teaching</a>
+      <a href="../courses/">courses</a>
       <a href="../projects/">projects</a>
       <a href="../cv/">cv</a>
     </nav>
     <div class="foot">
-      Researcher &amp; teacher.<br/>
-      <a href="../contact/">Get in touch</a>
+      Researcher &amp; teacher.
     </div>
   </aside>
 
   <main>
     <div class="eyebrow">research</div>
-    <h1 class="hero">What I've been working on.</h1>
-    <p class="bio">I work on recommender systems in healthcare — specifically, how machine learning can make better use of electronic health records to support clinical decision-making. My background is in engineering and applied maths.</p>
+    <h1 class="hero">Machine learning for clinical recommender systems.</h1>
+    <p class="intro">I work on recommender systems in healthcare, especially how machine learning can make better use of electronic health records to support clinical decision-making. My current focus is reproducibility: what survives when published drug recommendation models are rebuilt carefully, tested consistently, and evaluated across patient cohorts.</p>
 
     <div class="section-head">
-      <h2>Papers and preprints</h2>
+      <h2>Featured paper</h2>
     </div>
-    <div class="papers">
+    <article class="paper-feature">
+      <div class="paper-label">RecSys &middot; 2026 &middot; healthcare recommendation</div>
+      <h3 class="paper-title">EHR-based drug recommendation reproducibility study</h3>
+      <p class="paper-desc">A controlled re-implementation study of EHR-based drug recommendation models, evaluating how robust published results are under consistent preprocessing, training, and cohort splits.</p>
+      <div class="paper-meta">
+        <span class="venue">University of Klagenfurt &middot; 2025</span>
+        <span class="status">forthcoming</span>
+      </div>
+      <div class="actions" aria-label="Paper links">
+        <a class="btn primary" href="#">paper pending</a>
+        <a class="btn" href="#">code pending</a>
+        <a class="btn" href="#">bibtex pending</a>
+      </div>
+    </article>
+
+    <div class="section-head">
+      <h2>Ongoing work</h2>
+    </div>
+    <div class="research-list">
       <div class="item">
-        <h3 class="paper-title">EHR-based drug recommendation — reproducibility study</h3>
-        <p class="paper-desc">A reproducibility study of existing EHR-based drug recommendation models, evaluating how well published results hold under controlled re-implementation and on varied patient cohorts.</p>
+        <h3 class="work-title">Advancements in recommender systems</h3>
+        <p class="work-desc">PhD research at the University of Klagenfurt, begun in 2025. The work focuses on recommendation quality, robustness, and evaluation practice in healthcare settings.</p>
         <div class="paper-meta">
-          <span class="venue">RecSys · 2026</span>
-          <span class="status">forthcoming</span>
+          <span class="venue">University of Klagenfurt &middot; 2025-present</span>
+          <span class="status">in progress</span>
         </div>
       </div>
     </div>
@@ -247,25 +356,28 @@
     <hr class="rule"/>
 
     <div class="section-head">
-      <h2>Ongoing work</h2>
+      <h2>Research interests</h2>
     </div>
-    <div class="papers">
+    <div class="research-list">
       <div class="item">
-        <h3 class="paper-title">Advancements in recommender systems</h3>
-        <p class="paper-desc">PhD research at the University of Klagenfurt, begun 2025. Focus on improving recommendation quality and robustness in healthcare settings.</p>
-        <div class="paper-meta">
-          <span class="venue">University of Klagenfurt · 2025 – present</span>
-          <span class="status">in progress</span>
-        </div>
+        <h3 class="work-title">Clinical recommendation from electronic health records</h3>
+        <p class="work-desc">Using longitudinal patient data to support treatment suggestions while keeping evaluation honest about missingness, confounding, and clinical context.</p>
+      </div>
+      <div class="item">
+        <h3 class="work-title">Reproducibility and robustness</h3>
+        <p class="work-desc">Testing whether model improvements remain meaningful under controlled implementations, comparable data splits, and stress tests across patient groups.</p>
+      </div>
+      <div class="item">
+        <h3 class="work-title">Teaching machine learning clearly</h3>
+        <p class="work-desc">Turning research practice into course material, examples, and notes that make the assumptions behind modern ML easier to inspect.</p>
       </div>
     </div>
 
     <div class="pagefoot">
-      <span>archie carpenter · research</span>
-      <span><a href="../cv/">cv ↗</a> · © archie carpenter</span>
+      <span>archie carpenter &middot; research</span>
+      <span><a href="../cv/">cv &nearr;</a> &middot; &copy; archie carpenter</span>
     </div>
   </main>
-
 </div>
 </body>
 </html>

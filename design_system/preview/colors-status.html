@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en" data-palette="paper">
+<head>
+<meta charset="utf-8"/>
+<link rel="stylesheet" href="../colors_and_type.css"/>
+<style>
+  body { padding: 22px 28px; }
+  .title { font-family: var(--font-mono); font-size: 11px; color: var(--fg-3); letter-spacing: 0.04em; text-transform: uppercase; margin: 0 0 14px; }
+  .row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .item { display: flex; align-items: center; gap: 10px; }
+  .dot { width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0; border: 1px solid var(--rule); }
+  .name { font-family: var(--font-mono); font-size: 12px; color: var(--fg); display: block; }
+  .hex { font-family: var(--font-mono); font-size: 10px; color: var(--fg-4); }
+  .pair { display: flex; flex-direction: column; }
+</style>
+</head>
+<body>
+  <div class="title">status colors — used sparingly, in messaging only</div>
+  <div class="row">
+    <div class="item"><span class="dot" style="background:var(--success);"></span><span class="pair"><span class="name">success</span><span class="hex">#3E7A4E</span></span></div>
+    <div class="item"><span class="dot" style="background:var(--warning);"></span><span class="pair"><span class="name">warning</span><span class="hex">#B8821C</span></span></div>
+    <div class="item"><span class="dot" style="background:var(--danger);"></span><span class="pair"><span class="name">danger</span><span class="hex">#B53428</span></span></div>
+    <div class="item"><span class="dot" style="background:var(--info);"></span><span class="pair"><span class="name">info</span><span class="hex">#2A5FB0</span></span></div>
+  </div>
+</body>
+</html>

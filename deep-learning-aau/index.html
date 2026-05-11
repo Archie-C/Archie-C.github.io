@@ -1,210 +1,428 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-palette="paper">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Deep Learning Course</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:wght@600&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --background: #f5f7fb;
-      --surface: #ffffff;
-      --surface-muted: #f9fbfd;
-      --border: #dbe3ee;
-      --text: #16202f;
-      --muted: #566273;
-      --accent: #2c6db2;
-      --shadow: 0 10px 30px rgba(21, 38, 63, 0.06);
+<meta charset="utf-8"/>
+<title>Deep Learning | Archie Carpenter</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link rel="icon" href="../design_system/assets/favicon.svg"/>
+<link rel="stylesheet" href="../design_system/colors_and_type.css"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"/>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+  :root { --page-w: 1180px; }
+
+  body { background: var(--bg-2); }
+
+  .frame {
+    max-width: var(--page-w);
+    margin: 0 auto;
+    background: var(--bg);
+    min-height: 100vh;
+  }
+
+  .topbar {
+    padding: 20px 32px;
+    display: flex;
+    align-items: baseline;
+    gap: 22px;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .topbar .mark {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 22px;
+    letter-spacing: -0.02em;
+    color: var(--fg);
+    text-decoration: none;
+  }
+
+  .topbar .mark .dot { color: var(--accent); }
+
+  .topbar .crumb {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--fg-2);
+  }
+
+  .topbar .crumb a {
+    color: var(--fg-3);
+    text-decoration: none;
+  }
+
+  .topbar .crumb a:hover { color: var(--fg); }
+
+  .topbar .crumb .sep {
+    color: var(--fg-4);
+    margin: 0 8px;
+  }
+
+  .topbar nav {
+    margin-left: auto;
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .topbar nav a {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--fg-2);
+    text-decoration: none;
+  }
+
+  .topbar nav a:hover,
+  .topbar nav a.active {
+    color: var(--accent);
+  }
+
+  .course-detail {
+    padding: 48px 32px 64px;
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 56px;
+  }
+
+  .course-detail aside {
+    font-family: var(--font-sans);
+    font-size: 13px;
+    color: var(--fg-3);
+    line-height: 1.5;
+  }
+
+  .course-detail aside .h {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--fg-4);
+    display: block;
+    margin: 18px 0 6px;
+  }
+
+  .course-detail aside .h:first-child { margin-top: 0; }
+
+  .course-detail aside .kv {
+    display: flex;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 3px 0;
+  }
+
+  .course-detail aside .kv span:first-child { color: var(--fg-3); }
+
+  .course-detail aside .kv span:last-child {
+    color: var(--fg);
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    text-align: right;
+  }
+
+  .course-detail aside .links a {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    color: var(--accent);
+    text-decoration: none;
+    padding: 3px 0;
+  }
+
+  .course-detail aside .links a:hover { text-decoration: underline; }
+
+  .course-detail .main h1 {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 38px;
+    letter-spacing: -0.02em;
+    margin: 0 0 8px;
+  }
+
+  .course-detail .main .stand {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 18px;
+    color: var(--fg-2);
+    line-height: 1.5;
+    margin: 0 0 36px;
+    max-width: 56ch;
+  }
+
+  .course-detail .main h2 {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--fg-3);
+    margin: 0 0 14px;
+  }
+
+  .syllabus {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .topic {
+    padding: 18px 0;
+    border-top: 1px solid var(--rule);
+    display: grid;
+    grid-template-columns: 70px 1fr auto;
+    column-gap: 22px;
+    align-items: baseline;
+  }
+
+  .topic:last-child { border-bottom: 1px solid var(--rule); }
+
+  .topic .num {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--fg-4);
+    letter-spacing: 0.04em;
+    padding-top: 4px;
+  }
+
+  .topic .title {
+    font-family: var(--font-mono);
+    font-weight: 600;
+    font-size: 18px;
+    letter-spacing: -0.005em;
+    color: var(--fg);
+    margin: 0 0 2px;
+    line-height: 1.25;
+  }
+
+  .topic .title a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .topic .title a:hover { color: var(--accent); }
+
+  .topic .topic-sub {
+    font-family: var(--font-sans);
+    font-size: 13.5px;
+    color: var(--fg-3);
+    margin: 4px 0 0;
+    line-height: 1.5;
+  }
+
+  .topic .when {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--fg-3);
+    white-space: nowrap;
+    padding-top: 4px;
+  }
+
+  .topic ul.subtopics {
+    grid-column: 2 / 4;
+    list-style: none;
+    margin: 12px 0 4px;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .topic ul.subtopics li {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    color: var(--fg-2);
+    display: grid;
+    grid-template-columns: 44px 1fr auto;
+    column-gap: 14px;
+    align-items: baseline;
+    padding: 4px 0;
+    border-top: 1px dashed var(--rule);
+  }
+
+  .topic ul.subtopics li:first-child { border-top: none; }
+
+  .topic ul.subtopics .sn {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    color: var(--fg-4);
+    letter-spacing: 0.04em;
+  }
+
+  .topic ul.subtopics .st a {
+    color: var(--fg);
+    text-decoration: none;
+  }
+
+  .topic ul.subtopics .st a:hover { color: var(--accent); }
+
+  .topic ul.subtopics .ck {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--fg-4);
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+  }
+
+  .topic ul.subtopics .ck.done { color: var(--success); }
+  .topic ul.subtopics .ck.live { color: var(--accent); }
+
+  @media (max-width: 820px) {
+    .topbar {
+      align-items: flex-start;
+      flex-direction: column;
+      gap: 10px;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    .topbar nav { margin-left: 0; }
 
-    body {
-      margin: 0;
-      min-height: 100vh;
-      font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
-      color: var(--text);
-      background: var(--background);
-    }
-
-    main {
-      width: min(920px, calc(100% - 2rem));
-      margin: 0 auto;
-      padding: 3rem 0 4rem;
-    }
-
-    .hero,
-    .sections {
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      background: var(--surface);
-      box-shadow: var(--shadow);
-    }
-
-    .hero {
-      padding: 2.2rem;
-      margin-bottom: 1.25rem;
-    }
-
-    .eyebrow {
-      margin: 0 0 1rem;
-      color: var(--accent);
-      font-size: 0.8rem;
-      font-weight: 600;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-    }
-
-    h1,
-    h2 {
-      margin-top: 0;
-      font-family: "Source Serif 4", Georgia, serif;
-      letter-spacing: -0.02em;
-    }
-
-    h1 {
-      margin-bottom: 1rem;
-      font-size: clamp(2.3rem, 4vw, 3.6rem);
-      line-height: 1.05;
-    }
-
-    .lead {
-      margin: 0;
-      max-width: 64ch;
-      color: var(--muted);
-      font-size: 1.02rem;
-      line-height: 1.7;
-    }
-
-    .sections {
-      padding: 1.2rem;
-    }
-
-    .sections h2 {
-      margin-bottom: 1rem;
-      font-size: 1.6rem;
-    }
-
-    .section-grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 0.9rem;
-    }
-
-    .section-card {
+    .course-detail {
       display: block;
-      padding: 1.15rem 1.2rem;
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      background: var(--surface-muted);
-      color: inherit;
-      text-decoration: none;
-      transition: border-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+      padding: 36px 24px 56px;
     }
 
-    .section-card:hover,
-    .section-card:focus-visible {
-      border-color: rgba(44, 109, 178, 0.35);
-      box-shadow: 0 8px 24px rgba(21, 38, 63, 0.08);
-      transform: translateY(-1px);
-      outline: none;
+    .course-detail aside { margin-bottom: 36px; }
+  }
+
+  @media (max-width: 640px) {
+    .topbar { padding: 18px 20px; }
+
+    .course-detail .main h1 { font-size: 30px; }
+
+    .topic {
+      grid-template-columns: 48px 1fr;
+      row-gap: 4px;
     }
 
-    .section-card.is-placeholder {
-      cursor: default;
-      opacity: 0.8;
+    .topic .when { grid-column: 2; }
+
+    .topic ul.subtopics {
+      grid-column: 1 / 3;
     }
 
-    .section-card.is-placeholder:hover,
-    .section-card.is-placeholder:focus-visible {
-      transform: none;
-      box-shadow: none;
-      border-color: var(--border);
+    .topic ul.subtopics li {
+      grid-template-columns: 40px 1fr;
+      row-gap: 2px;
     }
 
-    .section-meta {
-      margin: 0 0 0.35rem;
-      color: var(--accent);
-      font-size: 0.8rem;
-      font-weight: 600;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
+    .topic ul.subtopics .ck {
+      grid-column: 2;
     }
-
-    .section-title {
-      margin: 0 0 0.35rem;
-      font-family: "Source Serif 4", Georgia, serif;
-      font-size: 1.2rem;
-    }
-
-    .section-description {
-      margin: 0;
-      color: var(--muted);
-      line-height: 1.65;
-    }
-
-    @media (max-width: 780px) {
-      .section-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    @media (max-width: 640px) {
-      main {
-        width: min(100% - 1rem, 920px);
-        padding-top: 1rem;
-      }
-
-      .hero,
-      .sections {
-        padding: 1.35rem;
-        border-radius: 14px;
-      }
-    }
-  </style>
+  }
+</style>
 </head>
 <body>
-  <main>
-    <section class="hero">
-      <p class="eyebrow">Deep Learning AAU</p>
-      <h1>Course homepage</h1>
-      <p class="lead">
-        This page contains links to all the material for the practical part of the Deep learning course at AAU. There are some exercises to prepare for the course, I would recommend going through a few just to familiarlise yourself with the foundations.
-      </p>
-    </section>
+<div class="frame">
+  <div class="topbar">
+    <a href="../" class="mark">a<span class="dot">.</span>c</a>
+    <span class="crumb"><a href="../courses/">courses</a><span class="sep">&rsaquo;</span>Deep Learning</span>
+    <nav aria-label="Course navigation">
+      <a href="./" class="active">syllabus</a>
+      <a href="./exercises/">assignments</a>
+      <a href="./examples/">resources</a>
+      <a href="#office-hours">office hours</a>
+    </nav>
+  </div>
 
-    <section class="sections">
-      <h2>Course sections</h2>
-      <div class="section-grid">
-        <a class="section-card" href="./exercises/">
-          <p class="section-meta">Available now</p>
-          <p class="section-title">Exercises</p>
-          <p class="section-description">
-            Navigate to preparatory work and future exercise sets for the course.
-          </p>
-        </a>
+  <div class="course-detail">
+    <aside>
+      <span class="h">course</span>
+      <div class="kv"><span>code</span><span>TBC</span></div>
+      <div class="kv"><span>term</span><span>Winter 2026</span></div>
+      <div class="kv"><span>format</span><span>UE (labs)</span></div>
+      <div class="kv"><span>materials</span><span>open</span></div>
 
-        <a class="section-card" href="./examples/">
-          <p class="section-meta">Available now</p>
-          <p class="section-title">Examples</p>
-          <p class="section-description">
-            This section contains worked examples and demonstration material.
-          </p>
-        </a>
+      <span class="h">prereqs</span>
+      Linear algebra, calculus, basic probability, and a working knowledge of Python. Preparatory exercises are available for anyone who wants to warm up.
 
-        <a class="section-card" href="./lectures/">
-          <p class="section-meta">Available now</p>
-          <p class="section-title">Lectures</p>
-          <p class="section-description">
-            These are the lecture slides I'll use in the course + some extras to supplement the exercises and the main course.
-          </p>
-        </a>
+      <span class="h">grading</span>
+      <div class="kv"><span>exercises</span><span>TBC</span></div>
+      <div class="kv"><span>project</span><span>TBC</span></div>
+      <div class="kv"><span>final exam</span><span>TBC</span></div>
+
+      <span class="h" id="office-hours">office hours</span>
+      Typically 8-4pm Mon-Thu or 8-1pm Fri in S.1.56 at AAU. Feel free to drop by during those times or email <a href="mailto:archie.carpenter@aau.at">archie.carpenter@aau.at</a> to set up a different time if needed.
+    </aside>
+
+    <div class="main">
+      <h1>Deep Learning.</h1>
+      <p class="stand">A practical course in deep learning at AAU. We move from regression and backpropagation into convolutional networks and modern architectures, with exercises designed to make the machinery inspectable rather than mysterious.</p>
+
+      <h2>Syllabus</h2>
+      <div class="syllabus">
+        <div class="topic">
+          <span class="num">00</span>
+          <div>
+            <h3 class="title"><a href="./exercises/preparatory/">Preparatory exercises.</a></h3>
+            <p class="topic-sub">Python, NumPy, calculus, and linear algebra refreshers for students who want firmer footing before the practical work begins.</p>
+          </div>
+          <span class="when">before week 01</span>
+          <ul class="subtopics">
+            <li><span class="sn">0.1</span><span class="st"><a href="">Stochastics</a></span><span class="ck">notes - coming soon</span></li>
+            <li><span class="sn">0.2</span><span class="st"><a href="">Calculus</a></span><span class="ck">notes - coming soon</span></li>
+            <li><span class="sn">0.3</span><span class="st"><a href="">Linear algebra</a></span><span class="ck">notes - coming soon</span></li>
+            <li><span class="sn">0.4</span><span class="st"><a href="">A Fast Introduction to Python and Numpy</a></span><span class="ck">notes - coming soon</span></li>
+            <li><span class="sn">0.5</span><span class="st"><a href="">Exercises</a></span><span class="ck">exercises - coming soon</span></li>
+          </ul>
+        </div>
+
+        <div class="topic">
+          <span class="num">01</span>
+          <div>
+            <h3 class="title"><a href="./topics/01-regression/">Regression.</a></h3>
+            <p class="topic-sub"></p>
+          </div>
+          <span class="when">week 01</span>
+          <ul class="subtopics">
+            <li><span class="sn">1.1</span><span class="st"><a href="./topics/01-regression/linear-regression/">Linear Regression</a></span><span class="ck">template</span></li>
+            <li><span class="sn">1.2</span><span class="st"><a href="">Multiple input dimensions</a></span><span class="ck">notes - coming soon</span></li>
+            <li><span class="sn">1.3</span><span class="st"><a href="">Multiple output dimensions</a></span><span class="ck">notes - coming soon</span></li>
+            <li><span class="sn">1.4</span><span class="st"><a href="">Non-linear Regression</a></span><span class="ck">notes - coming soon</span></li>
+            <li><span class="sn">1.5</span><span class="st"><a href="">Regularisation and the bias-variance trade-off</a></span><span class="ck">notes - coming soon</span></li>
+            <li><span class="sn">1.6</span><span class="st"><a href="">Exercises</a></span><span class="ck">exercises - coming soon</span></li>
+          </ul>
+        </div>
+
+        <div class="topic">
+          <span class="num">02</span>
+          <div>
+            <h3 class="title">Classification.</h3>
+            <p class="topic-sub"></p>
+          </div>
+          <span class="when">week 02</span>
+          <ul class="subtopics">
+            <li><span class="sn">2.1</span><span class="st">TBC</span><span class="ck">notes - coming soon</span></li>
+            <li><span class="sn">2.2</span><span class="st">TBC</span><span class="ck">notes - coming soon</span></li>
+            <li><span class="sn">2.3</span><span class="st"><a href="">Exercises</a></span><span class="ck">exercises - coming soon</span></li>
+          </ul>
+        </div>
+
+        <div class="topic">
+          <span class="num">03</span>
+          <div>
+            <h3 class="title"><a href="./lectures/cnns/notes/">Convolutional neural networks.</a></h3>
+            <p class="topic-sub">Convolution, pooling, receptive fields, and the inductive biases that make CNNs useful for images and spatial data.</p>
+          </div>
+          <span class="when">week 03</span>
+          <ul class="subtopics">
+            <li><span class="sn">3.1</span><span class="st"><a href="./lectures/cnns/notes/">CNN lecture notes.</a></span><span class="ck">notes</span></li>
+            <li><span class="sn">3.2</span><span class="st">Image classification practical.</span><span class="ck">soon</span></li>
+          </ul>
+        </div>
+
+        <div class="topic">
+          <span class="num">04</span>
+          <div>
+            <h3 class="title">Sequences, attention, and transformers.</h3>
+            <p class="topic-sub">Representation learning for sequence data, attention mechanisms, transformer blocks, and practical limits.</p>
+          </div>
+          <span class="when">later weeks</span>
+          <ul class="subtopics">
+            <li><span class="sn">4.1</span><span class="st">From recurrent models to attention.</span><span class="ck">planned</span></li>
+            <li><span class="sn">4.2</span><span class="st">Transformer blocks and training practice.</span><span class="ck">planned</span></li>
+          </ul>
+        </div>
       </div>
-    </section>
-  </main>
+    </div>
+  </div>
+</div>
 </body>
 </html>

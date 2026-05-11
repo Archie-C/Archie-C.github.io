@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en" data-palette="paper">
+<head>
+<meta charset="utf-8"/>
+<link rel="stylesheet" href="../colors_and_type.css"/>
+<style>
+  body { padding: 22px 28px; display: flex; flex-direction: column; gap: 16px; }
+  .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .label { font-family: var(--font-mono); font-size: 10px; color: var(--fg-4); letter-spacing: 0.04em; text-transform: uppercase; width: 84px; flex-shrink: 0; }
+  .btn { font-family: var(--font-mono); font-size: 13px; font-weight: 500; letter-spacing: -0.005em; padding: 8px 14px; border-radius: 6px; border: 1px solid transparent; cursor: pointer; transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease); display: inline-flex; align-items: center; gap: 6px; }
+  .btn.primary { background: var(--fg); color: var(--bg); }
+  .btn.primary:hover { background: var(--accent); }
+  .btn.secondary { background: var(--bg-2); color: var(--fg); border-color: var(--rule); }
+  .btn.secondary:hover { background: var(--bg-3); }
+  .btn.ghost { background: transparent; color: var(--fg); }
+  .btn.ghost:hover { background: var(--bg-2); }
+  .btn.danger { background: var(--danger); color: #fff; }
+  .btn .arr { color: var(--accent); }
+  .btn.primary .arr { color: inherit; opacity: 0.7; }
+</style>
+</head>
+<body>
+  <div class="row"><span class="label">primary</span>
+    <button class="btn primary">Read the paper <span class="arr">→</span></button>
+    <button class="btn primary" disabled style="opacity: 0.4;">disabled</button>
+  </div>
+  <div class="row"><span class="label">secondary</span>
+    <button class="btn secondary">View on GitHub</button>
+    <button class="btn secondary">Cite (BibTeX)</button>
+  </div>
+  <div class="row"><span class="label">ghost / link</span>
+    <button class="btn ghost">All writing <span class="arr">→</span></button>
+    <a href="#" style="font-family: var(--font-mono); font-size: 13px;">inline link →</a>
+  </div>
+  <div class="row"><span class="label">danger</span>
+    <button class="btn danger">Remove draft</button>
+  </div>
+</body>
+</html>

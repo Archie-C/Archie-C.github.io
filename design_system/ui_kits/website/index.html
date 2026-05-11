@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en" data-palette="paper">
+<head>
+<meta charset="utf-8"/>
+<title>archie carpenter</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link rel="icon" href="../../assets/favicon.svg"/>
+<link rel="stylesheet" href="../../colors_and_type.css"/>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+  .page { display: grid; grid-template-columns: var(--rail) 1fr; min-height: 100vh; max-width: var(--page-max); margin: 0 auto; }
+  .rail { padding: 40px 24px 32px; border-right: 1px solid var(--rule); display: flex; flex-direction: column; gap: 28px; position: sticky; top: 0; align-self: start; height: 100vh; box-sizing: border-box; }
+  .rail .mark { font-family: var(--font-mono); font-weight: 700; font-size: 28px; letter-spacing: -0.02em; line-height: 1; color: var(--fg); text-decoration: none; }
+  .rail .mark .dot { color: var(--accent); }
+  .rail nav { display: flex; flex-direction: column; }
+  .rail nav a { font-family: var(--font-mono); font-size: 14px; color: var(--fg-2); text-decoration: none; padding: 7px 10px; border-left: 2px solid transparent; margin-left: -10px; border-radius: 0 4px 4px 0; transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease); }
+  .rail nav a:hover { background: var(--bg-2); color: var(--fg); }
+  .rail nav a.active { border-left-color: var(--accent); color: var(--fg); }
+  .rail .foot { margin-top: auto; font-family: var(--font-sans); font-size: 12px; color: var(--fg-3); line-height: 1.5; }
+  .rail .foot a { color: var(--fg-2); text-decoration-thickness: 1px; }
+
+  main { padding: 56px 64px 80px; max-width: 760px; }
+  .eyebrow { font-family: var(--font-mono); font-size: 11px; color: var(--fg-3); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 14px; }
+  h1.hero { font-size: 44px; line-height: 1.1; margin-bottom: 18px; max-width: 18ch; }
+  .bio { font-family: var(--font-sans); font-size: 17px; line-height: 1.55; color: var(--fg); max-width: 60ch; margin: 0 0 14px; }
+  .bio em { color: var(--fg-2); }
+  .now { font-family: var(--font-serif); font-style: italic; font-size: 16px; color: var(--fg-2); max-width: 58ch; line-height: 1.55; border-left: 2px solid var(--accent); padding-left: 14px; margin: 24px 0 40px; }
+  hr.rule { margin: 36px 0 24px; border: 0; border-top: 1px solid var(--rule); }
+
+  .section-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 16px; }
+  .section-head h3 { font-size: 17px; font-weight: 500; letter-spacing: -0.005em; }
+  .section-head a { font-family: var(--font-mono); font-size: 12px; color: var(--accent); text-decoration: none; }
+  .section-head a:hover { text-decoration: underline; }
+
+  .papers, .writing { display: flex; flex-direction: column; }
+  .papers > .item, .writing > .item { padding: 12px 0; border-bottom: 1px solid var(--rule); }
+  .papers > .item:last-child, .writing > .item:last-child { border-bottom: 0; }
+
+  .paper-title { font-family: var(--font-mono); font-weight: 500; font-size: 15px; color: var(--fg); letter-spacing: -0.005em; line-height: 1.35; margin: 0 0 4px; }
+  .paper-meta { font-family: var(--font-sans); font-size: 13px; color: var(--fg-3); display: flex; gap: 14px; flex-wrap: wrap; }
+  .paper-meta .authors { color: var(--fg-2); }
+  .paper-meta a { color: var(--fg-3); font-family: var(--font-mono); font-size: 12px; }
+
+  .write-row { display: grid; grid-template-columns: 80px 1fr; gap: 16px; align-items: baseline; }
+  .write-date { font-family: var(--font-mono); font-size: 12px; color: var(--fg-4); letter-spacing: 0.03em; }
+  .write-title { font-family: var(--font-sans); font-size: 15px; color: var(--fg); text-decoration: none; }
+  .write-title:hover { color: var(--accent); }
+
+  .tagline { font-family: var(--font-mono); font-size: 12px; color: var(--fg-3); }
+  .tagline .accent { color: var(--accent); }
+
+  .pagefoot { margin-top: 64px; padding-top: 18px; border-top: 1px solid var(--rule); font-family: var(--font-mono); font-size: 11px; color: var(--fg-4); display: flex; justify-content: space-between; }
+  .pagefoot a { color: var(--fg-3); text-decoration: none; }
+  .pagefoot a:hover { color: var(--fg); }
+
+  @media (max-width: 720px) {
+    .page { grid-template-columns: 1fr; }
+    .rail { height: auto; position: static; border-right: 0; border-bottom: 1px solid var(--rule); }
+    main { padding: 32px 24px 60px; }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState } = React;
+
+const NAV = [
+  { id: 'home',    label: 'home' },
+  { id: 'papers',  label: 'papers' },
+  { id: 'writing', label: 'writing' },
+  { id: 'talks',   label: 'talks' },
+  { id: 'course',  label: 'course' },
+  { id: 'about',   label: 'about' },
+];
+
+const PAPERS = [
+  { title: 'On the spectral bias of wide neural networks',
+    authors: 'Carpenter, A.; Park, J.; Saito, R.',
+    venue: 'ICLR · 2025',  arxiv: 'arXiv:2503.04217' },
+  { title: 'A tighter bound on NTK eigenvalue decay',
+    authors: 'Carpenter, A.; Lin, M.',
+    venue: 'NeurIPS · 2024', arxiv: 'arXiv:2410.17729' },
+  { title: 'When does SGD find the simplest function?',
+    authors: 'Carpenter, A.',
+    venue: 'Preprint · 2024', arxiv: 'arXiv:2406.00913' },
+  { title: 'Implicit regularisation in linear nets, revisited',
+    authors: 'Carpenter, A.; Brooks, T.',
+    venue: 'ICML · 2023',  arxiv: 'arXiv:2305.11128' },
+];
+
+const WRITING = [
+  { date: '2025 — apr', title: 'The kernel limit is a fixed point, not a target' },
+  { date: '2025 — feb', title: 'Why I stopped trusting my early-stopping intuition' },
+  { date: '2024 — nov', title: 'A short proof of Theorem 2, in pictures' },
+  { date: '2024 — sep', title: 'Notes on what "learning a feature" actually means' },
+  { date: '2024 — jun', title: 'Three exercises I assign on the first day of class' },
+];
+
+function Rail({ active, setActive }) {
+  return (
+    <aside className="rail">
+      <a href="#" className="mark" onClick={(e) => { e.preventDefault(); setActive('home'); }}>a<span className="dot">.</span>c</a>
+      <nav>
+        {NAV.map(n => (
+          <a key={n.id} href={`#${n.id}`}
+             className={active === n.id ? 'active' : ''}
+             onClick={(e) => { e.preventDefault(); setActive(n.id); }}>
+            {n.label}
+          </a>
+        ))}
+      </nav>
+      <div className="foot">
+        I'm an ML researcher and teacher.<br/>
+        Get in touch — <a href="mailto:ac@example.org">ac@example.org</a>
+      </div>
+    </aside>
+  );
+}
+
+function Home() {
+  return (
+    <>
+      <div className="eyebrow">archie carpenter · ml &amp; maths</div>
+      <h1 className="hero">I research how neural networks learn the things they learn.</h1>
+      <p className="bio">I'm a postdoc in machine learning, working on the theory of generalisation in over-parameterised models. I also teach — undergraduate maths, graduate ML — and write notes that I wish someone had given me when I was learning this material.</p>
+      <p className="now"><strong style={{fontStyle:'normal', fontFamily:'var(--font-mono)', fontSize:11, letterSpacing:'0.06em', textTransform:'uppercase', color:'var(--fg-3)', marginRight:8}}>now</strong> Working through the geometry of the loss surface in linear-attention transformers. Slow going. Also marking 64 problem sets.</p>
+
+      <div className="section-head"><h3>Recent papers</h3><a href="#papers" onClick={(e) => { e.preventDefault(); setActive('papers'); }}>all papers →</a></div>
+      <div className="papers">
+        {PAPERS.slice(0, 3).map((p, i) => (
+          <div className="item" key={i}>
+            <h4 className="paper-title">{p.title}</h4>
+            <div className="paper-meta">
+              <span className="authors">{p.authors}</span>
+              <span>{p.venue}</span>
+              <a href="#">{p.arxiv} ↗</a>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <hr className="rule"/>
+
+      <div className="section-head"><h3>Recent writing</h3><a href="#writing" onClick={(e) => { e.preventDefault(); setActive('writing'); }}>all writing →</a></div>
+      <div className="writing">
+        {WRITING.slice(0, 4).map((w, i) => (
+          <div className="item" key={i}>
+            <div className="write-row">
+              <span className="write-date">{w.date}</span>
+              <a className="write-title" href="#">{w.title}</a>
+            </div>
+          </div>
+        ))}
+      </div>
+    </>
+  );
+}
+
+function setActive(id){ /* set in App */ }
+
+function Papers() {
+  return (
+    <>
+      <div className="eyebrow">papers · all</div>
+      <h1 className="hero" style={{fontSize: 32, marginBottom: 26}}>What I've written down so far.</h1>
+      <div className="papers">
+        {PAPERS.map((p, i) => (
+          <div className="item" key={i}>
+            <h4 className="paper-title">{p.title}</h4>
+            <div className="paper-meta">
+              <span className="authors">{p.authors}</span>
+              <span>{p.venue}</span>
+              <a href="#">{p.arxiv} ↗</a>
+              <a href="#">pdf ↗</a>
+              <a href="#">bibtex</a>
+            </div>
+          </div>
+        ))}
+      </div>
+    </>
+  );
+}
+
+function Writing() {
+  return (
+    <>
+      <div className="eyebrow">writing · all</div>
+      <h1 className="hero" style={{fontSize: 32, marginBottom: 26}}>Notes from the bench.</h1>
+      <p className="bio" style={{maxWidth:'58ch', marginBottom: 28}}>Things I'm trying to understand, written in the hope that the act of writing forces me to actually understand them. Some are short, some aren't.</p>
+      <div className="writing">
+        {WRITING.map((w, i) => (
+          <div className="item" key={i}>
+            <div className="write-row">
+              <span className="write-date">{w.date}</span>
+              <a className="write-title" href="#">{w.title}</a>
+            </div>
+          </div>
+        ))}
+      </div>
+    </>
+  );
+}
+
+function About() {
+  return (
+    <>
+      <div className="eyebrow">about</div>
+      <h1 className="hero" style={{fontSize: 32, marginBottom: 22}}>Hello, I'm Archie.</h1>
+      <p className="bio">I'm a researcher and teacher working on the theory of deep learning. My background is in pure mathematics — I came to ML through optimisation, and the questions I find most interesting are still the ones a mathematician would ask first.</p>
+      <p className="bio">I currently hold a postdoctoral position. Before that, I did a PhD in applied maths. I've taught variants of an undergraduate ML course four times now and I am still surprised by which parts students find hard.</p>
+      <p className="bio">If you'd like to talk — about a paper, about a course, or about whether your network is overfitting — please write. I read everything.</p>
+    </>
+  );
+}
+
+function Stub({ name }) {
+  return (
+    <>
+      <div className="eyebrow">{name}</div>
+      <h1 className="hero" style={{fontSize: 32}}>This page is a placeholder.</h1>
+      <p className="bio">The {name} section would live here. The UI kit ships with home, papers, writing, and about wired up — extend the same pattern for the rest.</p>
+    </>
+  );
+}
+
+function App() {
+  const [active, _setActive] = useState('home');
+  const setActive = (id) => { _setActive(id); window.scrollTo(0, 0); };
+
+  const view = {
+    home: <Home setActive={setActive}/>,
+    papers: <Papers/>,
+    writing: <Writing/>,
+    talks: <Stub name="talks"/>,
+    course: <Stub name="course"/>,
+    about: <About/>,
+  }[active];
+
+  return (
+    <div className="page">
+      <Rail active={active} setActive={setActive}/>
+      <main>
+        {view}
+        <div className="pagefoot">
+          <span>last edited · 2025-05-04</span>
+          <span><a href="#">source ↗</a> · © archie carpenter</span>
+        </div>
+      </main>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

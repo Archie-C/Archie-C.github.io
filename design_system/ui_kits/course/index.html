@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en" data-palette="paper">
+<head>
+<meta charset="utf-8"/>
+<title>Teaching — a.c</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link rel="icon" href="../../assets/favicon.svg"/>
+<link rel="stylesheet" href="../../colors_and_type.css"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"/>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+  :root { --page-w: 1180px; }
+  body { background: var(--bg-2); }
+  .frame { max-width: var(--page-w); margin: 0 auto; }
+  .frame > section { background: var(--bg); border-bottom: 1px solid var(--rule); }
+  .screen-tag { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-4); padding: 22px 32px 0; display: flex; gap: 10px; align-items: baseline; }
+  .screen-tag b { color: var(--fg); font-weight: 600; letter-spacing: 0.01em; text-transform: none; font-size: 13px; }
+  .screen-tag em { font-style: normal; color: var(--fg-3); }
+
+  /* Shared topbar */
+  .topbar { padding: 20px 32px; display: flex; align-items: baseline; gap: 22px; border-bottom: 1px solid var(--rule); }
+  .topbar .mark { font-family: var(--font-mono); font-weight: 700; font-size: 22px; letter-spacing: -0.02em; color: var(--fg); text-decoration: none; }
+  .topbar .mark .dot { color: var(--accent); }
+  .topbar .crumb { font-family: var(--font-mono); font-size: 13px; color: var(--fg-2); }
+  .topbar .crumb a { color: var(--fg-3); text-decoration: none; }
+  .topbar .crumb .sep { color: var(--fg-4); margin: 0 8px; }
+  .topbar nav { margin-left: auto; display: flex; gap: 16px; }
+  .topbar nav a { font-family: var(--font-mono); font-size: 13px; color: var(--fg-2); text-decoration: none; }
+  .topbar nav a.active { color: var(--accent); }
+
+  /* ── Screen A: Courses index ── */
+  .index-body { padding: 48px 32px 56px; }
+  .index-body header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 32px; }
+  .index-body h1 { font-family: var(--font-mono); font-weight: 700; font-size: 38px; letter-spacing: -0.02em; margin: 0; }
+  .index-body header p { font-family: var(--font-sans); color: var(--fg-3); font-size: 14px; margin: 0; max-width: 36ch; text-align: right; }
+  .courses { display: flex; flex-direction: column; }
+  .course-row { display: grid; grid-template-columns: 110px 1fr auto; gap: 28px; align-items: baseline; padding: 22px 0; border-top: 1px solid var(--rule); }
+  .course-row:last-child { border-bottom: 1px solid var(--rule); }
+  .course-row .code { font-family: var(--font-mono); font-size: 13px; color: var(--fg-3); letter-spacing: 0.02em; padding-top: 4px; }
+  .course-row .name { font-family: var(--font-mono); font-weight: 600; font-size: 22px; letter-spacing: -0.01em; color: var(--fg); margin: 0 0 4px; }
+  .course-row .name a { color: inherit; text-decoration: none; }
+  .course-row .name a:hover { color: var(--accent); }
+  .course-row .blurb { font-family: var(--font-sans); font-size: 15px; color: var(--fg-2); line-height: 1.5; max-width: 60ch; margin: 0; }
+  .course-row .meta { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; font-family: var(--font-mono); font-size: 12px; color: var(--fg-3); white-space: nowrap; }
+  .badge { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; padding: 2px 8px; border-radius: 3px; }
+  .badge.current { background: var(--accent-soft); color: var(--accent-2); }
+  .badge.past { background: var(--bg-sunk); color: var(--fg-3); }
+  .badge.guest { border: 1px solid var(--rule); color: var(--fg-3); }
+
+  /* ── Screen B: Course detail ── */
+  .course-detail { padding: 48px 32px 64px; display: grid; grid-template-columns: 240px 1fr; gap: 56px; }
+  .course-detail aside { font-family: var(--font-sans); font-size: 13px; color: var(--fg-3); }
+  .course-detail aside .h { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-4); display: block; margin: 18px 0 6px; }
+  .course-detail aside .h:first-child { margin-top: 0; }
+  .course-detail aside .kv { display: flex; justify-content: space-between; padding: 3px 0; }
+  .course-detail aside .kv span:first-child { color: var(--fg-3); }
+  .course-detail aside .kv span:last-child { color: var(--fg); font-family: var(--font-mono); font-size: 12.5px; }
+  .course-detail aside .links a { display: block; font-family: var(--font-mono); font-size: 12.5px; color: var(--accent); text-decoration: none; padding: 3px 0; }
+
+  .course-detail .main h1 { font-family: var(--font-mono); font-weight: 700; font-size: 38px; letter-spacing: -0.02em; margin: 0 0 8px; }
+  .course-detail .main .stand { font-family: var(--font-serif); font-style: italic; font-size: 18px; color: var(--fg-2); line-height: 1.5; margin: 0 0 36px; max-width: 56ch; }
+  .course-detail .main h2 { font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-3); margin: 0 0 14px; }
+
+  .syllabus { display: flex; flex-direction: column; }
+  .topic { padding: 18px 0; border-top: 1px solid var(--rule); display: grid; grid-template-columns: 70px 1fr auto; column-gap: 22px; align-items: baseline; }
+  .topic:last-child { border-bottom: 1px solid var(--rule); }
+  .topic .num { font-family: var(--font-mono); font-size: 13px; color: var(--fg-4); letter-spacing: 0.04em; padding-top: 4px; }
+  .topic .title { font-family: var(--font-mono); font-weight: 600; font-size: 18px; letter-spacing: -0.005em; color: var(--fg); margin: 0 0 2px; }
+  .topic .title a { color: inherit; text-decoration: none; }
+  .topic .title a:hover { color: var(--accent); }
+  .topic .topic-sub { font-family: var(--font-sans); font-size: 13.5px; color: var(--fg-3); margin: 4px 0 0; line-height: 1.5; }
+  .topic .when { font-family: var(--font-mono); font-size: 12px; color: var(--fg-3); white-space: nowrap; padding-top: 4px; }
+  .topic ul.subtopics { grid-column: 2 / 4; list-style: none; margin: 12px 0 4px; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+  .topic ul.subtopics li { font-family: var(--font-sans); font-size: 14px; color: var(--fg-2); display: grid; grid-template-columns: 44px 1fr auto; column-gap: 14px; align-items: baseline; padding: 4px 0; border-top: 1px dashed var(--rule); }
+  .topic ul.subtopics li:first-child { border-top: none; }
+  .topic ul.subtopics .sn { font-family: var(--font-mono); font-size: 11.5px; color: var(--fg-4); letter-spacing: 0.04em; }
+  .topic ul.subtopics .st a { color: var(--fg); text-decoration: none; }
+  .topic ul.subtopics .st a:hover { color: var(--accent); }
+  .topic ul.subtopics .ck { font-family: var(--font-mono); font-size: 11px; color: var(--fg-4); letter-spacing: 0.04em; }
+  .topic ul.subtopics .ck.done { color: var(--success); }
+  .topic ul.subtopics .ck.live { color: var(--accent); }
+
+  /* ── Screen C: Lecture ── */
+  .lecture { padding: 40px 32px 80px; display: grid; grid-template-columns: 240px 1fr; gap: 56px; }
+  .lecture aside { font-family: var(--font-sans); font-size: 13px; color: var(--fg-3); position: sticky; top: 24px; align-self: start; }
+  .lecture aside .h { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-4); display: block; margin: 16px 0 6px; }
+  .lecture aside .h:first-child { margin-top: 0; }
+  .lecture aside .nav-group { font-family: var(--font-mono); font-size: 11px; color: var(--fg-2); margin-top: 10px; letter-spacing: 0.04em; text-transform: uppercase; padding-bottom: 4px; }
+  .lecture aside .nav-group:not(:first-of-type) { margin-top: 14px; }
+  .lecture aside .nav-list { display: flex; flex-direction: column; }
+  .lecture aside .nav-list a { font-family: var(--font-mono); font-size: 13px; color: var(--fg-2); text-decoration: none; padding: 4px 0 4px 12px; border-left: 2px solid transparent; }
+  .lecture aside .nav-list a:hover { color: var(--fg); }
+  .lecture aside .nav-list a.current { color: var(--fg); border-left-color: var(--accent); background: var(--accent-soft); }
+  .lecture aside .nav-list a.done { color: var(--fg-4); }
+  .lecture aside .nav-list a.done::before { content: '✓ '; color: var(--success); }
+
+  .lecture article { max-width: 62ch; }
+  .lecture article .crumb { font-family: var(--font-mono); font-size: 11px; color: var(--accent); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 10px; }
+  .lecture article .crumb a { color: var(--fg-3); text-decoration: none; }
+  .lecture article .crumb .sep { color: var(--fg-4); margin: 0 6px; }
+  .lecture article h1 { font-family: var(--font-mono); font-weight: 700; font-size: 30px; line-height: 1.12; letter-spacing: -0.015em; margin: 0 0 8px; }
+  .lecture article .standfirst { font-family: var(--font-serif); font-style: italic; font-size: 17px; color: var(--fg-2); margin-bottom: 28px; max-width: 50ch; line-height: 1.5; }
+
+  .body { font-family: var(--font-serif); font-size: 17px; line-height: 1.65; color: var(--fg); }
+  .body p { margin: 0 0 1em; }
+  .body h2 { font-family: var(--font-mono); font-size: 18px; font-weight: 600; letter-spacing: -0.005em; margin: 1.8em 0 0.5em; }
+  .body code { font-family: var(--font-mono); font-size: 0.9em; background: var(--bg-sunk); padding: 0.1em 0.36em; border-radius: 3px; }
+  .body pre { font-family: var(--font-mono); background: var(--bg-sunk); border: 1px solid var(--rule); border-radius: 8px; padding: 14px 18px; font-size: 13px; line-height: 1.5; overflow-x: auto; margin: 1.4em 0; }
+  .body pre code { background: none; padding: 0; }
+  .body .katex-display { margin: 1.4em 0 !important; padding: 14px 16px; background: var(--bg-sunk); border: 1px solid var(--rule); border-radius: 8px; }
+
+  .exercise { border: 1px solid var(--rule); border-left: 3px solid var(--accent); border-radius: 4px; padding: 14px 18px; background: var(--bg-2); margin: 1.4em 0; }
+  .exercise .tag { font-family: var(--font-mono); font-size: 11px; color: var(--accent); letter-spacing: 0.06em; text-transform: uppercase; font-weight: 600; }
+  .exercise .tag b { color: var(--fg); margin-left: 6px; }
+  .exercise p { margin: 6px 0 0; font-family: var(--font-sans); font-size: 14.5px; color: var(--fg); }
+
+  .endbar { display: flex; justify-content: space-between; margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--rule); font-family: var(--font-mono); font-size: 12px; }
+  .endbar a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<div class="frame">
+
+  <!-- ════════ SCREEN A · Courses index ════════ -->
+  <section>
+    <div class="screen-tag"><b>A · /teaching</b><em>courses index — entry point</em></div>
+    <div class="topbar">
+      <a href="#" class="mark">a<span class="dot">.</span>c</a>
+      <span class="crumb">teaching</span>
+      <nav><a href="#">research</a><a href="#" class="active">teaching</a><a href="#">writing</a><a href="#">cv</a></nav>
+    </div>
+    <div class="index-body">
+      <header>
+        <h1>Teaching.</h1>
+        <p>Courses I run or co-run. I keep the notes and exercises open — feel free to use them.</p>
+      </header>
+      <div class="courses">
+
+        <div class="course-row">
+          <span class="code">DL 6101</span>
+          <div>
+            <h3 class="name"><a href="#">Deep learning, from scratch.</a></h3>
+            <p class="blurb">A first graduate course on deep learning. We build everything from the ground up — autograd, optimisers, conv nets, transformers — and pair each with the maths that explains <em>why</em> it works.</p>
+          </div>
+          <div class="meta">
+            <span class="badge current">Now · spring '25</span>
+            <span>12 weeks · 24 lectures</span>
+            <span>Tue / Thu · 10am</span>
+          </div>
+        </div>
+
+        <div class="course-row">
+          <span class="code">MATH 471</span>
+          <div>
+            <h3 class="name"><a href="#">Foundations of optimisation for ML.</a></h3>
+            <p class="blurb">Convex analysis, gradient methods, momentum, stochastic methods, and a careful look at when each works on the non-convex landscapes we actually meet in deep learning.</p>
+          </div>
+          <div class="meta">
+            <span class="badge past">Past · autumn '24</span>
+            <span>10 weeks · 20 lectures</span>
+          </div>
+        </div>
+
+        <div class="course-row">
+          <span class="code">STAT 312</span>
+          <div>
+            <h3 class="name"><a href="#">Probability for ML, the short version.</a></h3>
+            <p class="blurb">A four-week intensive: concentration, the basics of information theory, and the probabilistic toolkit you need to read modern ML papers without faking it.</p>
+          </div>
+          <div class="meta">
+            <span class="badge past">Past · summer '24</span>
+            <span>4 weeks · 8 lectures</span>
+          </div>
+        </div>
+
+        <div class="course-row">
+          <span class="code">— · guest</span>
+          <div>
+            <h3 class="name"><a href="#">Generative models, a sceptic's tour.</a></h3>
+            <p class="blurb">Two guest lectures for the Bayes group. Diffusion, flows, and where the optimisation story breaks down once we leave the convex regime.</p>
+          </div>
+          <div class="meta">
+            <span class="badge guest">Guest lectures</span>
+            <span>Jan '25</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════ SCREEN B · Course detail (Deep Learning, with topics & subtopics) ════════ -->
+  <section>
+    <div class="screen-tag"><b>B · /teaching/dl-6101</b><em>single-course view — topics with subtopics</em></div>
+    <div class="topbar">
+      <a href="#" class="mark">a<span class="dot">.</span>c</a>
+      <span class="crumb"><a href="#">teaching</a><span class="sep">›</span>DL 6101</span>
+      <nav><a href="#" class="active">syllabus</a><a href="#">assignments</a><a href="#">resources</a><a href="#">office hours</a></nav>
+    </div>
+    <div class="course-detail">
+      <aside>
+        <span class="h">course</span>
+        <div class="kv"><span>code</span><span>DL 6101</span></div>
+        <div class="kv"><span>term</span><span>spring '25</span></div>
+        <div class="kv"><span>meets</span><span>Tue / Thu 10am</span></div>
+        <div class="kv"><span>room</span><span>Bldg 23 · 4</span></div>
+        <div class="kv"><span>credits</span><span>4</span></div>
+
+        <span class="h">prereqs</span>
+        Linear algebra, multivariable calculus, a working knowledge of Python and numpy. No prior ML required.
+
+        <span class="h">grading</span>
+        <div class="kv"><span>4 problem sets</span><span>40%</span></div>
+        <div class="kv"><span>2 projects</span><span>40%</span></div>
+        <div class="kv"><span>final</span><span>20%</span></div>
+
+        <span class="h">handouts</span>
+        <div class="links">
+          <a href="#">syllabus.pdf ↗</a>
+          <a href="#">problem set 01 ↗</a>
+          <a href="#">project guidelines ↗</a>
+        </div>
+      </aside>
+
+      <div class="main">
+        <h1>Deep learning, from scratch.</h1>
+        <p class="stand">Twelve weeks. Every model is built up from autograd and a numpy array — and every model is paired with the maths that explains why it works. We end where research begins.</p>
+
+        <h2>Syllabus</h2>
+        <div class="syllabus">
+
+          <!-- Topic 01 -->
+          <div class="topic">
+            <span class="num">01</span>
+            <div>
+              <h3 class="title"><a href="#">The setup — what learning even is.</a></h3>
+              <p class="topic-sub">Risk, empirical risk, the bias–variance picture, and why deep networks shouldn't work (but do).</p>
+            </div>
+            <span class="when">week 01 · jan 14</span>
+            <ul class="subtopics">
+              <li><span class="sn">1.1</span><span class="st"><a href="#">Loss, risk, and the empirical-risk swap.</a></span><span class="ck done">notes ✓</span></li>
+              <li><span class="sn">1.2</span><span class="st"><a href="#">Bias, variance, and the U-curve that wasn't.</a></span><span class="ck done">notes ✓</span></li>
+              <li><span class="sn">1.3</span><span class="st"><a href="#">Why the classical story breaks down for over-parameterised nets.</a></span><span class="ck done">notes ✓</span></li>
+            </ul>
+          </div>
+
+          <!-- Topic 02 -->
+          <div class="topic">
+            <span class="num">02</span>
+            <div>
+              <h3 class="title"><a href="#">Building autograd in 80 lines.</a></h3>
+              <p class="topic-sub">Reverse-mode differentiation as a graph, implemented from scratch on top of numpy.</p>
+            </div>
+            <span class="when">week 02 · jan 21</span>
+            <ul class="subtopics">
+              <li><span class="sn">2.1</span><span class="st"><a href="#">Forward mode vs reverse mode — and why the latter wins.</a></span><span class="ck done">notes ✓</span></li>
+              <li><span class="sn">2.2</span><span class="st"><a href="#">The tape: recording operations as you compute.</a></span><span class="ck done">notes ✓</span></li>
+              <li><span class="sn">2.3</span><span class="st"><a href="#">Backprop through the tape — eighty lines of Python.</a></span><span class="ck done">notes ✓</span></li>
+              <li><span class="sn">2.4</span><span class="st"><a href="#">Sanity checks: finite differences, gradcheck.</a></span><span class="ck done">notes ✓</span></li>
+            </ul>
+          </div>
+
+          <!-- Topic 03 — current -->
+          <div class="topic">
+            <span class="num">03</span>
+            <div>
+              <h3 class="title"><a href="#">Optimisation on real landscapes.</a></h3>
+              <p class="topic-sub">From plain GD to the methods we actually train networks with — and how to tell them apart in practice.</p>
+            </div>
+            <span class="when">week 03 · jan 28</span>
+            <ul class="subtopics">
+              <li><span class="sn">3.1</span><span class="st"><a href="#">Gradient descent and step-size sensitivity.</a></span><span class="ck done">notes ✓</span></li>
+              <li><span class="sn">3.2</span><span class="st"><a href="#">Momentum, Nesterov, and what they actually do.</a></span><span class="ck live">live · today</span></li>
+              <li><span class="sn">3.3</span><span class="st"><a href="#">Stochastic gradient methods.</a></span><span class="ck">thu</span></li>
+              <li><span class="sn">3.4</span><span class="st"><a href="#">Adam, AdamW, and the adaptive methods debate.</a></span><span class="ck">thu</span></li>
+            </ul>
+          </div>
+
+          <!-- Topic 04 -->
+          <div class="topic">
+            <span class="num">04</span>
+            <div>
+              <h3 class="title"><a href="#">Initialisation, normalisation, signal propagation.</a></h3>
+              <p class="topic-sub">Why training is a fluid-mechanics problem in disguise — and the three tricks that make it tractable.</p>
+            </div>
+            <span class="when">week 04 · feb 04</span>
+            <ul class="subtopics">
+              <li><span class="sn">4.1</span><span class="st"><a href="#">Variance preservation and the He / Glorot story.</a></span><span class="ck">soon</span></li>
+              <li><span class="sn">4.2</span><span class="st"><a href="#">Batch, layer, and group normalisation.</a></span><span class="ck">soon</span></li>
+              <li><span class="sn">4.3</span><span class="st"><a href="#">Residual connections as signal highways.</a></span><span class="ck">soon</span></li>
+            </ul>
+          </div>
+
+          <!-- Topic 05 -->
+          <div class="topic">
+            <span class="num">05</span>
+            <div>
+              <h3 class="title"><a href="#">Convolutional networks, from filters to ResNets.</a></h3>
+              <p class="topic-sub">Translation equivariance, locality, and the inductive biases that built modern vision.</p>
+            </div>
+            <span class="when">week 05 · feb 11</span>
+            <ul class="subtopics">
+              <li><span class="sn">5.1</span><span class="st"><a href="#">Convolution as a structured linear map.</a></span><span class="ck">soon</span></li>
+              <li><span class="sn">5.2</span><span class="st"><a href="#">Pooling, strides, and the receptive field.</a></span><span class="ck">soon</span></li>
+              <li><span class="sn">5.3</span><span class="st"><a href="#">From LeNet to ResNet in 50 minutes.</a></span><span class="ck">soon</span></li>
+            </ul>
+          </div>
+
+          <!-- Topic 06 -->
+          <div class="topic">
+            <span class="num">06</span>
+            <div>
+              <h3 class="title"><a href="#">Sequences, attention, and the transformer.</a></h3>
+              <p class="topic-sub">The architecture that ate the field. We derive it from first principles.</p>
+            </div>
+            <span class="when">week 06 · feb 18</span>
+            <ul class="subtopics">
+              <li><span class="sn">6.1</span><span class="st"><a href="#">RNNs and why they're hard to train.</a></span><span class="ck">soon</span></li>
+              <li><span class="sn">6.2</span><span class="st"><a href="#">Attention as a soft dictionary lookup.</a></span><span class="ck">soon</span></li>
+              <li><span class="sn">6.3</span><span class="st"><a href="#">Multi-head attention and positional encodings.</a></span><span class="ck">soon</span></li>
+              <li><span class="sn">6.4</span><span class="st"><a href="#">A transformer block, written out by hand.</a></span><span class="ck">soon</span></li>
+            </ul>
+          </div>
+
+          <!-- Topic 07 -->
+          <div class="topic">
+            <span class="num">07</span>
+            <div>
+              <h3 class="title"><a href="#">Generative models — likelihood, score, sample.</a></h3>
+              <p class="topic-sub">VAEs, normalising flows, diffusion. Three lenses on the same problem.</p>
+            </div>
+            <span class="when">week 07 · feb 25</span>
+            <ul class="subtopics">
+              <li><span class="sn">7.1</span><span class="st"><a href="#">Maximum likelihood and the ELBO.</a></span><span class="ck">later</span></li>
+              <li><span class="sn">7.2</span><span class="st"><a href="#">Normalising flows and the change-of-variables formula.</a></span><span class="ck">later</span></li>
+              <li><span class="sn">7.3</span><span class="st"><a href="#">Score matching and diffusion in one lecture.</a></span><span class="ck">later</span></li>
+            </ul>
+          </div>
+
+          <div class="topic">
+            <span class="num">08–12</span>
+            <div>
+              <h3 class="title">Generalisation · scaling · interpretability · safety · open problems.</h3>
+              <p class="topic-sub">Five weeks of more advanced topics — exact running order set after the projects land.</p>
+            </div>
+            <span class="when">mar – apr</span>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════ SCREEN C · Lecture (the leaf node) ════════ -->
+  <section>
+    <div class="screen-tag"><b>C · /teaching/dl-6101/03-optimisation/3-2-momentum</b><em>lecture view — full breadcrumb path</em></div>
+    <div class="topbar">
+      <a href="#" class="mark">a<span class="dot">.</span>c</a>
+      <span class="crumb"><a href="#">teaching</a><span class="sep">›</span><a href="#">DL 6101</a><span class="sep">›</span><a href="#">03 · optimisation</a><span class="sep">›</span>3.2 momentum</span>
+      <nav><a href="#">syllabus</a><a href="#">assignments</a><a href="#">office hours</a></nav>
+    </div>
+    <div class="lecture">
+      <aside>
+        <span class="h">course</span>
+        DL 6101 · spring '25
+        <span class="h">topic</span>
+        <span class="nav-group">03 · optimisation</span>
+        <div class="nav-list">
+          <a class="done" href="#">3.1 · gradient descent</a>
+          <a class="current" href="#">3.2 · momentum, Nesterov</a>
+          <a href="#">3.3 · stochastic gradients</a>
+          <a href="#">3.4 · Adam / AdamW</a>
+        </div>
+        <span class="nav-group">04 · initialisation</span>
+        <div class="nav-list">
+          <a href="#">4.1 · variance preservation</a>
+          <a href="#">4.2 · norm layers</a>
+          <a href="#">4.3 · residual highways</a>
+        </div>
+        <span class="h">handouts</span>
+        <a href="#" style="font-family: var(--font-mono); font-size: 12.5px; color: var(--accent); text-decoration: none;">notes (PDF) ↗</a><br/>
+        <a href="#" style="font-family: var(--font-mono); font-size: 12.5px; color: var(--accent); text-decoration: none;">problem set 02 ↗</a>
+      </aside>
+
+      <article>
+        <div class="crumb">topic 03 · subtopic 3.2 · jan 30</div>
+        <h1>Momentum, Nesterov, and what they actually do.</h1>
+        <p class="standfirst">Gradient descent walks downhill. Momentum walks downhill with a memory of where it has been — and that small change buys an entire order in the convergence rate.</p>
+
+        <div class="body">
+          <h2>The update, written out</h2>
+          <p>Heavy-ball momentum keeps a running velocity $v_t$ and uses it in place of the bare gradient:</p>
+          <p>$$ v_{t+1} = \beta\, v_t + \nabla f(x_t), \qquad x_{t+1} = x_t - \eta\, v_{t+1}. $$</p>
+          <p>With $\beta = 0$ you get plain gradient descent. With $\beta$ close to one, the iterate behaves like a damped particle rolling on the loss surface — which is exactly the right mental picture.</p>
+
+          <h2>Convergence, before and after</h2>
+          <p>For an $L$-smooth, $\mu$-strongly-convex $f$, plain gradient descent converges at rate $(1 - \mu/L)^T$. Nesterov's accelerated method, with the right schedule, achieves $(1 - \sqrt{\mu/L})^T$ — the square-root in the exponent is the win, and it is optimal for first-order methods on this class.</p>
+
+          <div class="exercise">
+            <span class="tag">exercise · 3.2.1 <b>warm-up</b></span>
+            <p>Take $f(x) = \tfrac{1}{2}(x_1^2 + 100\, x_2^2)$. Plot the trajectories of plain GD and heavy-ball momentum for $\beta \in \{0, 0.5, 0.9\}$. Where does each method first cross within $10^{-3}$ of the optimum?</p>
+          </div>
+
+          <h2>Implementation, end to end</h2>
+<pre><code>def momentum_gd(grad_f, x0, eta=1e-2, beta=0.9, T=2000):
+    x, v = x0, np.zeros_like(x0)
+    for _ in range(T):
+        v = beta * v + grad_f(x)
+        x = x - eta * v
+    return x</code></pre>
+          <p>Six lines. The interesting bit is choosing $\beta$ — too small and you lose the acceleration, too large and the velocity overshoots and you oscillate. Most practical schedulers warm $\beta$ up over training, which we'll come back to in 3.4.</p>
+        </div>
+
+        <div class="endbar">
+          <span>← <a href="#">3.1 · gradient descent</a></span>
+          <span><a href="#">3.3 · stochastic gradients →</a></span>
+        </div>
+      </article>
+    </div>
+  </section>
+
+</div>
+</body>
+</html>

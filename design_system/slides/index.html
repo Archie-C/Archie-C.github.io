@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en" data-palette="paper">
+<head>
+<meta charset="utf-8"/>
+<title>Slides — a.c</title>
+<link rel="icon" href="../assets/favicon.svg"/>
+<link rel="stylesheet" href="../colors_and_type.css"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"/>
+<script src="../deck-stage.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+  :root { --slide-w: 1280px; --slide-h: 720px; --pad: 80px; }
+  deck-stage section { width: var(--slide-w); height: var(--slide-h); background: var(--bg); color: var(--fg); padding: var(--pad); box-sizing: border-box; display: flex; flex-direction: column; position: relative; font-family: var(--font-sans); }
+  .crumb { position: absolute; top: 32px; left: var(--pad); font-family: var(--font-mono); font-size: 14px; color: var(--fg-3); letter-spacing: 0.06em; text-transform: uppercase; }
+  .pn { position: absolute; bottom: 32px; right: var(--pad); font-family: var(--font-mono); font-size: 13px; color: var(--fg-4); letter-spacing: 0.04em; }
+  .mark { position: absolute; bottom: 32px; left: var(--pad); font-family: var(--font-mono); font-weight: 700; font-size: 22px; color: var(--fg); letter-spacing: -0.02em; }
+  .mark .dot { color: var(--accent); }
+  h1.t { font-family: var(--font-mono); font-weight: 700; font-size: 76px; line-height: 1.05; letter-spacing: -0.02em; margin: 0; }
+  h2.t { font-family: var(--font-mono); font-weight: 600; font-size: 52px; line-height: 1.1; letter-spacing: -0.015em; margin: 0; }
+  h3.t { font-family: var(--font-mono); font-weight: 500; font-size: 36px; line-height: 1.15; letter-spacing: -0.01em; margin: 0 0 24px; }
+  p.body { font-family: var(--font-sans); font-size: 26px; line-height: 1.5; color: var(--fg); max-width: 28ch; margin: 0; }
+  .lead { font-family: var(--font-serif); font-style: italic; font-size: 28px; line-height: 1.5; color: var(--fg-2); max-width: 32ch; }
+  ul.bullets { list-style: none; padding: 0; margin: 0; font-family: var(--font-sans); font-size: 26px; line-height: 1.5; color: var(--fg); display: flex; flex-direction: column; gap: 18px; max-width: 30ch; }
+  ul.bullets li { padding-left: 28px; position: relative; }
+  ul.bullets li::before { content: '—'; position: absolute; left: 0; color: var(--accent); font-family: var(--font-mono); }
+
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: start; flex-grow: 1; }
+  .split .col { display: flex; flex-direction: column; gap: 18px; }
+
+  .quote { font-family: var(--font-serif); font-size: 56px; font-style: italic; line-height: 1.18; color: var(--fg); max-width: 22ch; letter-spacing: -0.01em; }
+  .attrib { font-family: var(--font-mono); font-size: 18px; color: var(--fg-3); letter-spacing: 0.04em; margin-top: 28px; }
+
+  .figure-box { flex-grow: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center; }
+  .figure-canvas { aspect-ratio: 1.6 / 1; border: 1px solid var(--rule); border-radius: 12px; background: var(--bg-sunk); padding: 18px; }
+  .figure-canvas svg { width: 100%; height: 100%; }
+  .cap { font-family: var(--font-sans); font-size: 17px; color: var(--fg-3); margin-top: 14px; line-height: 1.5; max-width: 38ch; }
+
+  .math-slide .katex-display { font-size: 1.55em !important; margin: 32px 0 !important; padding: 28px 36px; background: var(--bg-sunk); border: 1px solid var(--rule); border-radius: 12px; }
+
+  /* Section divider — flips palette */
+  section.section-slide { background: var(--fg); color: var(--bg); }
+  section.section-slide .crumb { color: var(--bg-translucent); }
+  section.section-slide h1.t { color: var(--bg); }
+  section.section-slide .pn { color: var(--bg-translucent); }
+  section.section-slide .mark { color: var(--bg); }
+  section.section-slide .mark .dot { color: var(--accent); }
+  section.section-slide .label { font-family: var(--font-mono); font-size: 16px; color: var(--accent); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 24px; }
+
+  .end-slide { align-items: flex-start; justify-content: center; }
+  .end-slide .big { font-family: var(--font-mono); font-weight: 700; font-size: 96px; letter-spacing: -0.02em; color: var(--fg); line-height: 1; }
+  .end-slide .big .dot { color: var(--accent); }
+  .end-slide .lines { font-family: var(--font-sans); font-size: 22px; color: var(--fg-2); margin-top: 32px; line-height: 1.6; }
+  .end-slide .lines a { color: var(--accent); }
+
+  .head-row { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 36px; }
+  .flex-grow { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; gap: 28px; }
+</style>
+</head>
+<body>
+<deck-stage>
+
+  <!-- 1. Title -->
+  <section data-screen-label="01 Title">
+    <div class="crumb">ICLR · 2025</div>
+    <div class="flex-grow" style="justify-content: flex-end; gap: 28px;">
+      <h1 class="t">On the spectral<br/>bias of wide<br/>neural networks.</h1>
+      <p class="lead">A closed-form characterisation of which features wide networks learn first — and why.</p>
+      <p style="font-family: var(--font-mono); font-size: 18px; color: var(--fg-3); letter-spacing: 0.02em; margin-top: 24px;">Archie Carpenter · Jihye Park · Ren Saito</p>
+    </div>
+    <span class="mark">a<span class="dot">.</span>c</span>
+    <span class="pn">01 / 07</span>
+  </section>
+
+  <!-- 2. Section -->
+  <section class="section-slide" data-screen-label="02 Section">
+    <div class="flex-grow" style="justify-content: center;">
+      <div class="label">§ 01</div>
+      <h1 class="t">Wide networks learn<br/>low frequencies first.</h1>
+    </div>
+    <span class="mark">a<span class="dot">.</span>c</span>
+    <span class="pn">02 / 07</span>
+  </section>
+
+  <!-- 3. Content -->
+  <section data-screen-label="03 Content">
+    <div class="crumb">§ 01 · why we care</div>
+    <div class="head-row" style="margin-top: 36px;"><h2 class="t">Three things to notice.</h2></div>
+    <ul class="bullets" style="max-width: 36ch;">
+      <li>Wide networks fit the training set easily — but in a very specific <em>order</em>.</li>
+      <li>That order is set by the NTK eigenvalue decay.</li>
+      <li>This is testable. We test it. It holds.</li>
+    </ul>
+    <span class="mark">a<span class="dot">.</span>c</span>
+    <span class="pn">03 / 07</span>
+  </section>
+
+  <!-- 4. Math -->
+  <section class="math-slide" data-screen-label="04 Math">
+    <div class="crumb">§ 02 · the bound</div>
+    <h3 class="t" style="margin-top: 36px;">Loss decay, by eigenmode.</h3>
+    <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center;">
+      <p style="font-family: var(--font-sans); font-size: 22px; color: var(--fg-2); margin-bottom: 8px; max-width: 50ch;">For mode <em>k</em> with NTK eigenvalue <em>λ<sub>k</sub></em>, the residual at step <em>t</em> decays as:</p>
+      $$ r_k(t) \;\le\; r_k(0) \cdot \exp\!\bigl(- \eta \lambda_k t\bigr). $$
+      <p style="font-family: var(--font-sans); font-size: 20px; color: var(--fg-3); max-width: 60ch;">Modes with large <em>λ<sub>k</sub></em> — the low-frequency ones — collapse first. Modes with small <em>λ<sub>k</sub></em> stay around. This is the whole spectral-bias story, in one line.</p>
+    </div>
+    <span class="mark">a<span class="dot">.</span>c</span>
+    <span class="pn">04 / 07</span>
+  </section>
+
+  <!-- 5. Comparison -->
+  <section data-screen-label="05 Comparison">
+    <div class="crumb">§ 03 · before / after</div>
+    <h3 class="t" style="margin-top: 36px;">Prior bound vs. ours.</h3>
+    <div class="split">
+      <div class="col">
+        <span class="eyebrow">prior work</span>
+        <div style="font-family: var(--font-mono); font-size: 32px; color: var(--fg-2); padding: 24px 28px; background: var(--bg-2); border: 1px solid var(--rule); border-radius: 12px;">O(λₖ · t)</div>
+        <p class="cap">Loose for large k. Predicts decay everywhere but doesn't capture the log-k correction.</p>
+      </div>
+      <div class="col">
+        <span class="eyebrow" style="color: var(--accent);">ours</span>
+        <div style="font-family: var(--font-mono); font-size: 32px; color: var(--fg); padding: 24px 28px; background: var(--accent-soft); border-radius: 12px;">O(λₖ · t / log k)</div>
+        <p class="cap">Tight under standard regularity. Matches the empirical curves across four decades.</p>
+      </div>
+    </div>
+    <span class="mark">a<span class="dot">.</span>c</span>
+    <span class="pn">05 / 07</span>
+  </section>
+
+  <!-- 6. Quote -->
+  <section data-screen-label="06 Quote">
+    <div class="crumb">§ 04 · in other words</div>
+    <div class="flex-grow" style="justify-content: center;">
+      <p class="quote">"The kernel limit isn't a target — it's the regime in which the features stop learning."</p>
+      <p class="attrib">— from the blog, apr 2025</p>
+    </div>
+    <span class="mark">a<span class="dot">.</span>c</span>
+    <span class="pn">06 / 07</span>
+  </section>
+
+  <!-- 7. End -->
+  <section class="end-slide" data-screen-label="07 End">
+    <div class="flex-grow" style="justify-content: center;">
+      <div class="big">a<span class="dot">.</span>c</div>
+      <div class="lines">
+        <strong style="font-family: var(--font-mono); font-weight: 500;">Thanks.</strong><br/>
+        Code, paper, slides — <a href="#">archie.example.org/spectral</a><br/>
+        Questions: <a href="mailto:ac@example.org">ac@example.org</a>
+      </div>
+    </div>
+    <span class="pn">07 / 07</span>
+  </section>
+
+</deck-stage>
+<script type="application/json" id="speaker-notes">["", "", "", "", "", "", ""]</script>
+</body>
+</html>

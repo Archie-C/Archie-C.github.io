@@ -1,65 +1,13 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-palette="paper">
 <head>
   <meta charset="utf-8"/>
-  <title>Projects — Archie Carpenter</title>
+  <title>projects | archie carpenter</title>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400..700;1,400..700&family=Inter:wght@400..700&family=Source+Serif+4:opsz,wght@8..60,400..600&display=swap" rel="stylesheet"/>
+  <link rel="icon" href="../design_system/assets/favicon.svg"/>
+  <link rel="stylesheet" href="../design_system/colors_and_type.css"/>
   <style>
-    :root {
-      --bg:        #F6F1E7;
-      --bg-2:      #ECE6D6;
-      --bg-3:      #DCD2BC;
-      --bg-sunk:   #E8E1CC;
-      --fg:        #15120B;
-      --fg-2:      #3D362A;
-      --fg-3:      #6B6149;
-      --fg-4:      #A09373;
-      --rule:      #DCD2BC;
-      --accent:       #6B2C5C;
-      --accent-hover: #4F1E44;
-      --accent-soft:  #F0E2EA;
-      --font-mono:  'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
-      --font-sans:  'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-      --font-serif: 'Source Serif 4', 'Source Serif Pro', Georgia, 'Times New Roman', serif;
-      --ease:     cubic-bezier(0.2, 0, 0, 1);
-      --dur-fast: 120ms;
-      --page-max: 1180px;
-      --rail:     200px;
-    }
     *, *::before, *::after { box-sizing: border-box; }
-    html { color-scheme: light; }
-    body {
-      margin: 0;
-      background: var(--bg);
-      color: var(--fg);
-      font-family: var(--font-sans);
-      font-size: 1rem;
-      line-height: 1.6;
-      -webkit-font-smoothing: antialiased;
-      text-rendering: optimizeLegibility;
-    }
-    h1, h2, h3, h4, h5, h6 {
-      font-family: var(--font-mono);
-      font-weight: 600;
-      line-height: 1.15;
-      letter-spacing: -0.01em;
-      margin: 0;
-      color: var(--fg);
-    }
-    a {
-      color: var(--accent);
-      text-decoration: underline;
-      text-decoration-thickness: 1px;
-      text-underline-offset: 0.18em;
-      transition: color var(--dur-fast) var(--ease),
-                  text-decoration-thickness var(--dur-fast) var(--ease);
-    }
-    a:hover { color: var(--accent-hover); text-decoration-thickness: 2px; }
-    a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
-    ::selection { background: var(--accent-soft); color: var(--fg); }
 
     .page {
       display: grid;
@@ -68,6 +16,7 @@
       max-width: var(--page-max);
       margin: 0 auto;
     }
+
     .rail {
       padding: 40px 24px 32px;
       border-right: 1px solid var(--rule);
@@ -80,6 +29,7 @@
       height: 100vh;
       overflow-y: auto;
     }
+
     .rail .mark {
       font-family: var(--font-mono);
       font-weight: 700;
@@ -89,8 +39,14 @@
       color: var(--fg);
       text-decoration: none;
     }
+
     .rail .mark .dot { color: var(--accent); }
-    .rail nav { display: flex; flex-direction: column; }
+
+    .rail nav {
+      display: flex;
+      flex-direction: column;
+    }
+
     .rail nav a {
       font-family: var(--font-mono);
       font-size: 14px;
@@ -103,8 +59,17 @@
       transition: background var(--dur-fast) var(--ease),
                   color var(--dur-fast) var(--ease);
     }
-    .rail nav a:hover { background: var(--bg-2); color: var(--fg); }
-    .rail nav a.active { border-left-color: var(--accent); color: var(--fg); }
+
+    .rail nav a:hover {
+      background: var(--bg-2);
+      color: var(--fg);
+    }
+
+    .rail nav a.active {
+      border-left-color: var(--accent);
+      color: var(--fg);
+    }
+
     .rail .foot {
       margin-top: auto;
       font-family: var(--font-sans);
@@ -112,80 +77,190 @@
       color: var(--fg-3);
       line-height: 1.5;
     }
-    .rail .foot a { color: var(--fg-2); text-decoration-thickness: 1px; }
 
-    main { padding: 56px 64px 80px; max-width: 760px; }
-
-    .eyebrow {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      color: var(--fg-3);
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      margin-bottom: 14px;
+    main {
+      padding: 56px 72px 80px;
+      max-width: 920px;
+      width: 100%;
     }
-    h1.hero { font-size: 36px; line-height: 1.1; margin-bottom: 18px; }
-    .bio {
+
+    .eyebrow { margin-bottom: 14px; }
+
+    h1.hero {
+      font-size: 38px;
+      line-height: 1.1;
+      margin-bottom: 18px;
+      max-width: 24ch;
+    }
+
+    .intro {
       font-family: var(--font-sans);
       font-size: 17px;
       line-height: 1.55;
       color: var(--fg);
-      max-width: 60ch;
-      margin: 0 0 32px;
+      max-width: 72ch;
+      margin: 0 0 36px;
     }
 
     .section-head {
       display: flex;
       align-items: baseline;
       justify-content: space-between;
+      gap: 16px;
       margin-bottom: 16px;
     }
-    .section-head h2 { font-size: 17px; font-weight: 500; letter-spacing: -0.005em; }
 
-    hr.rule { margin: 36px 0 24px; border: 0; border-top: 1px solid var(--rule); }
+    .section-head h2 {
+      font-size: 17px;
+      font-weight: 500;
+      letter-spacing: -0.005em;
+    }
 
-    .project-list { display: flex; flex-direction: column; }
-    .project-list .item { padding: 14px 0; border-bottom: 1px solid var(--rule); }
+    .project-feature {
+      border-top: 1px solid var(--rule);
+      border-bottom: 1px solid var(--rule);
+      padding: 22px 0 24px;
+      margin-bottom: 36px;
+    }
+
+    .project-label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--fg-3);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .project-title {
+      font-family: var(--font-mono);
+      font-weight: 500;
+      font-size: 21px;
+      color: var(--fg);
+      letter-spacing: -0.005em;
+      line-height: 1.25;
+      margin: 0 0 8px;
+      max-width: 34ch;
+    }
+
+    .project-desc {
+      font-family: var(--font-serif);
+      font-size: 17px;
+      color: var(--fg-2);
+      line-height: 1.6;
+      max-width: 70ch;
+      margin: 0 0 16px;
+    }
+
+    .project-meta {
+      font-family: var(--font-sans);
+      font-size: 13px;
+      color: var(--fg-3);
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .project-meta .venue {
+      color: var(--fg-2);
+      font-family: var(--font-mono);
+      font-size: 12px;
+    }
+
+    .status,
+    .tag {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.04em;
+      color: var(--accent);
+      border: 1px solid var(--rule);
+      background: var(--accent-soft);
+      padding: 2px 7px;
+      border-radius: 4px;
+    }
+
+    .tag {
+      color: var(--fg-3);
+      background: transparent;
+    }
+
+    .actions,
+    .tags {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 500;
+      padding: 7px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--rule);
+      background: var(--bg-2);
+      color: var(--fg);
+      text-decoration: none;
+      transition: background var(--dur-fast) var(--ease),
+                  border-color var(--dur-fast) var(--ease);
+    }
+
+    .btn:hover {
+      background: var(--bg-3);
+      border-color: var(--fg-4);
+      color: var(--fg);
+      text-decoration: none;
+    }
+
+    .btn.primary {
+      background: var(--fg);
+      border-color: var(--fg);
+      color: var(--bg);
+    }
+
+    .btn.primary:hover {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--bg);
+    }
+
+    .project-list {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .project-list .item {
+      padding: 14px 0;
+      border-bottom: 1px solid var(--rule);
+    }
+
     .project-list .item:last-child { border-bottom: 0; }
 
-    .proj-row {
-      display: grid;
-      grid-template-columns: 80px 1fr;
-      gap: 16px;
-      align-items: baseline;
-      margin-bottom: 4px;
-    }
-    .proj-year { font-family: var(--font-mono); font-size: 12px; color: var(--fg-4); }
-    .proj-title {
+    .work-title {
       font-family: var(--font-mono);
       font-weight: 500;
       font-size: 15px;
       color: var(--fg);
       letter-spacing: -0.005em;
+      line-height: 1.35;
+      margin: 0 0 5px;
     }
-    .proj-desc {
+
+    .work-desc {
       font-family: var(--font-sans);
       font-size: 14px;
       color: var(--fg-2);
       line-height: 1.5;
-      margin: 0;
-      max-width: 58ch;
-      padding-left: calc(80px + 16px);
+      max-width: 72ch;
+      margin: 0 0 7px;
     }
-    .proj-tags {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      padding-left: calc(80px + 16px);
-      margin-top: 6px;
-    }
-    .tag {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      color: var(--fg-3);
-      border: 1px solid var(--rule);
-      padding: 1px 6px;
-      border-radius: 3px;
+
+    hr.rule {
+      margin: 36px 0 24px;
+      border: 0;
+      border-top: 1px solid var(--rule);
     }
 
     .pagefoot {
@@ -197,56 +272,99 @@
       color: var(--fg-4);
       display: flex;
       justify-content: space-between;
+      gap: 16px;
     }
-    .pagefoot a { color: var(--fg-3); text-decoration: none; }
+
+    .pagefoot a {
+      color: var(--fg-3);
+      text-decoration: none;
+    }
+
     .pagefoot a:hover { color: var(--fg); }
 
     @media (max-width: 720px) {
       .page { grid-template-columns: 1fr; }
-      .rail { height: auto; position: static; border-right: 0; border-bottom: 1px solid var(--rule); }
-      main { padding: 32px 24px 60px; max-width: none; }
-      h1.hero { font-size: 28px; }
-      .proj-desc, .proj-tags { padding-left: 0; }
+
+      .rail {
+        height: auto;
+        position: static;
+        border-right: 0;
+        border-bottom: 1px solid var(--rule);
+      }
+
+      main {
+        padding: 32px 24px 60px;
+        max-width: none;
+      }
+
+      h1.hero { font-size: 30px; }
+
+      .project-title { font-size: 18px; }
+
+      .pagefoot {
+        flex-direction: column;
+      }
     }
   </style>
 </head>
 <body>
 <div class="page">
-
   <aside class="rail">
     <a href="../" class="mark">a<span class="dot">.</span>c</a>
-    <nav>
+    <nav aria-label="Main navigation">
       <a href="../">home</a>
       <a href="../research/">research</a>
-      <a href="../courses/">teaching</a>
+      <a href="../courses/">courses</a>
       <a href="./" class="active">projects</a>
       <a href="../cv/">cv</a>
     </nav>
     <div class="foot">
-      Researcher &amp; teacher.<br/>
-      <a href="../contact/">Get in touch</a>
+      Researcher &amp; teacher.
     </div>
   </aside>
 
   <main>
     <div class="eyebrow">projects</div>
-    <h1 class="hero">Things I've built and explored.</h1>
-    <p class="bio">A mix of technical projects, competition entries, and experiments — things I've built to learn something, solve a problem, or just because they seemed interesting.</p>
+    <h1 class="hero">Technical projects, experiments, and competition work.</h1>
+    <p class="intro">A mix of things built to learn, test ideas, or solve a concrete problem. Most sit close to machine learning, data, and systems work; some are simply useful small tools that deserved a quiet place to live.</p>
 
     <div class="section-head">
-      <h2>Competitions</h2>
+      <h2>Featured project</h2>
+    </div>
+    <article class="project-feature">
+      <div class="project-label">IMC Prosperity 4 &middot; 2025 &middot; algorithmic trading</div>
+      <h3 class="project-title">Trading strategies for a simulated multi-asset market</h3>
+      <p class="project-desc">A competition entry built around iterative strategy design, backtesting, and risk-aware execution across a changing simulated market. The work combined data inspection, simple forecasting signals, and fast feedback loops.</p>
+      <div class="project-meta">
+        <span class="venue">Competition &middot; 2025</span>
+        <span class="status">completed</span>
+      </div>
+      <div class="actions" aria-label="Project links">
+        <a class="btn primary" href="#">write-up pending</a>
+        <a class="btn" href="#">code pending</a>
+      </div>
+    </article>
+
+    <div class="section-head">
+      <h2>Projects</h2>
     </div>
     <div class="project-list">
       <div class="item">
-        <div class="proj-row">
-          <span class="proj-year">2025</span>
-          <span class="proj-title">IMC Prosperity 4</span>
-        </div>
-        <p class="proj-desc">Algorithmic trading challenge. Developed and tested trading strategies across a simulated multi-asset market over three weeks.</p>
-        <div class="proj-tags">
+        <h3 class="work-title">IMC Prosperity 4</h3>
+        <p class="work-desc">Algorithmic trading challenge. Developed and tested trading strategies across a simulated multi-asset market over three weeks.</p>
+        <div class="tags">
           <span class="tag">algorithmic trading</span>
           <span class="tag">python</span>
           <span class="tag">competition</span>
+        </div>
+      </div>
+      <div class="item">
+        <h3 class="work-title">This website</h3>
+        <p class="work-desc">A personal site for teaching materials, research, and project notes. Static HTML, deliberately simple, with a local design system for consistency.</p>
+        <div class="tags">
+          <span class="tag">html</span>
+          <span class="tag">css</span>
+          <span class="tag">design system</span>
         </div>
       </div>
     </div>
@@ -254,28 +372,28 @@
     <hr class="rule"/>
 
     <div class="section-head">
-      <h2>Other projects</h2>
+      <h2>Working areas</h2>
     </div>
     <div class="project-list">
       <div class="item">
-        <div class="proj-row">
-          <span class="proj-year">ongoing</span>
-          <span class="proj-title">This website</span>
-        </div>
-        <p class="proj-desc">A personal site for teaching materials, research, and writing. Static HTML — deliberately simple.</p>
-        <div class="proj-tags">
-          <span class="tag">html</span>
-          <span class="tag">css</span>
-        </div>
+        <h3 class="work-title">Machine learning experiments</h3>
+        <p class="work-desc">Small implementations and tests that help turn research questions into something inspectable.</p>
+      </div>
+      <div class="item">
+        <h3 class="work-title">Teaching tools</h3>
+        <p class="work-desc">Course examples, exercises, and visual explanations for deep learning and applied machine learning.</p>
+      </div>
+      <div class="item">
+        <h3 class="work-title">Data and evaluation workflows</h3>
+        <p class="work-desc">Scripts and notebooks for checking assumptions, comparing runs, and making evaluation results easier to trust.</p>
       </div>
     </div>
 
     <div class="pagefoot">
-      <span>archie carpenter · projects</span>
-      <span>© archie carpenter</span>
+      <span>archie carpenter &middot; projects</span>
+      <span><a href="../cv/">cv &nearr;</a> &middot; &copy; archie carpenter</span>
     </div>
   </main>
-
 </div>
 </body>
 </html>

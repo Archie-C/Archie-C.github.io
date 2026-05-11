@@ -1,80 +1,14 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-palette="paper">
 <head>
   <meta charset="utf-8"/>
-  <title>Archie Carpenter</title>
+  <title>archie carpenter</title>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400..700;1,400..700&family=Inter:wght@400..700&family=Source+Serif+4:opsz,wght@8..60,400..600&display=swap" rel="stylesheet"/>
+  <link rel="icon" href="./design_system/assets/favicon.svg"/>
+  <link rel="stylesheet" href="./design_system/colors_and_type.css"/>
   <style>
-    /* ── Design tokens: Paper palette ─────────────────────────── */
-    :root {
-      --bg:        #F6F1E7;
-      --bg-2:      #ECE6D6;
-      --bg-3:      #DCD2BC;
-      --bg-sunk:   #E8E1CC;
-
-      --fg:        #15120B;
-      --fg-2:      #3D362A;
-      --fg-3:      #6B6149;
-      --fg-4:      #A09373;
-
-      --rule:      #DCD2BC;
-
-      --accent:       #6B2C5C;
-      --accent-hover: #4F1E44;
-      --accent-soft:  #F0E2EA;
-
-      --font-mono:  'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
-      --font-sans:  'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-      --font-serif: 'Source Serif 4', 'Source Serif Pro', Georgia, 'Times New Roman', serif;
-
-      --ease:     cubic-bezier(0.2, 0, 0, 1);
-      --dur-fast: 120ms;
-
-      --page-max: 1180px;
-      --rail:     200px;
-    }
-
     *, *::before, *::after { box-sizing: border-box; }
 
-    html { color-scheme: light; }
-
-    body {
-      margin: 0;
-      background: var(--bg);
-      color: var(--fg);
-      font-family: var(--font-sans);
-      font-size: 1rem;
-      line-height: 1.6;
-      -webkit-font-smoothing: antialiased;
-      text-rendering: optimizeLegibility;
-    }
-
-    h1, h2, h3, h4, h5, h6 {
-      font-family: var(--font-mono);
-      font-weight: 600;
-      line-height: 1.15;
-      letter-spacing: -0.01em;
-      margin: 0;
-      color: var(--fg);
-    }
-
-    a {
-      color: var(--accent);
-      text-decoration: underline;
-      text-decoration-thickness: 1px;
-      text-underline-offset: 0.18em;
-      transition: color var(--dur-fast) var(--ease),
-                  text-decoration-thickness var(--dur-fast) var(--ease);
-    }
-    a:hover { color: var(--accent-hover); text-decoration-thickness: 2px; }
-    a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
-
-    ::selection { background: var(--accent-soft); color: var(--fg); }
-
-    /* ── Page shell ────────────────────────────────────────────── */
     .page {
       display: grid;
       grid-template-columns: var(--rail) 1fr;
@@ -83,7 +17,6 @@
       margin: 0 auto;
     }
 
-    /* ── Left navigation rail ──────────────────────────────────── */
     .rail {
       padding: 40px 24px 32px;
       border-right: 1px solid var(--rule);
@@ -106,12 +39,14 @@
       color: var(--fg);
       text-decoration: none;
     }
+
     .rail .mark .dot { color: var(--accent); }
 
     .rail nav {
       display: flex;
       flex-direction: column;
     }
+
     .rail nav a {
       font-family: var(--font-mono);
       font-size: 14px;
@@ -124,8 +59,16 @@
       transition: background var(--dur-fast) var(--ease),
                   color var(--dur-fast) var(--ease);
     }
-    .rail nav a:hover { background: var(--bg-2); color: var(--fg); }
-    .rail nav a.active { border-left-color: var(--accent); color: var(--fg); }
+
+    .rail nav a:hover {
+      background: var(--bg-2);
+      color: var(--fg);
+    }
+
+    .rail nav a.active {
+      border-left-color: var(--accent);
+      color: var(--fg);
+    }
 
     .rail .foot {
       margin-top: auto;
@@ -134,28 +77,20 @@
       color: var(--fg-3);
       line-height: 1.5;
     }
-    .rail .foot a { color: var(--fg-2); text-decoration-thickness: 1px; }
 
-    /* ── Main content ──────────────────────────────────────────── */
     main {
-      padding: 56px 64px 80px;
-      max-width: 760px;
+      padding: 56px 72px 80px;
+      max-width: 920px;
+      width: 100%;
     }
 
-    .eyebrow {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      color: var(--fg-3);
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      margin-bottom: 14px;
-    }
+    .eyebrow { margin-bottom: 14px; }
 
     h1.hero {
       font-size: 44px;
       line-height: 1.1;
       margin-bottom: 18px;
-      max-width: 18ch;
+      max-width: 24ch;
     }
 
     .bio {
@@ -163,7 +98,7 @@
       font-size: 17px;
       line-height: 1.55;
       color: var(--fg);
-      max-width: 60ch;
+      max-width: 72ch;
       margin: 0 0 14px;
     }
 
@@ -172,12 +107,13 @@
       font-style: italic;
       font-size: 16px;
       color: var(--fg-2);
-      max-width: 58ch;
+      max-width: 70ch;
       line-height: 1.55;
       border-left: 2px solid var(--accent);
       padding-left: 14px;
       margin: 24px 0 40px;
     }
+
     .now .now-label {
       font-style: normal;
       font-family: var(--font-mono);
@@ -194,21 +130,46 @@
       border-top: 1px solid var(--rule);
     }
 
-    /* ── Section headers ───────────────────────────────────────── */
     .section-head {
       display: flex;
       align-items: baseline;
       justify-content: space-between;
+      gap: 16px;
       margin-bottom: 16px;
     }
-    .section-head h3 { font-size: 17px; font-weight: 500; letter-spacing: -0.005em; }
-    .section-head a  { font-family: var(--font-mono); font-size: 12px; color: var(--accent); text-decoration: none; }
+
+    .section-head h3 {
+      font-size: 17px;
+      font-weight: 500;
+      letter-spacing: -0.005em;
+    }
+
+    .section-head a {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--accent);
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
     .section-head a:hover { text-decoration: underline; }
 
-    /* ── Research list ─────────────────────────────────────────── */
-    .papers { display: flex; flex-direction: column; }
-    .papers .item { padding: 12px 0; border-bottom: 1px solid var(--rule); }
-    .papers .item:last-child { border-bottom: 0; }
+    .papers,
+    .sections-list {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .papers > .item,
+    .sections-list > .item {
+      padding: 12px 0;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .papers > .item:last-child,
+    .sections-list > .item:last-child {
+      border-bottom: 0;
+    }
 
     .paper-title {
       font-family: var(--font-mono);
@@ -219,6 +180,7 @@
       line-height: 1.35;
       margin: 0 0 4px;
     }
+
     .paper-meta {
       font-family: var(--font-sans);
       font-size: 13px;
@@ -227,29 +189,32 @@
       gap: 14px;
       flex-wrap: wrap;
     }
-    .paper-meta .venue { color: var(--fg-2); }
 
-    /* ── Site sections list ────────────────────────────────────── */
-    .sections-list { display: flex; flex-direction: column; }
-    .sections-list .item { padding: 12px 0; border-bottom: 1px solid var(--rule); }
-    .sections-list .item:last-child { border-bottom: 0; }
+    .paper-meta .venue { color: var(--fg-2); }
 
     .sec-row {
       display: grid;
-      grid-template-columns: 100px 1fr;
-      gap: 16px;
+      grid-template-columns: 120px 1fr;
+      gap: 20px;
       align-items: baseline;
     }
-    .sec-label { font-family: var(--font-mono); font-size: 12px; color: var(--fg-4); letter-spacing: 0.03em; }
+
+    .sec-label {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--fg-4);
+      letter-spacing: 0.03em;
+    }
+
     .sec-title {
       font-family: var(--font-sans);
       font-size: 15px;
       color: var(--fg);
       text-decoration: none;
     }
+
     .sec-title:hover { color: var(--accent); }
 
-    /* ── Page footer ───────────────────────────────────────────── */
     .pagefoot {
       margin-top: 64px;
       padding-top: 18px;
@@ -259,62 +224,80 @@
       color: var(--fg-4);
       display: flex;
       justify-content: space-between;
+      gap: 16px;
     }
-    .pagefoot a { color: var(--fg-3); text-decoration: none; }
+
+    .pagefoot a {
+      color: var(--fg-3);
+      text-decoration: none;
+    }
+
     .pagefoot a:hover { color: var(--fg); }
 
-    /* ── Mobile ────────────────────────────────────────────────── */
     @media (max-width: 720px) {
       .page { grid-template-columns: 1fr; }
+
       .rail {
         height: auto;
         position: static;
         border-right: 0;
         border-bottom: 1px solid var(--rule);
       }
-      main { padding: 32px 24px 60px; max-width: none; }
+
+      main {
+        padding: 32px 24px 60px;
+        max-width: none;
+      }
+
       h1.hero { font-size: 32px; }
+
+      .sec-row {
+        grid-template-columns: 1fr;
+        gap: 2px;
+      }
+
+      .pagefoot {
+        flex-direction: column;
+      }
     }
   </style>
 </head>
 <body>
 <div class="page">
-
   <aside class="rail">
     <a href="/" class="mark">a<span class="dot">.</span>c</a>
-    <nav>
+    <nav aria-label="Main navigation">
       <a href="/" class="active">home</a>
       <a href="./research/">research</a>
-      <a href="./courses/">teaching</a>
+      <a href="./courses/">courses</a>
       <a href="./projects/">projects</a>
       <a href="./cv/">cv</a>
     </nav>
     <div class="foot">
-      Researcher &amp; teacher.<br/>
-      <a href="./contact/">Get in touch</a>
+      Researcher &amp; teacher.
     </div>
   </aside>
 
   <main>
-    <div class="eyebrow">archie carpenter · ml &amp; recommender systems</div>
+    <div class="eyebrow">archie carpenter &middot; ml &amp; recommender systems</div>
     <h1 class="hero">I research how systems can make better recommendations from health data.</h1>
 
-    <p class="bio">I'm a researcher and teacher at the University of Klagenfurt, Austria. My work focuses on recommender systems in healthcare — using electronic health records to help clinicians make better-informed decisions.</p>
+    <p class="bio">I'm a researcher and teacher at the University of Klagenfurt, Austria. My work focuses on recommender systems in healthcare, using electronic health records to help clinicians make better-informed decisions.</p>
     <p class="bio">I also teach. I'm currently prepping a deep learning course at AAU and writing notes I wish someone had given me when I was learning this material.</p>
 
-    <div class="now">
-      <span class="now-label">now</span>Working through a reproducibility study on EHR-based drug recommendation models, evaluating how robust existing methods really are. Also prepping the Deep Learning course at AAU — lectures, exercises, and a lot of marking.
-    </div>
+    <p class="now">
+      <span class="now-label">now</span>Working through a reproducibility study on EHR-based drug recommendation models, evaluating how robust existing methods really are. Also prepping the Deep Learning course at AAU: lectures, exercises, and a lot of marking.
+    </p>
 
     <div class="section-head">
       <h3>Research</h3>
-      <a href="./research/">all papers →</a>
+      <a href="./research/">all papers &rarr;</a>
     </div>
     <div class="papers">
       <div class="item">
-        <h4 class="paper-title">EHR-based drug recommendation — reproducibility study</h4>
+        <h4 class="paper-title">EHR-based drug recommendation reproducibility study</h4>
         <div class="paper-meta">
-          <span class="venue">University of Klagenfurt · 2025</span>
+          <span class="venue">University of Klagenfurt &middot; 2025</span>
           <span>Evaluating robustness and reproducibility of existing approaches on real EHR data.</span>
         </div>
       </div>
@@ -328,8 +311,8 @@
     <div class="sections-list">
       <div class="item">
         <div class="sec-row">
-          <span class="sec-label">teaching</span>
-          <a class="sec-title" href="./courses/">Teaching — courses, notes, and exercises</a>
+          <span class="sec-label">courses</span>
+          <a class="sec-title" href="./courses/">Courses, notes, and exercises</a>
         </div>
       </div>
       <div class="item">
@@ -340,8 +323,8 @@
       </div>
       <div class="item">
         <div class="sec-row">
-          <span class="sec-label">competitions</span>
-          <a class="sec-title" href="./competitions/">Algorithmic trading, data science, and other competitions</a>
+          <span class="sec-label">research</span>
+          <a class="sec-title" href="./research/">Papers, study notes, and research work</a>
         </div>
       </div>
       <div class="item">
@@ -353,11 +336,10 @@
     </div>
 
     <div class="pagefoot">
-      <span>archie carpenter · 2026</span>
-      <span><a href="./cv/">cv ↗</a> · © archie carpenter</span>
+      <span>archie carpenter &middot; 2026</span>
+      <span><a href="./cv/">cv &nearr;</a> &middot; &copy; archie carpenter</span>
     </div>
   </main>
-
 </div>
 </body>
 </html>

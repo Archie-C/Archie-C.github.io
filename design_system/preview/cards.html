@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en" data-palette="paper">
+<head>
+<meta charset="utf-8"/>
+<link rel="stylesheet" href="../colors_and_type.css"/>
+<style>
+  body { padding: 22px 28px; display: grid; grid-template-columns: 1.1fr 1fr; gap: 18px; }
+  .card { border: 1px solid var(--rule); border-radius: 8px; padding: 16px 18px; background: var(--bg); }
+  .card .eyebrow { font-family: var(--font-mono); font-size: 10px; color: var(--fg-3); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 6px; }
+  .card h4 { font-family: var(--font-mono); font-weight: 600; font-size: 16px; color: var(--fg); margin-bottom: 6px; letter-spacing: -0.005em; }
+  .card p { font-family: var(--font-sans); font-size: 13px; color: var(--fg-2); line-height: 1.5; margin: 0; }
+  .card .meta { display: flex; gap: 12px; margin-top: 10px; font-family: var(--font-mono); font-size: 11px; color: var(--fg-3); }
+  .callout { background: var(--accent-soft); border: 1px solid transparent; }
+  .callout .eyebrow { color: var(--accent); }
+  .callout h4 { color: var(--fg); }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="eyebrow">Paper · 2025</div>
+    <h4>On the spectral bias of wide nets</h4>
+    <p>A close look at why wide neural networks learn low-frequency components first, with a simple closed-form for the kernel limit.</p>
+    <div class="meta"><span>w/ J. Park, R. Saito</span><span>arXiv:2503.04217</span></div>
+  </div>
+  <div class="card callout">
+    <div class="eyebrow">Note</div>
+    <h4>Sign of the gradient matters</h4>
+    <p>In the linearised regime, the sign — not the magnitude — of ∇L predicts which features the network locks onto.</p>
+  </div>
+</body>
+</html>

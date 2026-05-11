@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en" data-palette="paper">
+<head>
+<meta charset="utf-8"/>
+<title>Linear Regression | Deep Learning</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link rel="icon" href="../../../../design_system/assets/favicon.svg"/>
+<link rel="stylesheet" href="../../../../design_system/colors_and_type.css"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"/>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+  :root { --page-w: 1180px; }
+
+  body { background: var(--bg-2); }
+
+  .frame {
+    max-width: var(--page-w);
+    margin: 0 auto;
+    background: var(--bg);
+    min-height: 100vh;
+  }
+
+  .topbar {
+    padding: 20px 32px;
+    display: flex;
+    align-items: baseline;
+    gap: 22px;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .topbar .mark {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 22px;
+    letter-spacing: -0.02em;
+    color: var(--fg);
+    text-decoration: none;
+  }
+
+  .topbar .mark .dot { color: var(--accent); }
+
+  .topbar .crumb {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--fg-2);
+  }
+
+  .topbar .crumb a {
+    color: var(--fg-3);
+    text-decoration: none;
+  }
+
+  .topbar .crumb a:hover { color: var(--fg); }
+
+  .topbar .crumb .sep {
+    color: var(--fg-4);
+    margin: 0 8px;
+  }
+
+  .topbar nav {
+    margin-left: auto;
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .topbar nav a {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--fg-2);
+    text-decoration: none;
+  }
+
+  .topbar nav a:hover,
+  .topbar nav a.active {
+    color: var(--accent);
+  }
+
+  .lecture {
+    padding: 40px 32px 80px;
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 56px;
+  }
+
+  .lecture aside {
+    font-family: var(--font-sans);
+    font-size: 13px;
+    color: var(--fg-3);
+    position: sticky;
+    top: 24px;
+    align-self: start;
+    line-height: 1.5;
+  }
+
+  .lecture aside .h {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--fg-4);
+    display: block;
+    margin: 16px 0 6px;
+  }
+
+  .lecture aside .h:first-child { margin-top: 0; }
+
+  .lecture aside .nav-group {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--fg-2);
+    margin-top: 10px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding-bottom: 4px;
+  }
+
+  .lecture aside .nav-list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .lecture aside .nav-list a {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--fg-2);
+    text-decoration: none;
+    padding: 4px 0 4px 12px;
+    border-left: 2px solid transparent;
+  }
+
+  .lecture aside .nav-list a:hover { color: var(--fg); }
+
+  .lecture aside .nav-list a.current {
+    color: var(--fg);
+    border-left-color: var(--accent);
+    background: var(--accent-soft);
+  }
+
+  .lecture aside .nav-list a.done { color: var(--fg-4); }
+
+  .lecture article { max-width: 62ch; }
+
+  .lecture article p,
+  .lecture article ul,
+  .lecture article ol,
+  .lecture article pre,
+  .lecture article .note,
+  .lecture article .exercise {
+    max-width: none;
+  }
+
+  .lecture article .crumb {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .lecture article .crumb a {
+    color: var(--fg-3);
+    text-decoration: none;
+  }
+
+  .lecture article .crumb a:hover { color: var(--fg); }
+
+  .lecture article .crumb .sep {
+    color: var(--fg-4);
+    margin: 0 6px;
+  }
+
+  .lecture article h1 {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 30px;
+    line-height: 1.12;
+    letter-spacing: -0.015em;
+    margin: 0 0 8px;
+  }
+
+  .lecture article .standfirst {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 17px;
+    color: var(--fg-2);
+    margin-bottom: 28px;
+    max-width: 50ch;
+    line-height: 1.5;
+  }
+
+  .body {
+    font-family: var(--font-serif);
+    font-size: 17px;
+    line-height: 1.65;
+    color: var(--fg);
+  }
+
+  .body p { margin: 0 0 1em; }
+
+  .body ul,
+  .body ol {
+    list-style: none;
+    margin: 1.1em 0 1.4em;
+    padding: 0;
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+    counter-reset: note-list;
+  }
+
+  .body li {
+    counter-increment: note-list;
+    display: grid;
+    grid-template-columns: 44px 1fr;
+    column-gap: 14px;
+    align-items: baseline;
+    padding: 8px 0;
+    border-top: 1px dashed var(--rule);
+    font-family: var(--font-sans);
+    font-size: 14.5px;
+    line-height: 1.5;
+    color: var(--fg-2);
+  }
+
+  .body li:first-child { border-top: 0; }
+
+  .body li::before {
+    content: counter(note-list, decimal-leading-zero);
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    color: var(--fg-4);
+    letter-spacing: 0.04em;
+  }
+
+  .body ul li::before { content: counter(note-list, decimal-leading-zero); }
+
+  .body li a {
+    color: var(--fg);
+    text-decoration: none;
+  }
+
+  .body li a:hover { color: var(--accent); }
+
+  .body h2 {
+    font-family: var(--font-mono);
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: -0.005em;
+    margin: 1.8em 0 0.5em;
+  }
+
+  .body code {
+    font-family: var(--font-mono);
+    font-size: 0.9em;
+    background: var(--bg-sunk);
+    padding: 0.1em 0.36em;
+    border-radius: 3px;
+  }
+
+  .body pre {
+    font-family: var(--font-mono);
+    background: var(--bg-sunk);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 14px 18px;
+    font-size: 13px;
+    line-height: 1.5;
+    overflow-x: auto;
+    margin: 1.4em 0;
+  }
+
+  .body pre code {
+    background: none;
+    padding: 0;
+  }
+
+  .exercise {
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--accent);
+    border-radius: 4px;
+    padding: 14px 18px;
+    background: var(--bg-2);
+    margin: 1.4em 0;
+  }
+
+  .exercise .tag {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+
+  .exercise .tag b {
+    color: var(--fg);
+    margin-left: 6px;
+  }
+
+  .exercise p {
+    margin: 6px 0 0;
+    font-family: var(--font-sans);
+    font-size: 14.5px;
+    color: var(--fg);
+  }
+
+  .note {
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--fg-4);
+    border-radius: 4px;
+    padding: 14px 18px;
+    background: var(--bg-sunk);
+    margin: 1.4em 0;
+  }
+
+  .note .tag {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--fg-3);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  .note p {
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: 14.5px;
+    line-height: 1.55;
+    color: var(--fg);
+  }
+
+  .note.important {
+    border-left-color: var(--accent);
+    background: var(--accent-soft);
+  }
+
+  .note.important .tag { color: var(--accent); }
+
+  .endbar {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 40px;
+    padding-top: 16px;
+    border-top: 1px solid var(--rule);
+    font-family: var(--font-mono);
+    font-size: 12px;
+  }
+
+  .endbar a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+
+  .endbar a:hover { text-decoration: underline; }
+
+  @media (max-width: 820px) {
+    .topbar {
+      align-items: flex-start;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .topbar nav { margin-left: 0; }
+
+    .lecture {
+      display: block;
+      padding: 36px 24px 64px;
+    }
+
+    .lecture aside {
+      position: static;
+      margin-bottom: 34px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .topbar { padding: 18px 20px; }
+    .lecture article h1 { font-size: 27px; }
+    .endbar { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+<div class="frame">
+  <div class="topbar">
+    <a href="../../../../" class="mark">a<span class="dot">.</span>c</a>
+    <span class="crumb">
+      <a href="../../../">Deep Learning</a><span class="sep">&rsaquo;</span>
+      <a href="../">01 regression</a><span class="sep">&rsaquo;</span>
+      linear regression
+    </span>
+    <nav aria-label="Course navigation">
+      <a href="../../../" class="active">syllabus</a>
+      <a href="../../../exercises/">assignments</a>
+      <a href="../../../examples/">resources</a>
+      <a href="../../../#office-hours">office hours</a>
+    </nav>
+  </div>
+
+  <div class="lecture">
+    <aside>
+      <span class="h">course</span>
+      Deep Learning &middot; Winter 2026
+
+      <span class="h">topic</span>
+      <div class="nav-group">01 &middot; regression</div>
+      <div class="nav-list">
+        <a class="current" href="./">1.1 &middot; linear regression</a>
+        <a href="../multiple-input-dimensions/">1.2 &middot; multiple input dimensions</a>
+        <a href="../multiple-output-dimensions/">1.3 &middot; multiple output dimensions</a>
+        <a href="../nonlinear-regression/">1.4 &middot; non-linear regression</a>
+        <a href="../regularisation-bias-variance/">1.5 &middot; regularisation</a>
+      </div>
+
+      <span class="h">materials</span>
+      <div class="nav-list">
+        <a href="../../../lectures/regression/notes/">regression notes</a>
+        <a href="../../../exercises/regression/">regression exercises</a>
+        <a href="../../../examples/regression/scratch/">worked example</a>
+      </div>
+    </aside>
+
+    <article>
+      <div class="crumb">
+        <a href="../../../">syllabus</a><span class="sep">&rsaquo;</span>
+        <a href="../">topic 01</a><span class="sep">&rsaquo;</span>
+        subtopic 1.1
+      </div>
+      <h1>Linear Regression.</h1>
+      <p class="standfirst">Linear regression is perhaps the most fundamental machine learning algorithm. It underpins many of the concepts in this course and it's a great starting model to try as a benchmark on a new problem.
+      </p>
+
+      <div class="body">
+        <h2>What this note covers</h2>
+        <ul>
+          <li>The model</li>
+          <li>The objective function</li>
+          <li>Implementation details</li>
+        </ul>
+        <p>For a more formal definition, see <a href="https://www.bishopbook.com/">Deep learning: Foundations and Concepts</a></p>
+
+        <h2>The model</h2>
+        <p>Below we have some data from a fictional school experiment where we measured the height and ages of students. A common task in school would be to ask the students to draw a line of best fit to model the relationship.</p>
+        <p>--- Insert Graph Here ---</p>
+        <p>Now obviously we can see that there is a clear linear relationship between the age and the height of the students, and we can draw a line of best fit. But the question is, how do we find the <strong>best</strong> line?</p>
+
+        <h2>Defining the line</h2>
+        <p>You should be familiar with the equation of a line from school, which is given by:</p>
+        <p>$$ y = mx + c $$</p>
+        <p>where $m$ is the slope and $c$ is the y-intercept.</p>
+        <p>Here we want a more general formulation so that later we can model the relationship between multiple features and the target variable. So instead lets rewrite the equation as:</p>
+        <p>$$ y = w_1 x + w_0 $$</p>
+
+        <div class="note important">
+          <span class="tag">important</span>
+          <p>The notation changes, but the idea has not: $w_1$ is still the slope and $w_0$ is still the intercept. We use $w$ because the same notation will scale to many input features.</p>
+        </div>
+
+        <h2>Fitting the line</h2>
+        <p>Now that we have the equation of the line, we need to find the optimal values for the weights $w_0$ and $w_1$.</p>
+        <p>To do this, we define a loss function that measures how close our line is to the data points. We can then minimise this function to find the optimal parameters. For this example, the loss function is quite trivial, we just want to minimise the distance between the line and the data points.</p>
+        <p>In practice, we often use the squared error loss function:</p>
+        <p>$$ \mathcal{L} = \sum_{i=1}^n (y_i - \hat{y}_i)^2 $$</p>
+        <p>where $y_i$ is the true value and $\hat{y}_i$ is the predicted value from our model.</p>
+        <p>Nicely, the minimisation of this function has a closed form solution, which means we can find the optimal parameters without having to use gradient descent or any other iterative optimisation tricks.</p>
+
+        <h2>Deriving the 1D solution</h2>
+        <p>
+          Since we have two parameters, we need to find the minimum of this function with respect to both $w_0$ and $w_1$. We can do this by taking the partial derivatives of the loss function with respect to each parameter and setting them to zero.
+        </p>
+        <p>First, let's write the function in terms of the weights:</p>
+        <p>$$ \mathcal{L} = \sum_{i=1}^n (y_i - (w_1 x_i + w_0))^2 $$</p>
+        <p>Now we take partial derivatives:</p>
+        <p>
+        $$
+        \begin{aligned}
+        \frac{\partial \mathcal{L}}{\partial w_0}
+        &= -2 \sum_{i=1}^n (y_i - (w_1 x_i + w_0)) = 0 \\
+        \frac{\partial \mathcal{L}}{\partial w_1}
+        &= -2 \sum_{i=1}^n x_i (y_i - (w_1 x_i + w_0)) = 0
+        \end{aligned}
+        $$
+        </p>
+        <div class="note important">
+          <span class="tag">important</span>
+          <p>If you are not familiar with partial derivatives, now would be a good time to review them. We will use them frequently in the course.</p>
+        </div>
+        <p>These are two simulataneous equations that we can solve by first dropping the $-2$ and then distributing the summation:</p>
+                <p>
+        $$
+        \begin{aligned}
+        \sum_{i=1}^n y_i - \sum_{i=1}^n w_1 x_i - \sum_{i=1}^n w_0 = 0 \\
+        \sum_{i=1}^n x_i y_i - \sum_{i=1}^n w_1 x_i^2 - \sum_{i=1}^n w_0 x_i = 0
+        \end{aligned}
+        $$
+        </p>
+
+        <h2>Implementation</h2>
+<pre><code># Placeholder implementation sketch.
+# Add the actual NumPy or PyTorch version here later.
+def fit_linear_regression(X, y):
+    pass</code></pre>
+
+        <div class="exercise">
+          <span class="tag">exercise &middot; 1.1.1 <b>warm-up</b></span>
+          <p>Placeholder exercise: fit a line to a small synthetic dataset, plot the residuals, and compare the closed-form solution with gradient descent.</p>
+        </div>
+
+        <h2>Checks for understanding</h2>
+        <p>Placeholder for short questions: dimensions of $X$, $w$, and $y$; what happens with collinearity; how scaling features changes optimisation.</p>
+      </div>
+
+      <div class="endbar">
+        <span><a href="../../../">back to syllabus</a></span>
+        <span><a href="../multiple-input-dimensions/">1.2 &middot; multiple input dimensions &rarr;</a></span>
+      </div>
+    </article>
+  </div>
+</div>
+</body>
+</html>

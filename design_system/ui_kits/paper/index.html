@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en" data-palette="paper">
+<head>
+<meta charset="utf-8"/>
+<title>On the spectral bias of wide neural networks</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link rel="icon" href="../../assets/favicon.svg"/>
+<link rel="stylesheet" href="../../colors_and_type.css"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"/>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+  body { background: var(--bg); }
+  .topbar { max-width: var(--page-max); margin: 0 auto; padding: 22px 32px; display: flex; align-items: baseline; gap: 24px; border-bottom: 1px solid var(--rule); }
+  .topbar .mark { font-family: var(--font-mono); font-weight: 700; font-size: 22px; letter-spacing: -0.02em; color: var(--fg); text-decoration: none; }
+  .topbar .mark .dot { color: var(--accent); }
+  .topbar .crumb { font-family: var(--font-mono); font-size: 12px; color: var(--fg-3); letter-spacing: 0.04em; text-transform: uppercase; }
+  .topbar nav { margin-left: auto; display: flex; gap: 16px; }
+  .topbar nav a { font-family: var(--font-mono); font-size: 13px; color: var(--fg-2); text-decoration: none; }
+
+  .page { max-width: 980px; margin: 0 auto; padding: 56px 32px 96px; }
+  .label { font-family: var(--font-mono); font-size: 11px; color: var(--accent-cool); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 14px; }
+  h1.paper { font-size: 38px; line-height: 1.12; letter-spacing: -0.01em; max-width: 22ch; margin-bottom: 18px; }
+  .authors { font-family: var(--font-sans); font-size: 15.5px; color: var(--fg); line-height: 1.5; margin-bottom: 6px; }
+  .authors b { font-weight: 500; }
+  .authors sup { font-size: 0.7em; color: var(--fg-3); margin-left: 1px; }
+  .affil { font-family: var(--font-sans); font-size: 12.5px; color: var(--fg-3); line-height: 1.5; margin-bottom: 24px; }
+  .affil sup { color: var(--fg-3); margin-right: 2px; }
+
+  .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 36px; }
+  .btn { font-family: var(--font-mono); font-size: 13px; font-weight: 500; padding: 8px 14px; border-radius: 6px; border: 1px solid transparent; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; transition: background var(--dur-fast) var(--ease); }
+  .btn.primary { background: var(--fg); color: var(--bg); }
+  .btn.primary:hover { background: var(--accent); }
+  .btn.secondary { background: var(--bg-2); color: var(--fg); border-color: var(--rule); }
+  .btn.secondary:hover { background: var(--bg-3); }
+  .btn .ext { opacity: 0.6; }
+
+  h2.section { font-size: 22px; font-weight: 600; margin: 40px 0 12px; }
+  .abstract { font-family: var(--font-serif); font-size: 17px; line-height: 1.6; color: var(--fg); max-width: 64ch; margin-bottom: 12px; }
+  .abstract em { color: var(--fg-2); }
+
+  .tldr { display: grid; grid-template-columns: 120px 1fr; gap: 16px; padding: 16px 18px; background: var(--accent-soft); border-radius: 8px; max-width: 720px; margin-bottom: 24px; }
+  .tldr .k { font-family: var(--font-mono); font-size: 11px; color: var(--accent); letter-spacing: 0.06em; text-transform: uppercase; padding-top: 4px; }
+  .tldr .v { font-family: var(--font-sans); font-size: 14.5px; color: var(--fg); line-height: 1.55; }
+
+  .figures { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 24px; }
+  .fig { border: 1px solid var(--rule); border-radius: 6px; padding: 14px; background: var(--bg); }
+  .fig-canvas { aspect-ratio: 1.7 / 1; background: var(--bg-sunk); border-radius: 4px; display: flex; align-items: center; justify-content: center; color: var(--fg-4); font-family: var(--font-mono); font-size: 11px; margin-bottom: 10px; position: relative; overflow: hidden; }
+  .fig-canvas svg { width: 100%; height: 100%; }
+  .fig-cap { font-family: var(--font-sans); font-size: 12.5px; color: var(--fg-3); line-height: 1.45; }
+  .fig-cap b { color: var(--fg); font-weight: 500; }
+
+  .cite-box { background: var(--bg-sunk); border: 1px solid var(--rule); border-radius: 8px; padding: 14px 16px; font-family: var(--font-mono); font-size: 12.5px; color: var(--fg-2); line-height: 1.55; overflow-x: auto; max-width: 720px; }
+
+  .pagefoot { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--rule); display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 11px; color: var(--fg-4); }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="#" class="mark">a<span class="dot">.</span>c</a>
+  <span class="crumb">papers › 2025</span>
+  <nav>
+    <a href="#">papers</a><a href="#">writing</a><a href="#">course</a><a href="#">about</a>
+  </nav>
+</div>
+
+<div class="page">
+  <div class="label">ICLR · 2025 · learning theory</div>
+  <h1 class="paper">On the spectral bias of wide neural networks</h1>
+  <p class="authors"><b>Archie Carpenter</b><sup>1</sup>, Jihye Park<sup>2</sup>, Ren Saito<sup>1</sup></p>
+  <p class="affil"><sup>1</sup>Department of Applied Mathematics &nbsp;·&nbsp; <sup>2</sup>Institute for Statistical Learning</p>
+
+  <div class="actions">
+    <a class="btn primary" href="#">Read the paper <span class="ext">↗</span></a>
+    <a class="btn secondary" href="#">arXiv <span class="ext">↗</span></a>
+    <a class="btn secondary" href="#">code <span class="ext">↗</span></a>
+    <a class="btn secondary" href="#">BibTeX</a>
+    <a class="btn secondary" href="#">slides</a>
+  </div>
+
+  <div class="tldr">
+    <span class="k">tl;dr</span>
+    <span class="v">Wide networks learn low-frequency components of the target function before high-frequency ones — and the rate is set by the eigenvalue decay of the NTK. We give a closed-form characterisation, a tighter bound than prior work, and a clean experimental confirmation on five standard benchmarks.</span>
+  </div>
+
+  <h2 class="section">Abstract</h2>
+  <p class="abstract">In the infinite-width limit, training a neural network with gradient descent is equivalent to kernel regression with the neural tangent kernel (NTK). A consequence — observed empirically by many but, to our knowledge, never tightly bounded — is that the low-frequency components of the target function are learned first. We make this statement precise: we give a closed-form expression for the rate at which each eigenmode of the NTK is fit, and we show that the prior bound of <em>O(λ_k t)</em> can be tightened to <em>O(λ_k t / log k)</em> under standard regularity assumptions. We verify the prediction on five benchmark tasks across image and audio domains.</p>
+
+  <h2 class="section">Figures</h2>
+  <div class="figures">
+    <div class="fig">
+      <div class="fig-canvas">
+        <svg viewBox="0 0 200 110" preserveAspectRatio="none">
+          <g stroke="var(--accent)" fill="none" stroke-width="1.5">
+            <path d="M5 90 L 30 75 L 60 55 L 100 35 L 150 22 L 195 17"/>
+          </g>
+          <g stroke="var(--accent-cool)" fill="none" stroke-width="1.5" stroke-dasharray="3 3">
+            <path d="M5 100 L 30 95 L 60 80 L 100 55 L 150 32 L 195 20"/>
+          </g>
+          <line x1="5" y1="105" x2="195" y2="105" stroke="var(--fg-3)" stroke-width="0.6"/>
+          <line x1="5" y1="105" x2="5" y2="10" stroke="var(--fg-3)" stroke-width="0.6"/>
+        </svg>
+      </div>
+      <div class="fig-cap"><b>Fig 1.</b> Empirical loss decay per NTK eigenmode (solid) vs. our prediction (dashed). The two agree across four decades of $\lambda_k$.</div>
+    </div>
+    <div class="fig">
+      <div class="fig-canvas">
+        <svg viewBox="0 0 200 110" preserveAspectRatio="none">
+          <g fill="var(--accent)">
+            <rect x="20" y="40" width="14" height="60"/>
+            <rect x="48" y="55" width="14" height="45"/>
+            <rect x="76" y="65" width="14" height="35"/>
+            <rect x="104" y="72" width="14" height="28"/>
+            <rect x="132" y="80" width="14" height="20"/>
+            <rect x="160" y="86" width="14" height="14"/>
+          </g>
+          <line x1="10" y1="100" x2="190" y2="100" stroke="var(--fg-3)" stroke-width="0.6"/>
+        </svg>
+      </div>
+      <div class="fig-cap"><b>Fig 2.</b> Fraction of variance explained, by frequency band, after 1 epoch on CIFAR-10. Low frequencies dominate.</div>
+    </div>
+  </div>
+
+  <h2 class="section">Cite</h2>
+  <pre class="cite-box">@inproceedings{carpenter2025spectral,
+  title  = {On the spectral bias of wide neural networks},
+  author = {Carpenter, Archie and Park, Jihye and Saito, Ren},
+  booktitle = {International Conference on Learning Representations},
+  year   = {2025},
+}</pre>
+
+  <div class="pagefoot">
+    <span>last edited · 2025-04-21</span>
+    <span>© archie carpenter · all rights reserved</span>
+  </div>
+</div>
+</body>
+</html>

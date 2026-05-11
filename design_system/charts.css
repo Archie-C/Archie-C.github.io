@@ -1,0 +1,150 @@
+/* ============================================================
+   Archie Carpenter — Chart Tokens
+   ============================================================
+   Layered on top of colors_and_type.css. Import that first.
+
+   The brand is text-first and Tufte-adjacent: hairline axes, no
+   chartjunk, sentence-case labels in JetBrains Mono, captions
+   in Source Serif 4. Categorical colours are tuned to sit on
+   the warm Paper ground without competing with body type.
+
+   Order:
+     1. Categorical series palette  (qualitative)
+     2. Sequential ramp             (one-hue, for heatmaps)
+     3. Diverging ramp              (two-hue, signed data)
+     4. Chart chrome                (axis, grid, tick, label)
+     5. Anatomy defaults            (svg.chart presets)
+   ============================================================ */
+
+:root {
+  /* 1. Categorical — six series, ordered by typical use.
+     Tuned for the Paper palette: warm, slightly muted, all
+     hold their hue against #F6F1E7 cream. Never use more than
+     four at once; reach for small multiples instead. */
+  --c-cat-1: #6B2C5C;  /* aubergine    — primary, matches --accent */
+  --c-cat-2: #2C4A7A;  /* ink blue     — secondary */
+  --c-cat-3: #2E5C3A;  /* forest       — tertiary */
+  --c-cat-4: #A67012;  /* ochre        — fourth (not orange — gold-leaning) */
+  --c-cat-5: #8B3A2C;  /* brick        — warm red, distinct from --danger */
+  --c-cat-6: #3D362A;  /* slate-ink    — last-resort sixth (= --fg-2) */
+
+  /* 2. Sequential — single-hue aubergine ramp.
+     Use for ordered scalar data (heatmaps, density, magnitude). */
+  --c-seq-0: #F0E2EA;
+  --c-seq-1: #E0BFD0;
+  --c-seq-2: #C893AE;
+  --c-seq-3: #A85F88;
+  --c-seq-4: #6B2C5C;
+  --c-seq-5: #421837;
+
+  /* 3. Diverging — ink-blue ←→ cream ←→ aubergine.
+     Use for signed data with a meaningful zero (residuals,
+     differences, correlations). The midpoint is the page bg,
+     so a zero value reads as "no mark". */
+  --c-div-neg-2: #1F4685;
+  --c-div-neg-1: #6E94C2;
+  --c-div-neg-0: #C8D5E8;
+  --c-div-mid:   var(--bg);
+  --c-div-pos-0: #E8CDDC;
+  --c-div-pos-1: #A85F88;
+  --c-div-pos-2: #4F1E44;
+
+  /* 4. Chart chrome.
+     Axes are 1 px in --fg-2; gridlines are 1 px in --rule;
+     ticks are 1 px in --fg-3. Never thicker. */
+  --c-axis:      var(--fg-2);
+  --c-tick:      var(--fg-3);
+  --c-grid:      var(--rule);
+  --c-grid-soft: color-mix(in oklab, var(--rule) 55%, var(--bg));
+  --c-label:     var(--fg-2);
+  --c-label-mu:  var(--fg-3);
+
+  /* Reference marks — zero line, mean line, annotation line. */
+  --c-ref:       var(--fg-3);
+  --c-ref-soft:  var(--fg-4);
+
+  /* Strokes & fills */
+  --c-stroke:        1.5px;
+  --c-stroke-axis:   1px;
+  --c-stroke-grid:   1px;
+  --c-dot-r:         3px;
+  --c-dot-r-lg:      4.5px;
+  --c-fill-alpha:    0.14;   /* area / hist fill, on top of stroke */
+  --c-fill-alpha-hi: 0.22;
+
+  /* Type — borrowed from the base scale, fixed for charts. */
+  --c-font-label:  var(--font-mono);
+  --c-font-caption: var(--font-serif);
+  --c-text-tick:   11px;
+  --c-text-label:  12px;
+  --c-text-title:  14px;
+  --c-text-cap:    13px;
+}
+
+/* 5. Anatomy defaults --------------------------------------
+   Apply to any <svg class="chart"> to get the right type and
+   stroke weights without restating them. Components own their
+   own data marks; this only handles the chrome.
+   ----------------------------------------------------------- */
+svg.chart {
+  font-family: var(--c-font-label);
+  font-size:   var(--c-text-tick);
+  color:       var(--c-label);
+  display:     block;
+}
+
+svg.chart text         { fill: var(--c-label); }
+svg.chart text.mu      { fill: var(--c-label-mu); }
+svg.chart text.title   { font-size: var(--c-text-title); font-weight: 600; fill: var(--fg); }
+svg.chart text.caps    { font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; fill: var(--c-label-mu); }
+
+svg.chart .axis        { stroke: var(--c-axis); stroke-width: var(--c-stroke-axis); fill: none; }
+svg.chart .tick        { stroke: var(--c-tick); stroke-width: var(--c-stroke-axis); }
+svg.chart .grid        { stroke: var(--c-grid); stroke-width: var(--c-stroke-grid); fill: none; }
+svg.chart .grid--soft  { stroke: var(--c-grid-soft); }
+svg.chart .ref         { stroke: var(--c-ref); stroke-width: 1px; stroke-dasharray: 3 3; fill: none; }
+svg.chart .ref--solid  { stroke: var(--c-ref); stroke-dasharray: none; }
+
+/* Series defaults — components opt-in by setting class="s s-1" etc. */
+svg.chart .s            { fill: none; stroke-width: var(--c-stroke); stroke-linejoin: round; stroke-linecap: round; }
+svg.chart .s-1          { stroke: var(--c-cat-1); }
+svg.chart .s-2          { stroke: var(--c-cat-2); }
+svg.chart .s-3          { stroke: var(--c-cat-3); }
+svg.chart .s-4          { stroke: var(--c-cat-4); }
+svg.chart .s-5          { stroke: var(--c-cat-5); }
+svg.chart .s-6          { stroke: var(--c-cat-6); }
+
+svg.chart .f-1          { fill: var(--c-cat-1); }
+svg.chart .f-2          { fill: var(--c-cat-2); }
+svg.chart .f-3          { fill: var(--c-cat-3); }
+svg.chart .f-4          { fill: var(--c-cat-4); }
+svg.chart .f-5          { fill: var(--c-cat-5); }
+svg.chart .f-6          { fill: var(--c-cat-6); }
+
+/* Legend — inline mono row, no boxes around swatches. */
+.chart-legend {
+  display: flex; flex-wrap: wrap; gap: 16px;
+  font-family: var(--c-font-label);
+  font-size: var(--c-text-label);
+  color: var(--c-label);
+}
+.chart-legend .item { display: inline-flex; align-items: center; gap: 6px; }
+.chart-legend .swatch {
+  width: 14px; height: 2px; background: currentColor; display: inline-block;
+}
+.chart-legend .swatch--dot { width: 8px; height: 8px; border-radius: 999px; }
+
+/* Caption — Source Serif under the chart, never bigger than body. */
+.chart-caption {
+  font-family: var(--c-font-caption);
+  font-size: var(--c-text-cap);
+  color: var(--fg-2);
+  line-height: 1.5;
+  max-width: 56ch;
+  margin-top: 12px;
+}
+.chart-caption .label {
+  font-family: var(--c-font-label);
+  font-weight: 600;
+  color: var(--fg);
+}

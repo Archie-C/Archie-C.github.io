@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en" data-palette="paper">
+<head>
+<meta charset="utf-8"/>
+<title>Charts — Archie Carpenter</title>
+<link rel="stylesheet" href="../colors_and_type.css"/>
+<link rel="stylesheet" href="../charts.css"/>
+<style>
+  body {
+    padding: 28px 32px 40px;
+    background: var(--bg);
+  }
+  .header {
+    display: flex; align-items: baseline; justify-content: space-between;
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 14px; margin-bottom: 22px;
+  }
+  .header h1 {
+    font-size: 22px; font-weight: 600; letter-spacing: -0.01em;
+  }
+  .header .sub {
+    font-family: var(--font-mono); font-size: 11px;
+    color: var(--fg-3); letter-spacing: 0.06em; text-transform: uppercase;
+  }
+
+  /* Palette swatch row */
+  .palette-block { margin-bottom: 28px; }
+  .palette-block h3 {
+    font-family: var(--font-mono); font-size: 11px; font-weight: 600;
+    letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-3);
+    margin-bottom: 10px;
+  }
+  .palette-row { display: flex; gap: 6px; }
+  .palette-row.qual .sw { width: 78px; }
+  .palette-row.seq .sw, .palette-row.div .sw { width: 64px; }
+  .sw {
+    height: 38px; border: 1px solid var(--rule); border-radius: 2px;
+    display: flex; flex-direction: column; justify-content: flex-end;
+    padding: 4px 6px;
+    font-family: var(--font-mono); font-size: 9px;
+    color: rgba(255,255,255,0.92);
+    letter-spacing: 0.04em;
+  }
+  .sw.light { color: var(--fg-2); }
+
+  /* Grid of chart cards */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 22px 22px;
+  }
+  .grid .span-2 { grid-column: span 2; }
+  .card {
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 18px 18px 16px;
+    background: var(--bg);
+  }
+  .card .eyebrow {
+    font-family: var(--font-mono); font-size: 10px; font-weight: 500;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--fg-3); margin-bottom: 4px;
+  }
+  .card h4 {
+    font-family: var(--font-mono); font-size: 14px; font-weight: 600;
+    color: var(--fg); margin-bottom: 12px; letter-spacing: -0.005em;
+  }
+  .card .legend-row {
+    display: flex; gap: 16px; margin: 4px 0 10px;
+    font-family: var(--font-mono); font-size: 11px; color: var(--fg-2);
+  }
+  .card .legend-row .it { display: inline-flex; align-items: center; gap: 6px; }
+  .card .legend-row .dot { width: 8px; height: 8px; border-radius: 999px; }
+  .card .legend-row .bar { width: 14px; height: 2px; }
+  .cap {
+    font-family: var(--font-serif); font-size: 12.5px; color: var(--fg-2);
+    line-height: 1.5; margin-top: 10px;
+  }
+  .cap .lbl { font-family: var(--font-mono); font-weight: 600; color: var(--fg); margin-right: 4px; }
+  .cap .lbl::after { content: "·"; margin-left: 4px; color: var(--fg-3); }
+
+  /* Anatomy callout list (for the anatomy card) */
+  .anatomy-list { font-family: var(--font-mono); font-size: 11px; color: var(--fg-2); line-height: 1.7; margin-top: 6px; }
+  .anatomy-list b { color: var(--fg); font-weight: 600; }
+  .anatomy-list .k { color: var(--fg-3); }
+</style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>Charts</h1>
+    <div class="sub">design system · v1 · paper palette</div>
+  </div>
+
+  <!-- ============================================================
+       PALETTES
+       ============================================================ -->
+  <div class="palette-block">
+    <h3>Categorical · 6 series · ordered by use</h3>
+    <div class="palette-row qual">
+      <div class="sw" style="background:#6B2C5C">aubergine · 1</div>
+      <div class="sw" style="background:#2C4A7A">ink blue · 2</div>
+      <div class="sw" style="background:#2E5C3A">forest · 3</div>
+      <div class="sw" style="background:#A67012">ochre · 4</div>
+      <div class="sw" style="background:#8B3A2C">brick · 5</div>
+      <div class="sw" style="background:#3D362A">slate-ink · 6</div>
+    </div>
+  </div>
+
+  <div class="palette-block">
+    <h3>Sequential · single-hue aubergine ramp · for ordered scalar data</h3>
+    <div class="palette-row seq">
+      <div class="sw light" style="background:#F0E2EA">0</div>
+      <div class="sw light" style="background:#E0BFD0">1</div>
+      <div class="sw"       style="background:#C893AE">2</div>
+      <div class="sw"       style="background:#A85F88">3</div>
+      <div class="sw"       style="background:#6B2C5C">4</div>
+      <div class="sw"       style="background:#421837">5</div>
+    </div>
+  </div>
+
+  <div class="palette-block" style="margin-bottom: 30px;">
+    <h3>Diverging · ink-blue ←→ paper ←→ aubergine · for signed data</h3>
+    <div class="palette-row div">
+      <div class="sw"       style="background:#1F4685">−2</div>
+      <div class="sw"       style="background:#6E94C2">−1</div>
+      <div class="sw light" style="background:#C8D5E8">−0.5</div>
+      <div class="sw light" style="background:var(--bg); border-color: var(--rule-strong)">0</div>
+      <div class="sw light" style="background:#E8CDDC">+0.5</div>
+      <div class="sw"       style="background:#A85F88">+1</div>
+      <div class="sw"       style="background:#4F1E44">+2</div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       CHARTS
+       ============================================================ -->
+  <div class="grid">
+
+    <!-- ─── Line chart ────────────────────────────────────────── -->
+    <div class="card">
+      <div class="eyebrow">01 · line</div>
+      <h4>Training loss curves</h4>
+      <div class="legend-row">
+        <span class="it"><span class="bar" style="background:#6B2C5C"></span>baseline</span>
+        <span class="it"><span class="bar" style="background:#2C4A7A"></span>warm restart</span>
+        <span class="it"><span class="bar" style="background:#2E5C3A"></span>cosine</span>
+      </div>
+      <svg class="chart" viewBox="0 0 340 200" width="100%">
+        <!-- gridlines -->
+        <g class="grid grid--soft">
+          <line x1="36" x2="328" y1="40"  y2="40"/>
+          <line x1="36" x2="328" y1="80"  y2="80"/>
+          <line x1="36" x2="328" y1="120" y2="120"/>
+          <line x1="36" x2="328" y1="160" y2="160"/>
+        </g>
+        <!-- axes -->
+        <line class="axis" x1="36" y1="20" x2="36" y2="172"/>
+        <line class="axis" x1="36" y1="172" x2="328" y2="172"/>
+        <!-- ticks y -->
+        <g class="tick">
+          <line x1="32" x2="36" y1="40"  y2="40"/>
+          <line x1="32" x2="36" y1="80"  y2="80"/>
+          <line x1="32" x2="36" y1="120" y2="120"/>
+          <line x1="32" x2="36" y1="160" y2="160"/>
+        </g>
+        <g class="mu" text-anchor="end">
+          <text x="28" y="44">2.0</text>
+          <text x="28" y="84">1.5</text>
+          <text x="28" y="124">1.0</text>
+          <text x="28" y="164">0.5</text>
+        </g>
+        <!-- ticks x -->
+        <g class="mu" text-anchor="middle">
+          <text x="36"  y="187">0</text>
+          <text x="109" y="187">25</text>
+          <text x="182" y="187">50</text>
+          <text x="255" y="187">75</text>
+          <text x="328" y="187">100</text>
+        </g>
+        <!-- axis labels -->
+        <text class="caps" x="36" y="14">loss</text>
+        <text class="caps" x="328" y="198" text-anchor="end">epoch</text>
+
+        <!-- baseline (aubergine) -->
+        <path class="s s-1" d="M36 38 C 70 50, 95 70, 120 92 C 150 118, 175 132, 200 140 C 230 148, 270 152, 328 156"/>
+        <!-- warm restart (ink blue) — has bumps -->
+        <path class="s s-2" d="M36 44 C 65 60, 85 90, 100 108 L 105 90 C 130 110, 150 124, 168 132 L 174 116 C 200 130, 230 138, 260 144 L 268 130 C 295 138, 310 142, 328 144"/>
+        <!-- cosine (forest) -->
+        <path class="s s-3" d="M36 42 C 70 56, 100 78, 130 98 C 165 122, 200 134, 240 138 C 280 140, 308 138, 328 134"/>
+      </svg>
+      <div class="cap"><span class="lbl">fig 1</span>thin axes, soft gridlines, sentence-case labels. 1–3 series; reach for small multiples past three.</div>
+    </div>
+
+    <!-- ─── Scatter ──────────────────────────────────────────── -->
+    <div class="card">
+      <div class="eyebrow">02 · scatter</div>
+      <h4>2-D embedding · 3 clusters</h4>
+      <div class="legend-row">
+        <span class="it"><span class="dot" style="background:#6B2C5C"></span>class a</span>
+        <span class="it"><span class="dot" style="background:#2C4A7A"></span>class b</span>
+        <span class="it"><span class="dot" style="background:#2E5C3A"></span>class c</span>
+      </div>
+      <svg class="chart" viewBox="0 0 340 200" width="100%">
+        <!-- frame -->
+        <rect x="36" y="20" width="292" height="152" class="grid" />
+        <!-- ticks -->
+        <g class="mu" text-anchor="middle">
+          <text x="36"  y="187">-2</text>
+          <text x="109" y="187">-1</text>
+          <text x="182" y="187">0</text>
+          <text x="255" y="187">1</text>
+          <text x="328" y="187">2</text>
+        </g>
+        <g class="mu" text-anchor="end">
+          <text x="32" y="24">2</text>
+          <text x="32" y="62">1</text>
+          <text x="32" y="100">0</text>
+          <text x="32" y="138">-1</text>
+          <text x="32" y="172">-2</text>
+        </g>
+        <text class="caps" x="36" y="14">z₂</text>
+        <text class="caps" x="328" y="198" text-anchor="end">z₁</text>
+
+        <!-- cluster A (top-left, aubergine) -->
+        <g fill="#6B2C5C" fill-opacity="0.78">
+          <circle cx="80"  cy="55"  r="2.6"/><circle cx="92"  cy="48"  r="2.6"/>
+          <circle cx="74"  cy="68"  r="2.6"/><circle cx="100" cy="62"  r="2.6"/>
+          <circle cx="88"  cy="75"  r="2.6"/><circle cx="110" cy="50"  r="2.6"/>
+          <circle cx="68"  cy="80"  r="2.6"/><circle cx="118" cy="68"  r="2.6"/>
+          <circle cx="96"  cy="40"  r="2.6"/><circle cx="82"  cy="90"  r="2.6"/>
+          <circle cx="116" cy="80"  r="2.6"/><circle cx="62"  cy="58"  r="2.6"/>
+          <circle cx="104" cy="76"  r="2.6"/><circle cx="86"  cy="62"  r="2.6"/>
+        </g>
+        <!-- cluster B (center-right, ink blue) -->
+        <g fill="#2C4A7A" fill-opacity="0.78">
+          <circle cx="200" cy="110" r="2.6"/><circle cx="220" cy="100" r="2.6"/>
+          <circle cx="210" cy="120" r="2.6"/><circle cx="232" cy="112" r="2.6"/>
+          <circle cx="248" cy="98"  r="2.6"/><circle cx="218" cy="86"  r="2.6"/>
+          <circle cx="240" cy="120" r="2.6"/><circle cx="195" cy="96"  r="2.6"/>
+          <circle cx="260" cy="108" r="2.6"/><circle cx="226" cy="128" r="2.6"/>
+          <circle cx="208" cy="94"  r="2.6"/><circle cx="252" cy="120" r="2.6"/>
+          <circle cx="236" cy="92"  r="2.6"/>
+        </g>
+        <!-- cluster C (bottom, forest) -->
+        <g fill="#2E5C3A" fill-opacity="0.78">
+          <circle cx="160" cy="150" r="2.6"/><circle cx="180" cy="158" r="2.6"/>
+          <circle cx="200" cy="148" r="2.6"/><circle cx="170" cy="138" r="2.6"/>
+          <circle cx="190" cy="142" r="2.6"/><circle cx="148" cy="140" r="2.6"/>
+          <circle cx="178" cy="148" r="2.6"/><circle cx="206" cy="160" r="2.6"/>
+          <circle cx="156" cy="160" r="2.6"/><circle cx="220" cy="152" r="2.6"/>
+        </g>
+      </svg>
+      <div class="cap"><span class="lbl">fig 2</span>fill-opacity 0.78 keeps overplotted dots legible. Frame is a 1-px rule, no gridlines inside.</div>
+    </div>
+
+    <!-- ─── Bar chart ─────────────────────────────────────────── -->
+    <div class="card">
+      <div class="eyebrow">03 · bar</div>
+      <h4>Accuracy by model · CIFAR-10</h4>
+      <svg class="chart" viewBox="0 0 340 200" width="100%">
+        <!-- gridlines -->
+        <g class="grid grid--soft">
+          <line x1="60" x2="328" y1="40"  y2="40"/>
+          <line x1="60" x2="328" y1="80"  y2="80"/>
+          <line x1="60" x2="328" y1="120" y2="120"/>
+          <line x1="60" x2="328" y1="160" y2="160"/>
+        </g>
+        <!-- axes -->
+        <line class="axis" x1="60" y1="20" x2="60" y2="172"/>
+        <line class="axis" x1="60" y1="172" x2="328" y2="172"/>
+
+        <g class="mu" text-anchor="end">
+          <text x="56" y="44">100</text>
+          <text x="56" y="84">90</text>
+          <text x="56" y="124">80</text>
+          <text x="56" y="164">70</text>
+        </g>
+        <text class="caps" x="60" y="14">accuracy %</text>
+
+        <!-- bars — same hue, focus on length. highlight the third. -->
+        <g>
+          <rect x="80"  y="62"  width="36" height="110" fill="#3D362A" fill-opacity="0.82"/>
+          <rect x="126" y="50"  width="36" height="122" fill="#3D362A" fill-opacity="0.82"/>
+          <rect x="172" y="34"  width="36" height="138" fill="#6B2C5C"/>
+          <rect x="218" y="44"  width="36" height="128" fill="#3D362A" fill-opacity="0.82"/>
+          <rect x="264" y="58"  width="36" height="114" fill="#3D362A" fill-opacity="0.82"/>
+        </g>
+        <!-- value labels -->
+        <g class="mu" text-anchor="middle" style="font-size:10px">
+          <text x="98"  y="58">85.2</text>
+          <text x="144" y="46">88.4</text>
+          <text x="190" y="30" fill="#6B2C5C" font-weight="600">92.6</text>
+          <text x="236" y="40">89.7</text>
+          <text x="282" y="54">86.4</text>
+        </g>
+        <!-- x labels -->
+        <g class="mu" text-anchor="middle">
+          <text x="98"  y="187">resnet</text>
+          <text x="144" y="187">vgg</text>
+          <text x="190" y="187">ours</text>
+          <text x="236" y="187">vit-s</text>
+          <text x="282" y="187">mlp-mx</text>
+        </g>
+      </svg>
+      <div class="cap"><span class="lbl">fig 3</span>single neutral fill keeps the bars about length, not colour. One bar in accent — the one that earned attention.</div>
+    </div>
+
+    <!-- ─── Histogram ─────────────────────────────────────────── -->
+    <div class="card">
+      <div class="eyebrow">04 · histogram</div>
+      <h4>Distribution of activations</h4>
+      <svg class="chart" viewBox="0 0 340 200" width="100%">
+        <g class="grid grid--soft">
+          <line x1="36" x2="328" y1="40"  y2="40"/>
+          <line x1="36" x2="328" y1="80"  y2="80"/>
+          <line x1="36" x2="328" y1="120" y2="120"/>
+        </g>
+        <line class="axis" x1="36" y1="20" x2="36" y2="172"/>
+        <line class="axis" x1="36" y1="172" x2="328" y2="172"/>
+
+        <g class="mu" text-anchor="end">
+          <text x="32" y="44">120</text>
+          <text x="32" y="84">80</text>
+          <text x="32" y="124">40</text>
+          <text x="32" y="164">0</text>
+        </g>
+        <g class="mu" text-anchor="middle">
+          <text x="36"  y="187">-3</text>
+          <text x="109" y="187">-1.5</text>
+          <text x="182" y="187">0</text>
+          <text x="255" y="187">1.5</text>
+          <text x="328" y="187">3</text>
+        </g>
+        <text class="caps" x="36" y="14">count</text>
+        <text class="caps" x="328" y="198" text-anchor="end">x</text>
+
+        <!-- bars — 14 bins, 1px gap, accent fill at α=0.14 + accent stroke -->
+        <g fill="#6B2C5C" fill-opacity="0.18" stroke="#6B2C5C" stroke-width="1">
+          <rect x="37"  y="160" width="20" height="11"/>
+          <rect x="58"  y="150" width="20" height="21"/>
+          <rect x="79"  y="138" width="20" height="33"/>
+          <rect x="100" y="118" width="20" height="53"/>
+          <rect x="121" y="92"  width="20" height="79"/>
+          <rect x="142" y="62"  width="20" height="109"/>
+          <rect x="163" y="40"  width="20" height="131"/>
+          <rect x="184" y="48"  width="20" height="123"/>
+          <rect x="205" y="78"  width="20" height="93"/>
+          <rect x="226" y="106" width="20" height="65"/>
+          <rect x="247" y="130" width="20" height="41"/>
+          <rect x="268" y="146" width="20" height="25"/>
+          <rect x="289" y="156" width="20" height="15"/>
+          <rect x="310" y="164" width="18" height="7"/>
+        </g>
+        <!-- mean line -->
+        <line class="ref" x1="178" y1="20" x2="178" y2="172"/>
+        <text class="mu" x="180" y="28" style="font-size:10px">μ = -0.04</text>
+      </svg>
+      <div class="cap"><span class="lbl">fig 4</span>filled at 0.18 alpha with a 1-px stroke — keeps bin edges crisp. Reference line dashed in <code style="font-family:var(--font-mono)">--fg-3</code>.</div>
+    </div>
+
+    <!-- ─── Area / band ───────────────────────────────────────── -->
+    <div class="card">
+      <div class="eyebrow">05 · area · band</div>
+      <h4>Predicted vs. 95% interval</h4>
+      <svg class="chart" viewBox="0 0 340 200" width="100%">
+        <g class="grid grid--soft">
+          <line x1="36" x2="328" y1="40"  y2="40"/>
+          <line x1="36" x2="328" y1="80"  y2="80"/>
+          <line x1="36" x2="328" y1="120" y2="120"/>
+          <line x1="36" x2="328" y1="160" y2="160"/>
+        </g>
+        <line class="axis" x1="36" y1="20" x2="36" y2="172"/>
+        <line class="axis" x1="36" y1="172" x2="328" y2="172"/>
+
+        <g class="mu" text-anchor="end">
+          <text x="32" y="44">3</text>
+          <text x="32" y="84">2</text>
+          <text x="32" y="124">1</text>
+          <text x="32" y="164">0</text>
+        </g>
+        <g class="mu" text-anchor="middle">
+          <text x="36"  y="187">0</text>
+          <text x="109" y="187">10</text>
+          <text x="182" y="187">20</text>
+          <text x="255" y="187">30</text>
+          <text x="328" y="187">40</text>
+        </g>
+        <text class="caps" x="36" y="14">y</text>
+        <text class="caps" x="328" y="198" text-anchor="end">t (s)</text>
+
+        <!-- band (upper, then lower reversed) -->
+        <path d="M36 90 C 80 78, 120 60, 165 50 C 215 40, 270 36, 328 38
+                 L 328 70 C 270 70, 215 72, 165 84 C 120 94, 80 110, 36 122 Z"
+              fill="#6B2C5C" fill-opacity="0.14"/>
+        <!-- mean line -->
+        <path d="M36 106 C 80 94, 120 76, 165 67 C 215 56, 270 54, 328 54"
+              fill="none" stroke="#6B2C5C" stroke-width="1.5"/>
+        <!-- observed dots -->
+        <g fill="#3D362A">
+          <circle cx="50" cy="108" r="2.4"/><circle cx="80" cy="98" r="2.4"/>
+          <circle cx="115" cy="80" r="2.4"/><circle cx="150" cy="72" r="2.4"/>
+          <circle cx="190" cy="60" r="2.4"/><circle cx="225" cy="58" r="2.4"/>
+          <circle cx="260" cy="52" r="2.4"/><circle cx="295" cy="56" r="2.4"/>
+        </g>
+      </svg>
+      <div class="cap"><span class="lbl">fig 5</span>band at α=0.14, mean line on top. Observed points in ink so they read as ground-truth against the prediction.</div>
+    </div>
+
+    <!-- ─── Heatmap ────────────────────────────────────────────── -->
+    <div class="card">
+      <div class="eyebrow">06 · heatmap</div>
+      <h4>Confusion matrix · sequential</h4>
+      <svg class="chart" viewBox="0 0 340 200" width="100%">
+        <!-- 6×6 grid centered at left -->
+        <g transform="translate(60, 24)">
+          <!-- cells -->
+          <g stroke="var(--bg)" stroke-width="2">
+            <!-- row 0 -->
+            <rect x="0"   y="0"   width="22" height="22" fill="#6B2C5C"/>
+            <rect x="22"  y="0"   width="22" height="22" fill="#E0BFD0"/>
+            <rect x="44"  y="0"   width="22" height="22" fill="#F0E2EA"/>
+            <rect x="66"  y="0"   width="22" height="22" fill="#F0E2EA"/>
+            <rect x="88"  y="0"   width="22" height="22" fill="#F0E2EA"/>
+            <rect x="110" y="0"   width="22" height="22" fill="#F0E2EA"/>
+            <!-- row 1 -->
+            <rect x="0"   y="22"  width="22" height="22" fill="#E0BFD0"/>
+            <rect x="22"  y="22"  width="22" height="22" fill="#6B2C5C"/>
+            <rect x="44"  y="22"  width="22" height="22" fill="#C893AE"/>
+            <rect x="66"  y="22"  width="22" height="22" fill="#F0E2EA"/>
+            <rect x="88"  y="22"  width="22" height="22" fill="#F0E2EA"/>
+            <rect x="110" y="22"  width="22" height="22" fill="#F0E2EA"/>
+            <!-- row 2 -->
+            <rect x="0"   y="44"  width="22" height="22" fill="#F0E2EA"/>
+            <rect x="22"  y="44"  width="22" height="22" fill="#C893AE"/>
+            <rect x="44"  y="44"  width="22" height="22" fill="#421837"/>
+            <rect x="66"  y="44"  width="22" height="22" fill="#E0BFD0"/>
+            <rect x="88"  y="44"  width="22" height="22" fill="#F0E2EA"/>
+            <rect x="110" y="44"  width="22" height="22" fill="#F0E2EA"/>
+            <!-- row 3 -->
+            <rect x="0"   y="66"  width="22" height="22" fill="#F0E2EA"/>
+            <rect x="22"  y="66"  width="22" height="22" fill="#F0E2EA"/>
+            <rect x="44"  y="66"  width="22" height="22" fill="#E0BFD0"/>
+            <rect x="66"  y="66"  width="22" height="22" fill="#6B2C5C"/>
+            <rect x="88"  y="66"  width="22" height="22" fill="#C893AE"/>
+            <rect x="110" y="66"  width="22" height="22" fill="#F0E2EA"/>
+            <!-- row 4 -->
+            <rect x="0"   y="88"  width="22" height="22" fill="#F0E2EA"/>
+            <rect x="22"  y="88"  width="22" height="22" fill="#F0E2EA"/>
+            <rect x="44"  y="88"  width="22" height="22" fill="#F0E2EA"/>
+            <rect x="66"  y="88"  width="22" height="22" fill="#E0BFD0"/>
+            <rect x="88"  y="88"  width="22" height="22" fill="#A85F88"/>
+            <rect x="110" y="88"  width="22" height="22" fill="#E0BFD0"/>
+            <!-- row 5 -->
+            <rect x="0"   y="110" width="22" height="22" fill="#F0E2EA"/>
+            <rect x="22"  y="110" width="22" height="22" fill="#F0E2EA"/>
+            <rect x="44"  y="110" width="22" height="22" fill="#F0E2EA"/>
+            <rect x="66"  y="110" width="22" height="22" fill="#F0E2EA"/>
+            <rect x="88"  y="110" width="22" height="22" fill="#C893AE"/>
+            <rect x="110" y="110" width="22" height="22" fill="#421837"/>
+          </g>
+          <!-- labels -->
+          <g class="mu" text-anchor="middle" style="font-size:10px">
+            <text x="11"  y="146">a</text><text x="33" y="146">b</text>
+            <text x="55"  y="146">c</text><text x="77" y="146">d</text>
+            <text x="99"  y="146">e</text><text x="121" y="146">f</text>
+          </g>
+          <g class="mu" text-anchor="end" style="font-size:10px">
+            <text x="-6" y="15">a</text><text x="-6" y="37">b</text>
+            <text x="-6" y="59">c</text><text x="-6" y="81">d</text>
+            <text x="-6" y="103">e</text><text x="-6" y="125">f</text>
+          </g>
+        </g>
+        <!-- colour bar -->
+        <g transform="translate(220, 30)">
+          <text class="caps" x="0" y="-6">density</text>
+          <rect x="0" y="0" width="14" height="20" fill="#F0E2EA"/>
+          <rect x="0" y="20" width="14" height="20" fill="#E0BFD0"/>
+          <rect x="0" y="40" width="14" height="20" fill="#C893AE"/>
+          <rect x="0" y="60" width="14" height="20" fill="#A85F88"/>
+          <rect x="0" y="80" width="14" height="20" fill="#6B2C5C"/>
+          <rect x="0" y="100" width="14" height="20" fill="#421837"/>
+          <g class="mu" style="font-size:10px">
+            <text x="20" y="6">0.0</text>
+            <text x="20" y="60">0.5</text>
+            <text x="20" y="116">1.0</text>
+          </g>
+        </g>
+        <text class="caps" x="60" y="14">predicted →</text>
+        <text class="caps" x="56" y="14" text-anchor="end" transform="rotate(-90, 56, 14)">↑ actual</text>
+      </svg>
+      <div class="cap"><span class="lbl">fig 6</span>cells separated by 2 px of <code style="font-family:var(--font-mono)">--bg</code>, never by black rules. Use the sequential ramp for any single-direction scalar.</div>
+    </div>
+
+    <!-- ─── Small multiples ─────────────────────────────────────── -->
+    <div class="card span-2">
+      <div class="eyebrow">07 · small multiples</div>
+      <h4>Loss by learning rate · 6 panels</h4>
+      <svg class="chart" viewBox="0 0 720 180" width="100%">
+        <g font-family="var(--font-mono)" font-size="10">
+          <!-- 6 panels, 110 wide, 24 gap -->
+          <!-- each panel uses the same axes -->
+          <g transform="translate(0,0)">
+            <rect x="0" y="20" width="100" height="120" class="grid"/>
+            <text class="caps" x="0" y="14">lr = 1e-4</text>
+            <path class="s s-1" d="M0 60 C 20 70, 40 90, 100 132"/>
+          </g>
+          <g transform="translate(120,0)">
+            <rect x="0" y="20" width="100" height="120" class="grid"/>
+            <text class="caps" x="0" y="14">lr = 3e-4</text>
+            <path class="s s-1" d="M0 50 C 25 70, 50 105, 100 134"/>
+          </g>
+          <g transform="translate(240,0)">
+            <rect x="0" y="20" width="100" height="120" class="grid"/>
+            <text class="caps" x="0" y="14">lr = 1e-3</text>
+            <path class="s s-1" d="M0 44 C 25 75, 55 120, 100 138"/>
+            <circle cx="100" cy="138" r="3" fill="#6B2C5C"/>
+          </g>
+          <g transform="translate(360,0)">
+            <rect x="0" y="20" width="100" height="120" class="grid"/>
+            <text class="caps" x="0" y="14">lr = 3e-3</text>
+            <path class="s s-1" d="M0 46 C 25 80, 50 115, 100 130"/>
+          </g>
+          <g transform="translate(480,0)">
+            <rect x="0" y="20" width="100" height="120" class="grid"/>
+            <text class="caps" x="0" y="14">lr = 1e-2</text>
+            <path class="s s-1" d="M0 50 C 30 70, 60 80, 100 96"/>
+          </g>
+          <g transform="translate(600,0)">
+            <rect x="0" y="20" width="100" height="120" class="grid"/>
+            <text class="caps" x="0" y="14">lr = 3e-2 · diverged</text>
+            <path class="s s-1" d="M0 55 C 25 35, 50 25, 100 22" stroke="#A82A20"/>
+          </g>
+          <!-- shared x label -->
+          <g class="mu" text-anchor="middle">
+            <text x="360" y="170">epoch  →  0…100</text>
+          </g>
+        </g>
+      </svg>
+      <div class="cap"><span class="lbl">fig 7</span>same axes, same colour — let the eye compare shape. Annotate the panel that's worth noticing; never recolour all six.</div>
+    </div>
+
+    <!-- ─── Anatomy callout ───────────────────────────────────── -->
+    <div class="card">
+      <div class="eyebrow">anatomy</div>
+      <h4>What a chart is made of</h4>
+      <svg class="chart" viewBox="0 0 340 200" width="100%">
+        <g class="grid grid--soft">
+          <line x1="60" x2="320" y1="50" y2="50"/>
+          <line x1="60" x2="320" y1="100" y2="100"/>
+          <line x1="60" x2="320" y1="150" y2="150"/>
+        </g>
+        <line class="axis" x1="60" y1="30" x2="60" y2="170"/>
+        <line class="axis" x1="60" y1="170" x2="320" y2="170"/>
+        <g class="tick">
+          <line x1="56" x2="60" y1="50" y2="50"/>
+          <line x1="56" x2="60" y1="100" y2="100"/>
+          <line x1="56" x2="60" y1="150" y2="150"/>
+        </g>
+        <path class="s s-1" d="M60 130 C 110 90, 170 80, 230 70 C 270 64, 300 60, 320 58"/>
+        <line class="ref" x1="180" y1="30" x2="180" y2="170"/>
+
+        <!-- callout pins -->
+        <g font-family="var(--font-mono)" font-size="10" fill="var(--fg-3)">
+          <!-- axis -->
+          <line x1="60" y1="120" x2="40" y2="120" stroke="var(--fg-4)" stroke-width="0.75"/>
+          <text x="38" y="123" text-anchor="end">axis · 1px --fg-2</text>
+          <!-- grid -->
+          <line x1="200" y1="100" x2="200" y2="86" stroke="var(--fg-4)" stroke-width="0.75"/>
+          <text x="200" y="82" text-anchor="middle">grid · 1px --rule</text>
+          <!-- ref -->
+          <line x1="180" y1="40" x2="220" y2="40" stroke="var(--fg-4)" stroke-width="0.75"/>
+          <text x="224" y="43">reference line · dashed</text>
+          <!-- series -->
+          <line x1="280" y1="62" x2="300" y2="48" stroke="var(--fg-4)" stroke-width="0.75"/>
+          <text x="302" y="46" text-anchor="end">series · 1.5px</text>
+        </g>
+      </svg>
+      <div class="cap"><span class="lbl">anatomy</span>1 px everywhere except the series. Type is always mono; reference lines are dashed; labels are sentence case.</div>
+    </div>
+
+    <!-- ─── Box / strip plot ──────────────────────────────────── -->
+    <div class="card">
+      <div class="eyebrow">08 · box · strip</div>
+      <h4>Seed-to-seed variance</h4>
+      <svg class="chart" viewBox="0 0 340 200" width="100%">
+        <g class="grid grid--soft">
+          <line x1="60" x2="328" y1="40"  y2="40"/>
+          <line x1="60" x2="328" y1="80"  y2="80"/>
+          <line x1="60" x2="328" y1="120" y2="120"/>
+          <line x1="60" x2="328" y1="160" y2="160"/>
+        </g>
+        <line class="axis" x1="60" y1="20" x2="60" y2="172"/>
+        <line class="axis" x1="60" y1="172" x2="328" y2="172"/>
+
+        <g class="mu" text-anchor="end">
+          <text x="56" y="44">94</text>
+          <text x="56" y="84">92</text>
+          <text x="56" y="124">90</text>
+          <text x="56" y="164">88</text>
+        </g>
+        <text class="caps" x="60" y="14">acc %</text>
+
+        <!-- four boxes at x=100,160,220,280 -->
+        <!-- box A (baseline, slate-ink) -->
+        <g stroke="#3D362A" fill="none" stroke-width="1.2">
+          <line x1="100" y1="60"  x2="100" y2="150"/>
+          <line x1="92"  y1="60"  x2="108" y2="60"/>
+          <line x1="92"  y1="150" x2="108" y2="150"/>
+          <rect x="86" y="92" width="28" height="40" fill="#F0E2EA" fill-opacity="0.0"/>
+          <line x1="86" y1="116" x2="114" y2="116" stroke-width="1.6"/>
+        </g>
+        <g fill="#3D362A" fill-opacity="0.55">
+          <circle cx="100" cy="74"  r="1.6"/><circle cx="100" cy="86"  r="1.6"/>
+          <circle cx="98"  cy="100" r="1.6"/><circle cx="102" cy="120" r="1.6"/>
+          <circle cx="100" cy="132" r="1.6"/><circle cx="98"  cy="142" r="1.6"/>
+        </g>
+
+        <!-- box B (variant 2) -->
+        <g stroke="#3D362A" fill="none" stroke-width="1.2">
+          <line x1="160" y1="50" x2="160" y2="142"/>
+          <line x1="152" y1="50" x2="168" y2="50"/>
+          <line x1="152" y1="142" x2="168" y2="142"/>
+          <rect x="146" y="78" width="28" height="42" fill="none"/>
+          <line x1="146" y1="98" x2="174" y2="98" stroke-width="1.6"/>
+        </g>
+        <g fill="#3D362A" fill-opacity="0.55">
+          <circle cx="158" cy="66"  r="1.6"/><circle cx="162" cy="80"  r="1.6"/>
+          <circle cx="160" cy="92"  r="1.6"/><circle cx="158" cy="106" r="1.6"/>
+          <circle cx="162" cy="118" r="1.6"/><circle cx="160" cy="134" r="1.6"/>
+        </g>
+
+        <!-- box C (ours, accent fill) -->
+        <g stroke="#6B2C5C" fill="none" stroke-width="1.3">
+          <line x1="220" y1="38" x2="220" y2="98"/>
+          <line x1="212" y1="38" x2="228" y2="38"/>
+          <line x1="212" y1="98" x2="228" y2="98"/>
+          <rect x="206" y="50" width="28" height="38" fill="#6B2C5C" fill-opacity="0.14"/>
+          <line x1="206" y1="64" x2="234" y2="64" stroke-width="1.8"/>
+        </g>
+        <g fill="#6B2C5C" fill-opacity="0.75">
+          <circle cx="220" cy="44" r="1.8"/><circle cx="218" cy="56" r="1.8"/>
+          <circle cx="222" cy="64" r="1.8"/><circle cx="220" cy="72" r="1.8"/>
+          <circle cx="218" cy="84" r="1.8"/><circle cx="222" cy="94" r="1.8"/>
+        </g>
+
+        <!-- box D (variant 4) -->
+        <g stroke="#3D362A" fill="none" stroke-width="1.2">
+          <line x1="280" y1="56" x2="280" y2="138"/>
+          <line x1="272" y1="56" x2="288" y2="56"/>
+          <line x1="272" y1="138" x2="288" y2="138"/>
+          <rect x="266" y="80" width="28" height="38" fill="none"/>
+          <line x1="266" y1="98" x2="294" y2="98" stroke-width="1.6"/>
+        </g>
+        <g fill="#3D362A" fill-opacity="0.55">
+          <circle cx="280" cy="68"  r="1.6"/><circle cx="278" cy="80"  r="1.6"/>
+          <circle cx="282" cy="92"  r="1.6"/><circle cx="280" cy="106" r="1.6"/>
+          <circle cx="278" cy="120" r="1.6"/><circle cx="282" cy="132" r="1.6"/>
+        </g>
+
+        <g class="mu" text-anchor="middle">
+          <text x="100" y="187">baseline</text>
+          <text x="160" y="187">+aug</text>
+          <text x="220" y="187">ours</text>
+          <text x="280" y="187">+ema</text>
+        </g>
+      </svg>
+      <div class="cap"><span class="lbl">fig 8</span>strip dots overlaid on the box so seed-level points are visible. Highlight the comparison of interest in accent; the rest in ink.</div>
+    </div>
+
+    <!-- ─── Error / CI bars ───────────────────────────────────── -->
+    <div class="card">
+      <div class="eyebrow">09 · point · error</div>
+      <h4>Effect size · 95 % CI</h4>
+      <svg class="chart" viewBox="0 0 340 200" width="100%">
+        <line class="axis" x1="170" y1="20" x2="170" y2="172"/>
+        <text class="mu" x="170" y="14" text-anchor="middle">0</text>
+
+        <g class="grid grid--soft">
+          <line x1="40"  x2="40"  y1="20" y2="172"/>
+          <line x1="105" x2="105" y1="20" y2="172"/>
+          <line x1="235" x2="235" y1="20" y2="172"/>
+          <line x1="300" x2="300" y1="20" y2="172"/>
+        </g>
+        <g class="mu" text-anchor="middle">
+          <text x="40"  y="187">-2</text>
+          <text x="105" y="187">-1</text>
+          <text x="235" y="187">+1</text>
+          <text x="300" y="187">+2</text>
+        </g>
+        <text class="caps" x="328" y="198" text-anchor="end">effect (σ)</text>
+
+        <!-- 5 rows -->
+        <g stroke="#3D362A" stroke-width="1.2">
+          <!-- row 1, y=40, mean +1.4 spans +0.9 to +1.9 -->
+          <line x1="228" y1="40" x2="294" y2="40"/>
+          <line x1="228" y1="36" x2="228" y2="44"/>
+          <line x1="294" y1="36" x2="294" y2="44"/>
+          <!-- row 2, y=68, mean -0.4 spans -0.9 to +0.2 -->
+          <line x1="135" y1="68" x2="183" y2="68"/>
+          <line x1="135" y1="64" x2="135" y2="72"/>
+          <line x1="183" y1="64" x2="183" y2="72"/>
+          <!-- row 3, y=96, mean +0.9 spans +0.5 to +1.3 -->
+          <line x1="203" y1="96" x2="255" y2="96"/>
+          <line x1="203" y1="92" x2="203" y2="100"/>
+          <line x1="255" y1="92" x2="255" y2="100"/>
+          <!-- row 4, y=124, mean -1.1 spans -1.6 to -0.6 -->
+          <line x1="65"  y1="124" x2="125" y2="124"/>
+          <line x1="65"  y1="120" x2="65"  y2="128"/>
+          <line x1="125" y1="120" x2="125" y2="128"/>
+          <!-- row 5, y=152, mean +0.3 spans -0.1 to +0.7 -->
+          <line x1="158" y1="152" x2="215" y2="152"/>
+          <line x1="158" y1="148" x2="158" y2="156"/>
+          <line x1="215" y1="148" x2="215" y2="156"/>
+        </g>
+        <!-- means as dots, accent if CI excludes 0 -->
+        <g>
+          <circle cx="261" cy="40"  r="3.5" fill="#6B2C5C"/>
+          <circle cx="159" cy="68"  r="3.5" fill="#3D362A"/>
+          <circle cx="229" cy="96"  r="3.5" fill="#6B2C5C"/>
+          <circle cx="95"  cy="124" r="3.5" fill="#6B2C5C"/>
+          <circle cx="186" cy="152" r="3.5" fill="#3D362A"/>
+        </g>
+        <!-- row labels -->
+        <g class="mu" text-anchor="start">
+          <text x="6" y="44">depth</text>
+          <text x="6" y="72">width</text>
+          <text x="6" y="100">batch</text>
+          <text x="6" y="128">lr</text>
+          <text x="6" y="156">init</text>
+        </g>
+      </svg>
+      <div class="cap"><span class="lbl">fig 9</span>zero line on the y-axis, CI as a thin horizontal bar, point in accent where the CI excludes zero. Encodes significance without colour-coding it.</div>
+    </div>
+
+    <!-- ─── Anatomy / rules card ─────────────────────────────── -->
+    <div class="card">
+      <div class="eyebrow">rules</div>
+      <h4>House rules</h4>
+      <div class="anatomy-list">
+        <div><b>chrome</b> · 1 px axes in <span class="k">--fg-2</span>, 1 px gridlines in <span class="k">--rule</span></div>
+        <div><b>series</b> · 1.5 px stroke, round caps + joins</div>
+        <div><b>type</b> · ticks &amp; labels in JetBrains Mono · captions in Source Serif</div>
+        <div><b>scale</b> · sentence-case axis labels, eyebrow above each chart</div>
+        <div><b>colour</b> · one accent + neutrals · never recolour every series</div>
+        <div><b>chartjunk</b> · no 3-d, no shadows, no rounded bar caps, no gradients</div>
+        <div><b>annotation</b> · pin facts to the mark with a 0.75 px hairline · never with arrows</div>
+        <div><b>density</b> · ≥ 24 px tick spacing · ≤ 4 categorical series per chart</div>
+        <div><b>captions</b> · always · <span class="k">fig N</span> label + a sentence in serif</div>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>

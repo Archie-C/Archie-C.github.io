@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en" data-palette="paper">
+<head>
+<meta charset="utf-8"/>
+<link rel="stylesheet" href="../colors_and_type.css"/>
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+  body { padding: 22px 28px; }
+  .title { font-family: var(--font-mono); font-size: 11px; color: var(--fg-3); letter-spacing: 0.04em; text-transform: uppercase; margin: 0 0 14px; }
+  .row { display: grid; grid-template-columns: repeat(8, 1fr); gap: 16px 14px; }
+  .ic { display: flex; flex-direction: column; align-items: center; gap: 6px; color: var(--fg); }
+  .ic svg { width: 20px; height: 20px; stroke-width: 1.5; }
+  .ic span { font-family: var(--font-mono); font-size: 10px; color: var(--fg-3); }
+  hr { margin: 16px 0 12px; }
+  .uni { display: flex; gap: 22px; font-family: var(--font-mono); color: var(--fg); font-size: 18px; }
+  .uni span small { display: block; font-size: 10px; color: var(--fg-3); margin-top: 2px; }
+</style>
+</head>
+<body>
+  <div class="title">Lucide · 1.5 stroke · 20 px standalone</div>
+  <div class="row">
+    <div class="ic"><i data-lucide="book-open"></i><span>papers</span></div>
+    <div class="ic"><i data-lucide="pen-line"></i><span>writing</span></div>
+    <div class="ic"><i data-lucide="presentation"></i><span>talks</span></div>
+    <div class="ic"><i data-lucide="graduation-cap"></i><span>course</span></div>
+    <div class="ic"><i data-lucide="github"></i><span>github</span></div>
+    <div class="ic"><i data-lucide="mail"></i><span>newsletter</span></div>
+    <div class="ic"><i data-lucide="search"></i><span>search</span></div>
+    <div class="ic"><i data-lucide="arrow-up-right"></i><span>ext</span></div>
+  </div>
+  <hr/>
+  <div class="title">unicode glyphs — inline, preferred over icons</div>
+  <div class="uni">
+    <span>→<small>next</small></span>
+    <span>↗<small>external</small></span>
+    <span>§<small>section</small></span>
+    <span>†<small>note</small></span>
+    <span>≈<small>approx</small></span>
+    <span>×<small>times</small></span>
+    <span>—<small>em-dash</small></span>
+    <span>·<small>middle dot</small></span>
+  </div>
+  <script>lucide.createIcons();</script>
+</body>
+</html>

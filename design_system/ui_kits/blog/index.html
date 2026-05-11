@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en" data-palette="paper">
+<head>
+<meta charset="utf-8"/>
+<title>The kernel limit is a fixed point, not a target — a.c</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link rel="icon" href="../../assets/favicon.svg"/>
+<link rel="stylesheet" href="../../colors_and_type.css"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"/>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+  .topbar { max-width: var(--page-max); margin: 0 auto; padding: 24px 32px; display: flex; align-items: baseline; gap: 24px; border-bottom: 1px solid var(--rule); }
+  .topbar .mark { font-family: var(--font-mono); font-weight: 700; font-size: 22px; letter-spacing: -0.02em; color: var(--fg); text-decoration: none; }
+  .topbar .mark .dot { color: var(--accent); }
+  .topbar nav { display: flex; gap: 16px; margin-left: auto; }
+  .topbar nav a { font-family: var(--font-mono); font-size: 13px; color: var(--fg-2); text-decoration: none; }
+  .topbar nav a:hover { color: var(--accent); }
+
+  .layout { max-width: var(--page-max); margin: 0 auto; padding: 48px 32px 80px; display: grid; grid-template-columns: 220px 1fr; gap: 56px; }
+  .meta-rail { font-family: var(--font-sans); font-size: 13px; color: var(--fg-3); line-height: 1.55; position: sticky; top: 32px; align-self: start; }
+  .meta-rail .label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fg-4); display: block; margin-top: 14px; margin-bottom: 4px; }
+  .meta-rail .label:first-child { margin-top: 0; }
+  .toc { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
+  .toc a { font-size: 13px; color: var(--fg-2); text-decoration: none; border-left: 2px solid var(--rule); padding-left: 10px; margin-left: -10px; }
+  .toc a:hover { color: var(--accent); border-left-color: var(--accent); }
+
+  article { max-width: 64ch; }
+  article header h1 { font-size: 38px; line-height: 1.12; letter-spacing: -0.01em; margin-bottom: 18px; max-width: 18ch; }
+  article header .stand { font-family: var(--font-serif); font-style: italic; font-size: 19px; line-height: 1.5; color: var(--fg-2); margin-bottom: 32px; max-width: 50ch; }
+
+  .prose-blog { font-family: var(--font-serif); font-size: 18px; line-height: 1.65; color: var(--fg); }
+  .prose-blog p { margin: 0 0 1.05em; max-width: none; }
+  .prose-blog h2 { font-family: var(--font-mono); font-size: 22px; font-weight: 600; letter-spacing: -0.005em; margin: 2em 0 0.6em; color: var(--fg); }
+  .prose-blog a { color: var(--accent); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.18em; }
+  .prose-blog blockquote { margin: 1.5em 0; padding: 4px 16px 4px 18px; border-left: 2px solid var(--accent); color: var(--fg-2); font-style: italic; }
+  .prose-blog ol, .prose-blog ul { padding-left: 1.25em; margin: 0 0 1.05em; }
+  .prose-blog li { margin: 0.3em 0; }
+  .prose-blog code { font-family: var(--font-mono); font-size: 0.88em; background: var(--bg-sunk); padding: 0.12em 0.36em; border-radius: 3px; }
+  .prose-blog pre { font-family: var(--font-mono); background: var(--bg-sunk); border: 1px solid var(--rule); border-radius: 8px; padding: 14px 18px; font-size: 14px; line-height: 1.5; overflow-x: auto; margin: 1.5em 0; }
+  .prose-blog pre code { background: none; padding: 0; font-size: inherit; }
+  .prose-blog .katex-display { margin: 1.6em 0 !important; padding: 16px 18px; background: var(--bg-sunk); border: 1px solid var(--rule); border-radius: 8px; }
+
+  .footnote-ref { font-family: var(--font-mono); font-size: 0.8em; color: var(--accent); vertical-align: super; text-decoration: none; padding: 0 2px; }
+  .footnotes { margin-top: 56px; padding-top: 16px; border-top: 1px solid var(--rule); }
+  .footnotes h5 { margin-bottom: 10px; }
+  .footnotes ol { font-family: var(--font-sans); font-size: 13px; line-height: 1.55; color: var(--fg-2); padding-left: 1.25em; }
+  .footnotes li { margin: 0.5em 0; }
+
+  .end { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--rule); font-family: var(--font-mono); font-size: 12px; color: var(--fg-3); display: flex; justify-content: space-between; }
+  .end a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 820px) {
+    .layout { grid-template-columns: 1fr; gap: 24px; padding: 24px; }
+    .meta-rail { position: static; }
+  }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="#" class="mark">a<span class="dot">.</span>c</a>
+  <span style="font-family: var(--font-mono); font-size: 12px; color: var(--fg-3); letter-spacing: 0.04em; text-transform: uppercase;">writing</span>
+  <nav>
+    <a href="#">papers</a>
+    <a href="#">writing</a>
+    <a href="#">course</a>
+    <a href="#">about</a>
+  </nav>
+</div>
+
+<div class="layout">
+  <aside class="meta-rail">
+    <span class="label">date</span>
+    apr 14, 2025
+    <span class="label">reading</span>
+    ~ 8 min
+    <span class="label">tagged</span>
+    learning theory · NTK · notes
+    <span class="label">contents</span>
+    <nav class="toc">
+      <a href="#why">Why I keep getting this wrong</a>
+      <a href="#picture">The picture</a>
+      <a href="#proof">A short proof</a>
+      <a href="#takeaway">What it doesn't mean</a>
+    </nav>
+  </aside>
+
+  <article>
+    <header>
+      <h1>The kernel limit is a fixed point, not a target.</h1>
+      <p class="stand">I've been writing "the network converges to the NTK" for years. I now think this is the wrong sentence — and the right one is more interesting.</p>
+    </header>
+
+    <div class="prose-blog">
+      <h2 id="why">Why I keep getting this wrong</h2>
+      <p>If you've read more than two papers about wide networks, you've seen something like this: <em>"in the infinite-width limit, training reduces to kernel regression with the NTK"</em>. It's a true sentence. But the way I — and I think a lot of us — read it the first time is subtly off.</p>
+      <p>The natural reading is <strong>asymptotic</strong>: the network is trying to be a kernel machine, and the wider you make it, the closer it gets. Wrong direction. The network isn't <em>approaching</em> the kernel limit. The kernel limit is the regime in which the network's features stop moving — a fixed point of the feature-learning dynamics, not a goal it aspires to.<a href="#fn1" class="footnote-ref">1</a></p>
+
+      <h2 id="picture">The picture</h2>
+      <p>Here is the diagram I should have drawn for myself five years ago. The features $\phi_\theta(x)$ evolve under gradient flow:</p>
+      <p>$$ \frac{d\phi_\theta(x)}{dt} = - \nabla_\theta \mathcal{L} \cdot \nabla_\theta \phi_\theta(x). $$</p>
+      <p>In the NTK regime, $\nabla_\theta \phi_\theta(x)$ is approximately constant in $\theta$ — the features <em>do not move</em>. That's the whole story. Not "the network resembles a kernel machine" but "the features have stopped learning".</p>
+
+      <blockquote>The interesting question isn't "when does the network look like the kernel limit?" — it's "when does it <em>leave</em>?".</blockquote>
+
+      <h2 id="proof">A short proof</h2>
+      <p>The textbook derivation goes through second-order Taylor expansion of the loss. Here's a shorter one. Let $K_t = \nabla_\theta f_t \nabla_\theta f_t^\top$ be the empirical NTK at training step $t$. Then:</p>
+      <pre><code># in the kernel regime, K is constant in t
+assert torch.allclose(K(theta_t), K(theta_0), atol=1e-3)
+# equivalently, the feature gradient barely moves
+assert torch.allclose(grad_phi(theta_t), grad_phi(theta_0), atol=1e-3)</code></pre>
+      <p>So the regime is defined by the <em>constancy</em> of $K$, not its value. Once we say it that way, the obvious next question — <strong>under what training dynamics does $K_t$ vary?</strong> — is where all of feature learning lives.</p>
+
+      <h2 id="takeaway">What it doesn't mean</h2>
+      <p>It doesn't mean kernel methods are uninteresting. The kernel limit is still the cleanest thing we know how to analyse. It means we should stop using "approaches the NTK" as shorthand for "wide networks are simple". They aren't simple. They are <em>linearised</em>, which is a much more specific and useful thing to say.</p>
+
+      <div class="footnotes" id="fn">
+        <h5>Notes</h5>
+        <ol>
+          <li id="fn1">This framing is not original to me. It comes out of a long line of work — see <a href="#">Yang &amp; Hu (2021)</a> on µP, and <a href="#">Bordelon &amp; Pehlevan (2022)</a> on self-consistent dynamics. I'm just trying to write the version I wish I'd read first.</li>
+        </ol>
+      </div>
+
+      <div class="end">
+        <span>← previous: <a href="#">Why I stopped trusting early-stopping</a></span>
+        <span><a href="#">all writing →</a></span>
+      </div>
+    </div>
+  </article>
+</div>
+</body>
+</html>

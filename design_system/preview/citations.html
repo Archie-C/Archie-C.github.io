@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en" data-palette="paper">
+<head>
+<meta charset="utf-8"/>
+<link rel="stylesheet" href="../colors_and_type.css"/>
+<style>
+  body { padding: 22px 28px; }
+  .ref { display: grid; grid-template-columns: 28px 1fr; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--rule); }
+  .ref:last-child { border-bottom: 0; }
+  .num { font-family: var(--font-mono); font-size: 12px; color: var(--accent); }
+  .body { font-family: var(--font-sans); font-size: 13px; line-height: 1.45; color: var(--fg); }
+  .body .authors { color: var(--fg-2); }
+  .body .title-c { font-style: italic; color: var(--fg); }
+  .body .venue { color: var(--fg-3); }
+  .body a { font-family: var(--font-mono); font-size: 12px; }
+  .footnote { margin-top: 16px; font-family: var(--font-serif); font-size: 13px; color: var(--fg-2); line-height: 1.55; padding-top: 12px; border-top: 1px solid var(--rule); }
+  .footnote sup { color: var(--accent); font-family: var(--font-mono); font-weight: 600; }
+</style>
+</head>
+<body>
+  <div class="ref"><span class="num">[1]</span><span class="body"><span class="authors">Carpenter, A. and Park, J.</span> <span class="title-c">On the spectral bias of wide neural networks.</span> <span class="venue">ICLR, 2025.</span> <a href="#">arXiv ↗</a></span></div>
+  <div class="ref"><span class="num">[2]</span><span class="body"><span class="authors">Saito, R.</span> <span class="title-c">A short note on NTK eigenstructure.</span> <span class="venue">Preprint, 2024.</span> <a href="#">pdf ↗</a></span></div>
+  <div class="footnote"><sup>†</sup> A correction to the bound in Theorem 2 appears in the appendix of the camera-ready version.</div>
+</body>
+</html>

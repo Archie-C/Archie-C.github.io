@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en" data-palette="paper">
+<head>
+<meta charset="utf-8"/>
+<link rel="stylesheet" href="../colors_and_type.css"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"/>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+  body { padding: 18px 22px; display: grid; grid-template-columns: 1fr 1fr; gap: 14px 18px; align-items: start; }
+  .title { font-family: var(--font-mono); font-size: 10px; color: var(--fg-3); letter-spacing: 0.06em; text-transform: uppercase; margin: 0 0 6px; grid-column: span 2; }
+  pre { margin: 0; }
+  .math { margin: 0; }
+  .math .katex-display { margin: 0 !important; }
+  .codecap { font-family: var(--font-mono); font-size: 10px; color: var(--fg-4); margin-bottom: 4px; }
+</style>
+</head>
+<body>
+  <div>
+    <div class="codecap">code — JetBrains Mono / sunk bg</div>
+    <pre><code>def loss(w, x, y):
+    yhat = x @ w
+    return ((yhat - y) ** 2).mean()</code></pre>
+  </div>
+  <div>
+    <div class="codecap">display math — KaTeX, sunk bg</div>
+    <div class="math">$$ \mathcal{L}(\theta) = \mathbb{E}_{x \sim \mathcal{D}}\bigl[\,\ell(f_\theta(x), y)\,\bigr] $$</div>
+  </div>
+</body>
+</html>

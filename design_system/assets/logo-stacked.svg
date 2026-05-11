@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 140" width="320" height="140">
+  
+  <text x="10" y="72" class="word">a<tspan class="dot">.</tspan>c</text>
+  <line x1="10" y1="92" x2="158" y2="92" stroke="#DCD2BC" stroke-width="1"></line>
+  <text x="10" y="114" class="role">archie carpenter</text>
+  <text x="10" y="132" class="role" fill="#A09373">ml &amp; maths · research &amp; teaching</text>
+</svg>
