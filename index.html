@@ -1,343 +1,364 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Archie Carpenter | Personal Website</title>
-
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link
-    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:wght@600&display=swap"
-    rel="stylesheet"
-  />
-
+  <meta charset="utf-8"/>
+  <title>Archie Carpenter</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400..700;1,400..700&family=Inter:wght@400..700&family=Source+Serif+4:opsz,wght@8..60,400..600&display=swap" rel="stylesheet"/>
   <style>
+    /* ── Design tokens: Paper palette ─────────────────────────── */
     :root {
-      --background: #f5f7fb;
-      --surface: #ffffff;
-      --surface-muted: #f9fbfd;
-      --border: #dbe3ee;
-      --text: #16202f;
-      --muted: #566273;
-      --accent: #2c6db2;
-      --shadow: 0 10px 30px rgba(21, 38, 63, 0.06);
+      --bg:        #F6F1E7;
+      --bg-2:      #ECE6D6;
+      --bg-3:      #DCD2BC;
+      --bg-sunk:   #E8E1CC;
+
+      --fg:        #15120B;
+      --fg-2:      #3D362A;
+      --fg-3:      #6B6149;
+      --fg-4:      #A09373;
+
+      --rule:      #DCD2BC;
+
+      --accent:       #6B2C5C;
+      --accent-hover: #4F1E44;
+      --accent-soft:  #F0E2EA;
+
+      --font-mono:  'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+      --font-sans:  'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      --font-serif: 'Source Serif 4', 'Source Serif Pro', Georgia, 'Times New Roman', serif;
+
+      --ease:     cubic-bezier(0.2, 0, 0, 1);
+      --dur-fast: 120ms;
+
+      --page-max: 1180px;
+      --rail:     200px;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    *, *::before, *::after { box-sizing: border-box; }
+
+    html { color-scheme: light; }
 
     body {
       margin: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: var(--font-sans);
+      font-size: 1rem;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+      font-family: var(--font-mono);
+      font-weight: 600;
+      line-height: 1.15;
+      letter-spacing: -0.01em;
+      margin: 0;
+      color: var(--fg);
+    }
+
+    a {
+      color: var(--accent);
+      text-decoration: underline;
+      text-decoration-thickness: 1px;
+      text-underline-offset: 0.18em;
+      transition: color var(--dur-fast) var(--ease),
+                  text-decoration-thickness var(--dur-fast) var(--ease);
+    }
+    a:hover { color: var(--accent-hover); text-decoration-thickness: 2px; }
+    a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+
+    ::selection { background: var(--accent-soft); color: var(--fg); }
+
+    /* ── Page shell ────────────────────────────────────────────── */
+    .page {
+      display: grid;
+      grid-template-columns: var(--rail) 1fr;
       min-height: 100vh;
-      font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
-      color: var(--text);
-      background: var(--background);
-    }
-
-    main {
-      width: min(980px, calc(100% - 2rem));
+      max-width: var(--page-max);
       margin: 0 auto;
-      padding: 3rem 0 4rem;
     }
 
-    .hero,
-    .about,
-    .sections,
-    .experience {
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      background: var(--surface);
-      box-shadow: var(--shadow);
-      padding: 1.3rem;
-      margin-bottom: 1.25rem;
+    /* ── Left navigation rail ──────────────────────────────────── */
+    .rail {
+      padding: 40px 24px 32px;
+      border-right: 1px solid var(--rule);
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+      position: sticky;
+      top: 0;
+      align-self: start;
+      height: 100vh;
+      overflow-y: auto;
     }
 
-    .hero {
-      padding: 2.2rem;
+    .rail .mark {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 28px;
+      letter-spacing: -0.02em;
+      line-height: 1;
+      color: var(--fg);
+      text-decoration: none;
+    }
+    .rail .mark .dot { color: var(--accent); }
+
+    .rail nav {
+      display: flex;
+      flex-direction: column;
+    }
+    .rail nav a {
+      font-family: var(--font-mono);
+      font-size: 14px;
+      color: var(--fg-2);
+      text-decoration: none;
+      padding: 7px 10px;
+      border-left: 2px solid transparent;
+      margin-left: -10px;
+      border-radius: 0 4px 4px 0;
+      transition: background var(--dur-fast) var(--ease),
+                  color var(--dur-fast) var(--ease);
+    }
+    .rail nav a:hover { background: var(--bg-2); color: var(--fg); }
+    .rail nav a.active { border-left-color: var(--accent); color: var(--fg); }
+
+    .rail .foot {
+      margin-top: auto;
+      font-family: var(--font-sans);
+      font-size: 12px;
+      color: var(--fg-3);
+      line-height: 1.5;
+    }
+    .rail .foot a { color: var(--fg-2); text-decoration-thickness: 1px; }
+
+    /* ── Main content ──────────────────────────────────────────── */
+    main {
+      padding: 56px 64px 80px;
+      max-width: 760px;
     }
 
     .eyebrow {
-      margin: 0 0 1rem;
-      color: var(--accent);
-      font-size: 0.8rem;
-      font-weight: 600;
-      letter-spacing: 0.08em;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--fg-3);
+      letter-spacing: 0.06em;
       text-transform: uppercase;
+      margin-bottom: 14px;
     }
 
-    h1,
-    h2,
-    h3 {
-      margin-top: 0;
-      font-family: "Source Serif 4", Georgia, serif;
-      letter-spacing: -0.02em;
+    h1.hero {
+      font-size: 44px;
+      line-height: 1.1;
+      margin-bottom: 18px;
+      max-width: 18ch;
     }
 
-    h1 {
-      margin-bottom: 0.75rem;
-      font-size: clamp(2.4rem, 4vw, 3.8rem);
-      line-height: 1.05;
+    .bio {
+      font-family: var(--font-sans);
+      font-size: 17px;
+      line-height: 1.55;
+      color: var(--fg);
+      max-width: 60ch;
+      margin: 0 0 14px;
     }
 
-    h2 {
-      margin-bottom: 1rem;
-      font-size: 1.6rem;
+    .now {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-size: 16px;
+      color: var(--fg-2);
+      max-width: 58ch;
+      line-height: 1.55;
+      border-left: 2px solid var(--accent);
+      padding-left: 14px;
+      margin: 24px 0 40px;
+    }
+    .now .now-label {
+      font-style: normal;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--fg-3);
+      margin-right: 8px;
     }
 
-    h3 {
-      margin-bottom: 0.35rem;
-      font-size: 1.15rem;
+    hr.rule {
+      margin: 36px 0 24px;
+      border: 0;
+      border-top: 1px solid var(--rule);
     }
 
-    .lead,
-    .about p,
-    .experience p {
-      margin: 0;
-      max-width: 70ch;
-      color: var(--muted);
-      font-size: 1.02rem;
-      line-height: 1.7;
-    }
-
-    .hero-meta {
-      margin: 0 0 1rem;
-      color: var(--muted);
-      font-size: 0.98rem;
-      line-height: 1.6;
-    }
-
-    .hero-actions {
+    /* ── Section headers ───────────────────────────────────────── */
+    .section-head {
       display: flex;
-      flex-wrap: wrap;
-      gap: 0.75rem;
-      margin-top: 1.4rem;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 16px;
     }
+    .section-head h3 { font-size: 17px; font-weight: 500; letter-spacing: -0.005em; }
+    .section-head a  { font-family: var(--font-mono); font-size: 12px; color: var(--accent); text-decoration: none; }
+    .section-head a:hover { text-decoration: underline; }
 
-    .button {
-      display: inline-block;
-      padding: 0.82rem 1.1rem;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      background: var(--surface-muted);
-      color: var(--text);
-      text-decoration: none;
+    /* ── Research list ─────────────────────────────────────────── */
+    .papers { display: flex; flex-direction: column; }
+    .papers .item { padding: 12px 0; border-bottom: 1px solid var(--rule); }
+    .papers .item:last-child { border-bottom: 0; }
+
+    .paper-title {
+      font-family: var(--font-mono);
       font-weight: 500;
-      transition: border-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+      font-size: 15px;
+      color: var(--fg);
+      letter-spacing: -0.005em;
+      line-height: 1.35;
+      margin: 0 0 4px;
     }
-
-    .button.primary {
-      background: var(--accent);
-      border-color: var(--accent);
-      color: #ffffff;
+    .paper-meta {
+      font-family: var(--font-sans);
+      font-size: 13px;
+      color: var(--fg-3);
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
     }
+    .paper-meta .venue { color: var(--fg-2); }
 
-    .button:hover,
-    .button:focus-visible,
-    .card:hover,
-    .card:focus-visible,
-    .timeline-item:hover,
-    .timeline-item:focus-within {
-      border-color: rgba(44, 109, 178, 0.35);
-      box-shadow: 0 8px 24px rgba(21, 38, 63, 0.08);
-      transform: translateY(-1px);
-      outline: none;
-    }
+    /* ── Site sections list ────────────────────────────────────── */
+    .sections-list { display: flex; flex-direction: column; }
+    .sections-list .item { padding: 12px 0; border-bottom: 1px solid var(--rule); }
+    .sections-list .item:last-child { border-bottom: 0; }
 
-    .grid {
+    .sec-row {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 0.9rem;
+      grid-template-columns: 100px 1fr;
+      gap: 16px;
+      align-items: baseline;
     }
-
-    .card {
-      display: block;
-      padding: 1.15rem 1.2rem;
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      background: var(--surface-muted);
-      color: inherit;
+    .sec-label { font-family: var(--font-mono); font-size: 12px; color: var(--fg-4); letter-spacing: 0.03em; }
+    .sec-title {
+      font-family: var(--font-sans);
+      font-size: 15px;
+      color: var(--fg);
       text-decoration: none;
-      transition: border-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
     }
+    .sec-title:hover { color: var(--accent); }
 
-    .card-meta,
-    .timeline-meta {
-      margin: 0 0 0.35rem;
-      color: var(--accent);
-      font-size: 0.8rem;
-      font-weight: 600;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
+    /* ── Page footer ───────────────────────────────────────────── */
+    .pagefoot {
+      margin-top: 64px;
+      padding-top: 18px;
+      border-top: 1px solid var(--rule);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--fg-4);
+      display: flex;
+      justify-content: space-between;
     }
+    .pagefoot a { color: var(--fg-3); text-decoration: none; }
+    .pagefoot a:hover { color: var(--fg); }
 
-    .card-title {
-      margin: 0 0 0.35rem;
-      font-family: "Source Serif 4", Georgia, serif;
-      font-size: 1.2rem;
-    }
-
-    .card-description {
-      margin: 0;
-      color: var(--muted);
-      line-height: 1.65;
-    }
-
-    .timeline {
-      display: grid;
-      gap: 0.9rem;
-    }
-
-    .timeline-item {
-      padding: 1.1rem 1.15rem;
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      background: var(--surface-muted);
-      transition: border-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
-    }
-
-    .timeline-text {
-      margin: 0;
-      color: var(--muted);
-      line-height: 1.65;
-    }
-
-    footer {
-      color: var(--muted);
-      font-size: 0.95rem;
-      padding: 0.25rem 0;
-    }
-
-    @media (max-width: 860px) {
-      .grid {
-        grid-template-columns: 1fr;
+    /* ── Mobile ────────────────────────────────────────────────── */
+    @media (max-width: 720px) {
+      .page { grid-template-columns: 1fr; }
+      .rail {
+        height: auto;
+        position: static;
+        border-right: 0;
+        border-bottom: 1px solid var(--rule);
       }
-    }
-
-    @media (max-width: 640px) {
-      main {
-        width: min(100% - 1rem, 980px);
-        padding-top: 1rem;
-      }
-
-      .hero,
-      .about,
-      .sections,
-      .experience {
-        padding: 1.35rem;
-        border-radius: 14px;
-      }
-
-      .hero-actions {
-        flex-direction: column;
-      }
-
-      .button {
-        width: 100%;
-        text-align: centre;
-      }
+      main { padding: 32px 24px 60px; max-width: none; }
+      h1.hero { font-size: 32px; }
     }
   </style>
 </head>
 <body>
+<div class="page">
+
+  <aside class="rail">
+    <a href="/" class="mark">a<span class="dot">.</span>c</a>
+    <nav>
+      <a href="/" class="active">home</a>
+      <a href="./research/">research</a>
+      <a href="./deep-learning-aau/">teaching</a>
+      <a href="./projects/">projects</a>
+      <a href="./competitions/">competitions</a>
+      <a href="./cv/">cv</a>
+    </nav>
+    <div class="foot">
+      Researcher &amp; teacher.<br/>
+      <a href="./contact/">Get in touch</a>
+    </div>
+  </aside>
+
   <main>
-    <section class="hero">
-      <p class="eyebrow">Personal website</p>
-      <h1>Archie Carpenter</h1>
-      <p class="hero-meta">
-        Student, researcher, and teacher with interests in machine learning, deep learning, and quantitative finance.
-      </p>
-      <p class="lead">
-        This website brings together my teaching material, project work, and personal profile. It serves both as a
-        homepage for resources and as a simple online CV.
-      </p>
+    <div class="eyebrow">archie carpenter · ml &amp; recommender systems</div>
+    <h1 class="hero">I research how systems can make better recommendations from health data.</h1>
 
-      <div class="hero-actions">
-        <a class="button primary" href="./cv/">Curriculum Vitae</a>
-        <a class="button" href="./contact/">Contact</a>
-      </div>
-    </section>
+    <p class="bio">I'm a researcher and teacher at the University of Klagenfurt, Austria. My work focuses on recommender systems in healthcare — using electronic health records to help clinicians make better-informed decisions.</p>
+    <p class="bio">I also teach. I'm currently prepping a deep learning course at AAU and writing notes I wish someone had given me when I was learning this material.</p>
 
-    <section class="about">
-      <h2>Who am I</h2>
-      <p>
-        I am a researcher and teacher at the University of Klagenfurt, Austria. My work focuses on recommender systems in healthcare.
-        As well as my research, I am deeply interested in quantitative finance, sports and food. 
-        When I'm not reading or coding you'll find me playing tennis, running or in the kitchen.
-      </p>
-    </section>
+    <div class="now">
+      <span class="now-label">now</span>Working through a reproducibility study on EHR-based drug recommendation models, evaluating how robust existing methods really are. Also prepping the Deep Learning course at AAU — lectures, exercises, and a lot of marking.
+    </div>
 
-    <section class="sections">
-      <h2>Main sections</h2>
-      <div class="grid">
-
-        <a class="card" href="./research/">
-          <p class="card-meta">Work</p>
-          <p class="card-title">Research</p>
-          <p class="card-description">
-            A collection of published papers, preprints, and my research projects.
-          </p>
-        </a>
-
-        <a class="card" href="./deep-learning-aau/">
-          <p class="card-meta">Teaching</p>
-          <p class="card-title">Deep Learning AAU</p>
-          <p class="card-description">
-            Course homepage, exercises, and future lecture content.
-          </p>
-        </a>
-
-        <a class="card" href="./competitions/">
-          <p class="card-meta">Hobbies</p>
-          <p class="card-title">Competitions</p>
-          <p class="card-description">
-            A collection of competitions I have participated in and my results.
-          </p>
-        </a>
-
-        <a class="card" href="./projects/">
-          <p class="card-meta">Hobbies</p>
-          <p class="card-title">Projects</p>
-          <p class="card-description">
-            A collection of technical projects, experiments, and write-ups.
-          </p>
-        </a>
-
-        <a class="card" href="./cv/">
-          <p class="card-meta">Profile</p>
-          <p class="card-title">Curriculum Vitae</p>
-          <p class="card-description">
-            Education, experience, skills, and other professional details.
-          </p>
-        </a>
-      </div>
-    </section>
-
-    <section class="experience">
-      <h2>Highlights</h2>
-      <div class="timeline">
-        <div class="timeline-item">
-          <p class="timeline-meta">Research</p>
-          <h3>EHR-based Drug Recommendation Reproducibility Study</h3>
-          <p class="timeline-text">
-            Conducted a reproducibility study on EHR-based drug recommendation models, evaluating the robustness and reproducibility of existing approaches.
-          </p>
-        </div>
-
-        <div class="timeline-item">
-          <p class="timeline-meta">Competitions</p>
-          <h3>IMC Prosperity 4: Algorithmic Trading Challenge</h3>
-          <p class="timeline-text">
-            Participated in a competitive algorithmic trading challenge focused on developing and testing trading strategies.
-          </p>
+    <div class="section-head">
+      <h3>Research</h3>
+      <a href="./research/">all papers →</a>
+    </div>
+    <div class="papers">
+      <div class="item">
+        <h4 class="paper-title">EHR-based drug recommendation — reproducibility study</h4>
+        <div class="paper-meta">
+          <span class="venue">University of Klagenfurt · 2025</span>
+          <span>Evaluating robustness and reproducibility of existing approaches on real EHR data.</span>
         </div>
       </div>
-    </section>
+    </div>
 
-    <footer>
-      © 2026 Archie Carpenter. All rights reserved.
-    </footer>
+    <hr class="rule"/>
+
+    <div class="section-head">
+      <h3>On this site</h3>
+    </div>
+    <div class="sections-list">
+      <div class="item">
+        <div class="sec-row">
+          <span class="sec-label">teaching</span>
+          <a class="sec-title" href="./deep-learning-aau/">Deep Learning AAU — course homepage, exercises, and lectures</a>
+        </div>
+      </div>
+      <div class="item">
+        <div class="sec-row">
+          <span class="sec-label">projects</span>
+          <a class="sec-title" href="./projects/">Technical projects, experiments, and write-ups</a>
+        </div>
+      </div>
+      <div class="item">
+        <div class="sec-row">
+          <span class="sec-label">competitions</span>
+          <a class="sec-title" href="./competitions/">Algorithmic trading, data science, and other competitions</a>
+        </div>
+      </div>
+      <div class="item">
+        <div class="sec-row">
+          <span class="sec-label">cv</span>
+          <a class="sec-title" href="./cv/">Education, experience, and professional profile</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="pagefoot">
+      <span>archie carpenter · 2026</span>
+      <span><a href="./cv/">cv ↗</a> · © archie carpenter</span>
+    </div>
   </main>
+
+</div>
 </body>
 </html>
