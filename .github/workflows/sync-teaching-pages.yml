@@ -29,6 +29,7 @@ jobs:
           rm -rf deep-learning-aau/*
           cp teaching/index.html deep-learning-aau/index.html
           cp -r teaching/exercises deep-learning-aau/exercises
+          cp -r teaching/examples deep-learning-aau/examples
           cp -r teaching/lectures deep-learning-aau/lectures
 
       - name: Add .nojekyll

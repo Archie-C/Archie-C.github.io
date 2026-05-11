@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CNNs - Notes</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:wght@600&display=swap" rel="stylesheet">
+
+  <!-- highlight.js (Monokai) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js/styles/monokai.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/highlight.js@11/highlight.min.js"></script>
+  <!-- chart.js  -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [["\\(", "\\)"], ["$", "$"]],
+        displayMath: [["\\[", "\\]"], ["$$", "$$"]]
+      }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+
+  <style>
+    :root {
+      --background: #f5f7fb;
+      --surface: #ffffff;
+      --surface-muted: #f9fbfd;
+      --border: #dbe3ee;
+      --text: #16202f;
+      --muted: #566273;
+      --accent: #2c6db2;
+      --shadow: 0 10px 30px rgba(21, 38, 63, 0.06);
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      font-family: "IBM Plex Sans", sans-serif;
+      background: var(--background);
+      color: var(--text);
+    }
+
+    .chart-wrap {
+      position: relative;
+      height: 360px;
+      margin: 1.5rem 0;
+      background: var(--surface);
+      border-radius: 12px;
+      padding: 1rem;
+      border: 1px solid var(--border);
+    }
+
+    canvas {
+      display: block;
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    img,
+    svg {
+      max-width: 100%;
+      height: auto;
+    }
+
+    /* Layout */
+    .layout {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      gap: 2rem;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+      min-width: 0;
+    }
+
+    /* TOC */
+    .toc {
+      position: sticky;
+      top: 2rem;
+      height: fit-content;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: var(--surface);
+      padding: 1.2rem;
+      box-shadow: var(--shadow);
+      min-width: 0;
+    }
+
+    .toc h3 {
+      margin-top: 0;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+    }
+
+    .toc a {
+      display: block;
+      padding: 0.35rem 0;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+
+    .toc a:hover {
+      color: var(--accent);
+    }
+
+    .toc a.active {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .toc-mobile {
+      display: none;
+    }
+
+    /* Content */
+    .content {
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: var(--surface);
+      padding: 2.5rem;
+      box-shadow: var(--shadow);
+      min-width: 0;
+    }
+
+    h1, h2, h3 {
+      font-family: "Source Serif 4", Georgia, serif;
+      letter-spacing: -0.02em;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      margin-top: 0;
+    }
+
+    h2 {
+      margin-top: 2.5rem;
+      scroll-margin-top: 100px;
+    }
+
+    p {
+      color: var(--muted);
+      line-height: 1.7;
+      max-width: none;
+    }
+
+    /* Code block styling */
+    pre {
+      border-radius: 12px;
+      overflow-x: auto;
+      padding: 1rem;
+      margin: 1.5rem 0;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,0.03);
+    }
+
+    code {
+      font-family: "JetBrains Mono", "Fira Code", monospace;
+      font-size: 0.9rem;
+    }
+
+    /* Override Monokai for light UI balance */
+    .hljs {
+      background: #1e1f26 !important;
+      border-radius: 12px;
+    }
+
+    mjx-container[jax="CHTML"][display="true"] {
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding-bottom: 0.25rem;
+    }
+
+    /* Mobile */
+    @media (max-width: 900px) {
+      .layout {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+        padding: 1rem;
+      }
+
+      .toc {
+        display: none;
+      }
+
+      .toc-mobile {
+        display: block;
+        position: sticky;
+        top: 0.75rem;
+        z-index: 10;
+        margin: 0 auto 1rem;
+        max-width: 1200px;
+        padding: 0 1rem;
+      }
+
+      .toc-mobile details {
+        position: relative;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(10px);
+        box-shadow: var(--shadow);
+      }
+
+      .toc-mobile summary {
+        cursor: pointer;
+        list-style: none;
+        padding: 0.95rem 1rem;
+        font-size: 0.92rem;
+        font-weight: 600;
+        color: var(--accent);
+      }
+
+      .toc-mobile summary::-webkit-details-marker {
+        display: none;
+      }
+
+      .toc-mobile nav {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: rgba(255, 255, 255, 0.98);
+        border: 1px solid var(--border); 
+        border-top: none; 
+        border-radius: 0 0 14px 14px; 
+        padding: 0 1rem 1rem;
+      }
+
+      .toc-mobile a {
+        display: block;
+        padding: 0.55rem 0;
+        color: var(--muted);
+        text-decoration: none;
+        font-size: 0.95rem;
+      }
+
+      .toc-mobile a:hover,
+      .toc-mobile a:focus-visible {
+        color: var(--accent);
+      }
+
+      .content {
+        padding: 1.5rem;
+      }
+
+      .chart-wrap {
+        height: 300px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      body {
+        font-size: 0.96rem;
+      }
+
+      .layout {
+        padding: 0.75rem;
+      }
+
+      .toc-mobile {
+        top: 0.5rem;
+        padding: 0 0.75rem;
+      }
+
+      .toc,
+      .content {
+        border-radius: 14px;
+      }
+
+      .toc {
+        padding: 1rem;
+      }
+
+      .content {
+        padding: 1.15rem;
+      }
+
+      h1 {
+        font-size: 2rem;
+      }
+
+      h2 {
+        margin-top: 2rem;
+      }
+
+      pre {
+        padding: 0.85rem;
+      }
+
+      code {
+        font-size: 0.82rem;
+      }
+
+      .chart-wrap {
+        height: 240px;
+        padding: 0.75rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="toc-mobile">
+  <details id="mobile-toc">
+    <summary>Jump to section</summary>
+    <nav>
+      <a href="#intro">Introduction</a>
+      <a href="#prerequisites">Prerequisites</a>
+      <a href="#computer-vision-tasks">Computer Vision Tasks</a>
+      <a href="#image-data">Image Data</a>
+    </nav>
+  </details>
+</div>
+
+<div class="layout">
+
+  <!-- Table of Contents -->
+  <nav class="toc">
+    <h3>Contents</h3>
+    <a href="#intro">Introduction</a>
+    <a href="#prerequisites">Prerequisites</a>
+    <a href="#computer-vision-tasks">Computer Vision Tasks</a>
+    <a href="#image-data">Image Data</a>
+  </nav>
+
+  <!-- Main Content -->
+  <article class="content">
+    <h1>Convolutional Neural Networks</h1>
+
+    <h2 id="intro">Introduction</h2>
+    <p>
+      Computer vision is a subsection of machine learning that uses the structured data in images to perform visual reasoning. 
+      Convolutional neural networks first introduced in the 1980s, are now the most widely used architecture for computer vision tasks, taking over from 3D perspective geometry-based approaches.
+    </p>
+    <p>
+        In these notes we'll cover the mathematics behind convolutional neural networks, for more details about the actual implementation see <a href="#">this</a>.
+        We omit some of the formal notation for brevity and to help understanding, if you want to see a more formal definition see: <a href="https://www.bishopbook.com/">Deep Learning: Foundations and Concepts</a>
+    </p>
+
+    <h2 id="prerequisites">Prerequisites</h2>
+    <p>Before we start, make sure you have a good understanding of the following:</p>
+    
+    <h2 id="computer-vision-tasks">Computer Vision Tasks</h2>
+    <p>
+      To give you a glimpse of what you can do with what we will cover, here are some of the most common computer vision tasks:
+    </p>
+    <p>
+      <ul>
+        <li><p><strong>Classification:</strong> For example, classifying images of freckles and moles into benign and malignant categories.</p></li>
+        <li><p><strong>Object Detection:</strong>Identifying and locating objects within images, such as in autonomous driving.</p></li>
+        <li><p><strong>Image Segmentation:</strong> Dividing an image into multiple groups (segments) for example, sky, grass, trees.</p></li>
+        <li><p><strong>Caption Generation:</strong> Creating descriptive captions for images.</p></li>
+        <li><p><strong>Synthesis:</strong> Generating new images from existing ones or from text descriptions.</p></li>
+        <li><p><strong>Inpainting:</strong> Filling in missing or damaged parts of images. This is particularly useful in photoshop.</p></li>
+        <li><p><strong>Style Transfer:</strong> Transforming the style of one image to match another.</p></li>
+        <li><p><strong>Super Resolution:</strong> Enhancing the resolution of low-quality images. Great for restoring old photographs.</p></li>
+        <li><p><strong>Depth Estimation:</strong> Predicting the distance of objects from the camera in an image. Again, crucial in autonomous driving.</p></li>
+        <li><p><strong>Scene Reconstruction:</strong> Reconstructing a 3D scene from 2D images.</p></li>
+      </ul>
+    </p>
+    <h2 id="image-data">Image Data</h2>
+    <p>
+      Light is a continuous signal, but when we capture images digitally we have to sample this signal at discrete intervals, both in space and in intensity.
+      The result is a grid of pixels, where each pixel has a value representing the intensity of light at that point.
+      Typically, the intensity is represented as a value between 0 and 255 (an 8-bit unsigned integer), where 0 represents black and 255 represents white.
+      That is for black and white images, for colour images we have three channels (red, green and blue), each with its own intensity value.
+    </p>
+    <p>
+      What this means is we can represent an image as a 3D array of shape:
+    </p>
+    \[
+      (height, width, channels)
+    \]
+    <p>
+      If we consider a 1080p image, which has a resolution of 1920x1080 pixels, and 3 color channels (RGB), the shape of the array would be:
+    </p>
+    \[
+      (1080, 1920, 3)
+    \]
+    <p>
+      This means that a single 1080p image contains 1080 * 1920 * 3 = 6,220,800 values (or pixels) that we can use as input to our neural network.
+      <strong>This is a lot of data</strong>, and way too many inputs for our traditional neural networks.
+    </p>
+    <p>
+      <strong>Luckily, images are highly structured!</strong>
+    </p>
+    <p>
+      We can test this, if we take an image of a cat, and we randomly shuffle the pixels, we get a completely different image, that doesn't look at all natural. 
+      It just looks like random noise.
+    </p>
+    <div style="display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center;">
+      <image src="../images/cat_original.webp" style="max-width: 300px;"></image>
+      <image src="../images/cat_permuted.webp" style="max-width: 300px;"></image>
+    </div>
+    <p>
+      This means there must be some local structure in the image that we can exploit, and reduce the number of parameters we need to learn.
+    </p>
+    <h2 id="convolution">Convolution</h2>
+    <p>
+      The key to detecting features in images is the convolution operation
+    </p>
+    <div class="chart-wrap">
+      <canvas id="convolution-chart"></canvas>
+    </div>
+
+
+  </article>
+
+</div>
+
+<script>
+
+  if (typeof hljs !== "undefined") {
+    hljs.highlightAll();
+  }
+
+  // Active TOC highlighting
+  const links = document.querySelectorAll(".toc a");
+  const sections = document.querySelectorAll("h2");
+
+  window.addEventListener("scroll", () => {
+    let current = "";
+
+    sections.forEach(section => {
+      const top = section.offsetTop - 120;
+      if (scrollY >= top) {
+        current = section.getAttribute("id");
+      }
+    });
+
+    links.forEach(link => {
+      link.classList.remove("active");
+      if (link.getAttribute("href") === "#" + current) {
+        link.classList.add("active");
+      }
+    });
+  });
+
+  window.addEventListener("load", () => {
+    if (window.MathJax && typeof window.MathJax.typesetPromise === "function") {
+      window.MathJax.typesetPromise();
+    }
+  });
+
+  const mobileToc = document.getElementById("mobile-toc");
+
+  if (mobileToc) {
+    const closeMobileToc = () => {
+      mobileToc.open = false;
+    };
+
+    const clickedInsideMobileToc = event => {
+      if (typeof event.composedPath === "function") {
+        return event.composedPath().includes(mobileToc);
+      }
+
+      return mobileToc.contains(event.target);
+    };
+
+  document.addEventListener("pointerdown", event => {
+    if (mobileToc.open && !clickedInsideMobileToc(event)) {
+      closeMobileToc();
+    }
+  }, true);
+    mobileToc.querySelectorAll("a").forEach(link => {
+      link.addEventListener("click", () => {
+        closeMobileToc();
+      });
+    });
+  }
+</script>
+<script src="./chart.js"></script>
+
+</body>
+</html>
