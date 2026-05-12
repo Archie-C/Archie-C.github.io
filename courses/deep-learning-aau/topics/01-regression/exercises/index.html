@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="en" data-palette="paper">
+<head>
+<meta charset="utf-8"/>
+<title>Regression Exercises | Deep Learning</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link rel="icon" href="../../../../../design_system/assets/favicon.svg"/>
+<link rel="stylesheet" href="../../../../../design_system/colors_and_type.css"/>
+<link rel="stylesheet" href="../../../../../design_system/charts.css"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdn.jsdelivr.net/pyodide/v0.29.4/full/pyodide.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+  :root { --page-w: 1180px; }
+
+  body { background: var(--bg-2); }
+
+  .frame {
+    max-width: var(--page-w);
+    margin: 0 auto;
+    background: var(--bg);
+    min-height: 100vh;
+  }
+
+  .topbar {
+    padding: 20px 32px;
+    display: flex;
+    align-items: baseline;
+    gap: 22px;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .topbar .mark {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 22px;
+    letter-spacing: -0.02em;
+    color: var(--fg);
+    text-decoration: none;
+  }
+
+  .topbar .mark .dot { color: var(--accent); }
+
+  .topbar .crumb {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--fg-2);
+  }
+
+  .topbar .crumb a {
+    color: var(--fg-3);
+    text-decoration: none;
+  }
+
+  .topbar .crumb a:hover { color: var(--fg); }
+
+  .topbar .crumb .sep {
+    color: var(--fg-4);
+    margin: 0 8px;
+  }
+
+  .topbar nav {
+    margin-left: auto;
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .topbar nav a {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--fg-2);
+    text-decoration: none;
+  }
+
+  .topbar nav a:hover,
+  .topbar nav a.active {
+    color: var(--accent);
+  }
+
+  .lecture {
+    padding: 40px 32px 80px;
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 56px;
+  }
+
+  .lecture aside {
+    font-family: var(--font-sans);
+    font-size: 13px;
+    color: var(--fg-3);
+    position: sticky;
+    top: 24px;
+    align-self: start;
+    line-height: 1.5;
+  }
+
+  .lecture aside .h {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--fg-4);
+    display: block;
+    margin: 16px 0 6px;
+  }
+
+  .lecture aside .h:first-child { margin-top: 0; }
+
+  .lecture aside .nav-group {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--fg-2);
+    margin-top: 10px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding-bottom: 4px;
+  }
+
+  .lecture aside .nav-list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .lecture aside .nav-list a {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--fg-2);
+    text-decoration: none;
+    padding: 4px 0 4px 12px;
+    border-left: 2px solid transparent;
+  }
+
+  .lecture aside .nav-list a:hover { color: var(--fg); }
+
+  .lecture aside .nav-list a.current {
+    color: var(--fg);
+    border-left-color: var(--accent);
+    background: var(--accent-soft);
+  }
+
+  .lecture aside .nav-list a.done { color: var(--fg-4); }
+
+  .lecture article { max-width: 62ch; }
+
+  .lecture article p,
+  .lecture article ul,
+  .lecture article ol,
+  .lecture article pre,
+  .lecture article .note,
+  .lecture article .exercise {
+    max-width: none;
+  }
+
+  .lecture article .crumb {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .lecture article .crumb a {
+    color: var(--fg-3);
+    text-decoration: none;
+  }
+
+  .lecture article .crumb a:hover { color: var(--fg); }
+
+  .lecture article .crumb .sep {
+    color: var(--fg-4);
+    margin: 0 6px;
+  }
+
+  .lecture article h1 {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 30px;
+    line-height: 1.12;
+    letter-spacing: -0.015em;
+    margin: 0 0 8px;
+  }
+
+  .lecture article .standfirst {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 17px;
+    color: var(--fg-2);
+    margin-bottom: 28px;
+    max-width: 50ch;
+    line-height: 1.5;
+  }
+
+  .body {
+    font-family: var(--font-serif);
+    font-size: 17px;
+    line-height: 1.65;
+    color: var(--fg);
+  }
+
+  .body p { margin: 0 0 1em; }
+
+  .chart-card {
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    background: var(--bg);
+    padding: 18px 18px 16px;
+    margin: 1.4em 0;
+  }
+
+  .chart-card .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--fg-3);
+    margin-bottom: 4px;
+  }
+
+  .chart-card h3 {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--fg);
+    letter-spacing: -0.005em;
+    margin: 0 0 12px;
+  }
+
+  .chart-card .chart-legend {
+    margin: 4px 0 10px;
+  }
+
+  .chart-frame {
+    height: 260px;
+  }
+
+  .chart-frame canvas {
+    width: 100%;
+    height: 100%;
+  }
+
+  .body ul,
+  .body ol {
+    list-style: none;
+    margin: 1.1em 0 1.4em;
+    padding: 0;
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+    counter-reset: note-list;
+  }
+
+  .body li {
+    counter-increment: note-list;
+    display: grid;
+    grid-template-columns: 44px 1fr;
+    column-gap: 14px;
+    align-items: baseline;
+    padding: 8px 0;
+    border-top: 1px dashed var(--rule);
+    font-family: var(--font-sans);
+    font-size: 14.5px;
+    line-height: 1.5;
+    color: var(--fg-2);
+  }
+
+  .body li:first-child { border-top: 0; }
+
+  .body li::before {
+    content: counter(note-list, decimal-leading-zero);
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    color: var(--fg-4);
+    letter-spacing: 0.04em;
+  }
+
+  .body ul li::before { content: counter(note-list, decimal-leading-zero); }
+
+  .body li a {
+    color: var(--fg);
+    text-decoration: none;
+  }
+
+  .body li a:hover { color: var(--accent); }
+
+  .body h2 {
+    font-family: var(--font-mono);
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: -0.005em;
+    margin: 1.8em 0 0.5em;
+  }
+
+  .body code {
+    font-family: var(--font-mono);
+    font-size: 0.9em;
+    background: var(--bg-sunk);
+    padding: 0.1em 0.36em;
+    border-radius: 3px;
+  }
+
+  .body pre {
+    font-family: var(--font-mono);
+    background: var(--bg-sunk);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 14px 18px;
+    font-size: 13px;
+    line-height: 1.5;
+    overflow-x: auto;
+    margin: 1.4em 0;
+  }
+
+  .body pre code {
+    background: none;
+    padding: 0;
+  }
+
+  .exercise {
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--accent);
+    border-radius: 4px;
+    padding: 14px 18px;
+    background: var(--bg-2);
+    margin: 1.4em 0;
+  }
+
+  .exercise .tag {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+
+  .exercise .tag b {
+    color: var(--fg);
+    margin-left: 6px;
+  }
+
+  .exercise p {
+    margin: 6px 0 0;
+    font-family: var(--font-sans);
+    font-size: 14.5px;
+    color: var(--fg);
+  }
+
+  .note {
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--fg-4);
+    border-radius: 4px;
+    padding: 14px 18px;
+    background: var(--bg-sunk);
+    margin: 1.4em 0;
+  }
+
+  .note .tag {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--fg-3);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  .note p {
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: 14.5px;
+    line-height: 1.55;
+    color: var(--fg);
+  }
+
+  .note.important {
+    border-left-color: var(--accent);
+    background: var(--accent-soft);
+  }
+
+  .note.important .tag { color: var(--accent); }
+
+  .endbar {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 40px;
+    padding-top: 16px;
+    border-top: 1px solid var(--rule);
+    font-family: var(--font-mono);
+    font-size: 12px;
+  }
+
+  .endbar a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+
+  .endbar a:hover { text-decoration: underline; }
+
+  @media (max-width: 820px) {
+    .topbar {
+      align-items: flex-start;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .topbar nav { margin-left: 0; }
+
+    .lecture {
+      display: block;
+      padding: 36px 24px 64px;
+    }
+
+    .lecture aside {
+      position: static;
+      margin-bottom: 34px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .topbar { padding: 18px 20px; }
+    .lecture article h1 { font-size: 27px; }
+    .endbar { flex-direction: column; }
+  }
+
+  /* Syntax highlighting — built on design system tokens */
+  .hljs { color: var(--fg); background: transparent; }
+  .hljs-comment, .hljs-quote { color: var(--fg-3); font-style: italic; }
+  .hljs-keyword, .hljs-selector-tag { color: var(--accent); font-weight: 600; }
+  .hljs-built_in, .hljs-builtin-name { color: var(--warning); }
+  .hljs-string, .hljs-attr, .hljs-addition { color: var(--info); }
+  .hljs-number, .hljs-literal { color: var(--success); }
+  .hljs-title, .hljs-class .hljs-title, .hljs-type { color: var(--warning); }
+  .hljs-variable, .hljs-template-variable { color: var(--fg-2); }
+  .hljs-params { color: var(--fg-2); }
+  .hljs-deletion { color: var(--danger); }
+  .hljs-emphasis { font-style: italic; }
+  .hljs-strong { font-weight: 700; }
+
+  /* Problem card */
+  .problem-card {
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--fg-4);
+    border-radius: 4px;
+    padding: 20px 22px;
+    background: var(--bg-sunk);
+    margin: 0.8em 0 1.4em;
+  }
+
+  .problem-card .problem-eyebrow {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--fg-4);
+    margin-bottom: 10px;
+  }
+
+  .problem-card .problem-body {
+    font-family: var(--font-sans);
+    font-size: 14.5px;
+    line-height: 1.6;
+    color: var(--fg-2);
+    margin: 0;
+  }
+
+  /* Upload zone */
+  .upload-zone {
+    border: 1.5px dashed var(--rule);
+    border-radius: 8px;
+    padding: 40px 24px;
+    text-align: center;
+    background: var(--bg-sunk);
+    cursor: pointer;
+    transition: border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
+    margin: 0.8em 0 0;
+  }
+
+  .upload-zone:hover,
+  .upload-zone.dragover {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+
+  .upload-icon {
+    display: block;
+    margin: 0 auto 12px;
+    color: var(--fg-4);
+  }
+
+  .upload-zone.dragover .upload-icon { color: var(--accent); }
+
+  .upload-label {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--fg);
+    margin: 0 0 4px;
+  }
+
+  .upload-sub {
+    font-family: var(--font-sans);
+    font-size: 13px;
+    color: var(--fg-3);
+    margin: 0 0 8px;
+  }
+
+  .upload-link {
+    color: var(--accent);
+    cursor: pointer;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+  }
+
+  .upload-accepted {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--fg-4);
+    letter-spacing: 0.04em;
+    margin: 0;
+  }
+
+  .upload-input { display: none; }
+
+  .upload-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    margin-top: 8px;
+    background: var(--bg-sunk);
+  }
+
+  .upload-filename {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--fg);
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .upload-clear {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--fg-3);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    letter-spacing: 0.04em;
+  }
+
+  .upload-clear:hover { color: var(--danger); }
+
+  .submit-btn {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    background: var(--accent);
+    color: var(--bg);
+    border: none;
+    border-radius: 6px;
+    padding: 10px 22px;
+    cursor: pointer;
+    margin-top: 10px;
+    display: block;
+    transition: background var(--dur-fast) var(--ease);
+  }
+
+  .submit-btn:hover { background: var(--accent-hover); }
+
+  /* Leaderboard */
+  .leaderboard {
+    margin: 0.8em 0 1.4em;
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .leaderboard table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--font-mono);
+    font-size: 13px;
+  }
+
+  .leaderboard thead th {
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--fg-4);
+    font-weight: 500;
+    text-align: left;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--rule);
+    background: var(--bg-sunk);
+  }
+
+  .leaderboard tbody tr { border-top: 1px dashed var(--rule); }
+  .leaderboard tbody tr:first-child { border-top: 0; }
+
+  .leaderboard tbody td {
+    padding: 10px 16px;
+    color: var(--fg-2);
+    vertical-align: middle;
+  }
+
+  .leaderboard .col-place { color: var(--fg-4); width: 60px; }
+  .leaderboard .col-name  { color: var(--fg); font-weight: 500; }
+  .leaderboard .col-score { color: var(--fg); width: 100px; }
+  .leaderboard .col-submitted { color: var(--fg-3); font-size: 12px; }
+
+  .leaderboard tbody tr.own { background: var(--accent-soft); }
+  .leaderboard tbody tr.own .col-place,
+  .leaderboard tbody tr.own .col-score { color: var(--accent); }
+
+  .own-badge {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    background: var(--accent);
+    color: var(--bg);
+    padding: 1px 5px;
+    border-radius: 3px;
+    vertical-align: middle;
+    margin-left: 6px;
+    line-height: 1.5;
+  }
+</style>
+</head>
+<body>
+<div class="frame">
+  <div class="topbar">
+    <a href="../../../../../" class="mark">a<span class="dot">.</span>c</a>
+    <span class="crumb">
+      <a href="../../../">Deep Learning</a><span class="sep">&rsaquo;</span>
+      <a href="../">01 regression</a><span class="sep">&rsaquo;</span>
+      exercises
+    </span>
+    <nav aria-label="Course navigation">
+      <a href="../../../" class="active">syllabus</a>
+      <a href="../../../exercises/">assignments</a>
+      <a href="../../../examples/">resources</a>
+      <a href="../../../#office-hours">office hours</a>
+    </nav>
+  </div>
+
+  <div class="lecture">
+    <aside>
+      <span class="h">course</span>
+      Deep Learning &middot; Winter 2026
+
+      <span class="h">topic</span>
+      <div class="nav-group">01 &middot; regression</div>
+      <div class="nav-list">
+        <a href="../linear-regression/">1.1 &middot; linear regression</a>
+        <a href="../multiple-input-dimensions/">1.2 &middot; multiple input dimensions</a>
+        <a href="../multiple-output-dimensions/">1.3 &middot; multiple output dimensions</a>
+        <a href="../non-linear-regression/">1.4 &middot; non-linear regression</a>
+        <a href="../regularisation/">1.5 &middot; regularisation</a>
+        <a class="current" href="./">1.6 &middot; exercises</a>
+      </div>
+
+    </aside>
+
+    <article>
+      <div class="crumb">
+        <a href="../../../">syllabus</a><span class="sep">&rsaquo;</span>
+        <a href="../">topic 01</a><span class="sep">&rsaquo;</span>
+        exercises
+      </div>
+      <h1>Regression Exercises.</h1>
+      <p class="standfirst">Below is a challenge to test your data analysis skills, regression fitting and evaluation.</p>
+
+      <div class="body">
+        <h2>The problem</h2>
+        <div class="problem-card">
+            <span class="problem-eyebrow">assignment 01.1</span>
+            <p class="problem-body">Implement a regression model from scratch using only numpy.</p>
+            </br>
+            <p class="problem-body">Your class must be named <code>Regression</code> and implement both a <code>fit(self, X, y)</code> and a <code>predict(self, X)</code> method where <code>X</code> and <code>y</code> are numpy arrays.</p>
+        </br>
+            <p class="problem-body">You can download the training data <a href="./data_train.csv" download>here</a> and the scaffold code for the class here <a href="./scaffold.py" download="scaffold.py">here</a>.</p>
+        </div>
+
+        <h2>Submit</h2>
+        <p>Upload your solution as a <code>.py</code> file.</p>
+        <label for="studentName" class="upload-label">Name</label>
+        <input
+          type="text"
+          id="studentName"
+          maxlength="30"
+          placeholder="Enter your name"
+          style="width:100%;box-sizing:border-box;margin:8px 0 14px;padding:10px 12px;border:1px solid var(--rule);border-radius:6px;background:var(--bg-sunk);color:var(--fg);font-family:var(--font-mono);"
+        />
+        <div class="upload-zone" id="uploadZone" role="button" tabindex="0" aria-label="Upload solution file">
+          <svg class="upload-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+          <p class="upload-label">Drop your file here</p>
+          <p class="upload-sub">or <label for="fileInput" class="upload-link">browse to upload</label></p>
+          <p class="upload-accepted">accepted: .py</p>
+          <input type="file" id="fileInput" class="upload-input" accept=".py" aria-label="Choose file">
+        </div>
+        <div class="upload-meta" id="uploadMeta" hidden>
+          <span class="upload-filename" id="uploadFilename"></span>
+          <button type="button" class="upload-clear" id="uploadClear">remove</button>
+        </div>
+        <button type="button" class="submit-btn" id="submitBtn">Submit</button>
+        <pre id="submissionStatus" style="white-space:pre-wrap;margin-top:12px;"></pre>
+
+        <h2>Leaderboard</h2>
+        <div class="leaderboard">
+          <table>
+            <thead>
+              <tr>
+                <th class="col-place">place</th>
+                <th class="col-name">name</th>
+                <th class="col-score">score</th>
+                <th class="col-submitted">last submitted</th>
+              </tr>
+            </thead>
+            <tbody id="leaderboardBody">
+              <tr>
+                <td colspan="4">Loading leaderboard...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="endbar">
+        <span><a href="../../../">back to syllabus</a></span>
+        <span><a href="../linear-regression/">1.1 &middot; linear regression &rarr;</a></span>
+      </div>
+    </article>
+  </div>
+</div>
+<script>
+  const LEADERBOARD_FUNCTION_URL = "https://sjoybqjjvhafnsobouzl.supabase.co/functions/v1/leaderboard";
+  const SUBMIT_FUNCTION_URL      = "https://sjoybqjjvhafnsobouzl.supabase.co/functions/v1/submit-regression";
+  const X_VALID_PATH             = "./X_valid.csv";
+  const DATA_TRAIN_PATH          = "./data_train.csv";
+
+  const zone            = document.getElementById("uploadZone");
+  const input           = document.getElementById("fileInput");
+  const meta            = document.getElementById("uploadMeta");
+  const fname           = document.getElementById("uploadFilename");
+  const clearBtn        = document.getElementById("uploadClear");
+  const submitBtn       = document.getElementById("submitBtn");
+  const statusEl        = document.getElementById("submissionStatus");
+  const leaderboardBody = document.getElementById("leaderboardBody");
+
+  let selectedFile  = null;
+  let pyodide       = null;
+  let pyodideReady  = false;
+
+  function getBrowserId() {
+    let id = localStorage.getItem("browser_id");
+    if (!id) {
+      id = crypto.randomUUID();
+      localStorage.setItem("browser_id", id);
+    }
+    return id;
+  }
+
+  function escapeHtml(str) {
+    return String(str)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  function setStatus(message) {
+    statusEl.textContent = message;
+  }
+
+  async function initPyodideRuntime() {
+    submitBtn.disabled = true;
+    setStatus("Loading Python runtime...");
+    try {
+      pyodide = await loadPyodide();
+      await pyodide.loadPackage(["numpy", "pandas", "scikit-learn"]);
+      pyodideReady = true;
+      setStatus("Python ready.");
+    } catch (err) {
+      console.error(err);
+      setStatus("Failed to load Python runtime. Please refresh the page.");
+    } finally {
+      submitBtn.disabled = false;
+    }
+  }
+
+  // Upload behaviour
+  zone.addEventListener("click", (e) => { if (!e.target.closest("label")) input.click(); });
+  zone.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") input.click(); });
+  zone.addEventListener("dragover", (e) => { e.preventDefault(); zone.classList.add("dragover"); });
+  zone.addEventListener("dragleave", () => zone.classList.remove("dragover"));
+  zone.addEventListener("drop", (e) => {
+    e.preventDefault();
+    zone.classList.remove("dragover");
+    const file = e.dataTransfer.files[0];
+    if (file) showFile(file);
+  });
+
+  input.addEventListener("change", () => { if (input.files[0]) showFile(input.files[0]); });
+
+  function showFile(file) {
+    if (!file.name.endsWith(".py")) {
+      setStatus("Please upload a .py file.");
+      return;
+    }
+    selectedFile = file;
+    fname.textContent = file.name;
+    zone.hidden = true;
+    meta.hidden = false;
+  }
+
+  clearBtn.addEventListener("click", () => {
+    selectedFile = null;
+    input.value = "";
+    zone.hidden = false;
+    meta.hidden = true;
+  });
+
+  async function generatePredictions(userCode, trainCsv, xCsv) {
+    pyodide.globals.set("USER_CODE", userCode);
+    pyodide.globals.set("TRAIN_CSV", trainCsv);
+    pyodide.globals.set("X_CSV", xCsv);
+
+    const predictionsJson = await pyodide.runPythonAsync(`
+import io
+import json
+import pandas as pd
+import numpy as np
+
+namespace = {}
+exec(USER_CODE, namespace)
+
+if "Regression" not in namespace:
+    raise ValueError("Your file must define a class called Regression")
+
+ModelClass = namespace["Regression"]
+
+train   = pd.read_csv(io.StringIO(TRAIN_CSV))
+X_train = train.drop(columns=["y"]).to_numpy(dtype=float)
+y_train = train["y"].to_numpy(dtype=float)
+
+X_valid = pd.read_csv(io.StringIO(X_CSV)).to_numpy(dtype=float)
+
+model = ModelClass()
+model.fit(X_train, y_train)
+preds = model.predict(X_valid)
+
+if hasattr(preds, "tolist"):
+    preds = preds.tolist()
+
+if not isinstance(preds, list):
+    raise ValueError("predict() must return a list, numpy array, or pandas Series")
+
+preds = [float(x) for x in preds]
+json.dumps(preds)
+    `);
+
+    return JSON.parse(predictionsJson);
+  }
+
+  async function submitPredictions(name, predictions) {
+    const res = await fetch(SUBMIT_FUNCTION_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ browser_id: getBrowserId(), name, predictions }),
+    });
+
+    const text = await res.text();
+    try {
+      return JSON.parse(text);
+    } catch {
+      throw new Error(text || "Submission failed");
+    }
+  }
+
+  submitBtn.addEventListener("click", async () => {
+    const name = document.getElementById("studentName").value.trim();
+
+    if (!name) { setStatus("Please enter your name."); return; }
+    if (name.length > 30) { setStatus("Name must be 30 characters or fewer."); return; }
+    if (!selectedFile) { setStatus("Please upload a .py file."); return; }
+    if (!pyodideReady) { setStatus("Python runtime is still loading. Try again shortly."); return; }
+
+    submitBtn.disabled = true;
+    try {
+      setStatus("Reading uploaded file...");
+      const userCode = await selectedFile.text();
+
+      setStatus("Loading training and validation data...");
+      const [trainCsv, xCsv] = await Promise.all([
+        fetch(DATA_TRAIN_PATH).then((r) => {
+          if (!r.ok) throw new Error("Could not load data_train.csv");
+          return r.text();
+        }),
+        fetch(X_VALID_PATH).then((r) => {
+          if (!r.ok) throw new Error("Could not load X_valid.csv");
+          return r.text();
+        }),
+      ]);
+
+      setStatus("Running your model...");
+      const predictions = await generatePredictions(userCode, trainCsv, xCsv);
+
+      setStatus("Submitting predictions...");
+      const result = await submitPredictions(name, predictions);
+
+      const scoreText   = typeof result.score === "number" ? `Score: ${result.score.toFixed(6)}` : "Submission completed.";
+      const messageText = result.message ? `\n${result.message}` : "";
+      setStatus(`${scoreText}${messageText}`);
+
+      await loadLeaderboard();
+    } catch (err) {
+      console.error(err);
+      setStatus(`Error: ${err.message}`);
+    } finally {
+      submitBtn.disabled = false;
+    }
+  });
+
+  async function loadLeaderboard(limit = 100) {
+    const url = new URL(LEADERBOARD_FUNCTION_URL);
+    url.searchParams.set("browser_id", getBrowserId());
+    url.searchParams.set("limit", String(limit));
+
+    const res = await fetch(url);
+    if (!res.ok) {
+      leaderboardBody.innerHTML = `<tr><td colspan="4">Could not load leaderboard.</td></tr>`;
+      return;
+    }
+
+    const data = await res.json();
+    renderLeaderboard(data.leaderboard || [], data.current_user_best || null);
+  }
+
+  function renderLeaderboard(rows, currentUserBest) {
+    if (!rows.length) {
+      leaderboardBody.innerHTML = `<tr><td colspan="4">No submissions yet.</td></tr>`;
+      return;
+    }
+
+    const currentScore =
+      currentUserBest && typeof currentUserBest.score === "number"
+        ? currentUserBest.score
+        : null;
+
+    leaderboardBody.innerHTML = rows
+      .map((row, i) => {
+        const isOwn =
+          currentScore !== null &&
+          Number(row.score) === Number(currentScore) &&
+          row.name === currentUserBest.name;
+
+        const place     = String(i + 1).padStart(2, "0");
+        const name      = escapeHtml(row.name);
+        const score     = Number(row.score).toFixed(6);
+        const submitted = escapeHtml(new Date(row.created_at).toLocaleString());
+
+        return `
+          <tr class="${isOwn ? "own" : ""}">
+            <td class="col-place">${place}</td>
+            <td class="col-name">${name}${isOwn ? ' <span class="own-badge">you</span>' : ""}</td>
+            <td class="col-score">${score}</td>
+            <td class="col-submitted">${submitted}</td>
+          </tr>`;
+      })
+      .join("");
+  }
+
+  initPyodideRuntime();
+  loadLeaderboard();
+</script>
+</body>
+</html>
