@@ -962,6 +962,17 @@ json.dumps(preds)
     renderLeaderboard(data.leaderboard || [], data.current_user_best || null);
   }
 
+  function relativeTime(isoString) {
+    const diff  = Date.now() - new Date(isoString).getTime();
+    const mins  = Math.floor(diff / 60_000);
+    const hours = Math.floor(diff / 3_600_000);
+    const days  = Math.floor(diff / 86_400_000);
+    if (mins  <  1) return "just now";
+    if (mins  < 60) return `${mins} min ago`;
+    if (hours < 24) return `${hours} hr${hours === 1 ? "" : "s"} ago`;
+    return `${days} day${days === 1 ? "" : "s"} ago`;
+  }
+
   function renderLeaderboard(rows, currentUserBest) {
     if (!rows.length) {
       leaderboardBody.innerHTML = `<tr><td colspan="4">No submissions yet.</td></tr>`;
@@ -983,7 +994,7 @@ json.dumps(preds)
         const place     = String(i + 1).padStart(2, "0");
         const name      = escapeHtml(row.name);
         const score     = Number(row.score).toFixed(6);
-        const submitted = escapeHtml(new Date(row.created_at).toLocaleString());
+        const submitted = relativeTime(row.created_at);
 
         return `
           <tr class="${isOwn ? "own" : ""}">
