@@ -451,7 +451,7 @@
     <span class="crumb">
       <a href="../../../">Deep Learning</a><span class="sep">&rsaquo;</span>
       <a href="../">01 regression</a><span class="sep">&rsaquo;</span>
-      multiple output dimensions
+      non-linear regression
     </span>
     <nav aria-label="Course navigation">
       <a href="../../../" class="active">syllabus</a>
@@ -467,10 +467,10 @@
       <div class="nav-group">01 &middot; regression</div>
       <div class="nav-list">
         <a href="../linear-regression/">1.1 &middot; linear regression</a>
-        <a href="../multiple-input-dimensions/" ="true">1.2 &middot; multiple input dimensions</a>
-        <a class="current" href="./" aria-disabled="true">1.3 &middot; multiple output dimensions</a>
-        <a href="../non-linear-regression/" aria-disabled="true">1.4 &middot; non-linear regression</a>
-        <a href="../regularisation/" aria-disabled="true">1.5 &middot; regularisation</a>
+        <a href="../multiple-input-dimensions/">1.2 &middot; multiple input dimensions</a>
+        <a href="../multiple-output-dimensions/">1.3 &middot; multiple output dimensions</a>
+        <a class="current"href="./">1.4 &middot; non-linear regression</a>
+        <a href="../regularisation/">1.5 &middot; regularisation</a>
         <a href="../exercises/">1.6 &middot; exercises</a>
       </div>
     </aside>
@@ -479,48 +479,121 @@
       <div class="crumb">
         <a href="../../../">syllabus</a><span class="sep">&rsaquo;</span>
         <a href="../">topic 01</a><span class="sep">&rsaquo;</span>
-        subtopic 1.3
+        subtopic 1.4
       </div>
-      <h1>Multiple Output Dimensions.</h1>
-      <p class="standfirst">Now we want to predict more than one target variable.</p>
+      <h1>Non-Linear Regression.</h1>
+      <p class="standfirst">What if the relationships aren't linear?</p>
 
       <div class="body">
         <h2>What this note covers</h2>
         <ul>
+          <li>The premise</li>
+          <li>Basis functions</li>
           <li>The model</li>
-          <li>The objective function</li>
+          <li>The optimal weights</li>
+          <li>Implementation details</li>
         </ul>
         <p>For a more formal definition, see <a href="https://www.bishopbook.com/">Deep learning: Foundations and Concepts</a></p>
 
+        <h2>The premise</h2>
+        <p>In all the previous sections we were looking at modelling a linear relationship between input variables and target variables. Now we extend this idea to consider non-linear relationships.</p>
+        <p>The way we do that is by transforming the input features into a higher dimensional space then fitting a linear model in that space.
+            This is where <strong>basis functions</strong> step in.
+        </p>
+        <h2>Basis functions</h2>
+        <p>A basis function is a function that maps the input features into some other space. For example, we could use a polynomial basis function, which takes the input features and raise them to some power.
+            For example, if we have a single input feature x, we could use the following basis function:
+        </p>
+        <p>$$ \phi(x) = \begin{bmatrix} 1 \\ x \\ x^2 \\ \vdots \\ x^d \end{bmatrix} $$</p>
+        <p>What this does is returns a vector of transformed features up to degree $d$. One can imagine that this model will be much more expressive than the simple linear case.
+            This allows us to capture non-linear relationships between the input and the target variables.
+        </p>
+        <p>There are many different types of basis functions:</p>
+        <ul>
+        <li><div>
+            <p>Polynomial basis functions</p>
+            <p>$\phi(x) = [ 1,  x, x^2, \cdots,  x^d ]$</p>
+        </div></li>
+        <li><div>
+            <p>Fourier basis functions</p>
+            <p>$\phi(x) = [ 1,  \cos(x), \sin(x), \cos(2x), \sin(2x), \cdots ]$</p>
+        </div></li>
+        <li><div>
+            <p>Sinusoidal basis functions</p>
+            <p>$\phi(x) = [ \sin(\gamma (x - c_1)), \sin(\gamma (x - c_2)), \cdots ]$</p>
+        </div></li>
+        <li><div>
+            <p>Gaussian basis functions</p>
+            <p>$\phi(x) = [ \exp(-\gamma (x - c_1)^2), \exp(-\gamma (x - c_2)^2), \cdots ]$</p>
+        </div></li>
+        <li><div>
+            <p>Sigmoidal basis functions</p>
+            <p>$\phi(x) = [ \sigma(\gamma (x - c_1)), \sigma(\gamma (x - c_2)), \cdots ]$</p>
+        </div></li>
+        </ul>
+        <p>to list a few...</p>
+        <p>In practice, the choice of the basis function is crucial for the performance of the model.</p>
         <h2>The model</h2>
-        <p>In the previous section (<a href="../multiple-input-dimensions/">multiple input dimensions</a>), we extended the linear regression model to handle multiple input features. Now we extend it further to handle multiple targets too.</p>
-        <p>We can write a target vector for a single data point as:</p>
-        <p>$$ \mathbf{y} = \begin{bmatrix} y_1 \\ y_2 \\ \vdots \\ y_l \end{bmatrix} $$</p>
-        <p>where $l$ is the number of target variables. To predict this vector, we can use a weight matrix instead of a weight vector:</p>
-        <p>$$ \mathbf{\Theta} = \begin{bmatrix} w_{01} & w_{02} & \cdots & w_{0l} \\ w_{11} & w_{12} & \cdots & w_{1l} \\ \vdots & \vdots & \ddots & \vdots \\ w_{n1} & w_{n2} & \cdots & w_{nl} \end{bmatrix} $$</p>
-        <p>Here, $w_{ij}$ represents the weight connecting the $i$-th input feature to the $j$-th target variable.</p>
-        <p>We can also use the same trick as before and create a target matrix that covers all data points:</p>
-        <p>$$ \mathbf{Y} = \begin{bmatrix} y_{11} & y_{12} & \cdots & y_{1l} \\ y_{21} & y_{22} & \cdots & y_{2l} \\ \vdots & \vdots & \ddots & \vdots \\ y_{m1} & y_{m2} & \cdots & y_{ml} \end{bmatrix} $$</p>
-        <p>Again, $m$ is the number of data points and $l$ is the number of target variables.</p>
-        <h2>The objective function</h2>
-        <p>Luckily, the rest of the formulation is the same as before so we can write the closed-form solution for the optimal weights as:</p>
-        <p>$$ \mathbf{\Theta} = (\mathbf{X}^T \mathbf{X})^{-1} \mathbf{X}^T \mathbf{Y} $$</p>
+        <p>We will use a second order polynomial basis function for the rest of the example for simplicity. The steps are the same with any basis function.</p>
+        <p>First, lets extend it to multi-input and multi-output scenarios. In this case our basis function looks something like this:</p>
+        <p>$$ \phi(\mathbf{x}) = [ 1, x_1, x_2, \cdots, x_n, x_1^2, x_2^2, \cdots, x_n^2 ] $$</p>
         <div class="note important">
             <span class="tag">important</span>
-            <p>
-                I won't go through the implementation details as it is pretty much the same as the single output case.
-                If you are interested in trying yourself, <a href="https://www.kaggle.com/datasets/sharmajicoder/student-mental-health-and-burnout">this synthetic dataset</a> would be a good start. 
-            </p>
+          <p>We choose to omit the cross terms here but they can be included if needed. The above does not fully define a quadratic surface but is simpler. Instead it defines separable quadratic surfaces.</p>
         </div>
+        <p>Like before, we can define the design matrix and target matrix in this new feature space and apply the same least squares method. The design matrix is given by:</p>
+        <p>
+            $$
+\mathbf{\Phi} = \begin{bmatrix}
+1 & x_1^{(1)} & x_2^{(1)} & \cdots & (x_1^{(1)})^2 & (x_2^{(1)})^2 & \cdots \\
+1 & x_1^{(2)} & x_2^{(2)} & \cdots & (x_1^{(2)})^2 & (x_2^{(2)})^2 & \cdots \\
+\vdots & \vdots & \vdots & \ddots & \vdots & \vdots & \ddots \\
+1 & x_1^{(m)} & x_2^{(m)} & \cdots & (x_1^{(m)})^2 & (x_2^{(m)})^2 & \cdots \\
+\end{bmatrix}$$
+        </p>
+        <p>here we use $x^{(m)}$ to denote the $m$-th training example and $x_n$ to denote the $n$-th input feature.</p>
+        <p>Now that is very long, so we typically use a more compact notation like this:</p>
+        <p>$$ \mathbf{\Phi} = \begin{bmatrix} \phi(\mathbf{x}^{(1)}) \\ \phi(\mathbf{x}^{(2)}) \\ \vdots \\ \phi(\mathbf{x}^{(m)}) \end{bmatrix} $$</p>
+        <p>The target matrix is defined as before with $l$ being the number of output dimensions. This is pretty much the same as the multiple output case, however now that we have transformed our input space into more dimensions, the weight matrix also needs those dimensions.</p>
+        <p>In this example, we have $1$ bias term, then $n$ linear terms, and $n$ quadratic terms, for a total of $1 + n + n = 1 + 2n$ features. So the weight matrix becomes $\mathbf{\Theta} \in \mathbb{R}^{(1 + 2n) \times l}$. 
+            Which, conveniently, is the same shape as the design matrix transposed times the target matrix, which is what we need for the closed form solution.
+        </p>
+        <h2>The optimal weights</h2>
+        <p>With all that, we can apply the same least squares method to find the optimal weights:</p>
+        <p>$$ \mathbf{\Theta} = (\mathbf{\Phi}^\top \mathbf{\Phi})^{-1} \mathbf{\Phi}^\top \mathbf{Y} $$</p>
+        <h2>Implementation</h2>
+        <p>The implementation is straightforward, the only challenge is defining the basis functions and constructing the design matrix. We can set up the class and call the constructor the same as before:</p>
+<pre><code>class NonLinearRegression:
+    def __init__(self, degree: int = 2):
+        self.degree = degree
+        self.theta = None</code></pre>
+        <p>The only difference from the linear case is the addition of the `degree` parameter to specify the polynomial degree.</p>
+        <p>Then we need to implement the <code>fit</code> method in which we will construct the design matrix and solve for $\mathbf{\Theta}$:</p>
+<pre><code>def fit(self, X, Y):
+    design_matrix = self._construct_design_matrix(X)
+    self.theta = np.linalg.inv(design_matrix.T @ design_matrix) @ design_matrix.T @ Y</code></pre>
     </div>
+    <p>Here we call a helper method to construct the matrix, as we will also need to construct it for prediction. The helper method we can define as follows:</p>
+<pre><code>def _construct_design_matrix(self, X):
+    n_samples, _ = X.shape
+    bias = np.ones((n_samples, 1))
+    X_poly = bias
+    for d in range(1, self.degree + 1):
+        X_poly = np.hstack((X_poly, X ** d))
+    return X_poly</code></pre>
+    <p>So we first define a column for the bias term, then append the polynomial features for each degree iteratively and return the resulting matrix. Now, finally we can write the predict method:</p>
+<pre><code>def predict(self, X):
+    design_matrix = self._construct_design_matrix(X)
+    return design_matrix @ self.theta</code></pre>
 
       <div class="endbar">
         <span><a href="../../../">back to syllabus</a></span>
-        <span><a href="../non-linear-regression/" aria-disabled="true">1.4 &middot; non-linear regression &rarr;</a></span>
+        <span><a href="../regularisation/" aria-disabled="true">1.5 &middot; regularisation &rarr;</a></span>
       </div>
     </article>
   </div>
 </div>
+<script src="./chart.js"></script>
 <script>hljs.highlightAll();</script>
 </body>
 </html>
