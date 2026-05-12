@@ -4,9 +4,12 @@
 <meta charset="utf-8"/>
 <title>Linear Regression | Deep Learning</title>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<link rel="icon" href="../../../../design_system/assets/favicon.svg"/>
-<link rel="stylesheet" href="../../../../design_system/colors_and_type.css"/>
+<link rel="icon" href="../../../../../design_system/assets/favicon.svg"/>
+<link rel="stylesheet" href="../../../../../design_system/colors_and_type.css"/>
+<link rel="stylesheet" href="../../../../../design_system/charts.css"/>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
   onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
@@ -201,6 +204,46 @@
 
   .body p { margin: 0 0 1em; }
 
+  .chart-card {
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    background: var(--bg);
+    padding: 18px 18px 16px;
+    margin: 1.4em 0;
+  }
+
+  .chart-card .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--fg-3);
+    margin-bottom: 4px;
+  }
+
+  .chart-card h3 {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--fg);
+    letter-spacing: -0.005em;
+    margin: 0 0 12px;
+  }
+
+  .chart-card .chart-legend {
+    margin: 4px 0 10px;
+  }
+
+  .chart-frame {
+    height: 260px;
+  }
+
+  .chart-frame canvas {
+    width: 100%;
+    height: 100%;
+  }
+
   .body ul,
   .body ol {
     list-style: none;
@@ -385,12 +428,26 @@
     .lecture article h1 { font-size: 27px; }
     .endbar { flex-direction: column; }
   }
+
+  /* Syntax highlighting — built on design system tokens */
+  .hljs { color: var(--fg); background: transparent; }
+  .hljs-comment, .hljs-quote { color: var(--fg-3); font-style: italic; }
+  .hljs-keyword, .hljs-selector-tag { color: var(--accent); font-weight: 600; }
+  .hljs-built_in, .hljs-builtin-name { color: var(--warning); }
+  .hljs-string, .hljs-attr, .hljs-addition { color: var(--info); }
+  .hljs-number, .hljs-literal { color: var(--success); }
+  .hljs-title, .hljs-class .hljs-title, .hljs-type { color: var(--warning); }
+  .hljs-variable, .hljs-template-variable { color: var(--fg-2); }
+  .hljs-params { color: var(--fg-2); }
+  .hljs-deletion { color: var(--danger); }
+  .hljs-emphasis { font-style: italic; }
+  .hljs-strong { font-weight: 700; }
 </style>
 </head>
 <body>
 <div class="frame">
   <div class="topbar">
-    <a href="../../../../" class="mark">a<span class="dot">.</span>c</a>
+    <a href="../../../../../" class="mark">a<span class="dot">.</span>c</a>
     <span class="crumb">
       <a href="../../../">Deep Learning</a><span class="sep">&rsaquo;</span>
       <a href="../">01 regression</a><span class="sep">&rsaquo;</span>
@@ -413,17 +470,15 @@
       <div class="nav-group">01 &middot; regression</div>
       <div class="nav-list">
         <a class="current" href="./">1.1 &middot; linear regression</a>
-        <a href="../multiple-input-dimensions/">1.2 &middot; multiple input dimensions</a>
-        <a href="../multiple-output-dimensions/">1.3 &middot; multiple output dimensions</a>
-        <a href="../nonlinear-regression/">1.4 &middot; non-linear regression</a>
-        <a href="../regularisation-bias-variance/">1.5 &middot; regularisation</a>
+        <a href="#" aria-disabled="true">1.2 &middot; multiple input dimensions</a>
+        <a href="#" aria-disabled="true">1.3 &middot; multiple output dimensions</a>
+        <a href="#" aria-disabled="true">1.4 &middot; non-linear regression</a>
+        <a href="#" aria-disabled="true">1.5 &middot; regularisation</a>
       </div>
 
       <span class="h">materials</span>
       <div class="nav-list">
-        <a href="../../../lectures/regression/notes/">regression notes</a>
         <a href="../../../exercises/regression/">regression exercises</a>
-        <a href="../../../examples/regression/scratch/">worked example</a>
       </div>
     </aside>
 
@@ -448,7 +503,17 @@
 
         <h2>The model</h2>
         <p>Below we have some data from a fictional school experiment where we measured the height and ages of students. A common task in school would be to ask the students to draw a line of best fit to model the relationship.</p>
-        <p>--- Insert Graph Here ---</p>
+        <figure class="chart-card">
+          <div class="eyebrow">01 &middot; scatter</div>
+          <h3>Student height by age</h3>
+          <div class="chart-legend">
+            <span class="item"><span class="swatch swatch--dot" style="background:#2C4A7A"></span>observed students</span>
+          </div>
+          <div class="chart-frame">
+            <canvas id="heightAgeChart" aria-label="Student height by age scatter plot" role="img"></canvas>
+          </div>
+          <figcaption class="chart-caption"><span class="label">fig 1</span> Fictional student data from the regression notes. The points suggest an approximately linear relationship between age and height.</figcaption>
+        </figure>
         <p>Now obviously we can see that there is a clear linear relationship between the age and the height of the students, and we can draw a line of best fit. But the question is, how do we find the <strong>best</strong> line?</p>
 
         <h2>Defining the line</h2>
@@ -493,7 +558,7 @@
           <p>If you are not familiar with partial derivatives, now would be a good time to review them. We will use them frequently in the course.</p>
         </div>
         <p>These are two simulataneous equations that we can solve by first dropping the $-2$ and then distributing the summation:</p>
-                <p>
+        <p>
         $$
         \begin{aligned}
         \sum_{i=1}^n y_i - \sum_{i=1}^n w_1 x_i - \sum_{i=1}^n w_0 = 0 \\
@@ -501,28 +566,142 @@
         \end{aligned}
         $$
         </p>
+        <p>Lets work on the first equation:</p>
+        <p>If we rearrange the first equation for $w_0$, we get:</p>
+        <p>$$ w_0 = \frac{1}{n} \sum_{i=1}^n y_i - w_1 \frac{1}{n} \sum_{i=1}^n x_i $$</p>
+        <p>note that $\frac{1}{n} \sum_{i=1}^n x_i$ is just the mean of the $x_i$ values, often denoted as $\bar{x}$. Similarly, $\frac{1}{n} \sum_{i=1}^n y_i$ is the mean of the $y_i$ values, denoted as $\bar{y}$.</p>
+        <p>So we can rewrite the equation as:</p>
+        <p>$$ w_0 = \bar{y} - w_1 \bar{x} $$</p>
+        <p>Which is a much nicer form than what we had before. Now let's tackle the second equation. We can simplify the $\sum_{i=1}^n x_i$ as $n\bar{x}$ and then substitute our expression for $w_0$:</p>
+        <p>
+        $$\sum_{i=1}^n x_i y_i - w_1 \sum_{i=1}^n x_i^2 - (\bar{y} - w_1 \bar{x}) n \bar{x} = 0$$
+        </p>
+        <p>Then with some rearrangement, which I will leave out as an exercise. We are left with two analytical solutions for $w_0$ and $w_1$.</p>
+        <p>$$w_1 = \frac{\sum_{i=1}^n (x_i - \bar{x})(y_i - \bar{y})}{\sum_{i=1}^n (x_i - \bar{x})^2}$$</p>
+        <p>$$w_0 = \bar{y} - w_1 \bar{x}$$</p>
 
         <h2>Implementation</h2>
-<pre><code># Placeholder implementation sketch.
-# Add the actual NumPy or PyTorch version here later.
-def fit_linear_regression(X, y):
-    pass</code></pre>
+        <p>Now that we have the analytical solution, we can implement it in code. First, set up a virtual python environment:</p>
+<pre><code class="language-bash">uv venv --python 3.13
+</code></pre>
+        <p>This just makes sure we have a clean environment to work in.</p>
+        <div class="note important">
+          <span class="tag">important</span>
+          <p>I use uv as my environment manager, but you can use any environment manager of your choice.</p>
+        </div>
+        <p>Then we can install the necessary dependencies:</p>
+<pre><code class="language-bash">uv pip install numpy matplotlib
+</code></pre>
+        <p>and import them at the top of our .py file</p>
+<pre><code class="language-python">from abc import ABC, abstractmethod
+import numpy as np
+import matplotlib.pyplot as plt
+</code></pre>
+        <p>This example will be class based, hence the abc imports.</p>
+        <p>First, let's define our base regression class so that we have some standard methods that other regression classes can inherit:</p>
+<pre><code class="language-python">class Regression(ABC):
+    @abstractmethod
+    def fit(self, X, y):
+        raise NotImplementedError
+    
+    @abstractmethod
+    def predict(self, X):
+        raise NotImplementedError
+</code></pre>
+        <p>Now we can implement our linear regression class:</p>
+        <p>First, let's define the constructor:</p>
+<pre><code class="language-python">class LinearRegression(Regression):
+    def __init__(self):
+        self.w0 = None
+        self.w1 = None
+</code></pre>
+        <p>We set the weights to <code>None</code> initially and will update them in the <code>fit</code> method. As we have an analytical solution,
+        we don't need to be careful about the initialization like with iterative methods.</p>
+        <h2>Fitting the model</h2>
+        <p>The <code>fit</code> method takes in the input features <code>X</code> and target values <code>y</code> and uses them to calculate the optimal weights.
+        We will also specify two helper functions to make the implementation cleaner:</p>
+<pre><code class="language-python">def fit(self, X, y):
+    self.w1 = self._learn_w1(X, y)
+    self.w0 = self._learn_w0(X, y)
+</code></pre>
+        <p>Now we can implement the two helper functions using the two formulas derived earlier:</p>
+<pre><code class="language-python">def _learn_w1(self, X, y):
+    x_bar = np.mean(X)
+    y_bar = np.mean(y)
+    numerator = np.sum((X - x_bar) * (y - y_bar))
+    denominator = np.sum((X - x_bar) ** 2)
+    return numerator / denominator if denominator != 0 else 0
+
+def _learn_w0(self, X, y):
+    x_bar = np.mean(X)
+    y_bar = np.mean(y)
+    return y_bar - self.w1 * x_bar
+</code></pre>
+        <div class="note important">
+          <span class="tag">important</span>
+          <p>The order in which we call the two helper functions is very important. We must call <code>_learn_w1</code> before <code>_learn_w0</code> because <code>_learn_w0</code> depends on the value of <code>self.w1</code>.</p>
+        </div>
+        <h2>Making predictions</h2>
+        <p>After fitting, prediction is straightforward:</p>
+<pre><code class="language-python">def predict(self, X):
+    return self.w0 + self.w1 * X
+</code></pre>
+        <p>And with that, the complete class should look something like this:</p>
+<pre><code class="language-python">class LinearRegression(Regression):
+    def __init__(self):
+        self.w0 = None
+        self.w1 = None
+
+    def fit(self, X, y):
+        self.w1 = self._learn_w1(X, y)
+        self.w0 = self._learn_w0(X, y)
+
+    def _learn_w1(self, X, y):
+        x_bar = np.mean(X)
+        y_bar = np.mean(y)
+        numerator = np.sum((X - x_bar) * (y - y_bar))
+        denominator = np.sum((X - x_bar) ** 2)
+        return numerator / denominator if denominator != 0 else 0
+
+    def _learn_w0(self, X, y):
+        x_bar = np.mean(X) 
+        y_bar = np.mean(y)
+        return y_bar - self.w1 * x_bar
+
+    def predict(self, X):
+        return self.w0 + self.w1 * X
+</code></pre>
+        <h2>Applying this to our school example</h2>
+        <p>If we go ahead and apply our model to our school experiment data, we find that the optimal parameters are roughly $ w_0 = 80 $ and $ w_1 = 6 $ (rounded to integers). Which means the line of best fit is given by:</p>
+        <p>$$ y = 6x + 80 $$</p>
+        <p>And the loss (e.g the error between the line and the data points) is around 20 (using the rounded values). Looking at the plot below, it looks like a pretty good fit, the line is close to all the data points.</p>
+        <figure class="chart-card">
+          <div class="eyebrow">02 &middot; line of best fit</div>
+          <h3>Fitted line on student data</h3>
+          <div class="chart-legend">
+            <span class="item"><span class="swatch swatch--dot" style="background:#2C4A7A"></span>observed students</span>
+            <span class="item"><span class="swatch" style="background:#6B2C5C"></span>fitted line</span>
+          </div>
+          <div class="chart-frame">
+            <canvas id="heightAgeLineChart" aria-label="Student height by age with fitted line" role="img"></canvas>
+          </div>
+          <figcaption class="chart-caption"><span class="label">fig 2</span> The same data with the closed-form line of best fit overlaid. The line passes close to all points with a residual sum of squares of around 20.</figcaption>
+        </figure>
 
         <div class="exercise">
-          <span class="tag">exercise &middot; 1.1.1 <b>warm-up</b></span>
-          <p>Placeholder exercise: fit a line to a small synthetic dataset, plot the residuals, and compare the closed-form solution with gradient descent.</p>
+          <span class="tag">exercise &middot; 1.1.1 <b>Test your implementation</b></span>
+          <p>Implement the above example yourself and verify the results. Hover on the chart to see the values of the data points.</p>
         </div>
-
-        <h2>Checks for understanding</h2>
-        <p>Placeholder for short questions: dimensions of $X$, $w$, and $y$; what happens with collinearity; how scaling features changes optimisation.</p>
       </div>
 
       <div class="endbar">
         <span><a href="../../../">back to syllabus</a></span>
-        <span><a href="../multiple-input-dimensions/">1.2 &middot; multiple input dimensions &rarr;</a></span>
+        <span><a href="#" aria-disabled="true">1.2 &middot; multiple input dimensions &rarr;</a></span>
       </div>
     </article>
   </div>
 </div>
+<script src="./chart.js"></script>
+<script>hljs.highlightAll();</script>
 </body>
 </html>
