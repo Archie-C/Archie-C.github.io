@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en" data-palette="paper">
+<head>
+<meta charset="utf-8"/>
+<title>Linear Regression | Deep Learning</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link rel="icon" href="../../../../../design_system/assets/favicon.svg"/>
+<link rel="stylesheet" href="../../../../../design_system/colors_and_type.css"/>
+<link rel="stylesheet" href="../../../../../design_system/charts.css"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+  :root { --page-w: 1180px; }
+
+  body { background: var(--bg-2); }
+
+  .frame {
+    max-width: var(--page-w);
+    margin: 0 auto;
+    background: var(--bg);
+    min-height: 100vh;
+  }
+
+  .topbar {
+    padding: 20px 32px;
+    display: flex;
+    align-items: baseline;
+    gap: 22px;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .topbar .mark {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 22px;
+    letter-spacing: -0.02em;
+    color: var(--fg);
+    text-decoration: none;
+  }
+
+  .topbar .mark .dot { color: var(--accent); }
+
+  .topbar .crumb {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--fg-2);
+  }
+
+  .topbar .crumb a {
+    color: var(--fg-3);
+    text-decoration: none;
+  }
+
+  .topbar .crumb a:hover { color: var(--fg); }
+
+  .topbar .crumb .sep {
+    color: var(--fg-4);
+    margin: 0 8px;
+  }
+
+  .topbar nav {
+    margin-left: auto;
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .topbar nav a {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--fg-2);
+    text-decoration: none;
+  }
+
+  .topbar nav a:hover,
+  .topbar nav a.active {
+    color: var(--accent);
+  }
+
+  .lecture {
+    padding: 40px 32px 80px;
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 56px;
+  }
+
+  .lecture aside {
+    font-family: var(--font-sans);
+    font-size: 13px;
+    color: var(--fg-3);
+    position: sticky;
+    top: 24px;
+    align-self: start;
+    line-height: 1.5;
+  }
+
+  .lecture aside .h {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--fg-4);
+    display: block;
+    margin: 16px 0 6px;
+  }
+
+  .lecture aside .h:first-child { margin-top: 0; }
+
+  .lecture aside .nav-group {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--fg-2);
+    margin-top: 10px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding-bottom: 4px;
+  }
+
+  .lecture aside .nav-list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .lecture aside .nav-list a {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--fg-2);
+    text-decoration: none;
+    padding: 4px 0 4px 12px;
+    border-left: 2px solid transparent;
+  }
+
+  .lecture aside .nav-list a:hover { color: var(--fg); }
+
+  .lecture aside .nav-list a.current {
+    color: var(--fg);
+    border-left-color: var(--accent);
+    background: var(--accent-soft);
+  }
+
+  .lecture aside .nav-list a.done { color: var(--fg-4); }
+
+  .lecture article { max-width: 62ch; }
+
+  .lecture article p,
+  .lecture article ul,
+  .lecture article ol,
+  .lecture article pre,
+  .lecture article .note,
+  .lecture article .exercise {
+    max-width: none;
+  }
+
+  .lecture article .crumb {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .lecture article .crumb a {
+    color: var(--fg-3);
+    text-decoration: none;
+  }
+
+  .lecture article .crumb a:hover { color: var(--fg); }
+
+  .lecture article .crumb .sep {
+    color: var(--fg-4);
+    margin: 0 6px;
+  }
+
+  .lecture article h1 {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 30px;
+    line-height: 1.12;
+    letter-spacing: -0.015em;
+    margin: 0 0 8px;
+  }
+
+  .lecture article .standfirst {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 17px;
+    color: var(--fg-2);
+    margin-bottom: 28px;
+    max-width: 50ch;
+    line-height: 1.5;
+  }
+
+  .body {
+    font-family: var(--font-serif);
+    font-size: 17px;
+    line-height: 1.65;
+    color: var(--fg);
+  }
+
+  .body p { margin: 0 0 1em; }
+
+  .chart-card {
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    background: var(--bg);
+    padding: 18px 18px 16px;
+    margin: 1.4em 0;
+  }
+
+  .chart-card .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--fg-3);
+    margin-bottom: 4px;
+  }
+
+  .chart-card h3 {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--fg);
+    letter-spacing: -0.005em;
+    margin: 0 0 12px;
+  }
+
+  .chart-card .chart-legend {
+    margin: 4px 0 10px;
+  }
+
+  .chart-frame {
+    height: 260px;
+  }
+
+  .chart-frame canvas {
+    width: 100%;
+    height: 100%;
+  }
+
+  .body ul,
+  .body ol {
+    list-style: none;
+    margin: 1.1em 0 1.4em;
+    padding: 0;
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+    counter-reset: note-list;
+  }
+
+  .body li {
+    counter-increment: note-list;
+    display: grid;
+    grid-template-columns: 44px 1fr;
+    column-gap: 14px;
+    align-items: baseline;
+    padding: 8px 0;
+    border-top: 1px dashed var(--rule);
+    font-family: var(--font-sans);
+    font-size: 14.5px;
+    line-height: 1.5;
+    color: var(--fg-2);
+  }
+
+  .body li:first-child { border-top: 0; }
+
+  .body li::before {
+    content: counter(note-list, decimal-leading-zero);
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    color: var(--fg-4);
+    letter-spacing: 0.04em;
+  }
+
+  .body ul li::before { content: counter(note-list, decimal-leading-zero); }
+
+  .body li a {
+    color: var(--fg);
+    text-decoration: none;
+  }
+
+  .body li a:hover { color: var(--accent); }
+
+  .body h2 {
+    font-family: var(--font-mono);
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: -0.005em;
+    margin: 1.8em 0 0.5em;
+  }
+
+  .body code {
+    font-family: var(--font-mono);
+    font-size: 0.9em;
+    background: var(--bg-sunk);
+    padding: 0.1em 0.36em;
+    border-radius: 3px;
+  }
+
+  .body pre {
+    font-family: var(--font-mono);
+    background: var(--bg-sunk);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 14px 18px;
+    font-size: 13px;
+    line-height: 1.5;
+    overflow-x: auto;
+    margin: 1.4em 0;
+  }
+
+  .body pre code {
+    background: none;
+    padding: 0;
+  }
+
+  .exercise {
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--accent);
+    border-radius: 4px;
+    padding: 14px 18px;
+    background: var(--bg-2);
+    margin: 1.4em 0;
+  }
+
+  .exercise .tag {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+
+  .exercise .tag b {
+    color: var(--fg);
+    margin-left: 6px;
+  }
+
+  .exercise p {
+    margin: 6px 0 0;
+    font-family: var(--font-sans);
+    font-size: 14.5px;
+    color: var(--fg);
+  }
+
+  .note {
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--fg-4);
+    border-radius: 4px;
+    padding: 14px 18px;
+    background: var(--bg-sunk);
+    margin: 1.4em 0;
+  }
+
+  .note .tag {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--fg-3);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  .note p {
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: 14.5px;
+    line-height: 1.55;
+    color: var(--fg);
+  }
+
+  .note.important {
+    border-left-color: var(--accent);
+    background: var(--accent-soft);
+  }
+
+  .note.important .tag { color: var(--accent); }
+
+  .endbar {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 40px;
+    padding-top: 16px;
+    border-top: 1px solid var(--rule);
+    font-family: var(--font-mono);
+    font-size: 12px;
+  }
+
+  .endbar a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+
+  .endbar a:hover { text-decoration: underline; }
+
+  @media (max-width: 820px) {
+    .topbar {
+      align-items: flex-start;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .topbar nav { margin-left: 0; }
+
+    .lecture {
+      display: block;
+      padding: 36px 24px 64px;
+    }
+
+    .lecture aside {
+      position: static;
+      margin-bottom: 34px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .topbar { padding: 18px 20px; }
+    .lecture article h1 { font-size: 27px; }
+    .endbar { flex-direction: column; }
+  }
+
+  /* Syntax highlighting — built on design system tokens */
+  .hljs { color: var(--fg); background: transparent; }
+  .hljs-comment, .hljs-quote { color: var(--fg-3); font-style: italic; }
+  .hljs-keyword, .hljs-selector-tag { color: var(--accent); font-weight: 600; }
+  .hljs-built_in, .hljs-builtin-name { color: var(--warning); }
+  .hljs-string, .hljs-attr, .hljs-addition { color: var(--info); }
+  .hljs-number, .hljs-literal { color: var(--success); }
+  .hljs-title, .hljs-class .hljs-title, .hljs-type { color: var(--warning); }
+  .hljs-variable, .hljs-template-variable { color: var(--fg-2); }
+  .hljs-params { color: var(--fg-2); }
+  .hljs-deletion { color: var(--danger); }
+  .hljs-emphasis { font-style: italic; }
+  .hljs-strong { font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="frame">
+  <div class="topbar">
+    <a href="../../../../../" class="mark">a<span class="dot">.</span>c</a>
+    <span class="crumb">
+      <a href="../../../">Deep Learning</a><span class="sep">&rsaquo;</span>
+      <a href="../">01 regression</a><span class="sep">&rsaquo;</span>
+      multiple input dimensions
+    </span>
+    <nav aria-label="Course navigation">
+      <a href="../../../" class="active">syllabus</a>
+    </nav>
+  </div>
+
+  <div class="lecture">
+    <aside>
+      <span class="h">course</span>
+      Deep Learning &middot; Winter 2026
+
+      <span class="h">topic</span>
+      <div class="nav-group">01 &middot; regression</div>
+      <div class="nav-list">
+        <a href="../linear-regression/">1.1 &middot; linear regression</a>
+        <a class="current" href="./" ="true">1.2 &middot; multiple input dimensions</a>
+        <a href="../multiple-output-dimensions/" aria-disabled="true">1.3 &middot; multiple output dimensions</a>
+        <a href="../non-linear-regression/" aria-disabled="true">1.4 &middot; non-linear regression</a>
+        <a href="../regularisation/" aria-disabled="true">1.5 &middot; regularisation</a>
+      </div>
+
+      <span class="h">materials</span>
+      <div class="nav-list">
+        <a href="../exercises/">regression exercises</a>
+      </div>
+    </aside>
+
+    <article>
+      <div class="crumb">
+        <a href="../../../">syllabus</a><span class="sep">&rsaquo;</span>
+        <a href="../">topic 01</a><span class="sep">&rsaquo;</span>
+        subtopic 1.2
+      </div>
+      <h1>Multiple Input Dimensions.</h1>
+      <p class="standfirst">It is very unusual to only have one input feature affect the target. Welcome to the multivariate case, where we have multiple input features of varying importance.</p
+      </p>
+
+      <div class="body">
+        <h2>What this note covers</h2>
+        <ul>
+          <li>The model</li>
+          <li>The objective function</li>
+          <li>Implementation details</li>
+        </ul>
+        <p>For a more formal definition, see <a href="https://www.bishopbook.com/">Deep learning: Foundations and Concepts</a></p>
+
+        <h2>The model</h2>
+        <p>So far we have only looked at the case where each data point has a single feature (i.e. it is just one number). But what if we have multiple features? For example, the price of a house, we might have features like the size of the house, the number of bedrooms, the location, etc. In this case, we can extend our linear regression model to handle multiple input dimensions:
+        </p>
+        <p>$$\hat{y} = w_0 + w_1 x_1 + w_2 x_2 + ... + w_n x_n$$</p>
+        <p>Conceptually, it is the same. Each feature has a corresponding weight that needs to be learned and a bias term $w_0$ that allows us to shift the line up or down.</p>
+        <p>Even though we can't easily visualise this in more than 3 dimensions, we can still find the optimal parameters using the same least squares function as before.
+            However, the 2D formula was long enough, so if we try to write them out as before we would have $n$ simultaneous equations and it would be a nightmare to solve. Luckily, we can use some linear algebra to write this in a much more compact form.</p>
+        </p>
+        <p>We can define the input vector and the weight vector as follows:</p>
+        <p>$$\mathbf{x} = \begin{bmatrix} 1 \\ x_1 \\ x_2 \\ \vdots \\ x_n \end{bmatrix}, \quad \mathbf{\theta} = \begin{bmatrix} w_0 \\ w_1 \\ w_2 \\ \vdots \\ w_n \end{bmatrix}$$</p>
+        <div class="note important">
+          <span class="tag">important</span>
+          <p>The vector $\mathbf{x}$ includes a 1 in the first position to account for the bias term $w_0$. This means that both vectors are now length $n+1$ (including the bias term).</p>
+        </div>
+        <p>We transition to the more typical notiation of $\mathbf{\theta}$ for the weight vector. Then the model can be written in vector form as:</p>
+        <p>$$\hat{y}(\mathbf{x}, \mathbf{\theta}) = \mathbf{\theta}^\top \mathbf{x}$$</p>
+        <h2>The objective function</h2>
+        <p>This gives quite a concise least squares formulation:</p>
+        <p>$$\mathcal{L}(\mathbf{\theta}) = \sum_{i=1}^M (y_i - \mathbf{\theta}^\top \mathbf{x}_i)^2$$</p>
+        <p>But we can make it even more compact by using matrix notation. For multiple data points, we can define a design matrix. Which is essentially just the input vectors stacked on top of each other:</p>
+        <p>$$ \mathbf{X} = \begin{bmatrix} 
+        1 & x_{11} & x_{12} & \cdots & x_{1n} \\
+        1 & x_{21} & x_{22} & \cdots & x_{2n} \\
+        \vdots & \vdots & \vdots & \ddots & \vdots \\
+        1 & x_{M1} & x_{M2} & \cdots & x_{Mn}
+      \end{bmatrix}, \quad \mathbf{y} = \begin{bmatrix} y_1 \\ y_2 \\ \vdots \\ y_M \end{bmatrix} $$</p>
+      <p>Here, $M$ is the number of data points and $n$ is the number of input features. Using this notation, and the same weight vector as before, we can write the objective function even more concisely:</p>
+      <p>$$\mathcal{L}(\mathbf{\theta}) = \|\mathbf{y} - \mathbf{X} \mathbf{\theta}\|^2$$</p>
+      <p>Where $\|\cdot\|^2$ denotes the L2 norm, which is the sum of the squares of the elements of a vector.</p>
+      <p>Before we find the minimum of this function we need to do some rearrangement. The first thing to note is that the above is just equal to the transpose of the difference multiplied by the difference:</p>
+      <p>$$\mathcal{L}(\mathbf{\theta}) = (\mathbf{y} - \mathbf{X} \mathbf{\theta})^\top (\mathbf{y} - \mathbf{X} \mathbf{\theta})$$</p>
+      <p>Which we can expand out to:</p>
+    <p>$$\mathcal{L}(\mathbf{\theta}) = \mathbf{y}^\top \mathbf{y} - 2 \mathbf{y}^\top \mathbf{X} \mathbf{\theta} + \mathbf{\theta}^\top \mathbf{X}^\top \mathbf{X} \mathbf{\theta}$$</p>
+        <div class="exercise">
+          <span class="tag">exercise &middot; 1.2.1 <b>Expanding the objective function</b></span>
+          <p>Go through the above expansion step by step and verify that you get the same result.</p>
+        </div>
+        <p>
+        Now we can take the gradient of this with respect to $\mathbf{\theta}$ and set it equal to zero to find the minimum:</p>
+        <p>$$\nabla_\mathbf{\theta} \mathcal{L}(\mathbf{\theta}) = -2 \mathbf{X}^\top \mathbf{y} + 2 \mathbf{X}^\top \mathbf{X} \mathbf{\theta} = 0$$</p>
+        <p>Again, I omit the detailed derivation here as I emplore you to work through it yourself. From this, it is actually trivial to rearrange for $\mathbf{\theta}$:</p>
+        <p>$$\mathbf{\theta} = (\mathbf{X}^\top \mathbf{X})^{-1} \mathbf{X}^\top \mathbf{y}$$</p>
+        <div class="exercise">
+          <span class="tag">exercise &middot; 1.2.2 <b>Finding the optimal weights</b></span>
+          <p>Go through the derivation of the optimal weights step by step and verify that you get the same result.</p>
+        </div>
+        <h2>Implementation</h2>
+        <p>This section builds on the base class <code>Regression</code> which we implemented in the <a href="../linear-regression/">Linear Regression</a> chapter. If you haven't done that, do that and then come back to this section.</p>
+        <p>So first, we need a class that inherits from <code>Regression</code>:</p>
+<pre><code class="language-python">class MultivariateLinearRegression(Regression):
+</code></pre>
+        <p>Then we can implement the constructor which only needs one variable this time, the vector $\mathbf{\theta}$:</p>
+<pre><code class="language-python">def __init__(self):
+    self.theta = None
+</code></pre>
+        <p>For the <code>fit</code> method, we will assume that it is only the features matrix $\mathbf{X}$ and the target vector $\mathbf{y}$ being passed in. 
+            Which means we need to add a column of ones to the design matrix to account for the bias term and then we can use the closed-form solution we derived above to find the optimal weights.</p>
+        </p>
+<pre><code class="language-python">def fit(self, X, y):
+    n_samples, n_features = X.shape
+    bias = np.ones((n_samples, 1))
+    X_design = np.hstack((bias, X))
+    self.theta = np.linalg.inv(X_design.T @ X_design) @ X_design.T @ y
+</code></pre>
+        <p>Finally, the <code>predict</code> method. Again, we need to add a column of ones to the input matrix before making predictions.</p>
+<pre><code class="language-python">def predict(self, X):
+    n_samples, n_features = X.shape
+    bias = np.ones((n_samples, 1))
+    X_design = np.hstack((bias, X))
+    return X_design @ self.theta
+</code></pre>
+        <div class="exercise">
+          <span class="tag">exercise &middot; 1.2.3 <b>Implementing for a multivariate dataset</b></span>
+          <p>Implement the multivariate linear regression model and test it on the sklearn california housing dataset. 
+            You will need to load the data set using <code>from sklearn.datasets import fetch_california_housing</code>. Which you can then use with <code>data = fetch_california_housing()</code> and <code>X = data.data</code> and <code>y = data.target</code>.</p>
+            <p>I recommend using a train-test split to evaluate your model's performance.</p>
+        </div>
+
+</div>
+
+      <div class="endbar">
+        <span><a href="../../../">back to syllabus</a></span>
+        <span><a href="../multiple-output-dimensions/" aria-disabled="true">1.3 &middot; multiple output dimensions &rarr;</a></span>
+      </div>
+    </article>
+  </div>
+</div>
+<script src="./chart.js"></script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>
