@@ -585,6 +585,10 @@
 <pre><code>def predict(self, X):
     design_matrix = self._construct_design_matrix(X)
     return design_matrix @ self.theta</code></pre>
+    <p>This is just one way to implement the non-linear regression model.
+        You can modify the basis functions to include cross terms or use different types. The rest of the implementation remains the same.
+    </p>
+    <p>In the next section we will explore overfitting and how to mitigate it in regression.</p>
 
       <div class="endbar">
         <span><a href="../../../">back to syllabus</a></span>
