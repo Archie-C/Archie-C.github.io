@@ -688,20 +688,24 @@
       <div class="body">
         <h2>The problem</h2>
         <div class="problem-card">
-        <span class="problem-eyebrow">assignment 01.1</span>
+            <span class="problem-eyebrow">assignment 01.1</span>
 
             <p class="problem-body">Implement a regression model from scratch using only NumPy.</p>
-
+            </br>
+            <p class="problem-body">In the data there are 7 input variables labelled $x_1, x_2, \ldots, x_7$ and a target variable $y$. Your task is to implement a regression model to predict the target variable from the inputs. It should be vectorised (i.e. operate on the entire dataset at once) and can use as many bias functions (or none at all) as you like.</p>
+            </br>
             <p class="problem-body">Your class must be named <code>Regression</code> and must implement <code>fit(self, X, y)</code> and <code>predict(self, X)</code>, where <code>X</code> and <code>y</code> are NumPy arrays.</p>
-
-            <p class="problem-body">Download the training data <a href="./data_train.csv" download="data_train.csv">here</a> and the scaffold code <a href="./scaffold.py" download="scaffold.py">here</a>.</p>
+            </br>
+            <p class="problem-body">Download the training data <a href="./data_train.csv" download="data_train.csv">here</a> and the scaffold code <a href="./scaffold.py" download="scaffold.py">here</a>. Once you are happy with a model you can upload the file here for evaluation.</p>
+            </br>
+            <p class="problem-body"><strong>TIP:</strong> I recommend inspecting the data first to try to find patterns or relationships and also splitting the data into training and validation sets. Good luck!</p>
         </div>
 
         <h2>Submit</h2>
         <p>
             Upload your solution as a <code>.py</code> file. Your model will be fitted on the public training data and evaluated against a hidden validation set. The leaderboard is for benchmarking; only your best score from this browser will be shown.
         </p>
-        <label for="studentName" class="upload-label">Name</label>
+        <label for="studentName" class="upload-label">Name (it will be displayed on the leaderboard)</label>
         <input
           type="text"
           id="studentName"
