@@ -84,6 +84,17 @@
   .hljs-deletion { color: var(--danger); }
   .hljs-emphasis { font-style: italic; }
   .hljs-strong { font-weight: 700; }
+  .lecture article { max-width: 720px; }
+  .body h3 { font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-3); margin: 1.6em 0 6px; }
+  .notation-table { width: 100%; border-collapse: collapse; margin: 0 0 0.4em; font-size: 14px; }
+  .notation-table th { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-4); text-align: left; padding: 5px 16px 5px 0; border-bottom: 1px solid var(--rule); }
+  .notation-table td { padding: 6px 16px 6px 0; border-top: 1px dashed var(--rule); vertical-align: baseline; }
+  .notation-table tr:first-child td { border-top: none; }
+  .notation-table td:first-child { font-family: var(--font-mono); font-size: 13px; color: var(--fg); white-space: nowrap; width: 38%; }
+  .notation-table td:last-child { font-family: var(--font-sans); font-size: 13.5px; color: var(--fg-2); line-height: 1.45; }
+  .notation-table.wide td:first-child { width: 28%; }
+  .notation-table.wide td:nth-child(2) { font-family: var(--font-sans); font-size: 13.5px; color: var(--fg-2); width: 44%; }
+  .notation-table.wide td:nth-child(3) { font-family: var(--font-mono); font-size: 11px; color: var(--fg-4); white-space: nowrap; }
 </style>
 </head>
 <body>
@@ -125,9 +136,486 @@
         subtopic 0.1
       </div>
       <h1>Notation.</h1>
-      <p class="standfirst"></p>
+      <p class="standfirst">The mathematical notation used throughout the notes.</p>
 
       <div class="body">
+
+        <h2>1. Sets &amp; General Math</h2>
+
+        <h3>Sets</h3>
+        <table class="notation-table">
+          <thead><tr><th>Symbol</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td>$\mathbb{R}$</td><td>Real numbers</td></tr>
+            <tr><td>$\mathbb{R}^n$</td><td>Real n-dimensional space</td></tr>
+            <tr><td>$\mathbb{Z}$</td><td>Integers</td></tr>
+            <tr><td>$\mathbb{N}$</td><td>Natural numbers</td></tr>
+            <tr><td>$\mathcal{X}$</td><td>Input space (calligraphic for general sets)</td></tr>
+            <tr><td>$\mathcal{Y}$</td><td>Output space</td></tr>
+            <tr><td>$x \in \mathcal{X}$</td><td>x is a member of set 𝒳</td></tr>
+            <tr><td>$|\mathcal{S}|$</td><td>Cardinality of set 𝒮</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Intervals &amp; Ranges</h3>
+        <table class="notation-table">
+          <thead><tr><th>Symbol</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td>$[a, b]$</td><td>Closed interval</td></tr>
+            <tr><td>$(a, b)$</td><td>Open interval</td></tr>
+            <tr><td>$[n]$</td><td>Shorthand for {1, …, n}</td></tr>
+          </tbody>
+        </table>
+
+        <h3>General Math</h3>
+        <table class="notation-table">
+          <thead><tr><th>Symbol</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td>$:=$</td><td>Equality by definition</td></tr>
+            <tr><td>$\propto$</td><td>Proportional to</td></tr>
+            <tr><td>$\approx$</td><td>Approximately equal</td></tr>
+            <tr><td>$\mathbb{1}[\mathrm{condition}]$</td><td>Indicator function, e.g. 𝟙[y = 1]</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Norms</h3>
+        <table class="notation-table">
+          <thead><tr><th>Symbol</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td>$\|x\|_1$</td><td>L1 norm</td></tr>
+            <tr><td>$\|x\|_2$ or $\|x\|$</td><td>L2 norm</td></tr>
+            <tr><td>$\|x\|_p$</td><td>Lp norm</td></tr>
+            <tr><td>$\|A\|_F$</td><td>Frobenius norm</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Functions</h3>
+        <table class="notation-table">
+          <thead><tr><th>Symbol</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td>$f : \mathcal{X} \to \mathcal{Y}$</td><td>Function f mapping from 𝒳 to 𝒴</td></tr>
+            <tr><td>$f \circ g$</td><td>Composition of f and g</td></tr>
+            <tr><td>$\arg\max$</td><td>Argument of the maximum</td></tr>
+            <tr><td>$\arg\min$</td><td>Argument of the minimum</td></tr>
+          </tbody>
+        </table>
+
+        <h2>2. Data &amp; Indexing</h2>
+
+        <h3>Sample &amp; Dimensionality</h3>
+        <table class="notation-table">
+          <thead><tr><th>Symbol</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td>$n$</td><td>Number of training samples</td></tr>
+            <tr><td>$d$</td><td>Input dimensionality</td></tr>
+            <tr><td>$K$</td><td>Number of classes</td></tr>
+            <tr><td>$L$</td><td>Number of layers</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Samples &amp; Features</h3>
+        <table class="notation-table">
+          <thead><tr><th>Symbol</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td>$x \in \mathbb{R}^d$</td><td>A single input vector</td></tr>
+            <tr><td>$y$</td><td>A single output / label</td></tr>
+            <tr><td>$x_i$</td><td>The i-th training sample</td></tr>
+            <tr><td>$x_{i,j}$</td><td>The j-th feature of sample i</td></tr>
+            <tr><td>$\mathcal{D} = \{(x_i, y_i)\}_{i=1}^n$</td><td>The full dataset</td></tr>
+          </tbody>
+        </table>
+
+        <h3>The Design Matrix</h3>
+        <table class="notation-table">
+          <thead><tr><th>Symbol</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td>$\mathbf{X} \in \mathbb{R}^{n \times d}$</td><td>Design matrix — rows are samples, columns are features</td></tr>
+            <tr><td>$x_i^\top$</td><td>The i-th row of <strong>X</strong> (one sample)</td></tr>
+            <tr><td>$x_j$</td><td>The j-th column of <strong>X</strong> (one feature)</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Indexing Conventions</h3>
+        <table class="notation-table">
+          <thead><tr><th>Symbol</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td>$i$</td><td>Indexes samples (i = 1, …, n)</td></tr>
+            <tr><td>$j$</td><td>Indexes features (j = 1, …, d)</td></tr>
+            <tr><td>$k$</td><td>Indexes classes (k = 1, …, K)</td></tr>
+            <tr><td>$t$</td><td>Indexes time steps</td></tr>
+            <tr><td>$l$</td><td>Indexes layers</td></tr>
+          </tbody>
+        </table>
+
+        <h2>3. Linear Algebra</h2>
+
+        <h3>Typesetting Conventions</h3>
+        <table class="notation-table">
+          <thead><tr><th>Symbol</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td>$a, x, \lambda$</td><td>Scalar — lowercase italic</td></tr>
+            <tr><td>$\mathbf{x}, \mathbf{w}, \mathbf{b}$</td><td>Vector — lowercase bold</td></tr>
+            <tr><td>$\mathbf{X}, \mathbf{W}, \mathbf{A}$</td><td>Matrix — uppercase bold</td></tr>
+            <tr><td>$\mathcal{T}$</td><td>Tensor — uppercase calligraphic</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Operations</h3>
+        <table class="notation-table">
+          <thead><tr><th>Symbol</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td>$\mathbf{A}^\top$</td><td>Transpose</td></tr>
+            <tr><td>$\mathbf{A}^{-1}$</td><td>Inverse</td></tr>
+            <tr><td>$\mathbf{A}^{+}$</td><td>Pseudoinverse (Moore–Penrose)</td></tr>
+            <tr><td>$\det(\mathbf{A})$ or $|\mathbf{A}|$</td><td>Determinant</td></tr>
+            <tr><td>$\operatorname{tr}(\mathbf{A})$</td><td>Trace</td></tr>
+            <tr><td>$\mathbf{x}^\top\mathbf{y}$ or $\langle \mathbf{x}, \mathbf{y} \rangle$</td><td>Dot product</td></tr>
+            <tr><td>$\mathbf{x} \odot \mathbf{y}$</td><td>Element-wise (Hadamard) product</td></tr>
+            <tr><td>$\mathbf{A} \otimes \mathbf{B}$</td><td>Kronecker product</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Eigendecomposition &amp; SVD</h3>
+        <table class="notation-table">
+          <thead><tr><th>Symbol</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td>$\lambda$</td><td>Eigenvalue</td></tr>
+            <tr><td>$\mathbf{v}$</td><td>Eigenvector</td></tr>
+            <tr><td>$\mathbf{A} = \mathbf{V}\Lambda\mathbf{V}^\top$</td><td>Eigendecomposition</td></tr>
+            <tr><td>$\sigma_1 \ge \sigma_2 \ge \cdots \ge 0$</td><td>Singular values in descending order</td></tr>
+            <tr><td>$\mathbf{A} = \mathbf{U}\Sigma\mathbf{V}^\top$</td><td>Singular value decomposition</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Shapes &amp; Subspaces</h3>
+        <table class="notation-table">
+          <thead><tr><th>Symbol</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td>$\mathbb{R}^{n \times d}$</td><td>Shape of a matrix — n rows, d columns</td></tr>
+            <tr><td>$\operatorname{rank}(\mathbf{A})$</td><td>Rank of matrix <strong>A</strong></td></tr>
+            <tr><td>$\operatorname{col}(\mathbf{A})$</td><td>Column space of <strong>A</strong></td></tr>
+            <tr><td>$\operatorname{null}(\mathbf{A})$</td><td>Null space of <strong>A</strong></td></tr>
+          </tbody>
+        </table>
+
+        <h2>4. Probability</h2>
+
+        <h3>Random Variables &amp; Distributions</h3>
+        <table class="notation-table">
+          <thead><tr><th>Symbol</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td>$X, Y$</td><td>Random variable — uppercase</td></tr>
+            <tr><td>$x, y$</td><td>Realisation of a random variable — lowercase</td></tr>
+            <tr><td>$P(X = x)$</td><td>Probability of an event</td></tr>
+            <tr><td>$p(x)$</td><td>Probability density function</td></tr>
+            <tr><td>$P(x)$</td><td>Probability mass function</td></tr>
+            <tr><td>$p(x, y)$</td><td>Joint distribution</td></tr>
+            <tr><td>$p(y \mid x)$</td><td>Conditional distribution</td></tr>
+            <tr><td>$p(x) = \int p(x, y)\,dy$</td><td>Marginal distribution</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Expectations &amp; Moments</h3>
+        <table class="notation-table">
+          <thead><tr><th>Symbol</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td>$\mathbb{E}[X]$</td><td>Expectation of X</td></tr>
+            <tr><td>$\mathbb{E}_{x \sim p}[f(x)]$</td><td>Expectation of f(x) under distribution p</td></tr>
+            <tr><td>$\operatorname{Var}(X)$ or $\sigma^2$</td><td>Variance</td></tr>
+            <tr><td>$\sigma$</td><td>Standard deviation</td></tr>
+            <tr><td>$\operatorname{Cov}(X, Y)$</td><td>Covariance between X and Y</td></tr>
+            <tr><td>$\boldsymbol{\Sigma}$</td><td>Covariance matrix</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Common Distributions</h3>
+        <table class="notation-table">
+          <thead><tr><th>Symbol</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td>$\mathcal{N}(\mu, \sigma^2)$</td><td>Univariate Gaussian with mean μ and variance σ²</td></tr>
+            <tr><td>$\mathcal{N}(\boldsymbol{\mu}, \boldsymbol{\Sigma})$</td><td>Multivariate Gaussian with mean <strong>μ</strong> and covariance <strong>Σ</strong></td></tr>
+            <tr><td>$\operatorname{Bern}(p)$</td><td>Bernoulli distribution with parameter p</td></tr>
+            <tr><td>$\operatorname{Cat}(\boldsymbol{\pi})$</td><td>Categorical distribution with probabilities <strong>π</strong></td></tr>
+            <tr><td>$\operatorname{Dir}(\boldsymbol{\alpha})$</td><td>Dirichlet distribution with concentration <strong>α</strong></td></tr>
+            <tr><td>$\operatorname{Beta}(\alpha, \beta)$</td><td>Beta distribution with parameters α, β</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Information Theory</h3>
+        <table class="notation-table">
+          <thead><tr><th>Symbol</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td>$H(X)$ or $H(p)$</td><td>Entropy of X or distribution p</td></tr>
+            <tr><td>$H(p, q)$</td><td>Cross-entropy between p and q</td></tr>
+            <tr><td>$D_{\mathrm{KL}}(p \| q)$</td><td>KL divergence from q to p</td></tr>
+            <tr><td>$I(X; Y)$</td><td>Mutual information between X and Y</td></tr>
+          </tbody>
+        </table>
+
+        <h2>5. ML Specific Notation</h2>
+
+        <h3>Parameters &amp; Models</h3>
+        <table class="notation-table">
+          <thead><tr><th>Symbol</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td>$\boldsymbol{\theta}$</td><td>Model parameters (general)</td></tr>
+            <tr><td>$\mathbf{w}$</td><td>Weight vector</td></tr>
+            <tr><td>$b$</td><td>Bias term</td></tr>
+            <tr><td>$\Theta$</td><td>Parameter space</td></tr>
+            <tr><td>$\hat{\boldsymbol{\theta}}$</td><td>Estimated / learned parameters</td></tr>
+            <tr><td>$f_{\boldsymbol{\theta}}(x)$</td><td>Model function parameterised by <strong>θ</strong></td></tr>
+            <tr><td>$\mathcal{H}$</td><td>Hypothesis class</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Loss &amp; Risk</h3>
+        <table class="notation-table">
+          <thead><tr><th>Symbol</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td>$\ell(\hat{y}, y)$</td><td>Loss function</td></tr>
+            <tr><td>$L(\boldsymbol{\theta})$</td><td>Empirical risk — $\frac{1}{n}\sum_i \ell(f_{\boldsymbol{\theta}}(x_i), y_i)$</td></tr>
+            <tr><td>$R(\boldsymbol{\theta})$</td><td>Expected risk — 𝔼[ℓ(f_<strong>θ</strong>(x), y)]</td></tr>
+            <tr><td>$\Omega(\boldsymbol{\theta})$</td><td>Regularisation term</td></tr>
+            <tr><td>$\lambda$</td><td>Regularisation strength</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Predictions</h3>
+        <table class="notation-table">
+          <thead><tr><th>Symbol</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td>$\hat{y}$</td><td>Predicted output</td></tr>
+            <tr><td>$y$</td><td>True label</td></tr>
+            <tr><td>$\hat{p}$</td><td>Predicted probability</td></tr>
+            <tr><td>$f_{\boldsymbol{\theta}}(x) = 0$</td><td>Decision boundary</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Optimisation</h3>
+        <table class="notation-table">
+          <thead><tr><th>Symbol</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td>$\nabla_{\boldsymbol{\theta}} L(\boldsymbol{\theta})$</td><td>Gradient of loss with respect to <strong>θ</strong></td></tr>
+            <tr><td>$\mathbf{H}$ or $\nabla^2 L$</td><td>Hessian matrix</td></tr>
+            <tr><td>$\eta$</td><td>Learning rate</td></tr>
+            <tr><td>$t$</td><td>Training iteration / step</td></tr>
+            <tr><td>$\boldsymbol{\theta} \leftarrow \boldsymbol{\theta} - \eta\nabla L(\boldsymbol{\theta})$</td><td>Gradient update rule</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Regularisation</h3>
+        <table class="notation-table">
+          <thead><tr><th>Symbol</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td>$\lambda\|\boldsymbol{\theta}\|^2$</td><td>L2 penalty</td></tr>
+            <tr><td>$\lambda\|\boldsymbol{\theta}\|_1$</td><td>L1 penalty</td></tr>
+            <tr><td>$\lambda$</td><td>Regularisation hyperparameter</td></tr>
+          </tbody>
+        </table>
+
+        <h2>6. Neural Network Notation</h2>
+
+        <h3>Architecture</h3>
+        <table class="notation-table">
+          <thead><tr><th>Symbol</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td>$L$</td><td>Total number of layers</td></tr>
+            <tr><td>$d_l$</td><td>Width (number of units) at layer l</td></tr>
+            <tr><td>$0$</td><td>Index of input layer</td></tr>
+            <tr><td>$L$</td><td>Index of output layer</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Weights &amp; Biases</h3>
+        <table class="notation-table">
+          <thead><tr><th>Symbol</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td>$\mathbf{W}^{(l)} \in \mathbb{R}^{d_l \times d_{l-1}}$</td><td>Weight matrix at layer l</td></tr>
+            <tr><td>$\mathbf{b}^{(l)} \in \mathbb{R}^{d_l}$</td><td>Bias vector at layer l</td></tr>
+            <tr><td>$\boldsymbol{\theta} = \{\mathbf{W}^{(l)}, \mathbf{b}^{(l)}\}_{l=1}^L$</td><td>All parameters collected</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Activations</h3>
+        <table class="notation-table">
+          <thead><tr><th>Symbol</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td>$\mathbf{z}^{(l)} = \mathbf{W}^{(l)}\mathbf{a}^{(l-1)} + \mathbf{b}^{(l)}$</td><td>Pre-activation at layer l</td></tr>
+            <tr><td>$\mathbf{a}^{(l)} = \sigma(\mathbf{z}^{(l)})$</td><td>Post-activation at layer l</td></tr>
+            <tr><td>$\mathbf{a}^{(0)} = \mathbf{x}$</td><td>Input layer activations</td></tr>
+            <tr><td>$\mathbf{a}^{(L)} = \hat{y}$</td><td>Output layer activations</td></tr>
+            <tr><td>$\sigma(\cdot)$</td><td>Activation function (general)</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Gradients in Backpropagation</h3>
+        <table class="notation-table">
+          <thead><tr><th>Symbol</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td>$\boldsymbol{\delta}^{(l)}$</td><td>Error signal — loss gradient w.r.t. pre-activation at layer l</td></tr>
+            <tr><td>$\frac{\partial L}{\partial \mathbf{W}^{(l)}}$</td><td>Loss gradient w.r.t. weight matrix at layer l</td></tr>
+            <tr><td>$\frac{\partial L}{\partial \mathbf{b}^{(l)}}$</td><td>Loss gradient w.r.t. bias vector at layer l</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Attention &amp; Transformers</h3>
+        <table class="notation-table">
+          <thead><tr><th>Symbol</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td>$\mathbf{Q}$</td><td>Query matrix</td></tr>
+            <tr><td>$\mathbf{K}$</td><td>Key matrix</td></tr>
+            <tr><td>$\mathbf{V}$</td><td>Value matrix</td></tr>
+            <tr><td>$\mathbf{A} = \operatorname{softmax}\left(\frac{\mathbf{Q}\mathbf{K}^\top}{\sqrt{d_k}}\right)$</td><td>Attention scores</td></tr>
+            <tr><td>$d_k$</td><td>Dimension of keys and queries</td></tr>
+            <tr><td>$H$</td><td>Number of attention heads</td></tr>
+          </tbody>
+        </table>
+
+        <h2>7. Reinforcement Learning</h2>
+
+        <h3>Core RL Objects</h3>
+        <table class="notation-table">
+          <thead><tr><th>Symbol</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td>$s \in \mathcal{S}$</td><td>State from state space 𝒮</td></tr>
+            <tr><td>$a \in \mathcal{A}$</td><td>Action from action space 𝒜</td></tr>
+            <tr><td>$r \in \mathbb{R}$</td><td>Reward</td></tr>
+            <tr><td>$t$</td><td>Time step</td></tr>
+            <tr><td>$\tau = (s_0, a_0, r_0, s_1, \ldots)$</td><td>Trajectory / episode</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Policy</h3>
+        <table class="notation-table">
+          <thead><tr><th>Symbol</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td>$\pi(a \mid s)$</td><td>Stochastic policy — probability of action a in state s</td></tr>
+            <tr><td>$a = \pi(s)$</td><td>Deterministic policy</td></tr>
+            <tr><td>$\pi^\ast$</td><td>Optimal policy</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Value Functions</h3>
+        <table class="notation-table">
+          <thead><tr><th>Symbol</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td>$V^\pi(s)$</td><td>State value function under policy π</td></tr>
+            <tr><td>$Q^\pi(s, a)$</td><td>Action value function under policy π</td></tr>
+            <tr><td>$V^\ast(s)$</td><td>Optimal state value function</td></tr>
+            <tr><td>$Q^\ast(s, a)$</td><td>Optimal action value function</td></tr>
+            <tr><td>$A^\pi(s, a) = Q^\pi(s, a) - V^\pi(s)$</td><td>Advantage function</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Returns &amp; Discounting</h3>
+        <table class="notation-table">
+          <thead><tr><th>Symbol</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td>$G_t = r_t + \gamma r_{t+1} + \gamma^2 r_{t+2} + \cdots$</td><td>Discounted return</td></tr>
+            <tr><td>$\gamma \in [0, 1]$</td><td>Discount factor</td></tr>
+            <tr><td>$\delta_t = r_t + \gamma V(s_{t+1}) - V(s_t)$</td><td>Temporal difference (TD) error</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Environment</h3>
+        <table class="notation-table">
+          <thead><tr><th>Symbol</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td>$p(s' \mid s, a)$</td><td>Transition dynamics</td></tr>
+            <tr><td>$r(s, a)$</td><td>Reward function</td></tr>
+            <tr><td>$T$</td><td>Finite horizon</td></tr>
+            <tr><td>$\alpha$</td><td>Learning rate for value function updates (RL convention)</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Quick Reference — Symbol Index</h2>
+
+        <table class="notation-table wide">
+          <thead><tr><th>Symbol</th><th>Meaning</th><th>Section</th></tr></thead>
+          <tbody>
+            <tr><td>$\mathcal{A}$</td><td>Action space</td><td>7</td></tr>
+            <tr><td>$\mathbf{a}^{(l)}$</td><td>Post-activation at layer l</td><td>6</td></tr>
+            <tr><td>$A^\pi(s, a)$</td><td>Advantage function</td><td>7</td></tr>
+            <tr><td>$\mathbf{A}$</td><td>Attention scores</td><td>6</td></tr>
+            <tr><td>$\alpha$</td><td>RL learning rate for value updates</td><td>7</td></tr>
+            <tr><td>$\mathbf{b}^{(l)}$</td><td>Bias vector at layer l</td><td>6</td></tr>
+            <tr><td>$b$</td><td>Bias term (general)</td><td>5</td></tr>
+            <tr><td>$\operatorname{Bern}(p)$</td><td>Bernoulli distribution</td><td>4</td></tr>
+            <tr><td>$\operatorname{Beta}(\alpha, \beta)$</td><td>Beta distribution</td><td>4</td></tr>
+            <tr><td>$\operatorname{Cat}(\boldsymbol{\pi})$</td><td>Categorical distribution</td><td>4</td></tr>
+            <tr><td>$\operatorname{col}(\mathbf{A})$</td><td>Column space of <strong>A</strong></td><td>3</td></tr>
+            <tr><td>$\operatorname{Cov}(X, Y)$</td><td>Covariance</td><td>4</td></tr>
+            <tr><td>$d$</td><td>Input dimensionality</td><td>2</td></tr>
+            <tr><td>$\mathcal{D}$</td><td>Dataset</td><td>2</td></tr>
+            <tr><td>$d_k$</td><td>Dimension of keys/queries</td><td>6</td></tr>
+            <tr><td>$d_l$</td><td>Width of layer l</td><td>6</td></tr>
+            <tr><td>$\boldsymbol{\delta}^{(l)}$</td><td>Error signal at layer l</td><td>6</td></tr>
+            <tr><td>$\delta_t$</td><td>TD error</td><td>7</td></tr>
+            <tr><td>$\det(\mathbf{A})$</td><td>Determinant</td><td>3</td></tr>
+            <tr><td>$\operatorname{Dir}(\boldsymbol{\alpha})$</td><td>Dirichlet distribution</td><td>4</td></tr>
+            <tr><td>$D_{\mathrm{KL}}(p \| q)$</td><td>KL divergence</td><td>4</td></tr>
+            <tr><td>$\mathbb{E}[X]$</td><td>Expectation</td><td>4</td></tr>
+            <tr><td>$f_{\boldsymbol{\theta}}(x)$</td><td>Model function</td><td>5</td></tr>
+            <tr><td>$\gamma$</td><td>Discount factor</td><td>7</td></tr>
+            <tr><td>$G_t$</td><td>Discounted return</td><td>7</td></tr>
+            <tr><td>$H$</td><td>Number of attention heads</td><td>6</td></tr>
+            <tr><td>$H(p)$</td><td>Entropy</td><td>4</td></tr>
+            <tr><td>$H(p, q)$</td><td>Cross-entropy</td><td>4</td></tr>
+            <tr><td>$\mathbf{H}$</td><td>Hessian matrix</td><td>5</td></tr>
+            <tr><td>$\mathcal{H}$</td><td>Hypothesis class</td><td>5</td></tr>
+            <tr><td>$\eta$</td><td>Learning rate (general)</td><td>5</td></tr>
+            <tr><td>$i$</td><td>Sample index</td><td>2</td></tr>
+            <tr><td>$I(X; Y)$</td><td>Mutual information</td><td>4</td></tr>
+            <tr><td>$j$</td><td>Feature index</td><td>2</td></tr>
+            <tr><td>$k$</td><td>Class index</td><td>2</td></tr>
+            <tr><td>$\mathbf{K}$</td><td>Key matrix</td><td>6</td></tr>
+            <tr><td>$K$</td><td>Number of classes</td><td>2</td></tr>
+            <tr><td>$l$</td><td>Layer index</td><td>2</td></tr>
+            <tr><td>$L$</td><td>Number of layers</td><td>2, 6</td></tr>
+            <tr><td>$L(\boldsymbol{\theta})$</td><td>Empirical risk</td><td>5</td></tr>
+            <tr><td>$\ell(\hat{y}, y)$</td><td>Loss function</td><td>5</td></tr>
+            <tr><td>$\lambda$</td><td>Regularisation strength</td><td>5</td></tr>
+            <tr><td>$n$</td><td>Number of training samples</td><td>2</td></tr>
+            <tr><td>$\mathcal{N}(\mu, \sigma^2)$</td><td>Univariate Gaussian</td><td>4</td></tr>
+            <tr><td>$\operatorname{null}(\mathbf{A})$</td><td>Null space of <strong>A</strong></td><td>3</td></tr>
+            <tr><td>$\Omega(\boldsymbol{\theta})$</td><td>Regularisation term</td><td>5</td></tr>
+            <tr><td>$\pi(a \mid s)$</td><td>Policy</td><td>7</td></tr>
+            <tr><td>$\pi^\ast$</td><td>Optimal policy</td><td>7</td></tr>
+            <tr><td>$p(x)$</td><td>Probability density function</td><td>4</td></tr>
+            <tr><td>$P(x)$</td><td>Probability mass function</td><td>4</td></tr>
+            <tr><td>$\mathbf{Q}$</td><td>Query matrix</td><td>6</td></tr>
+            <tr><td>$Q^\pi(s, a)$</td><td>Action value function</td><td>7</td></tr>
+            <tr><td>$r$</td><td>Reward</td><td>7</td></tr>
+            <tr><td>$R(\boldsymbol{\theta})$</td><td>Expected risk</td><td>5</td></tr>
+            <tr><td>$\operatorname{rank}(\mathbf{A})$</td><td>Rank of <strong>A</strong></td><td>3</td></tr>
+            <tr><td>$s \in \mathcal{S}$</td><td>State</td><td>7</td></tr>
+            <tr><td>$\mathcal{S}$</td><td>State space</td><td>7</td></tr>
+            <tr><td>$\sigma$</td><td>Standard deviation</td><td>4</td></tr>
+            <tr><td>$\sigma(\cdot)$</td><td>Activation function</td><td>6</td></tr>
+            <tr><td>$\boldsymbol{\Sigma}$</td><td>Covariance matrix</td><td>4</td></tr>
+            <tr><td>$t$</td><td>Time step / training iteration</td><td>2, 7</td></tr>
+            <tr><td>$T$</td><td>Finite horizon</td><td>7</td></tr>
+            <tr><td>$\tau$</td><td>Trajectory</td><td>7</td></tr>
+            <tr><td>$\Theta$</td><td>Parameter space</td><td>5</td></tr>
+            <tr><td>$\boldsymbol{\theta}$</td><td>Model parameters</td><td>5</td></tr>
+            <tr><td>$\hat{\boldsymbol{\theta}}$</td><td>Estimated parameters</td><td>5</td></tr>
+            <tr><td>$\operatorname{tr}(\mathbf{A})$</td><td>Trace</td><td>3</td></tr>
+            <tr><td>$\mathbf{V}$</td><td>Value matrix (attention)</td><td>6</td></tr>
+            <tr><td>$V^\pi(s)$</td><td>State value function</td><td>7</td></tr>
+            <tr><td>$\operatorname{Var}(X)$</td><td>Variance</td><td>4</td></tr>
+            <tr><td>$\mathbf{w}$</td><td>Weight vector</td><td>5</td></tr>
+            <tr><td>$\mathbf{W}^{(l)}$</td><td>Weight matrix at layer l</td><td>6</td></tr>
+            <tr><td>$x \in \mathbb{R}^d$</td><td>Input vector</td><td>2</td></tr>
+            <tr><td>$\mathbf{X}$</td><td>Design matrix</td><td>2</td></tr>
+            <tr><td>$x_i$</td><td>i-th training sample</td><td>2</td></tr>
+            <tr><td>$\mathcal{X}$</td><td>Input space</td><td>1</td></tr>
+            <tr><td>$y$</td><td>True label</td><td>2</td></tr>
+            <tr><td>$\hat{y}$</td><td>Predicted output</td><td>5</td></tr>
+            <tr><td>$\mathcal{Y}$</td><td>Output space</td><td>1</td></tr>
+            <tr><td>$\mathbf{z}^{(l)}$</td><td>Pre-activation at layer l</td><td>6</td></tr>
+          </tbody>
+        </table>
+
       </div>
 
       <div class="endbar">
