@@ -313,7 +313,7 @@
 <div class="frame">
   <div class="topbar">
     <a href="../../" class="mark">a<span class="dot">.</span>c</a>
-    <span class="crumb"><a href="../">courses</a><span class="sep">&rsaquo;</span>Deep Learning</span>
+    <span class="crumb"><a href="../">courses</a><span class="sep">&rsaquo;</span>Machine Learning & Deep Learning</span>
     <nav aria-label="Course navigation">
       <a href="./" class="active">syllabus</a>
     </nav>
@@ -340,81 +340,573 @@
     </aside>
 
     <div class="main">
-      <h1>Deep Learning.</h1>
-      <p class="stand">A practical course in deep learning at AAU. We move from regression and backpropagation into convolutional networks and modern architectures, with exercises designed to make the machinery inspectable rather than mysterious.</p>
+      <h1>Machine Learning & Deep Learning.</h1>
+      <p class="stand">A practical course in machine learning and deep learning at AAU. Sections marked with <code>required</code> are included in the course for this year. The rest are optional however they are strongly recommended.</p>
 
       <h2>Syllabus</h2>
       <div class="syllabus">
-        <div class="topic">
+          <div class="topic">
           <span class="num">00</span>
           <div>
-            <h3 class="title"><a href="./exercises/preparatory/">Preparatory exercises.</a></h3>
-            <p class="topic-sub">Python, NumPy, calculus, and linear algebra refreshers for students who want firmer footing before the practical work begins.</p>
+            <h3 class="title"><a href="./topics/00-prerequisites/">Prerequisites.</a></h3>
+            <p class="topic-sub">The foundational knowledge required for this course.</p>
           </div>
-          <span class="when">before week 01</span>
+          <span class="when">prereading</span>
           <ul class="subtopics">
-            <li><span class="sn">0.1</span><span class="st"><a href="">Stochastics</a></span><span class="ck">notes - coming soon</span></li>
-            <li><span class="sn">0.2</span><span class="st"><a href="">Calculus</a></span><span class="ck">notes - coming soon</span></li>
-            <li><span class="sn">0.3</span><span class="st"><a href="">Linear algebra</a></span><span class="ck">notes - coming soon</span></li>
-            <li><span class="sn">0.4</span><span class="st"><a href="">A Fast Introduction to Python and Numpy</a></span><span class="ck">notes - coming soon</span></li>
-            <li><span class="sn">0.5</span><span class="st"><a href="">Exercises</a></span><span class="ck">exercises - coming soon</span></li>
+            <li><span class="sn">0.1</span><span class="st"><a href="">Notation</a></span><span class="ck">coming soon</span></li>
+            <li><span class="sn">0.2</span><span class="st"><a href="">Linear Algebra</a></span><span class="ck">coming soon</span></li>
+            <li><span class="sn">0.3</span><span class="st"><a href="">Calculus</a></span><span class="ck">coming soon</span></li>
+            <li><span class="sn">0.4</span><span class="st"><a href="">Probability & Statistics</a></span><span class="ck">coming soon</span></li>
+            <li><span class="sn">0.5</span><span class="st"><a href="">Optimisation Basics</a></span><span class="ck">coming soon</span></li>
+            <li><span class="sn">0.6</span><span class="st"><a href="">Information Theory</a></span><span class="ck">coming soon</span></li>
+            <li><span class="sn">0.7</span><span class="st"><a href="">Python for Machine Learning</a></span><span class="ck">coming soon</span></li>
           </ul>
         </div>
-
         <div class="topic">
           <span class="num">01</span>
           <div>
-            <h3 class="title"><a href="./topics/01-regression/">Regression.</a></h3>
-            <p class="topic-sub">Linear regression, multivariate regression and non-linear basis functions finishing off with the bias variance trade-off.</p>
+            <h3 class="title"><a href="./topics/01-statistical-learning/">Statistical Learning.</a></h3>
+            <p class="topic-sub">An introduction to statistical learning theory and its applications in machine learning.</p>
           </div>
-          <span class="when">week 01</span>
+          <span class="when">prereading</span>
           <ul class="subtopics">
-            <li><span class="sn">1.1</span><span class="st"><a href="./topics/01-regression/linear-regression/">Linear Regression</a></span><span class="ck done">notes</span></li>
-            <li><span class="sn">1.2</span><span class="st"><a href="./topics/01-regression/multiple-input-dimensions/">Multiple input dimensions</a></span><span class="ck done">notes</span></li>
-            <li><span class="sn">1.3</span><span class="st"><a href="./topics/01-regression/multiple-output-dimensions/">Multiple output dimensions</a></span><span class="ck done">notes</span></li>
-            <li><span class="sn">1.4</span><span class="st"><a href="./topics/01-regression/non-linear-regression/">Non-linear Regression</a></span><span class="ck done">notes</span></li>
-            <li><span class="sn">1.5</span><span class="st"><a href="./topics/01-regression/regularisation/">Regularisation and the bias-variance trade-off</a></span><span class="ck done">notes</span></li>
-            <li><span class="sn">1.6</span><span class="st"><a href="./topics/01-regression/exercises/">Exercise 2026</a></span><span class="ck done">exercises</span></li>
+            <li><span class="sn">1.1</span><span class="st"><a href="">What is learning?</a></span><span class="ck">coming soon</span></li>
+            <li><span class="sn">1.2</span><span class="st"><a href="">Loss Functions & Empirical Risk</a></span><span class="ck">coming soon</span></li>
+            <li><span class="sn">1.3</span><span class="st"><a href="">Overfitting, Underfitting & the Bias-Variance Trade-off</a></span><span class="ck">coming soon</span></li>
+            <li><span class="sn">1.4</span><span class="st"><a href="">Parametric vs. Non-Parametric Models</a></span><span class="ck">coming soon</span></li>
+            <li><span class="sn">1.5</span><span class="st"><a href="">A Map of the Landscape</a></span><span class="ck">coming soon</span></li>
           </ul>
         </div>
-
         <div class="topic">
           <span class="num">02</span>
           <div>
-            <h3 class="title"><a href="./topics/02-classification/">Classification.</a></h3>
-            <p class="topic-sub">Builds on regression to introduce supervised learning for discrete outcomes.</p>
+            <h3 class="title"><a href="./topics/02-data/">Data.</a></h3>
+            <p class="topic-sub"></p>
           </div>
-          <span class="when">week 02</span>
+          <span class="when">week 01</span>
           <ul class="subtopics">
-            <li><span class="sn">2.1</span><span class="st">TBC</span><span class="ck">notes - coming soon</span></li>
-            <li><span class="sn">2.2</span><span class="st">TBC</span><span class="ck">notes - coming soon</span></li>
-            <li><span class="sn">2.3</span><span class="st"><a href="">Exercises</a></span><span class="ck">exercises - coming soon</span></li>
+            <li><span class="sn">2.1</span><span class="st"><a href="">Data collection & Measurement</a></span><span class="ck">coming soon</span></li>
+            <li><span class="sn">2.2</span><span class="st"><a href="">Exploratory Data Analysis</a></span><span class="ck">coming soon</span></li>
+            <li><span class="sn">2.3</span><span class="st"><a href="">Feature Engineering</a></span><span class="ck">coming soon</span></li>
+            <li><span class="sn">2.4</span><span class="st"><a href="">Missing Data</a></span><span class="ck">coming soon</span></li>
+            <li><span class="sn">2.5</span><span class="st"><a href="">Class Imbalance</a></span><span class="ck">coming soon</span></li>
+            <li><span class="sn">2.6</span><span class="st"><a href="">Data Splitting & Leakage</a></span><span class="ck">coming soon</span></li>
+            <li><span class="sn">2.7</span><span class="st"><a href="">Data at scale</a></span><span class="ck">coming soon</span></li>
           </ul>
         </div>
 
         <div class="topic">
           <span class="num">03</span>
           <div>
-            <h3 class="title"><a href="./lectures/cnns/notes/">Convolutional neural networks.</a></h3>
-            <p class="topic-sub">Convolution, pooling, receptive fields, and the inductive biases that make CNNs useful for images and spatial data.</p>
+            <h3 class="title"><a href="./topics/03-regression/">Regression.</a></h3>
+            <p class="topic-sub">Linear regression, multivariate regression and non-linear basis functions finishing off with the bias variance trade-off.</p>
           </div>
-          <span class="when">week 03</span>
+          <span class="when">week 02</span>
           <ul class="subtopics">
-            <li><span class="sn">3.1</span><span class="st"><a href="./lectures/cnns/notes/">CNN lecture notes.</a></span><span class="ck">notes</span></li>
-            <li><span class="sn">3.2</span><span class="st">Image classification practical.</span><span class="ck">soon</span></li>
+            <li><span class="sn">3.1</span><span class="st"><a href="">Scalar Form</a></span><span class="ck">coming soon</span></li>
+            <li><span class="sn">3.2</span><span class="st"><a href="">Matrix Form</a></span><span class="ck">coming soon</span></li>
+            <li><span class="sn">3.3</span><span class="st"><a href="">Multiple Regression</a></span><span class="ck">coming soon</span></li>
+            <li><span class="sn">3.4</span><span class="st"><a href="">Diagnostics & Assumptions</a></span><span class="ck">coming soon</span></li>
+            <li><span class="sn">3.5</span><span class="st"><a href="">Flexible Regression</a></span><span class="ck">coming soon</span></li>
+            <li><span class="sn">3.6</span><span class="st"><a href="">Bridge to Generalised Linear Models</a></span><span class="ck">coming soon</span></li>
+            <!-- <li><span class="sn">1.1</span><span class="st"><a href="./topics/03-regression/linear-regression/">Linear Regression</a></span><span class="ck done">notes</span></li>
+            <li><span class="sn">1.2</span><span class="st"><a href="./topics/03-regression/multiple-input-dimensions/">Multiple input dimensions</a></span><span class="ck done">notes</span></li>
+            <li><span class="sn">1.3</span><span class="st"><a href="./topics/03-regression/multiple-output-dimensions/">Multiple output dimensions</a></span><span class="ck done">notes</span></li>
+            <li><span class="sn">1.4</span><span class="st"><a href="./topics/03-regression/non-linear-regression/">Non-linear Regression</a></span><span class="ck done">notes</span></li>
+            <li><span class="sn">1.5</span><span class="st"><a href="./topics/03-regression/regularisation/">Regularisation and the bias-variance trade-off</a></span><span class="ck done">notes</span></li>
+            <li><span class="sn">1.6</span><span class="st"><a href="./topics/03-regression/exercises/">Exercise 2026</a></span><span class="ck done">exercises</span></li> -->
           </ul>
         </div>
 
         <div class="topic">
           <span class="num">04</span>
           <div>
-            <h3 class="title">Sequences, attention, and transformers.</h3>
-            <p class="topic-sub">Representation learning for sequence data, attention mechanisms, transformer blocks, and practical limits.</p>
+            <h3 class="title"><a href="./topics/04-classification/">Classification.</a></h3>
+            <p class="topic-sub">Builds on regression to introduce supervised learning for discrete outcomes.</p>
           </div>
-          <span class="when">later weeks</span>
+          <span class="when">week 02</span>
           <ul class="subtopics">
-            <li><span class="sn">4.1</span><span class="st">From recurrent models to attention.</span><span class="ck">planned</span></li>
-            <li><span class="sn">4.2</span><span class="st">Transformer blocks and training practice.</span><span class="ck">planned</span></li>
+            <li><span class="sn">4.1</span><span class="st">From Regression to Classification</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">4.2</span><span class="st">Logistic Regression</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">4.3</span><span class="st">Evaluating Classifiers</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">4.4</span><span class="st">Generative vs. Discriminative</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">4.5</span><span class="st">K-Nearest Neighbors</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">4.6</span><span class="st">Decision Trees</span><span class="ck">coming soon</span></li>
+          </ul>
+        </div>
+
+        <div class="topic">
+          <span class="num">05</span>
+          <div>
+            <h3 class="title"><a href="./topics/05-regularisation/">Regularisation.</a></h3>
+            <p class="topic-sub">Regularisation techniques to prevent overfitting and improve model generalisation.</p>
+          </div>
+          <span class="when">week 03</span>
+          <ul class="subtopics">
+            <li><span class="sn">5.1</span><span class="st"><a href="">The problem</a></span><span class="ck">coming soon</span></li>
+            <li><span class="sn">5.2</span><span class="st"><a href="">Ridge Regression</a></span><span class="ck">coming soon</span></li>
+            <li><span class="sn">5.3</span><span class="st"><a href="">Lasso (L1)</a></span><span class="ck">coming soon</span></li>
+            <li><span class="sn">5.4</span><span class="st"><a href="">Elastic Net</a></span><span class="ck">coming soon</span></li>
+            <li><span class="sn">5.5</span><span class="st"><a href="">Cross-Validation for Tuning</a></span><span class="ck">coming soon</span></li>
+            <li><span class="sn">5.6</span><span class="st"><a href="">Regularisation beyond Regression</a></span><span class="ck">coming soon</span></li>
+          </ul>
+        </div>
+
+        <div class="topic">
+          <span class="num">06</span>
+          <div>
+            <h3 class="title"><a href="./topics/06-model-selection/">Model Selection & Generalisation.</a></h3>
+            <p class="topic-sub">Choosing models that generalise, not just models that fit.</p>
+          </div>
+          <span class="when">week 04</span>
+          <ul class="subtopics">
+            <li><span class="sn">6.1</span><span class="st">Training vs. Test Error</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">6.2</span><span class="st">Cross-Validation</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">6.3</span><span class="st">Information Criteria</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">6.4</span><span class="st">Bias-Variance Decomposition</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">6.5</span><span class="st">Hyperparameter Tuning</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">6.6</span><span class="st">Model Comparison</span><span class="ck">coming soon</span></li>
+          </ul>
+        </div>
+
+        <div class="topic">
+          <span class="num">07</span>
+          <div>
+            <h3 class="title"><a href="./topics/07-unsupervised-learning/">Unsupervised Learning.</a></h3>
+            <p class="topic-sub">Finding patterns and structure in data without labels.</p>
+          </div>
+          <span class="when">week 05</span>
+          <ul class="subtopics">
+            <li><span class="sn">7.1</span><span class="st">Clustering</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">7.2</span><span class="st">Dimensionality Reduction</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">7.3</span><span class="st">Autoencoders</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">7.4</span><span class="st">Density Estimation</span><span class="ck">coming soon</span></li>
+          </ul>
+        </div>
+
+        <div class="topic">
+          <span class="num">08</span>
+          <div>
+            <h3 class="title"><a href="./topics/08-bayesian-methods/">Probabilistic & Bayesian Methods.</a></h3>
+            <p class="topic-sub">Prior, likelihood, posterior, and uncertainty quantification.</p>
+          </div>
+          <span class="when">week 06</span>
+          <ul class="subtopics">
+            <li><span class="sn">8.1</span><span class="st">The Bayesian Worldview</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">8.2</span><span class="st">Bayesian Inference</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">8.3</span><span class="st">Approximate Inference</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">8.4</span><span class="st">Gaussian Processes</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">8.5</span><span class="st">Bayesian Model Comparison</span><span class="ck">coming soon</span></li>
+          </ul>
+        </div>
+
+        <div class="topic">
+          <span class="num">09</span>
+          <div>
+            <h3 class="title"><a href="./topics/09-optimization/">Optimisation.</a></h3>
+            <p class="topic-sub">The algorithms that make learning possible, from gradient descent to Adam and beyond.</p>
+          </div>
+          <span class="when">week 06</span>
+          <ul class="subtopics">
+            <li><span class="sn">9.1</span><span class="st">Loss Surfaces</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">9.2</span><span class="st">Gradient Descent</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">9.3</span><span class="st">Stochastic & Mini-Batch Gradient Descent</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">9.4</span><span class="st">Adaptive & Momentum Methods</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">9.5</span><span class="st">Learning Rate Strategies</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">9.6</span><span class="st">Second-Order Methods</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">9.7</span><span class="st">Gradient-Free Optimisation</span><span class="ck">coming soon</span></li>
+          </ul>
+        </div>
+
+        <div class="topic">
+          <span class="num">10</span>
+          <div>
+            <h3 class="title"><a href="./topics/10-ensemble-methods/">Ensemble & Gradient Boosting Methods.</a></h3>
+            <p class="topic-sub">Combining models to go beyond what any single model can achieve.</p>
+          </div>
+          <span class="when">week 07</span>
+          <ul class="subtopics">
+            <li><span class="sn">10.1</span><span class="st">Why Ensembles?</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">10.2</span><span class="st">Bagging</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">10.3</span><span class="st">Random Forests</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">10.4</span><span class="st">Boosting</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">10.5</span><span class="st">Stacking & Model Blending</span><span class="ck">coming soon</span></li>
+          </ul>
+        </div>
+
+        <div class="topic">
+          <span class="num">11</span>
+          <div>
+            <h3 class="title"><a href="./topics/11-svms-kernels/">Support Vector Machines & Kernel Methods.</a></h3>
+            <p class="topic-sub">Maximum margin classifiers, the kernel trick, and connections to Gaussian processes.</p>
+          </div>
+          <span class="when">week 08</span>
+          <ul class="subtopics">
+            <li><span class="sn">11.1</span><span class="st">Maximum Margin Classification</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">11.2</span><span class="st">Soft Margin SVM</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">11.3</span><span class="st">The Dual Problem & KKT Conditions</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">11.4</span><span class="st">Kernel Methods</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">11.5</span><span class="st">SVMs for Regression</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">11.6</span><span class="st">Limitations & When to Use SVMs</span><span class="ck">coming soon</span></li>
+          </ul>
+        </div>
+
+        <div class="topic">
+          <span class="num">12</span>
+          <div>
+            <h3 class="title"><a href="./topics/12-neural-networks/">Neural Networks & Backpropagation.</a></h3>
+            <p class="topic-sub">From linear models to deep networks: architecture, activations, and the engine of learning.</p>
+          </div>
+          <span class="when">week 09</span>
+          <ul class="subtopics">
+            <li><span class="sn">12.1</span><span class="st">From Linear Models to Neural Networks</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">12.2</span><span class="st">The MLP Architecture</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">12.3</span><span class="st">Activation Functions</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">12.4</span><span class="st">Backpropagation</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">12.5</span><span class="st">Initialisation</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">12.6</span><span class="st">Neural Networks as Feature Learners</span><span class="ck">coming soon</span></li>
+          </ul>
+        </div>
+
+        <div class="topic">
+          <span class="num">13</span>
+          <div>
+            <h3 class="title"><a href="./topics/13-training-deep-networks/">Training Deep Networks.</a></h3>
+            <p class="topic-sub">Normalisation, regularisation, debugging, and the practical craft of training.</p>
+          </div>
+          <span class="when">week 09</span>
+          <ul class="subtopics">
+            <li><span class="sn">13.1</span><span class="st">The Training Loop</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">13.2</span><span class="st">Normalisation</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">13.3</span><span class="st">Regularisation in Deep Networks</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">13.4</span><span class="st">Vanishing & Exploding Gradients</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">13.5</span><span class="st">Learning Rate Strategies</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">13.6</span><span class="st">Practical Training Checklist</span><span class="ck">coming soon</span></li>
+          </ul>
+        </div>
+
+        <div class="topic">
+          <span class="num">14</span>
+          <div>
+            <h3 class="title"><a href="./topics/14-cnns/">Convolutional Neural Networks.</a></h3>
+            <p class="topic-sub">Image recognition from first principles: convolution, pooling, and transfer learning.</p>
+          </div>
+          <span class="when">week 10</span>
+          <ul class="subtopics">
+            <li><span class="sn">14.1</span><span class="st">The Case for Convolution</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">14.2</span><span class="st">The Convolution Operation</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">14.3</span><span class="st">CNN Architectures</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">14.4</span><span class="st">Transfer Learning</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">14.5</span><span class="st">Beyond Classification</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">14.6</span><span class="st">The Limits of CNNs</span><span class="ck">coming soon</span></li>
+          </ul>
+        </div>
+
+        <div class="topic">
+          <span class="num">15</span>
+          <div>
+            <h3 class="title"><a href="./topics/15-sequence-models/">Sequence Models.</a></h3>
+            <p class="topic-sub">From recurrent networks to LSTMs: modelling sequential data and the limits of recurrence.</p>
+          </div>
+          <span class="when">week 11</span>
+          <ul class="subtopics">
+            <li><span class="sn">15.1</span><span class="st">The Sequence Modelling Problem</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">15.2</span><span class="st">Recurrent Neural Networks</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">15.3</span><span class="st">LSTMs & GRUs</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">15.4</span><span class="st">Bidirectional & Deep RNNs</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">15.5</span><span class="st">The Parallelisation Problem</span><span class="ck">coming soon</span></li>
+          </ul>
+        </div>
+
+        <div class="topic">
+          <span class="num">16</span>
+          <div>
+            <h3 class="title"><a href="./topics/16-attention-transformers/">Attention & Transformers.</a></h3>
+            <p class="topic-sub">The transformer architecture: attention, positional encoding, and the O(n²) challenge.</p>
+          </div>
+          <span class="when">week 12</span>
+          <ul class="subtopics">
+            <li><span class="sn">16.1</span><span class="st">The Attention Mechanism</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">16.2</span><span class="st">Multi-Head Attention</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">16.3</span><span class="st">The Transformer Architecture</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">16.4</span><span class="st">Training Transformers</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">16.5</span><span class="st">Scaling & Variants</span><span class="ck">coming soon</span></li>
+          </ul>
+        </div>
+
+        <div class="topic">
+          <span class="num">17</span>
+          <div>
+            <h3 class="title"><a href="./topics/17-llms/">Large Language Models.</a></h3>
+            <p class="topic-sub">Pretraining, fine-tuning, alignment, and the honest limits of what we understand.</p>
+          </div>
+          <span class="when">week 13</span>
+          <ul class="subtopics">
+            <li><span class="sn">17.1</span><span class="st">From Transformers to LLMs</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">17.2</span><span class="st">Pretraining</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">17.3</span><span class="st">Tokenisation</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">17.4</span><span class="st">Fine-tuning & Adaptation</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">17.5</span><span class="st">Alignment & RLHF</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">17.6</span><span class="st">Prompting & In-Context Learning</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">17.7</span><span class="st">Retrieval Augmented Generation</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">17.8</span><span class="st">What We Don't Understand</span><span class="ck">coming soon</span></li>
+          </ul>
+        </div>
+
+        <div class="topic">
+          <span class="num">18</span>
+          <div>
+            <h3 class="title"><a href="./topics/18-generative-models/">Generative Models.</a></h3>
+            <p class="topic-sub">Learning to generate: variational autoencoders, adversarial networks, and diffusion models.</p>
+          </div>
+          <span class="when">week 14</span>
+          <ul class="subtopics">
+            <li><span class="sn">18.1</span><span class="st">The Generative Modelling Problem</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">18.2</span><span class="st">Variational Autoencoders</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">18.3</span><span class="st">Generative Adversarial Networks</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">18.4</span><span class="st">Diffusion Models</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">18.5</span><span class="st">Connections & Comparisons</span><span class="ck">coming soon</span></li>
+          </ul>
+        </div>
+
+        <div class="topic">
+          <span class="num">19</span>
+          <div>
+            <h3 class="title"><a href="./topics/19-reinforcement-learning/">Reinforcement Learning.</a></h3>
+            <p class="topic-sub">Learning through interaction: MDPs, value functions, policy gradients, and the bridge to RLHF.</p>
+          </div>
+          <span class="when">week 15</span>
+          <ul class="subtopics">
+            <li><span class="sn">19.1</span><span class="st">The RL Framework</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">19.2</span><span class="st">Value Functions</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">19.3</span><span class="st">Model-Free Prediction & Control</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">19.4</span><span class="st">Deep Reinforcement Learning</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">19.5</span><span class="st">Policy Gradient Methods</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">19.6</span><span class="st">RL and LLMs</span><span class="ck">coming soon</span></li>
+          </ul>
+        </div>
+
+        <div class="topic">
+          <span class="num">20</span>
+          <div>
+            <h3 class="title"><a href="./topics/20-causal-inference/">Causal Inference.</a></h3>
+            <p class="topic-sub">Making causal claims from data: DAGs, identification strategies, and causal ML.</p>
+          </div>
+          <span class="when">week 16</span>
+          <ul class="subtopics">
+            <li><span class="sn">20.1</span><span class="st">The Limits of Correlation</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">20.2</span><span class="st">Potential Outcomes Framework</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">20.3</span><span class="st">Directed Acyclic Graphs</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">20.4</span><span class="st">Identification Strategies</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">20.5</span><span class="st">Causal ML</span><span class="ck">coming soon</span></li>
+          </ul>
+        </div>
+
+        <div class="topic">
+          <span class="num">21</span>
+          <div>
+            <h3 class="title"><a href="./topics/21-interpretability-fairness/">Interpretability & Fairness.</a></h3>
+            <p class="topic-sub">Understanding what models are doing and ensuring they do it fairly.</p>
+          </div>
+          <span class="when">week 17</span>
+          <ul class="subtopics">
+            <li><span class="sn">21.1</span><span class="st">Why Interpretability Matters</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">21.2</span><span class="st">Local Explanation Methods</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">21.3</span><span class="st">Global Explanation Methods</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">21.4</span><span class="st">Explaining Neural Networks</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">21.5</span><span class="st">Fairness</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">21.6</span><span class="st">The Honest Limits</span><span class="ck">coming soon</span></li>
+          </ul>
+        </div>
+
+        <div class="topic">
+          <span class="num">22</span>
+          <div>
+            <h3 class="title"><a href="./topics/22-scalability-systems/">Scalability & Systems.</a></h3>
+            <p class="topic-sub">Taking models to production: distributed training, efficient inference, and the full ML lifecycle.</p>
+          </div>
+          <span class="when">week 18</span>
+          <ul class="subtopics">
+            <li><span class="sn">22.1</span><span class="st">Why Scale Changes Everything</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">22.2</span><span class="st">Distributed Training</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">22.3</span><span class="st">Efficient Inference</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">22.4</span><span class="st">Data Pipelines</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">22.5</span><span class="st">Deployment & Monitoring</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">22.6</span><span class="st">MLOps</span><span class="ck">coming soon</span></li>
+          </ul>
+        </div>
+      </div>
+    </br>
+      <h2>Extended Reference</h2>
+      <p style="font-family: var(--font-sans); font-size: 14px; color: var(--fg-3); margin: 0 0 20px; line-height: 1.5; max-width: 60ch;">Standalone reference chapters for further reading and dissertation work. Not core curriculum — each is self-contained and can be read independently.</p>
+      <div class="syllabus">
+        <div class="topic">
+          <span class="num">R01</span>
+          <div>
+            <h3 class="title"><a href="./topics/r01-gaussian-processes/">Gaussian Processes in Depth.</a></h3>
+            <p class="topic-sub">Non-parametric Bayesian regression with exact uncertainty quantification.</p>
+          </div>
+          <span class="when">reference</span>
+          <ul class="subtopics">
+            <li><span class="sn">R01.1</span><span class="st">Kernels in Depth</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">R01.2</span><span class="st">Hyperparameter Optimisation</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">R01.3</span><span class="st">GP Classification</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">R01.4</span><span class="st">Sparse GPs</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">R01.5</span><span class="st">Deep Kernel Learning</span><span class="ck">coming soon</span></li>
+          </ul>
+        </div>
+
+        <div class="topic">
+          <span class="num">R02</span>
+          <div>
+            <h3 class="title"><a href="./topics/r02-variational-inference/">Variational Inference.</a></h3>
+            <p class="topic-sub">Approximate Bayesian inference via optimisation: KL divergence, the ELBO, and mean field.</p>
+          </div>
+          <span class="when">reference</span>
+          <ul class="subtopics">
+            <li><span class="sn">R02.1</span><span class="st">KL Divergence</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">R02.2</span><span class="st">The ELBO</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">R02.3</span><span class="st">Mean Field Variational Inference</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">R02.4</span><span class="st">Stochastic Variational Inference</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">R02.5</span><span class="st">More Expressive Variational Families</span><span class="ck">coming soon</span></li>
+          </ul>
+        </div>
+
+        <div class="topic">
+          <span class="num">R03</span>
+          <div>
+            <h3 class="title"><a href="./topics/r03-graph-neural-networks/">Graph Neural Networks.</a></h3>
+            <p class="topic-sub">Convolution generalised from grids to graphs via message passing.</p>
+          </div>
+          <span class="when">reference</span>
+          <ul class="subtopics">
+            <li><span class="sn">R03.1</span><span class="st">Graph Fundamentals</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">R03.2</span><span class="st">Spectral Graph Convolutions</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">R03.3</span><span class="st">Spatial Convolutions & Message Passing</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">R03.4</span><span class="st">Attention on Graphs</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">R03.5</span><span class="st">Graph Level Tasks</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">R03.6</span><span class="st">Limitations & Open Problems</span><span class="ck">coming soon</span></li>
+          </ul>
+        </div>
+
+        <div class="topic">
+          <span class="num">R04</span>
+          <div>
+            <h3 class="title"><a href="./topics/r04-self-supervised-learning/">Self-Supervised & Contrastive Learning.</a></h3>
+            <p class="topic-sub">Learning powerful representations without labels.</p>
+          </div>
+          <span class="when">reference</span>
+          <ul class="subtopics">
+            <li><span class="sn">R04.1</span><span class="st">Pretext Tasks</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">R04.2</span><span class="st">Contrastive Learning</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">R04.3</span><span class="st">Contrastive Architectures</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">R04.4</span><span class="st">Beyond Images</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">R04.5</span><span class="st">Why It Works</span><span class="ck">coming soon</span></li>
+          </ul>
+        </div>
+
+        <div class="topic">
+          <span class="num">R05</span>
+          <div>
+            <h3 class="title"><a href="./topics/r05-bayesian-deep-learning/">Bayesian Deep Learning.</a></h3>
+            <p class="topic-sub">Uncertainty quantification for deep networks: from Laplace approximation to deep ensembles.</p>
+          </div>
+          <span class="when">reference</span>
+          <ul class="subtopics">
+            <li><span class="sn">R05.1</span><span class="st">Laplace Approximation</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">R05.2</span><span class="st">Variational Inference for BNNs</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">R05.3</span><span class="st">Monte Carlo Dropout</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">R05.4</span><span class="st">Deep Ensembles</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">R05.5</span><span class="st">Calibration & Uncertainty Quality</span><span class="ck">coming soon</span></li>
+          </ul>
+        </div>
+
+        <div class="topic">
+          <span class="num">R06</span>
+          <div>
+            <h3 class="title"><a href="./topics/r06-time-series/">Time Series Methods.</a></h3>
+            <p class="topic-sub">Classical and deep learning methods for forecasting, anomaly detection, and classification.</p>
+          </div>
+          <span class="when">reference</span>
+          <ul class="subtopics">
+            <li><span class="sn">R06.1</span><span class="st">The Time Series Setting</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">R06.2</span><span class="st">Classical Methods</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">R06.3</span><span class="st">State Space Models</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">R06.4</span><span class="st">Deep Learning for Time Series</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">R06.5</span><span class="st">Transformers for Time Series</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">R06.6</span><span class="st">Probabilistic Forecasting</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">R06.7</span><span class="st">Anomaly Detection</span><span class="ck">coming soon</span></li>
+          </ul>
+        </div>
+
+        <div class="topic">
+          <span class="num">R07</span>
+          <div>
+            <h3 class="title"><a href="./topics/r07-survival-analysis/">Survival Analysis.</a></h3>
+            <p class="topic-sub">Time-to-event modelling from Kaplan-Meier to deep survival networks.</p>
+          </div>
+          <span class="when">reference</span>
+          <ul class="subtopics">
+            <li><span class="sn">R07.1</span><span class="st">The Survival Setting</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">R07.2</span><span class="st">Nonparametric Methods</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">R07.3</span><span class="st">The Cox Proportional Hazards Model</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">R07.4</span><span class="st">Parametric Survival Models</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">R07.5</span><span class="st">Competing Risks</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">R07.6</span><span class="st">Deep Survival Models</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">R07.7</span><span class="st">Evaluation</span><span class="ck">coming soon</span></li>
+          </ul>
+        </div>
+
+        <div class="topic">
+          <span class="num">R08</span>
+          <div>
+            <h3 class="title"><a href="./topics/r08-multi-task-learning/">Multi-Task & Transfer Learning.</a></h3>
+            <p class="topic-sub">Learning across tasks and domains: multi-task learning, domain adaptation, and meta-learning.</p>
+          </div>
+          <span class="when">reference</span>
+          <ul class="subtopics">
+            <li><span class="sn">R08.1</span><span class="st">The Multi-Task Learning Idea</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">R08.2</span><span class="st">Task Relationships</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">R08.3</span><span class="st">Loss Balancing</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">R08.4</span><span class="st">Transfer Learning Taxonomy</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">R08.5</span><span class="st">Domain Adaptation</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">R08.6</span><span class="st">Meta-Learning</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">R08.7</span><span class="st">Foundation Models as Extreme Transfer</span><span class="ck">coming soon</span></li>
+          </ul>
+        </div>
+
+        <div class="topic">
+          <span class="num">R09</span>
+          <div>
+            <h3 class="title"><a href="./topics/r09-active-learning/">Active Learning.</a></h3>
+            <p class="topic-sub">Intelligent data collection: uncertainty sampling, diversity, and Bayesian query strategies.</p>
+          </div>
+          <span class="when">reference</span>
+          <ul class="subtopics">
+            <li><span class="sn">R09.1</span><span class="st">Uncertainty Sampling</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">R09.2</span><span class="st">Diversity & Representativeness</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">R09.3</span><span class="st">Bayesian Active Learning</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">R09.4</span><span class="st">Batch Active Learning</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">R09.5</span><span class="st">Active Learning for Deep Networks</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">R09.6</span><span class="st">Evaluation</span><span class="ck">coming soon</span></li>
+          </ul>
+        </div>
+
+        <div class="topic">
+          <span class="num">R10</span>
+          <div>
+            <h3 class="title"><a href="./topics/r10-federated-learning/">Federated Learning.</a></h3>
+            <p class="topic-sub">Privacy-preserving distributed learning: FedAvg, heterogeneity, and differential privacy.</p>
+          </div>
+          <span class="when">reference</span>
+          <ul class="subtopics">
+            <li><span class="sn">R10.1</span><span class="st">The Federated Setting</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">R10.2</span><span class="st">FedAvg</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">R10.3</span><span class="st">Statistical Heterogeneity</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">R10.4</span><span class="st">Communication Efficiency</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">R10.5</span><span class="st">Personalised Federated Learning</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">R10.6</span><span class="st">Differential Privacy</span><span class="ck">coming soon</span></li>
+            <li><span class="sn">R10.7</span><span class="st">Attacks & Robustness</span><span class="ck">coming soon</span></li>
           </ul>
         </div>
       </div>
