@@ -56,7 +56,7 @@
   .body li::before { content: counter(note-list, decimal-leading-zero); font-family: var(--font-mono); font-size: 11.5px; color: var(--fg-4); letter-spacing: 0.04em; }
   .chart-card { border: 1px solid var(--rule); border-radius: 8px; background: var(--bg); padding: 18px 18px 16px; margin: 1.4em 0; }
   .chart-card .eyebrow { font-family: var(--font-mono); font-size: 10px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-3); margin-bottom: 4px; }
-  .chart-card h3 { font-family: var(--font-mono); font-size: 14px; font-weight: 600; color: var(--fg); letter-spacing: -0.005em; margin: 0 0 12px; }
+  .chart-card h2 { font-family: var(--font-mono); font-size: 14px; font-weight: 600; color: var(--fg); letter-spacing: -0.005em; margin: 0 0 12px; }
   .chart-frame { height: 260px; }
   .chart-frame canvas { width: 100%; height: 100%; }
   .exercise { border: 1px solid var(--rule); border-left: 3px solid var(--accent); border-radius: 4px; padding: 14px 18px; background: var(--bg-2); margin: 1.4em 0; }
@@ -125,9 +125,173 @@
         subtopic 0.3
       </div>
       <h1>Calculus.</h1>
-      <p class="standfirst"></p>
+      <p class="standfirst">Calculus is the mathematical engine that drives modern deep learning. From optimizing loss functions using gradient descent to backpropagating errors through deep networks, a firm grasp of derivatives, gradients, the chain rule, and Taylor approximations is essential.
+      </p>
 
       <div class="body">
+        <h2>What this note covers</h2>
+        <ul>
+          <li>The 1D derivative and its geometric intuition</li>
+          <li>Partial derivatives and gradients in multiple dimensions</li>
+          <li>The Chain Rule and backpropagation foundations</li>
+          <li>Taylor expansions and their role in optimization</li>
+          <li>A lightweight automatic differentiation engine in Python</li>
+        </ul>
+        <p>For a detailed mathematical treatment, see Chapter 5 of <a href="https://mml-book.github.io/">Mathematics for Machine Learning</a>.</p>
+
+        <h2>The derivative (1D)</h2>
+        <p>At its core, a derivative represents the instantaneous rate of change of a function. Geometrically, the derivative $f'(x)$ of a function $f(x)$ at a point $x$ is the slope of the tangent line to the curve at that point.</p>
+        <p>Mathematically, we define it as the limit of the average rate of change as the interval shrinks to zero:</p>
+        <p>$$ f'(x) = \lim_{h \to 0} \frac{f(x + h) - f(x)}{h} $$</p>
+        <p>Let's look at the quadratic function $f(x) = x^2 - 4x + 5$. Using standard calculus rules, its derivative is given by $f'(x) = 2x - 4$. Below is an interactive plot of this function. You can use the slider to change the point of tangency and observe how the slope of the tangent line changes.</p>
+
+        <figure class="chart-card">
+          <div class="eyebrow">01 &middot; interactive plot</div>
+          <h2>Parabola and Tangent Line</h2>
+          <div class="chart-legend">
+            <span class="item"><span class="swatch swatch--dot" style="background:#2C4A7A"></span><p style="display:inline; margin:0;">$f(x) = x^2 - 4x + 5$</p></span>
+            <span class="item"><span class="swatch" style="background:#6B2C5C"></span>tangent line</span>
+          </div>
+          <div class="chart-frame">
+            <canvas id="derivativeChart" aria-label="Interactive derivative plot" role="img"></canvas>
+          </div>
+          <div style="margin-top: 18px; display: flex; align-items: center; gap: 12px; justify-content: center; background: var(--bg-sunk); padding: 8px 16px; border-radius: 6px; border: 1px solid var(--rule);">
+            <label for="tangentSlider" style="font-family: var(--font-mono); font-size: 13px; color: var(--fg-2); white-space: nowrap;"><p style="display:inline; margin:0;">Point of tangency $x_0$:</p></label>
+            <input type="range" id="tangentSlider" min="0.5" max="3.5" step="0.1" value="3.0" style="flex: 1; accent-color: var(--accent); cursor: pointer;">
+            <span id="tangentValue" style="font-family: var(--font-mono); font-size: 13px; color: var(--fg); min-width: 40px; text-align: right; font-weight: 600;">3.0</span>
+          </div>
+          <figcaption class="chart-caption"><p style="margin:0;"><span class="label">fig 1</span> Move the slider to shift the point of tangency $x_0$. The slope of the line equals $f'(x_0) = 2x_0 - 4$. Notice that at the vertex ($x_0 = 2$), the slope is exactly $0$, corresponding to a local minimum.</p></figcaption>
+        </figure>
+
+        <p>In machine learning, we look for points where the derivative is zero (critical points) to find local minima of loss functions, just like the vertex of the parabola above.</p>
+
+        <h2>Gradients and partial derivatives (N-D)</h2>
+        <p>Deep learning rarely involves functions of a single variable. When a function $f(\mathbf{x})$ depends on a vector of inputs $\mathbf{x} = [x_1, x_2, \dots, x_d]^\top$, we compute the rate of change with respect to one variable at a time while holding all others constant. This is the <strong>partial derivative</strong>, denoted by $\frac{\partial f}{\partial x_i}$.</p>
+        <p>For example, if we have the function $f(x, y) = x^2 + 2y^2$, the partial derivatives are:</p>
+        <p>$$ \frac{\partial f}{\partial x} = 2x \quad \text{and} \quad \frac{\partial f}{\partial y} = 4y $$</p>
+        
+        <p>The <strong>gradient</strong> of a function, denoted by $\nabla f(\mathbf{x})$, is a vector containing all its partial derivatives:</p>
+        <p>$$ \nabla f(\mathbf{x}) = \begin{bmatrix} \frac{\partial f}{\partial x_1} \\ \frac{\partial f}{\partial x_2} \\ \vdots \\ \frac{\partial f}{\partial x_d} \end{bmatrix} $$</p>
+
+        <div class="note important">
+          <span class="tag">important</span>
+          <p>The gradient has a fundamental geometric property: <strong>the gradient vector points in the direction of the steepest ascent</strong> of the function at that point. Its magnitude indicates the rate of increase. Consequently, moving in the opposite direction, $-\nabla f(\mathbf{x})$, gives the direction of steepest descent, which is the basis for gradient descent optimization.</p>
+        </div>
+
+        <h2>The Chain Rule</h2>
+        <p>In deep learning, neural networks are constructed by stacking layers. Mathematically, this means a neural network is a giant composite function. If we have a chain of operations $y = f(u)$ and $u = g(x)$, the derivative of $y$ with respect to $x$ is given by the <strong>chain rule</strong>:</p>
+        <p>$$ \frac{dy}{dx} = \frac{dy}{du} \frac{du}{dx} $$</p>
+        <p>For multi-variable functions, the chain rule scales to sum over all paths. If $z = f(u, v)$ and $u = g(x)$, $v = h(x)$, then:</p>
+        <p>$$ \frac{dz}{dx} = \frac{\partial z}{\partial u}\frac{du}{dx} + \frac{\partial z}{\partial v}\frac{dv}{dx} $$</p>
+
+        <h2>Applying the Chain Rule to a Neuron</h2>
+        <p>Let's look at a concrete deep learning example. Consider a single neuron with input $x$, weight $w$, bias $b$, and sigmoid activation function $\sigma(z) = \frac{1}{1 + e^{-z}}$. The output $a$ is:</p>
+        <p>$$ a = \sigma(z) \quad \text{where} \quad z = wx + b $$</p>
+        <p>We want to find how the output changes with respect to the weight $w$. By the chain rule:</p>
+        <p>$$ \frac{\partial a}{\partial w} = \frac{\partial a}{\partial z} \frac{\partial z}{\partial w} $$</p>
+        <p>First, we compute the derivative of the sigmoid function, which has the elegant property $\sigma'(z) = \sigma(z)(1 - \sigma(z)) = a(1 - a)$. Then, we compute the derivative of $z$ with respect to $w$, which is simply $x$. Substituting these back:</p>
+        <p>$$ \frac{\partial a}{\partial w} = a(1 - a) \cdot x $$</p>
+        <p>This simple calculation is the core building block of the <strong>backpropagation</strong> algorithm used to train deep networks.</p>
+
+        <h2>Taylor Expansions</h2>
+        <p>A Taylor series approximates a complex differentiable function locally around a point $x_0$ using a polynomial. The first-order Taylor approximation (also known as linearization) is given by:</p>
+        <p>$$ f(x) \approx f(x_0) + f'(x_0)(x - x_0) $$</p>
+        <p>In multiple dimensions, this becomes:</p>
+        <p>$$ f(\mathbf{x}) \approx f(\mathbf{x}_0) + \nabla f(\mathbf{x}_0)^\top (\mathbf{x} - \mathbf{x}_0) $$</p>
+        <p>This approximation shows why Gradient Descent works. If we update our position by moving a small step $\eta > 0$ in the negative gradient direction, i.e., setting $\mathbf{x} - \mathbf{x}_0 = -\eta \nabla f(\mathbf{x}_0)$, we get:</p>
+        <p>$$ f(\mathbf{x}_0 - \eta \nabla f(\mathbf{x}_0)) \approx f(\mathbf{x}_0) - \eta \|\nabla f(\mathbf{x}_0)\|^2 < f(\mathbf{x}_0) $$</p>
+        <p>Since the squared norm $\|\nabla f(\mathbf{x}_0)\|^2$ is strictly positive (unless the gradient is zero), this guarantees that our function value decreases for a sufficiently small step size $\eta$.</p>
+
+        <h2>Implementation: Automatic Differentiation</h2>
+        <p>Modern deep learning frameworks like PyTorch and JAX use automatic differentiation (autodiff) to compute gradients. Below is a complete implementation of a lightweight autodiff engine from scratch in Python. It builds a directed acyclic graph (DAG) of operations and performs a backward pass using the chain rule.</p>
+
+        <p>First, let's set up a virtual environment and install dependencies:</p>
+<pre><code class="language-bash">uv venv --python 3.13
+# No external libraries are needed for this core implementation!
+</code></pre>
+        <p>We define a class <code>Var</code> that wraps a value and tracks operations:</p>
+<pre><code class="language-python">class Var:
+    def __init__(self, value, creator=None, op=""):
+        self.value = value
+        self.grad = 0.0
+        self.creator = creator
+        self.op = op
+        self._backward = lambda: None
+
+    def __add__(self, other):
+        other = other if isinstance(other, Var) else Var(other)
+        out = Var(self.value + other.value, creator=(self, other), op="+")
+        
+        def _backward():
+            self.grad += out.grad
+            other.grad += out.grad
+        out._backward = _backward
+        return out
+
+    def __radd__(self, other):
+        return self.__add__(other)
+
+    def __mul__(self, other):
+        other = other if isinstance(other, Var) else Var(other)
+        out = Var(self.value * other.value, creator=(self, other), op="*")
+        
+        def _backward():
+            self.grad += other.value * out.grad
+            other.grad += self.value * out.grad
+        out._backward = _backward
+        return out
+
+    def __rmul__(self, other):
+        return self.__mul__(other)
+
+    def backward(self):
+        # Topological sort to order the nodes for backpropagation
+        topo = []
+        visited = set()
+        
+        def build_topo(v):
+            if v not in visited:
+                visited.add(v)
+                if v.creator:
+                    for child in v.creator:
+                        build_topo(child)
+                topo.append(v)
+                
+        build_topo(self)
+        
+        # Set seed gradient to 1.0 at the output
+        self.grad = 1.0
+        for v in reversed(topo):
+            v._backward()
+
+    def __repr__(self):
+        return f"Var(value={self.value:.4f}, grad={self.grad:.4f})"
+</code></pre>
+
+        <p>Let's verify this engine by computing derivatives of a simple function $y = a \cdot b + c$ with respect to its inputs at $a=3, b=2, c=1$:</p>
+<pre><code class="language-python">if __name__ == "__main__":
+    a = Var(3.0)
+    b = Var(2.0)
+    c = Var(1.0)
+    
+    # Forward pass: y = a * b + c
+    y = a * b + c
+    
+    # Backward pass
+    y.backward()
+    
+    print(f"y: {y.value} (Expected: 7.0)")
+    print(f"dy/da (gradient of a): {a.grad} (Expected: 2.0)")
+    print(f"dy/db (gradient of b): {b.grad} (Expected: 3.0)")
+    print(f"dy/dc (gradient of c): {c.grad} (Expected: 1.0)")
+</code></pre>
+        <p>This prints exactly the values derived analytically. By building a graph of operations and passing gradients backward, the code implements the chain rule automatically!</p>
+
+        <div class="exercise">
+          <span class="tag">exercise &middot; 0.3.1 <b>Extend the Engine</b></span>
+          <p>Add a division operator <code>__truediv__</code> or an activation function (like <code>sigmoid</code> or <code>relu</code>) to the <code>Var</code> class. Derive their local derivatives and verify the correctness of the backward pass.</p>
+        </div>
+        <p>In the next section, we will review probability theory, which allows us to handle uncertainty and frame machine learning objectives as probability distribution matches.</p>
       </div>
 
       <div class="endbar">
@@ -137,6 +301,7 @@
     </article>
   </div>
 </div>
+<script src="./chart.js"></script>
 <script>hljs.highlightAll();</script>
 </body>
 </html>

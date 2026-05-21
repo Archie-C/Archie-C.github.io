@@ -54,10 +54,11 @@
   .body li { counter-increment: note-list; display: grid; grid-template-columns: 44px 1fr; column-gap: 14px; align-items: baseline; padding: 8px 0; border-top: 1px dashed var(--rule); font-family: var(--font-sans); font-size: 14.5px; line-height: 1.5; color: var(--fg-2); }
   .body li:first-child { border-top: 0; }
   .body li::before { content: counter(note-list, decimal-leading-zero); font-family: var(--font-mono); font-size: 11.5px; color: var(--fg-4); letter-spacing: 0.04em; }
+  .body li p { margin: 0; }
   .chart-card { border: 1px solid var(--rule); border-radius: 8px; background: var(--bg); padding: 18px 18px 16px; margin: 1.4em 0; }
   .chart-card .eyebrow { font-family: var(--font-mono); font-size: 10px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-3); margin-bottom: 4px; }
-  .chart-card h3 { font-family: var(--font-mono); font-size: 14px; font-weight: 600; color: var(--fg); letter-spacing: -0.005em; margin: 0 0 12px; }
-  .chart-frame { height: 260px; }
+  .chart-card h2 { font-family: var(--font-mono); font-size: 14px; font-weight: 600; color: var(--fg); letter-spacing: -0.005em; margin: 0 0 12px; }
+  .chart-frame { max-width: 280px; aspect-ratio: 1; margin: 0 auto; }
   .chart-frame canvas { width: 100%; height: 100%; }
   .exercise { border: 1px solid var(--rule); border-left: 3px solid var(--accent); border-radius: 4px; padding: 14px 18px; background: var(--bg-2); margin: 1.4em 0; }
   .exercise .tag { font-family: var(--font-mono); font-size: 11px; color: var(--accent); letter-spacing: 0.06em; text-transform: uppercase; font-weight: 600; }
@@ -125,9 +126,254 @@
         subtopic 0.4
       </div>
       <h1>Probability & Statistics.</h1>
-      <p class="standfirst"></p>
+      <p class="standfirst">Probability theory provides the mathematical language to formalize uncertainty. In deep learning, probability guides how we represent noise, design loss functions, and reason about model confidence.
+      </p>
 
       <div class="body">
+        <h2>What this note covers</h2>
+        <ul>
+          <li>Random variables and probability densities (PDFs, PMFs, and CDFs)</li>
+          <li>Conditional probability, rules of probability, and Bayes' Theorem</li>
+          <li>Maximum Likelihood Estimation (MLE) and Maximum A Posteriori (MAP)</li>
+          <li>Summary statistics: Expectation, Variance, Covariance, and the Covariance Matrix</li>
+          <li>The Multivariate Gaussian and the Reparameterization Trick</li>
+          <li>A Python implementation of Cholesky-based Gaussian sampling</li>
+        </ul>
+        <p>For a detailed treatment, see Chapter 6 of <a href="https://mml-book.github.io/">Mathematics for Machine Learning</a>.</p>
+
+        <h2>Random Variables and Densities</h2>
+        <p>A <strong>random variable</strong> $X$ is a variable whose values are outcomes of a random phenomenon. We distinguish between two main types:</p>
+        <ul>
+          <li>
+            <div>
+            <p><strong>Discrete random variables</strong>: Take on values from a countable set. Their distribution is described by a <strong>Probability Mass Function (PMF)</strong>, denoted $p(x) = P(X = x)$, which must satisfy $\sum_i p(x_i) = 1$.</p>
+            </div>
+          </li>
+          <li>
+            <div>
+            <p><strong>Continuous random variables</strong>: Take on values in a continuous range (like $\mathbb{R}$). Because the probability of a continuous variable taking any single exact value is zero, we describe their distribution using a <strong>Probability Density Function (PDF)</strong>, $p(x)$. The probability that $X$ lies in an interval $[a, b]$ is the integral of the PDF:</p>
+            <p>$$ P(a \le X \le b) = \int_a^b p(x) \, dx $$</p>
+            <p>The PDF must satisfy $p(x) \ge 0$ and $\int_{-\infty}^{\infty} p(x) \, dx = 1$.</p>
+            </div>
+          </li>
+        </ul>
+        <p>For both types, the <strong>Cumulative Distribution Function (CDF)</strong>, $F(x)$, describes the probability that the random variable is less than or equal to $x$:</p>
+        <p>$$ F(x) = P(X \le x) $$</p>
+
+        <div class="note">
+          <span class="tag">connection to deep learning</span>
+          <p>In classification tasks, neural networks output raw real numbers called logits. We convert these logits $\mathbf{z}$ into a discrete probability distribution over classes using the <strong>softmax function</strong>:</p>
+          <p>$$ p(y = i \mid \mathbf{x}) = \frac{e^{z_i}}{\sum_{j=1}^C e^{z_j}} $$</p>
+          <p>This maps the output elements to the interval $(0, 1)$ such that they sum to 1, fulfilling the definition of a PMF.</p>
+        </div>
+
+        <h2>Rules of Probability & Bayes' Theorem</h2>
+        <p>Given two random variables $X$ and $Y$, their relationship is governed by two fundamental rules:</p>
+        <ul>
+          <li>
+            <div>
+            <p><strong>Sum Rule (Marginalization)</strong>: Determines the distribution of a single variable by summing or integrating over the other:</p>
+            <p>$$ p(x) = \int p(x, y) \, dy $$</p>
+            </div>
+          </li>
+          <li>
+            <div>
+            <p><strong>Product Rule</strong>: Relates the joint probability $p(x, y)$ to the conditional probability $p(y \mid x)$:</p>
+            <p>$$ p(x, y) = p(y \mid x) p(x) $$</p>
+            </div>
+          </li>
+        </ul>
+        
+        <p>Combining the product rule and the symmetry of joint probability ($p(x, y) = p(y, x)$) yields <strong>Bayes' Theorem</strong>:</p>
+        <p>$$ p(y \mid x) = \frac{p(x \mid y)p(y)}{p(x)} $$</p>
+        
+        <p>In machine learning, we use Bayes' Theorem to estimate parameters $\boldsymbol{\theta}$ given observed data $\mathcal{D}$:</p>
+        <p>$$ p(\boldsymbol{\theta} \mid \mathcal{D}) = \frac{p(\mathcal{D} \mid \boldsymbol{\theta}) p(\boldsymbol{\theta})}{p(\mathcal{D})} $$</p>
+        <p>We interpret each component as follows:</p>
+        <ul>
+          <li><p><strong>Posterior</strong> $p(\boldsymbol{\theta} \mid \mathcal{D})$: Our updated belief about the parameters after observing the data.</p></li>
+          <li><p><strong>Likelihood</strong> $p(\mathcal{D} \mid \boldsymbol{\theta})$: How likely the observed data is under the parameters.</p></li>
+          <li><p><strong>Prior</strong> $p(\boldsymbol{\theta})$: Our initial belief about the parameters before seeing data.</p></li>
+          <li><p><strong>Evidence</strong> $p(\mathcal{D})$: A normalization constant representing the probability of the data, computed as $\int p(\mathcal{D} \mid \boldsymbol{\theta}) p(\boldsymbol{\theta}) \, d\boldsymbol{\theta}$.</p></li>
+        </ul>
+
+        <div class="note important">
+          <span class="tag">mle vs map</span>
+          <p>Because the evidence $p(\mathcal{D})$ is independent of $\boldsymbol{\theta}$, we can optimize parameters without computing it:</p>
+          <p><strong>Maximum Likelihood Estimation (MLE)</strong>: Maximizes only the likelihood:</p>
+          <p>$$ \boldsymbol{\theta}_{\text{MLE}} = \arg\max_{\boldsymbol{\theta}} \log p(\mathcal{D} \mid \boldsymbol{\theta}) $$</p>
+          <p><strong>Maximum A Posteriori (MAP)</strong>: Includes the prior, acting as a regularizer:</p>
+          <p>$$ \boldsymbol{\theta}_{\text{MAP}} = \arg\max_{\boldsymbol{\theta}} \left[ \log p(\mathcal{D} \mid \boldsymbol{\theta}) + \log p(\boldsymbol{\theta}) \right] $$</p>
+          <p>For instance, assuming a Gaussian prior on weight parameters yields $L_2$ regularization (weight decay).</p>
+        </div>
+
+        <h2>Summary Statistics</h2>
+        <p>Rather than working with entire distributions, we often summarize them using key statistics:</p>
+        <p>The <strong>Expected Value</strong> (or mean) is the average value of a random variable, weighted by its probability:</p>
+        <p>$$ \mathbb{E}[X] = \int x p(x) \, dx $$</p>
+        <p>Expectation is a linear operator: $\mathbb{E}[aX + bY] = a\mathbb{E}[X] + b\mathbb{E}[Y]$.</p>
+
+        <p>The <strong>Variance</strong> measures the spread of the distribution around its mean:</p>
+        <p>$$ \text{Var}[X] = \mathbb{E}\left[ (X - \mathbb{E}[X])^2 \right] = \mathbb{E}[X^2] - (\mathbb{E}[X])^2 $$</p>
+
+        <p>For multiple dimensions, <strong>Covariance</strong> measures how two random variables vary together:</p>
+        <p>$$ \text{Cov}[X, Y] = \mathbb{E}\left[ (X - \mathbb{E}[X])(Y - \mathbb{E}[Y]) \right] $$</p>
+        <p>The covariance of a random vector $\mathbf{x} \in \mathbb{R}^d$ is represented by the symmetric <strong>Covariance Matrix</strong> $\mathbf{\Sigma} \in \mathbb{R}^{d \times d}$:</p>
+        <p>$$ \mathbf{\Sigma} = \mathbb{E}\left[ (\mathbf{x} - \boldsymbol{\mu})(\mathbf{x} - \boldsymbol{\mu})^\top \right] $$</p>
+        <p>where the diagonal entries $\Sigma_{ii}$ represent the variance of each component, and the off-diagonal entries $\Sigma_{ij}$ represent the covariances.</p>
+
+        <h2>The Multivariate Gaussian</h2>
+        <p>The univariate Gaussian distribution $\mathcal{N}(\mu, \sigma^2)$ is parameterized by its mean $\mu$ and variance $\sigma^2$. Scaling to $d$ dimensions, the <strong>Multivariate Gaussian</strong> distribution $\mathcal{N}(\boldsymbol{\mu}, \mathbf{\Sigma})$ has the PDF:</p>
+        <p>$$ p(\mathbf{x}) = \frac{1}{(2\pi)^{d/2} |\mathbf{\Sigma}|^{1/2}} \exp\left( -\frac{1}{2} (\mathbf{x} - \boldsymbol{\mu})^\top \mathbf{\Sigma}^{-1} (\mathbf{x} - \boldsymbol{\mu}) \right) $$</p>
+        <p>where $\boldsymbol{\mu} \in \mathbb{R}^d$ is the mean vector and $\mathbf{\Sigma} \in \mathbb{R}^{d \times d}$ is the symmetric, positive-definite covariance matrix.</p>
+
+        <p>Below is an interactive visualizer representing a 2D Multivariate Gaussian. Drag the sliders to change the mean, standard deviations, and correlation ($\rho$), and observe how the scatter of 500 samples shifts, scales, and rotates. The solid and dashed lines represent the $1\sigma$ and $2\sigma$ standard deviation contour ellipses respectively.</p>
+
+        <figure class="chart-card">
+          <div class="eyebrow">01 &middot; interactive multivariate sampler</div>
+          <h2>2D Gaussian Sampler</h2>
+          <div class="chart-legend">
+            <span class="item"><span class="swatch swatch--dot" style="background:#6B2C5C"></span>samples</span>
+            <span class="item"><span class="swatch" style="background:#2C4A7A"></span>1&sigma; ellipse</span>
+            <span class="item"><span class="swatch swatch--dot" style="background:#2C4A7A; border-style:dashed;"></span>2&sigma; ellipse</span>
+          </div>
+          <div class="chart-frame">
+            <canvas id="gaussianChart" aria-label="Interactive 2D Gaussian density plot" role="img"></canvas>
+          </div>
+          
+          <div style="margin-top: 18px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; background: var(--bg-sunk); padding: 12px; border-radius: 6px; border: 1px solid var(--rule);">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <label for="sliderMuX" style="font-family: var(--font-mono); font-size: 12px; color: var(--fg-2); min-width: 50px;">&mu;ₓ (mean):</label>
+              <input type="range" id="sliderMuX" min="-2.0" max="2.0" step="0.1" value="0.0" style="flex: 1; accent-color: var(--accent); cursor: pointer;">
+              <span id="valMuX" style="font-family: var(--font-mono); font-size: 12px; color: var(--fg); min-width: 30px; text-align: right; font-weight: 600;">0.0</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <label for="sliderMuY" style="font-family: var(--font-mono); font-size: 12px; color: var(--fg-2); min-width: 50px;">&mu;ᵧ (mean):</label>
+              <input type="range" id="sliderMuY" min="-2.0" max="2.0" step="0.1" value="0.0" style="flex: 1; accent-color: var(--accent); cursor: pointer;">
+              <span id="valMuY" style="font-family: var(--font-mono); font-size: 12px; color: var(--fg); min-width: 30px; text-align: right; font-weight: 600;">0.0</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <label for="sliderSigmaX" style="font-family: var(--font-mono); font-size: 12px; color: var(--fg-2); min-width: 50px;">&sigma;ₓ (std):</label>
+              <input type="range" id="sliderSigmaX" min="0.2" max="2.0" step="0.1" value="1.0" style="flex: 1; accent-color: var(--accent); cursor: pointer;">
+              <span id="valSigmaX" style="font-family: var(--font-mono); font-size: 12px; color: var(--fg); min-width: 30px; text-align: right; font-weight: 600;">1.0</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <label for="sliderSigmaY" style="font-family: var(--font-mono); font-size: 12px; color: var(--fg-2); min-width: 50px;">&sigma;ᵧ (std):</label>
+              <input type="range" id="sliderSigmaY" min="0.2" max="2.0" step="0.1" value="1.0" style="flex: 1; accent-color: var(--accent); cursor: pointer;">
+              <span id="valSigmaY" style="font-family: var(--font-mono); font-size: 12px; color: var(--fg); min-width: 30px; text-align: right; font-weight: 600;">1.0</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; grid-column: span 2;">
+              <label for="sliderRho" style="font-family: var(--font-mono); font-size: 12px; color: var(--fg-2); min-width: 50px;">&rho; (correlation):</label>
+              <input type="range" id="sliderRho" min="-0.95" max="0.95" step="0.05" value="0.0" style="flex: 1; accent-color: var(--accent); cursor: pointer;">
+              <span id="valRho" style="font-family: var(--font-mono); font-size: 12px; color: var(--fg); min-width: 30px; text-align: right; font-weight: 600;">0.0</span>
+            </div>
+          </div>
+          <figcaption class="chart-caption"><p style="margin:0;"><span class="label">fig 1</span> Visualizing covariance. Increasing the correlation $\rho$ shears the distribution along the diagonal. The standard deviation sliders stretch the distribution along the axes. Notice how the contour ellipses remain perfectly aligned with the orientation of the sample cloud.</p></figcaption>
+        </figure>
+
+        <h2>The Reparameterization Trick</h2>
+        <p>In deep learning, we often want to train models that output random variables (such as in Variational Autoencoders). However, sampling a value $\mathbf{x} \sim \mathcal{N}(\boldsymbol{\mu}, \mathbf{\Sigma})$ directly is a stochastic node, which means we cannot backpropagate gradients through it because the derivative of a random sample with respect to the parameters ($\boldsymbol{\mu}$ and $\mathbf{\Sigma}$) is undefined.</p>
+        <p>To bypass this, we use the <strong>reparameterization trick</strong>. We isolate the stochasticity by sampling standard normal noise $\mathbf{z} \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$ and then construct $\mathbf{x}$ deterministically:</p>
+        <p>$$ \mathbf{x} = \boldsymbol{\mu} + \mathbf{L}\mathbf{z} $$</p>
+        <p>where $\mathbf{L}$ is the lower-triangular Cholesky factor of the covariance matrix, satisfying $\mathbf{\Sigma} = \mathbf{L}\mathbf{L}^\top$. Because the random node $\mathbf{z}$ has no parameters, the mapping from $\boldsymbol{\mu}$ and $\mathbf{L}$ to $\mathbf{x}$ is completely differentiable, allowing standard backpropagation to flow through!</p>
+
+        <h2>Implementation: Multivariate Sampling</h2>
+        <p>Below is a complete implementation of Multivariate Gaussian sampling using the Box-Muller transform for standard normal noise and Cholesky decomposition. We compute the empirical statistics of 10,000 samples to verify convergence back to the target parameters.</p>
+
+        <p>First, let's set up the environment:</p>
+<pre><code class="language-bash">uv venv --python 3.13
+# We will use numpy to calculate empirical mean and covariance for verification
+uv pip install numpy
+</code></pre>
+
+        <p>We write our sampling and verification script:</p>
+<pre><code class="language-python">import math
+import numpy as np
+
+def box_muller() -> tuple[float, float]:
+    """Generates two independent standard normal samples U1, U2 ~ N(0, 1)."""
+    # Math.random() equivalent in python
+    import random
+    u1 = random.random()
+    u2 = random.random()
+    # Avoid log(0)
+    while u1 == 0.0:
+        u1 = random.random()
+        
+    r = math.sqrt(-2.0 * math.log(u1))
+    theta = 2.0 * math.pi * u2
+    return r * math.cos(theta), r * math.sin(theta)
+
+def cholesky_2d(sigma_x: float, sigma_y: float, rho: float) -> list[list[float]]:
+    """
+    Computes the 2x2 Cholesky factor L for the covariance matrix:
+    [[sigma_x^2,           rho * sigma_x * sigma_y],
+     [rho * sigma_x * sigma_y,           sigma_y^2]]
+    L = [[L11, 0],
+         [L21, L22]]
+    """
+    l11 = sigma_x
+    l21 = rho * sigma_y
+    l22 = sigma_y * math.sqrt(1 - rho * rho)
+    return [[l11, 0.0], [l21, l22]]
+
+def sample_multivariate_gaussian(
+    mu_x: float, mu_y: float, 
+    sigma_x: float, sigma_y: float, 
+    rho: float, num_samples: int
+) -> np.ndarray:
+    """Generates samples from N(mu, Sigma) using Box-Muller and Cholesky."""
+    L = cholesky_2d(sigma_x, sigma_y, rho)
+    samples = []
+    
+    for _ in range(num_samples // 2):
+        # Get two standard normal noise variables
+        z1, z2 = box_muller()
+        
+        # Apply scaling and shift
+        x1 = mu_x + L[0][0] * z1
+        y1 = mu_y + L[1][0] * z1 + L[1][1] * z2
+        
+        x2 = mu_x + L[0][0] * z2
+        y2 = mu_y + L[1][0] * z2 + L[1][1] * z1
+        
+        samples.append([x1, y1])
+        samples.append([x2, y2])
+        
+    return np.array(samples)
+
+if __name__ == "__main__":
+    # Target distribution parameters
+    mu_x, mu_y = 0.5, -1.0
+    sigma_x, sigma_y = 1.5, 0.8
+    rho = 0.6
+    
+    print("Generating 10,000 samples...")
+    samples = sample_multivariate_gaussian(mu_x, mu_y, sigma_x, sigma_y, rho, 10000)
+    
+    # Verify empirical statistics
+    empirical_mean = np.mean(samples, axis=0)
+    empirical_cov = np.cov(samples, rowvar=False)
+    
+    target_cov = np.array([
+        [sigma_x**2, rho * sigma_x * sigma_y],
+        [rho * sigma_x * sigma_y, sigma_y**2]
+    ])
+    
+    print(f"\nTarget Mean:    {[mu_x, mu_y]}")
+    print(f"Empirical Mean: {np.round(empirical_mean, 4).tolist()}")
+    print("\nTarget Covariance:")
+    print(target_cov)
+    print("Empirical Covariance:")
+    print(empirical_cov)
+</code></pre>
+        <p>Executing this script demonstrates that shifting and scaling standard normal variables by the Cholesky factor of the covariance matrix generates sample statistics that converge exactly to their target values!</p>
+
+        <div class="exercise">
+          <span class="tag">exercise &middot; 0.4.1 <b>Diagonal Covariance Reparameterization</b></span>
+          <p>In standard VAE models, the encoder network outputs the mean $\boldsymbol{\mu}$ and the log-variance vector $\log\mathbf{\sigma}^2$ (to ensure positive variances without constraints). Implement a Python helper function that takes $\boldsymbol{\mu}$ and $\log\mathbf{\sigma}^2$ as input tensors (arrays) and generates a reparameterized sample.</p>
+        </div>
+        <p>In the next section, we will review the basic ideas of continuous optimization, which allows us to find parameters that minimize our learning objectives.</p>
       </div>
 
       <div class="endbar">
@@ -137,6 +383,7 @@
     </article>
   </div>
 </div>
+<script src="./chart.js"></script>
 <script>hljs.highlightAll();</script>
 </body>
 </html>

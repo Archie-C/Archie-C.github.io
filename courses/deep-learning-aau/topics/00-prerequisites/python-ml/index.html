@@ -130,15 +130,60 @@
       <div class="body">
         <p>This topic covers the essential Python skills needed for the start of the course. 
           It is not meant to be a complete Python tutorial, if there is anything that needs to be explained in more detail, I emplore you to research it yourself using any websearch or AI tool.</p>
-      <h2>Python and Packages</h2>
+      <h2>Setup</h2>
       <p>
         For the whole course, I will be using <code>uv</code> as the package manager. 
         It's perfectly fine to use alternative package managers if you prefer, such as <code>pip</code> or <code>conda</code>, just be aware you will need to translate any examples into your management workflow.
-        To install <code>uv</code>, you can use the following command:
-        
+        To install <code>uv</code>, you can go to <a href="https://docs.astral.sh/uv/">uv docs</a>.
       </p>
-      
-        </div>
+      <h2>Creating a virtual environment</h2>
+      <p>
+        With uv, creating a virtual environment is very simple.
+        Just run <code>uv venv</code> in the terminal.
+        You can optionally provide a name for the environment, otherwise it defaults to <code>.venv</code>.
+        You can also specify the Python version to use with the <code>--python</code> flag, for example <code>uv venv --python 3.11</code>.
+        You will also need to activate the virtual environment before you can use it.
+      </p>
+      <h2>Matrices and Vectors</h2>
+      <p>
+        I am assuming you are already familiar with basic data structures in Python, such as lists, tuples, dictionaries, and sets.
+        As a reminder, we will use vectors, matrices, and tensors constantly in this course:
+      </p>
+      <pre><code class="language-python">my_vector = [1, 2, 3]                          # 1D
+my_matrix = [[1, 2, 3], [4, 5, 6]]            # 2D
+my_tensor = [[[1, 2], [3, 4]], [[5, 6], [7, 8]]]  # 3D</code></pre>
+      <p>
+        We can index lists using <code>[]</code> and slice them using <code>:</code>.
+      </p>
+      <pre><code class="language-python">my_vector = [1, 2, 3]
+
+my_vector[0]    # 1   (first element)
+my_vector[-1]   # 3   (last element)
+my_vector[0:2]  # [1, 2]
+my_vector[:2]   # [1, 2]
+my_vector[1:]   # [2, 3]</code></pre>
+      </p>
+      <p>
+        We can also use list comprehensions to create new lists based on existing ones.
+      </p>
+      <pre><code class="language-python">my_vector = [1, 2, 3]
+squared = [x**2 for x in my_vector]  # [1, 4, 9]</code></pre>
+      <h2>NumPy</h2>
+      <p>
+        While we can use lists to represent vectors and matrices, it is often more convenient (and more performant) to use the NumPy library.
+      </p>
+        <p>First we must install NumPy:</p>
+        <pre><code class="language-shell">uv pip install numpy</code></pre>
+      <p>We can define a vector, matrix or tensor using a NumPy array in much the same way as before:</p>
+      <pre><code class="language-python">import numpy as np
+
+my_vector = np.array([1, 2, 3])  # 1D array
+my_matrix = np.array([[1, 2, 3], [4, 5, 6]])  # 2D array
+my_tensor = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])  # 3D array</code></pre>
+<p>The line <code>import numpy as np</code> imports the NumPy library and gives it the alias <code>np</code>.</p>
+<p></p>
+
+      </div>
 
       <div class="endbar">
         <span><a href="../../../">back to syllabus</a></span>

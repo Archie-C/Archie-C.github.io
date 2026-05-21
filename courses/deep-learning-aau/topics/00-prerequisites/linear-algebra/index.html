@@ -54,10 +54,11 @@
   .body li { counter-increment: note-list; display: grid; grid-template-columns: 44px 1fr; column-gap: 14px; align-items: baseline; padding: 8px 0; border-top: 1px dashed var(--rule); font-family: var(--font-sans); font-size: 14.5px; line-height: 1.5; color: var(--fg-2); }
   .body li:first-child { border-top: 0; }
   .body li::before { content: counter(note-list, decimal-leading-zero); font-family: var(--font-mono); font-size: 11.5px; color: var(--fg-4); letter-spacing: 0.04em; }
+  .body li p { margin: 0; }
   .chart-card { border: 1px solid var(--rule); border-radius: 8px; background: var(--bg); padding: 18px 18px 16px; margin: 1.4em 0; }
   .chart-card .eyebrow { font-family: var(--font-mono); font-size: 10px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-3); margin-bottom: 4px; }
-  .chart-card h3 { font-family: var(--font-mono); font-size: 14px; font-weight: 600; color: var(--fg); letter-spacing: -0.005em; margin: 0 0 12px; }
-  .chart-frame { height: 260px; }
+  .chart-card h2 { font-family: var(--font-mono); font-size: 14px; font-weight: 600; color: var(--fg); letter-spacing: -0.005em; margin: 0 0 12px; }
+  .chart-frame { max-width: 280px; aspect-ratio: 1; margin: 0 auto; }
   .chart-frame canvas { width: 100%; height: 100%; }
   .exercise { border: 1px solid var(--rule); border-left: 3px solid var(--accent); border-radius: 4px; padding: 14px 18px; background: var(--bg-2); margin: 1.4em 0; }
   .exercise .tag { font-family: var(--font-mono); font-size: 11px; color: var(--accent); letter-spacing: 0.06em; text-transform: uppercase; font-weight: 600; }
@@ -125,9 +126,235 @@
         subtopic 0.2
       </div>
       <h1>Linear Algebra.</h1>
-      <p class="standfirst"></p>
+      <p class="standfirst">Linear algebra is the language of modern machine learning. In deep learning, almost all data, parameters, and operations are represented as vectors and matrices. Understanding how these elements behave and warp space is essential for understanding what neural networks are actually doing.</p>
 
       <div class="body">
+        <h2>What this note covers</h2>
+        <ul>
+          <li>Vectors and similarity via dot products</li>
+          <li>Matrices as linear transformations and warping space</li>
+          <li>Eigenvalues, eigenvectors, and spectral decomposition</li>
+          <li>A Python implementation of Power Iteration using NumPy</li>
+        </ul>
+        <p>For a complete reference, see Chapter 2 of <a href="https://mml-book.github.io/">Mathematics for Machine Learning</a>.</p>
+
+        <h2>Vectors and Similarity</h2>
+        <p>A vector $\mathbf{x} \in \mathbb{R}^d$ represents a point or a directional arrow in a $d$-dimensional space. We write vectors as column vectors of their components:</p>
+        <p>$$ \mathbf{x} = \begin{bmatrix} x_1 \\ x_2 \\ \vdots \\ x_d \end{bmatrix} $$</p>
+        <p>In machine learning, vectors are used to represent data points, embeddings, or parameters. To measure the relationship between two vectors $\mathbf{u}, \mathbf{v} \in \mathbb{R}^d$, we compute their <strong>dot product</strong> (or inner product):</p>
+        <p>$$ \mathbf{u}^\top \mathbf{v} = \sum_{i=1}^d u_i v_i $$</p>
+        <p>Geometrically, the dot product is related to the lengths of the vectors and the angle $\theta$ between them:</p>
+        <p>$$ \mathbf{u}^\top \mathbf{v} = \|\mathbf{u}\|_2 \|\mathbf{v}\|_2 \cos\theta $$</p>
+        <p>where $\|\mathbf{u}\|_2 = \sqrt{\mathbf{u}^\top \mathbf{u}}$ is the Euclidean norm ($L_2$ norm) of the vector.</p>
+        
+        <div class="note important">
+          <span class="tag">important</span>
+          <p>The dot product is the mathematical core of similarity measurement in deep learning. For example, in the <strong>self-attention mechanism</strong> of Transformers (like GPT and BERT), the similarity between queries and keys is calculated using a scaled dot product: $\mathbf{q}^\top \mathbf{k} / \sqrt{d_k}$.</p>
+        </div>
+
+        <h2>Matrices as Linear Transformations</h2>
+        <p>An $n \times d$ matrix $\mathbf{A} \in \mathbb{R}^{n \times d}$ is a rectangular grid of numbers. While we can view a matrix as a table of data, in linear algebra, a matrix represents a <strong>linear transformation</strong> that maps vectors from a $d$-dimensional space to an $n$-dimensional space:</p>
+        <p>$$ \mathbf{y} = \mathbf{A}\mathbf{x} $$</p>
+        <p>Under this view, matrix multiplication is not just a formula to memorize, but a geometric operation that rotates, scales, shears, or reflects space. The columns of the matrix $\mathbf{A}$ describe where the standard basis vectors land after the transformation.</p>
+
+        <p>Let's look at a 2D example. We can represent any 2D transformation using a matrix:</p>
+        <p>$$ \mathbf{A} = \begin{bmatrix} a & b \\ c & d \end{bmatrix} $$</p>
+        <p>Below is an interactive visualization. The solid blue shape represents a unit square in the original coordinate system. The dotted pink shape represents how that square is deformed by the matrix $\mathbf{A}$. Drag the sliders to change the matrix coefficients and observe how space is warped.</p>
+
+        <figure class="chart-card">
+          <div class="eyebrow">01 &middot; interactive linear map</div>
+          <h2>2D Linear Transformation</h2>
+          <div class="chart-legend">
+            <span class="item"><span class="swatch swatch--dot" style="background:#2C4A7A"></span>original unit square</span>
+            <span class="item"><span class="swatch swatch--dot" style="background:#6B2C5C"></span>transformed shape</span>
+          </div>
+          <div class="chart-frame">
+            <canvas id="matrixChart" aria-label="Interactive 2D matrix transformation plot" role="img"></canvas>
+          </div>
+          
+          <div style="margin-top: 18px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; background: var(--bg-sunk); padding: 12px; border-radius: 6px; border: 1px solid var(--rule);">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <label for="sliderA" style="font-family: var(--font-mono); font-size: 12px; color: var(--fg-2); min-width: 50px;">a (x-scale):</label>
+              <input type="range" id="sliderA" min="-2.0" max="2.0" step="0.1" value="1.0" style="flex: 1; accent-color: var(--accent); cursor: pointer;">
+              <span id="valA" style="font-family: var(--font-mono); font-size: 12px; color: var(--fg); min-width: 30px; text-align: right; font-weight: 600;">1.0</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <label for="sliderB" style="font-family: var(--font-mono); font-size: 12px; color: var(--fg-2); min-width: 50px;">b (x-shear):</label>
+              <input type="range" id="sliderB" min="-2.0" max="2.0" step="0.1" value="0.5" style="flex: 1; accent-color: var(--accent); cursor: pointer;">
+              <span id="valB" style="font-family: var(--font-mono); font-size: 12px; color: var(--fg); min-width: 30px; text-align: right; font-weight: 600;">0.5</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <label for="sliderC" style="font-family: var(--font-mono); font-size: 12px; color: var(--fg-2); min-width: 50px;">c (y-shear):</label>
+              <input type="range" id="sliderC" min="-2.0" max="2.0" step="0.1" value="0.0" style="flex: 1; accent-color: var(--accent); cursor: pointer;">
+              <span id="valC" style="font-family: var(--font-mono); font-size: 12px; color: var(--fg); min-width: 30px; text-align: right; font-weight: 600;">0.0</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <label for="sliderD" style="font-family: var(--font-mono); font-size: 12px; color: var(--fg-2); min-width: 50px;">d (y-scale):</label>
+              <input type="range" id="sliderD" min="-2.0" max="2.0" step="0.1" value="1.0" style="flex: 1; accent-color: var(--accent); cursor: pointer;">
+              <span id="valD" style="font-family: var(--font-mono); font-size: 12px; color: var(--fg); min-width: 30px; text-align: right; font-weight: 600;">1.0</span>
+            </div>
+          </div>
+          
+          <figcaption class="chart-caption"><p style="margin:0;"><span class="label">fig 1</span> Warping 2D space. The transformed shape is defined by mapping the vertices of the unit square through the matrix $\mathbf{A} = \begin{bmatrix} a & b \\ c & d \end{bmatrix}$. Try setting $b = 1.0, c = 0.0$ to see a horizontal shear transformation.</p></figcaption>
+        </figure>
+
+        <h2>Solving Systems of Linear Equations</h2>
+        <p>In machine learning, we frequently need to solve systems of linear equations. A system of equations can be written compactly in matrix-vector form:</p>
+        <p>$$ \mathbf{A}\mathbf{x} = \mathbf{b} $$</p>
+        <p>where $\mathbf{A} \in \mathbb{R}^{n \times d}$ is the coefficient matrix, $\mathbf{b} \in \mathbb{R}^n$ is the target vector, and $\mathbf{x} \in \mathbb{R}^d$ is the unknown vector we want to find. Geometrically, solving this system means finding the vector $\mathbf{x}$ that maps exactly to $\mathbf{b}$ under the transformation $\mathbf{A}$.</p>
+
+        <h2>Gaussian Elimination</h2>
+        <p><strong>Gaussian elimination</strong> is an algorithmic method for solving systems of linear equations. It operates on the <strong>augmented matrix</strong> $[\mathbf{A} \mid \mathbf{b}]$, which places the coefficients and the target vector side-by-side in a single grid. The method uses three types of <strong>elementary row operations</strong> to simplify the matrix without changing the solution set:</p>
+        <ol>
+          <li><p>Swap two rows ($R_i \leftrightarrow R_j$).</p></li>
+          <li><p>Multiply a row by a non-zero scalar ($R_i \leftarrow c R_i$).</p></li>
+          <li><p>Add or subtract a multiple of one row to another ($R_i \leftarrow R_i + c R_j$).</p></li>
+        </ol>
+        <p>The goal is to transform $[\mathbf{A} \mid \mathbf{b}]$ into <strong>Row Echelon Form</strong> (upper triangular) or <strong>Reduced Row Echelon Form</strong> (where all leading entries are 1 and columns containing leading entries have zeros elsewhere). Once in this form, we can find the values of $\mathbf{x}$ using <strong>back-substitution</strong>.</p>
+
+        <h2>A Step-by-Step Example</h2>
+        <p>Let's solve the system of equations:</p>
+        <p>$$ \begin{aligned} 2x_1 + x_2 &= 8 \\ x_1 + 3x_2 &= 9 \end{aligned} $$</p>
+        <p>Written in matrix form, this is:</p>
+        <p>$$ \begin{bmatrix} 2 & 1 \\ 1 & 3 \end{bmatrix} \begin{bmatrix} x_1 \\ x_2 \end{bmatrix} = \begin{bmatrix} 8 \\ 9 \end{bmatrix} $$</p>
+        
+        <p>We write this as the augmented matrix:</p>
+        <p>$$ \left[ \begin{array}{cc|c} 2 & 1 & 8 \\ 1 & 3 & 9 \end{array} \right] $$</p>
+
+        <p><strong>Step 1: Swap rows to get a leading 1 in Row 1 ($R_1 \leftrightarrow R_2$):</strong></p>
+        <p>$$ \left[ \begin{array}{cc|c} 1 & 3 & 9 \\ 2 & 1 & 8 \end{array} \right] $$</p>
+
+        <p><strong>Step 2: Eliminate the entry below the first pivot by subtracting 2 times Row 1 from Row 2 ($R_2 \leftarrow R_2 - 2R_1$):</strong></p>
+        <p>$$ \left[ \begin{array}{cc|c} 1 & 3 & 9 \\ 0 & 1 - 2(3) & 8 - 2(9) \end{array} \right] = \left[ \begin{array}{cc|c} 1 & 3 & 9 \\ 0 & -5 & -10 \end{array} \right] $$</p>
+
+        <p><strong>Step 3: Normalize Row 2 by dividing by $-5$ ($R_2 \leftarrow -\frac{1}{5} R_2$):</strong></p>
+        <p>$$ \left[ \begin{array}{cc|c} 1 & 3 & 9 \\ 0 & 1 & 2 \end{array} \right] $$</p>
+        
+        <p>Now the matrix is in Row Echelon Form. We solve for the unknowns using back-substitution:</p>
+        <ul>
+          <li><p>From Row 2: $x_2 = 2$.</p></li>
+          <li><p>From Row 1: $x_1 + 3x_2 = 9 \implies x_1 + 3(2) = 9 \implies x_1 = 3$.</p></li>
+        </ul>
+        <p>Thus, the unique solution is $\mathbf{x} = \begin{bmatrix} 3 \\ 2 \end{bmatrix}$.</p>
+
+        <div class="note">
+          <span class="tag">connection to eigenvectors</span>
+          <p>When finding eigenvectors, we solve the homogeneous system $(\mathbf{A} - \lambda \mathbf{I})\mathbf{v} = \mathbf{0}$. Since the right side is the zero vector $\mathbf{0}$, row operations do not affect the target column. Therefore, we perform row operations directly on the singular matrix $(\mathbf{A} - \lambda \mathbf{I})$. Because the matrix is singular, one of the rows will reduce to all zeros, leading to a "free variable" which allows us to parameterize the eigenvector direction.</p>
+        </div>
+
+        <h2>Eigenvalues and Eigenvectors</h2>
+        <p>For a square matrix $\mathbf{A} \in \mathbb{R}^{d \times d}$, some vectors do not change direction when multiplied by $\mathbf{A}$; they are only stretched, shrunk, or flipped. These special directions are <strong>eigenvectors</strong>, and the factor by which they scale is the corresponding <strong>eigenvalue</strong> $\lambda$:</p>
+        <p>$$ \mathbf{A}\mathbf{v} = \lambda \mathbf{v} \quad \text{for } \mathbf{v} \neq \mathbf{0} $$</p>
+
+        <p>If a matrix $\mathbf{A}$ is symmetric (i.e. $\mathbf{A} = \mathbf{A}^\top$), its eigenvectors are orthogonal to each other. This allows us to decompose the matrix into a product of its eigenvectors and eigenvalues, known as the <strong>Spectral Decomposition</strong> (or Eigendecomposition):</p>
+        <p>$$ \mathbf{A} = \mathbf{Q} \mathbf{\Lambda} \mathbf{Q}^\top $$</p>
+        <p>where $\mathbf{Q}$ is an orthogonal matrix whose columns are the orthonormal eigenvectors of $\mathbf{A}$, and $\mathbf{\Lambda}$ is a diagonal matrix containing the eigenvalues $\lambda_i$.</p>
+
+        <h2>Analytical Method: Solving by Hand</h2>
+        <p>To find the eigenvalues and eigenvectors of a matrix analytically, we rewrite the eigenvalue equation as a homogeneous system of linear equations:</p>
+        <p>$$ (\mathbf{A} - \lambda \mathbf{I})\mathbf{v} = \mathbf{0} $$</p>
+        <p>where $\mathbf{I}$ is the identity matrix. For a non-trivial solution ($\mathbf{v} \neq \mathbf{0}$), the matrix $(\mathbf{A} - \lambda \mathbf{I})$ must not be invertible, which means its determinant must be zero. This gives us the <strong>characteristic equation</strong>:</p>
+        <p>$$ \det(\mathbf{A} - \lambda \mathbf{I}) = 0 $$</p>
+        <p>Solving this determinant equation yields a polynomial of degree $d$ (the characteristic polynomial) whose roots are the eigenvalues $\lambda_i$. Once we have the eigenvalues, we substitute each $\lambda_i$ back into the system $(\mathbf{A} - \lambda_i \mathbf{I})\mathbf{v} = \mathbf{0}$ and solve for the corresponding eigenvectors $\mathbf{v}_i$ using Gaussian elimination or simple algebra.</p>
+
+        <h2>A Step-by-Step Example</h2>
+        <p>Let's find the eigenvalues and eigenvectors of the symmetric matrix:</p>
+        <p>$$ \mathbf{A} = \begin{bmatrix} 3 & 1 \\ 1 & 3 \end{bmatrix} $$</p>
+        
+        <p><strong>1. Find the eigenvalues:</strong> We set up and solve the characteristic equation:</p>
+        <p>$$ \det(\mathbf{A} - \lambda \mathbf{I}) = \det\begin{bmatrix} 3 - \lambda & 1 \\ 1 & 3 - \lambda \end{bmatrix} = 0 $$</p>
+        <p>$$ (3 - \lambda)^2 - 1 = 0 \implies \lambda^2 - 6\lambda + 8 = 0 $$</p>
+        <p>Factoring the quadratic equation gives $(\lambda - 4)(\lambda - 2) = 0$, which yields the eigenvalues:</p>
+        <p>$$ \lambda_1 = 4 \quad \text{and} \quad \lambda_2 = 2 $$</p>
+
+        <p><strong>2. Find the eigenvectors:</strong></p>
+        <ul>
+          <li>
+            <div>
+            <p>For $\lambda_1 = 4$, we solve $(\mathbf{A} - 4\mathbf{I})\mathbf{v}_1 = \mathbf{0}$:</p>
+            <p>$$ \begin{bmatrix} -1 & 1 \\ 1 & -1 \end{bmatrix} \begin{bmatrix} v_{1,1} \\ v_{1,2} \end{bmatrix} = \begin{bmatrix} 0 \\ 0 \end{bmatrix} \implies -v_{1,1} + v_{1,2} = 0 \implies v_{1,1} = v_{1,2} $$</p>
+            <p>This gives the eigenvector $\mathbf{v}_1 = \begin{bmatrix} 1 \\ 1 \end{bmatrix}$. Normalizing it to unit length: $\mathbf{v}_1 = \frac{1}{\sqrt{2}} \begin{bmatrix} 1 \\ 1 \end{bmatrix}$.</p>
+            </div>
+          </li>
+          <li>
+            <div>
+            <p>For $\lambda_2 = 2$, we solve $(\mathbf{A} - 2\mathbf{I})\mathbf{v}_2 = \mathbf{0}$:</p>
+            <p>$$ \begin{bmatrix} 1 & 1 \\ 1 & 1 \end{bmatrix} \begin{bmatrix} v_{2,1} \\ v_{2,2} \end{bmatrix} = \begin{bmatrix} 0 \\ 0 \end{bmatrix} \implies v_{2,1} + v_{2,2} = 0 \implies v_{2,2} = -v_{2,1} $$</p>
+            <p>This gives the eigenvector $\mathbf{v}_2 = \begin{bmatrix} 1 \\ -1 \end{bmatrix}$. Normalizing it to unit length: $\mathbf{v}_2 = \frac{1}{\sqrt{2}} \begin{bmatrix} 1 \\ -1 \end{bmatrix}$.</p>
+            </div>
+          </li>
+        </ul>
+        <p>Notice that because $\mathbf{A}$ is symmetric, the eigenvectors are orthogonal to each other ($\mathbf{v}_1^\top \mathbf{v}_2 = 0$). We can construct the orthogonal matrix $\mathbf{Q}$ and diagonal matrix $\mathbf{\Lambda}$ to verify the Spectral Decomposition:</p>
+        <p>$$ \mathbf{Q}\mathbf{\Lambda}\mathbf{Q}^\top = \left(\frac{1}{\sqrt{2}}\begin{bmatrix} 1 & 1 \\ 1 & -1 \end{bmatrix}\right) \begin{bmatrix} 4 & 0 \\ 0 & 2 \end{bmatrix} \left(\frac{1}{\sqrt{2}}\begin{bmatrix} 1 & 1 \\ 1 & -1 \end{bmatrix}\right) = \begin{bmatrix} 3 & 1 \\ 1 & 3 \end{bmatrix} = \mathbf{A} $$</p>
+
+        <div class="note important">
+          <span class="tag">important</span>
+          <p>Eigendecomposition is the mathematical foundation of <strong>Principal Component Analysis (PCA)</strong>. In PCA, we compute the covariance matrix $\mathbf{\Sigma} = \frac{1}{n} \mathbf{X}^\top \mathbf{X}$ of our data. The eigenvectors of $\mathbf{\Sigma}$ correspond to the directions of maximum variance in the data, allowing us to perform dimensionality reduction by projecting onto the principal axes.</p>
+        </div>
+
+        <h2>Why Hand Calculation Fails in Deep Learning</h2>
+        <p>Although solving eigendecompositions analytically is elegant for $2 \times 2$ matrices, it fails in practical machine learning for two reasons:</p>
+        <ul>
+          <li><p><strong>Polynomial unsolvability</strong>: The Abel-Ruffini theorem proves that there is no general algebraic solution (using radicals) for roots of polynomials of degree $d \ge 5$. Since matrices in deep learning routinely have thousands or millions of dimensions, we cannot solve their characteristic equations analytically.</p></li>
+          <li><p><strong>Computational complexity</strong>: Computing a determinant scales as $\mathcal{O}(d^3)$ or $\mathcal{O}(d!)$, which is prohibitively expensive for large datasets.</p></li>
+        </ul>
+        <p>Consequently, we rely on iterative <strong>numerical linear algebra</strong> methods that approximate eigenvalues and eigenvectors. The most fundamental of these is the Power Iteration algorithm.</p>
+
+        <h2>Implementation: Power Iteration</h2>
+        <p>While libraries like NumPy provide direct solvers (`np.linalg.eig`), numerical solvers often calculate eigenvectors iteratively. One of the most famous iterative algorithms is the <strong>Power Iteration</strong> method, which finds the principal eigenvalue (the eigenvalue with the largest absolute value) and its corresponding eigenvector.</p>
+
+        <p>Here is an implementation of matrix multiplication and the Power Iteration algorithm using NumPy:</p>
+<pre><code class="language-python">import numpy as np
+
+def matrix_vector_multiply(A: np.ndarray, x: np.ndarray) -> np.ndarray:
+    """Computes the matrix-vector product Ax."""
+    return np.dot(A, x)
+
+def power_iteration(A: np.ndarray, num_steps: int = 100) -> tuple[float, np.ndarray]:
+    """
+    Finds the dominant eigenvalue and corresponding eigenvector of A.
+    A must be a square matrix.
+    """
+    n = A.shape[0]
+    # Initialize a random vector
+    v = np.random.rand(n)
+    v = v / np.linalg.norm(v)  # Normalize
+    
+    for _ in range(num_steps):
+        # Multiply by A to stretch along dominant directions
+        v_next = matrix_vector_multiply(A, v)
+        
+        # Normalize to prevent values from exploding or vanishing
+        v = v_next / np.linalg.norm(v_next)
+        
+    # Rayleigh quotient to calculate the eigenvalue
+    eigenvalue = float(np.dot(v, matrix_vector_multiply(A, v)) / np.dot(v, v))
+    return eigenvalue, v
+
+if __name__ == "__main__":
+    # Define a symmetric matrix
+    A = np.array([
+        [3.0, 1.0],
+        [1.0, 3.0]
+    ])
+    
+    val, vec = power_iteration(A)
+    
+    print("Estimated dominant eigenvalue:", round(val, 4))
+    print("Estimated dominant eigenvector:", np.round(vec, 4))
+    
+    # Verify using NumPy's built-in solver
+    true_vals, true_vecs = np.linalg.eig(A)
+    dominant_idx = np.argmax(np.abs(true_vals))
+    print("True dominant eigenvalue:", round(true_vals[dominant_idx], 4))
+    print("True dominant eigenvector:", np.round(true_vecs[:, dominant_idx], 4))
+</code></pre>
+
+        <div class="exercise">
+          <span class="tag">exercise &middot; 0.2.1 <b>Eigendecomposition Deflation</b></span>
+          <p>Once you have found the dominant eigenvalue $\lambda_1$ and eigenvector $\mathbf{v}_1$ of a symmetric matrix $\mathbf{A}$, you can "subtract" it out using the deflation formula $\mathbf{A}_{\text{sub}} = \mathbf{A} - \lambda_1 \mathbf{v}_1 \mathbf{v}_1^\top$. Implement deflation and use Power Iteration on the resulting matrix to find the second largest eigenvalue and eigenvector.</p>
+        </div>
+        <p>In the next section, we will review multi-variable calculus, which allows us to optimize functions in high-dimensional spaces.</p>
       </div>
 
       <div class="endbar">
@@ -137,6 +364,7 @@
     </article>
   </div>
 </div>
+<script src="./chart.js"></script>
 <script>hljs.highlightAll();</script>
 </body>
 </html>
