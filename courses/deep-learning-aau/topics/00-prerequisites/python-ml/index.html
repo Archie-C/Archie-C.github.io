@@ -181,8 +181,86 @@ my_vector = np.array([1, 2, 3])  # 1D array
 my_matrix = np.array([[1, 2, 3], [4, 5, 6]])  # 2D array
 my_tensor = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])  # 3D array</code></pre>
 <p>The line <code>import numpy as np</code> imports the NumPy library and gives it the alias <code>np</code>.</p>
-<p></p>
 
+        <h2>Element-wise Operations vs. Matrix Multiplication</h2>
+        <p>In NumPy, standard mathematical operators (<code>+</code>, <code>-</code>, <code>*</code>, <code>/</code>) perform <strong>element-wise</strong> operations. If you multiply two arrays of the same shape, NumPy performs the Hadamard product (multiplying corresponding elements):</p>
+        <pre><code class="language-python">import numpy as np
+
+A = np.array([[1, 2], [3, 4]])
+B = np.array([[2, 0], [1, 2]])
+
+# Element-wise multiplication
+print(A * B)
+# Output:
+# [[2 0]
+#  [3 8]]</code></pre>
+        <p>To perform actual <strong>matrix multiplication</strong> (dot product), you use the <code>@</code> operator or the <code>np.dot()</code> function:</p>
+        <pre><code class="language-python"># Matrix multiplication (dot product)
+print(A @ B)
+# Output:
+# [[ 4  4]
+#  [10  8]]</code></pre>
+
+        <h2>Broadcasting</h2>
+        <p>NumPy's <strong>broadcasting</strong> rule allows arithmetic operations to be performed on arrays of different shapes. For example, if you want to add a 1D vector to a 2D matrix, NumPy will implicitly "stretch" or replicate the vector across the missing dimensions so that their shapes match:</p>
+        <pre><code class="language-python">matrix = np.array([[1, 2, 3], [4, 5, 6]])  # Shape: (2, 3)
+vector = np.array([1, 0, 1])               # Shape: (3,)
+
+# The vector is added to each row of the matrix
+print(matrix + vector)
+# Output:
+# [[2 2 4]
+#  [5 5 7]]</code></pre>
+        <p>Two dimensions are compatible for broadcasting if they are equal, or if one of them is $1$. If they do not match, NumPy will raise a value error.</p>
+
+        <h2>Reshaping and Adding Axes</h2>
+        <p>Changing the dimensions of arrays is extremely common when preparing inputs for a model. You can change an array's shape using <code>.reshape()</code>, or add a new dimension of size $1$ using <code>np.newaxis</code> or <code>np.expand_dims()</code>:</p>
+        <pre><code class="language-python">arr = np.array([1, 2, 3, 4])  # Shape: (4,)
+
+# Reshape into a 2x2 matrix
+matrix = arr.reshape(2, 2)    # Shape: (2, 2)
+
+# Convert 1D vector to a 2D column vector (4 rows, 1 column)
+col_vector = arr[:, np.newaxis]  # Shape: (4, 1)
+
+# Convert 1D vector to a 2D row vector (1 row, 4 columns)
+row_vector = arr[np.newaxis, :]  # Shape: (1, 4)</code></pre>
+
+        <h2>Reductions along Axes</h2>
+        <p>Reduction operations like <code>np.sum()</code>, <code>np.mean()</code>, or <code>np.argmax()</code> collapse dimensions. By default, they reduce the entire array to a single scalar. However, you can specify the <code>axis</code> parameter to reduce along a specific dimension:</p>
+        <ul>
+          <li>
+            <div>
+            <p><strong><code>axis=0</code> (Columns)</strong>: Collapses the rows, performing the operation vertically. For a 2D array of shape $(M, N)$, reducing along axis 0 yields a 1D array of shape $(N,)$.</p>
+            </div>
+          </li>
+          <li>
+            <div>
+            <p><strong><code>axis=1</code> (Rows)</strong>: Collapses the columns, performing the operation horizontally. For a 2D array of shape $(M, N)$, reducing along axis 1 yields a 1D array of shape $(M,)$.</p>
+            </div>
+          </li>
+        </ul>
+        <pre><code class="language-python">X = np.array([[1, 2, 3],
+              [4, 5, 6]])
+
+# Sum down the columns (vertical sum)
+print(np.sum(X, axis=0))  # Output: [5 7 9]
+
+# Sum across the rows (horizontal sum)
+print(np.sum(X, axis=1))  # Output: [6 15]</code></pre>
+
+        <div class="exercise">
+          <span class="tag">exercise &middot; 0.7.1 <strong>NumPy Softmax Challenge</strong></span>
+          <p>The softmax function is a core operation in deep learning used to turn raw logits into probability distributions. For a vector $\mathbf{s}$, the softmax is defined as:</p>
+          <p>$$ P_i = \frac{e^{s_i}}{\sum_{j} e^{s_j}} $$</p>
+          <p>To prevent numerical overflow when computing exponents of large values, we perform the <strong>subtraction trick</strong>: subtract the maximum value of the inputs before computing the exponent: $s_i - \max(\mathbf{s})$. This does not change the mathematical output but prevents values from overflowing to infinity.</p>
+          <p>1. Given a 2D numpy array of raw scores representing a batch of 3 samples with 4 class logits each:</p>
+          <pre><code class="language-python">logits = np.array([[1.0, 2.0, 3.0, 4.0],
+                   [2.0, 4.0, 6.0, 8.0],
+                   [5.0, 5.0, 5.0, 5.0]])</code></pre>
+          <p>2. Find the maximum value in each row using <code>np.max()</code> with the correct axis, and keep its dimensions using <code>keepdims=True</code> so that the shape remains $(3, 1)$ for broadcasting.</p>
+          <p>3. Subtract this maximum row-wise from the logits, exponentiate the resulting array using <code>np.exp()</code>, and normalize the exponents row-wise by dividing each row by its sum to get the softmax probabilities.</p>
+        </div>
       </div>
 
       <div class="endbar">

@@ -125,9 +125,168 @@
         subtopic 0.6
       </div>
       <h1>Information Theory.</h1>
-      <p class="standfirst"></p>
+      <p class="standfirst">Information theory provides the framework for quantifying information, uncertainty, and the similarity between probability distributions. In deep learning, it gives us the mathematical foundations for training objectives, such as the cross-entropy loss used in classification.
+      </p>
 
       <div class="body">
+        <h2>What this note covers</h2>
+        <ul>
+          <li>
+            <div>
+            <p>Self-information as a measure of surprise</p>
+            </div>
+          </li>
+          <li>
+            <div>
+            <p>Shannon Entropy as the expected surprise of a distribution</p>
+            </div>
+          </li>
+          <li>
+            <div>
+            <p>Kullback-Leibler (KL) Divergence (Relative Entropy) and its asymmetry</p>
+            </div>
+          </li>
+          <li>
+            <div>
+            <p>Cross-Entropy as a classification training objective</p>
+            </div>
+          </li>
+          <li>
+            <div>
+            <p>Mutual Information as shared uncertainty reduction</p>
+            </div>
+          </li>
+        </ul>
+        <p>For a detailed treatment, see Chapter 6 of <a href="https://mml-book.github.io/">Mathematics for Machine Learning</a>.</p>
+
+        <h2>Self-Information (Surprise)</h2>
+        <p>The core intuition of information theory is that learning that an unlikely event has occurred is more informative than learning that a likely event has occurred. If someone tells you "it is raining in the Sahara desert," that carries far more information than "it is raining in Seattle."</p>
+        <p>We quantify the <strong>information content</strong> (or <strong>surprise</strong>) of an event $x$ with the self-information $I(x)$:</p>
+        <p>$$ I(x) = -\log_2 P(x) $$</p>
+        <p>Let's unpack this formula:</p>
+        <ul>
+          <li>
+            <div>
+            <p><strong>The Logarithm</strong>: We use a logarithm so that information is additive. If two independent events $x$ and $y$ occur, their joint probability is $P(x)P(y)$, and their combined surprise is $I(x) + I(y) = -\log_2(P(x)P(y)) = -\log_2 P(x) - \log_2 P(y)$.</p>
+            </div>
+          </li>
+          <li>
+            <div>
+            <p><strong>The Base</strong>: When using base 2, the unit of information is the <strong>bit</strong> (or Shannon). A flip of a fair coin has a probability of $0.5$, yielding $I(\text{heads}) = -\log_2(0.5) = 1$ bit of surprise. If we use the natural logarithm (base $e$), the unit is the <strong>nat</strong>.</p>
+            </div>
+          </li>
+          <li>
+            <div>
+            <p><strong>The Negative Sign</strong>: Since probabilities are between $0$ and $1$, their logarithms are negative. The leading minus sign ensures that surprise is a positive number. As probability $P(x)$ approaches $1$ (certainty), the surprise $I(x)$ drops to $0$. As $P(x)$ approaches $0$ (improbability), surprise goes to infinity.</p>
+            </div>
+          </li>
+        </ul>
+
+        <h2>Shannon Entropy</h2>
+        <p>While self-information measures the surprise of a single event, the <strong>Shannon Entropy</strong> $H(X)$ measures the <strong>average surprise</strong> of an entire probability distribution $P$ over a random variable $X$:</p>
+        <p>$$ H(X) = \mathbb{E}_{x \sim P}[I(x)] = -\sum_{i=1}^n P(x_i) \log_2 P(x_i) $$</p>
+        <p>Entropy measures the uncertainty of a distribution. For a discrete variable with $n$ possible outcomes:</p>
+        <ul>
+          <li>
+            <div>
+            <p><strong>Minimum Entropy ($H(X) = 0$)</strong>: Occurs when one outcome has a probability of $1.0$ and all others have $0$. There is zero uncertainty, so the average surprise is zero.</p>
+            </div>
+          </li>
+          <li>
+            <div>
+            <p><strong>Maximum Entropy ($H(X) = \log_2 n$)</strong>: Occurs when all $n$ outcomes are equally likely (uniform distribution). This is the state of maximum uncertainty.</p>
+            </div>
+          </li>
+        </ul>
+
+        <h2>Kullback-Leibler (KL) Divergence</h2>
+        <p>In machine learning, we often approximate a true, unknown distribution $P$ using a model's predicted distribution $Q$. The <strong>Kullback-Leibler (KL) Divergence</strong> (or <strong>Relative Entropy</strong>) measures the average extra surprise we experience if we encode messages from $P$ using the distribution $Q$:</p>
+        <p>$$ D_{KL}(P \parallel Q) = \sum_{i=1}^n P(x_i) \log_2 \frac{P(x_i)}{Q(x_i)} = \sum_{i=1}^n P(x_i) \log_2 P(x_i) - \sum_{i=1}^n P(x_i) \log_2 Q(x_i) $$</p>
+        <p>We can write this as an expectation over $P$:</p>
+        <p>$$ D_{KL}(P \parallel Q) = \mathbb{E}_{x \sim P}\left[\log_2 \frac{P(x)}{Q(x)}\right] $$</p>
+        <p>The KL divergence has several critical properties:</p>
+        <ul>
+          <li>
+            <div>
+            <p><strong>Non-negativity ($D_{KL}(P \parallel Q) \ge 0$)</strong>: It is always greater than or equal to zero. It equals zero if and only if $P = Q$ everywhere.</p>
+            </div>
+          </li>
+          <li>
+            <div>
+            <p><strong>Asymmetry ($D_{KL}(P \parallel Q) \neq D_{KL}(Q \parallel P)$)</strong>: Because of this asymmetry, the KL divergence is <strong>not a true distance metric</strong>. The order matters: $D_{KL}(P \parallel Q)$ is the expectation of the difference relative to the distribution $P$, which weights the surprise differently than $Q$.</p>
+            </div>
+          </li>
+        </ul>
+
+        <h2>Cross-Entropy</h2>
+        <p>By expanding the KL divergence formula, we can isolate a term called the <strong>Cross-Entropy</strong> $H(P, Q)$:</p>
+        <p>$$ H(P, Q) = -\sum_{i=1}^n P(x_i) \log_2 Q(x_i) $$</p>
+        <p>This allows us to write the fundamental relationship between these three quantities:</p>
+        <p>$$ H(P, Q) = H(P) + D_{KL}(P \parallel Q) $$</p>
+        <p>This equation has a beautiful interpretation: the total average surprise of using distribution $Q$ to model data from $P$ (the Cross-Entropy) is equal to the inherent uncertainty of $P$ itself (the Entropy) plus the penalty of using the incorrect distribution $Q$ (the KL Divergence).</p>
+        <p>In deep learning classification, $P$ is the true label (a one-hot vector where the correct class has probability $1.0$, meaning $H(P) = 0$), and $Q$ is our model's predicted softmax distribution. Because $H(P)$ is constant with respect to the model parameters, minimising the Cross-Entropy loss $H(P, Q)$ is mathematically identical to minimising the KL divergence $D_{KL}(P \parallel Q)$ between the labels and predictions.</p>
+
+        <h2>Mutual Information</h2>
+        <p>The <strong>Mutual Information</strong> $I(X; Y)$ measures the amount of information shared between two random variables $X$ and $Y$. It quantifies how much knowing one variable reduces uncertainty about the other:</p>
+        <p>$$ I(X; Y) = H(X) - H(X|Y) = H(Y) - H(Y|X) $$</p>
+        <p>where $H(X|Y)$ is the conditional entropy (the remaining uncertainty of $X$ given that we know $Y$). We can also write it as the KL divergence between the joint distribution and the product of the marginals:</p>
+        <p>$$ I(X; Y) = D_{KL}(P(x, y) \parallel P(x)P(y)) $$</p>
+        <p>If $X$ and $Y$ are independent, their joint probability factors to $P(x, y) = P(x)P(y)$, yielding a mutual information of $0$.</p>
+
+        <h2>Geometric Connection: Entropy and Tangents</h2>
+        <p>There is a striking geometric relationship between Entropy and Cross-Entropy for binary distributions. Consider a coin with true probability of heads $p$ and model probability $q$. The entropy is the curve $H(p)$, and the cross-entropy is $H(p, q)$.</p>
+        <p>Because the entropy curve $H(p)$ is concave, the linear approximation (the tangent line) to the entropy curve at any point $p = q$ is exactly the cross-entropy function $H(p, q)$! Since a concave curve lies entirely below its tangent lines, the cross-entropy line always sits above the entropy curve. The vertical gap between the tangent line (Cross-Entropy) and the curve (Entropy) at any coordinate $p$ is precisely the KL divergence $D_{KL}(P \parallel Q) \ge 0$.</p>
+
+        <p>The interactive plot below visualizes this relationship. Adjust the true probability $p$ and the model probability $q$ to see how the tangent line slides and how the KL divergence behaves.</p>
+
+        <figure class="chart-card">
+          <div class="eyebrow">01 &middot; interactive entropy & kl divergence</div>
+          <h2>Entropy and KL Divergence</h2>
+          <div class="chart-legend">
+            <span class="item"><span class="swatch" style="background:#6B2C5C"></span>Entropy H(P)</span>
+            <span class="item"><span class="swatch" style="background:#e0e0e0; border-top: 2px dashed #999"></span>Cross-Entropy H(P, Q)</span>
+          </div>
+          <div class="chart-frame">
+            <canvas id="infoChart" aria-label="Interactive entropy and KL divergence" role="img"></canvas>
+          </div>
+          
+          <div style="margin-top: 18px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; background: var(--bg-sunk); padding: 12px; border-radius: 6px; border: 1px solid var(--rule);">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <label for="sliderP" style="font-family: var(--font-mono); font-size: 12px; color: var(--fg-2); min-width: 80px;">P(X=1) = p:</label>
+              <input type="range" id="sliderP" min="0.01" max="0.99" step="0.01" value="0.70" style="flex: 1; accent-color: var(--accent); cursor: pointer;">
+              <span id="valP" style="font-family: var(--font-mono); font-size: 12px; color: var(--fg); min-width: 35px; text-align: right; font-weight: 600;">0.70</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <label for="sliderQ" style="font-family: var(--font-mono); font-size: 12px; color: var(--fg-2); min-width: 80px;">Q(X=1) = q:</label>
+              <input type="range" id="sliderQ" min="0.01" max="0.99" step="0.01" value="0.30" style="flex: 1; accent-color: var(--accent); cursor: pointer;">
+              <span id="valQ" style="font-family: var(--font-mono); font-size: 12px; color: var(--fg); min-width: 35px; text-align: right; font-weight: 600;">0.30</span>
+            </div>
+          </div>
+          
+          <div style="margin-top: 12px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center;">
+            <div style="background: var(--bg-2); padding: 8px; border-radius: 4px; border: 1px solid var(--rule);">
+              <div style="font-family: var(--font-mono); font-size: 10px; color: var(--fg-3); text-transform: uppercase;">Entropy H(P)</div>
+              <div id="textHP" style="font-family: var(--font-mono); font-size: 14px; font-weight: 600; color: var(--fg); margin-top: 4px;">0.881 bits</div>
+            </div>
+            <div style="background: var(--bg-2); padding: 8px; border-radius: 4px; border: 1px solid var(--rule);">
+              <div style="font-family: var(--font-mono); font-size: 10px; color: var(--fg-3); text-transform: uppercase;">Cross-Entropy H(P, Q)</div>
+              <div id="textHPQ" style="font-family: var(--font-mono); font-size: 14px; font-weight: 600; color: var(--fg); margin-top: 4px;">1.378 bits</div>
+            </div>
+            <div style="background: var(--bg-2); padding: 8px; border-radius: 4px; border: 1px solid var(--rule);">
+              <div style="font-family: var(--font-mono); font-size: 10px; color: var(--fg-3); text-transform: uppercase;">KL Divergence D_KL</div>
+              <div id="textDKL" style="font-family: var(--font-mono); font-size: 14px; font-weight: 600; color: var(--accent); margin-top: 4px;">0.497 bits</div>
+            </div>
+          </div>
+          <figcaption class="chart-caption"><p style="margin:0;"><span class="label">fig 1</span> Geometric visualization of Entropy, Cross-Entropy, and KL Divergence. The Cross-Entropy line (light dashed curve) is tangent to the Entropy curve (purple solid bowl) at $p = q$. The vertical gap between the line and the curve at the selected true probability $p$ is the KL divergence. When $p = q$, the line touches the curve, and the divergence is exactly zero.</p></figcaption>
+        </figure>
+
+        <div class="exercise">
+          <span class="tag">exercise &middot; 0.6.1 <strong>Analytical Calculations</strong></span>
+          <p>Let $X$ be a discrete random variable taking values $\{A, B, C\}$. Suppose the true distribution $P$ has probabilities $P(A) = \frac{1}{2}$, $P(B) = \frac{1}{4}$, and $P(C) = \frac{1}{4}$. Let an approximating distribution $Q$ have probabilities $Q(A) = Q(B) = Q(C) = \frac{1}{3}$.</p>
+          <p>1. Calculate the Shannon Entropy $H(P)$ in bits.</p>
+          <p>2. Calculate the cross-entropy $H(P, Q)$ in bits.</p>
+          <p>3. Calculate the KL divergence $D_{KL}(P \parallel Q)$ in bits, and verify that the relationship $H(P, Q) = H(P) + D_{KL}(P \parallel Q)$ holds.</p>
+        </div>
       </div>
 
       <div class="endbar">
@@ -137,6 +296,7 @@
     </article>
   </div>
 </div>
+<script src="./chart.js"></script>
 <script>hljs.highlightAll();</script>
 </body>
 </html>

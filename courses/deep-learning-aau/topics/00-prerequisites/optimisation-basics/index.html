@@ -54,10 +54,11 @@
   .body li { counter-increment: note-list; display: grid; grid-template-columns: 44px 1fr; column-gap: 14px; align-items: baseline; padding: 8px 0; border-top: 1px dashed var(--rule); font-family: var(--font-sans); font-size: 14.5px; line-height: 1.5; color: var(--fg-2); }
   .body li:first-child { border-top: 0; }
   .body li::before { content: counter(note-list, decimal-leading-zero); font-family: var(--font-mono); font-size: 11.5px; color: var(--fg-4); letter-spacing: 0.04em; }
+  .body li p { margin: 0; }
   .chart-card { border: 1px solid var(--rule); border-radius: 8px; background: var(--bg); padding: 18px 18px 16px; margin: 1.4em 0; }
   .chart-card .eyebrow { font-family: var(--font-mono); font-size: 10px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-3); margin-bottom: 4px; }
-  .chart-card h3 { font-family: var(--font-mono); font-size: 14px; font-weight: 600; color: var(--fg); letter-spacing: -0.005em; margin: 0 0 12px; }
-  .chart-frame { height: 260px; }
+  .chart-card h2 { font-family: var(--font-mono); font-size: 14px; font-weight: 600; color: var(--fg); letter-spacing: -0.005em; margin: 0 0 12px; }
+  .chart-frame { max-width: 280px; aspect-ratio: 1; margin: 0 auto; }
   .chart-frame canvas { width: 100%; height: 100%; }
   .exercise { border: 1px solid var(--rule); border-left: 3px solid var(--accent); border-radius: 4px; padding: 14px 18px; background: var(--bg-2); margin: 1.4em 0; }
   .exercise .tag { font-family: var(--font-mono); font-size: 11px; color: var(--accent); letter-spacing: 0.06em; text-transform: uppercase; font-weight: 600; }
@@ -125,9 +126,261 @@
         subtopic 0.5
       </div>
       <h1>Optimisation Basics.</h1>
-      <p class="standfirst"></p>
+      <p class="standfirst">Optimisation is the computational heart of machine learning. Training a neural network means searching for a set of parameters that minimises a scalar loss function, converting our mathematical objective into a concrete, solvable algorithm.
+      </p>
 
       <div class="body">
+        <h2>What this note covers</h2>
+        <ul>
+          <li>Mathematical formulation of optimisation problems</li>
+          <li>Local vs. global extrema and critical (stationary) points</li>
+          <li>Convex sets, convex functions, and the guarantees of convexity</li>
+          <li>Constrained optimisation and the method of Lagrange Multipliers</li>
+          <li>A Python implementation of Gradient Descent on a quadratic landscape</li>
+        </ul>
+        <p>For a detailed treatment, see Chapter 7 of <a href="https://mml-book.github.io/">Mathematics for Machine Learning</a>.</p>
+
+        <h2>Optimization Problems</h2>
+        <p>In continuous optimisation, we want to find the value of a parameter vector $\mathbf{x} \in \mathbb{R}^d$ that minimises a real-valued objective function $f(\mathbf{x})$:</p>
+        <p>$$ \min_{\mathbf{x}} f(\mathbf{x}) \quad \text{subject to} \quad \mathbf{x} \in \mathcal{X} $$</p>
+        <p>where $\mathcal{X} \subseteq \mathbb{R}^d$ is the constraint set. If $\mathcal{X} = \mathbb{R}^d$, the problem is <strong>unconstrained optimisation</strong>. If $\mathcal{X}$ is a proper subset defined by equality or inequality equations, it is a <strong>constrained optimisation</strong> problem.</p>
+        <p>Note that maximising a function $h(\mathbf{x})$ is mathematically equivalent to minimising $-h(\mathbf{x})$, so we can frame all problems as minimisation without loss of generality.</p>
+
+        <h2>Stationary Points and Extrema</h2>
+        <p>A point $\mathbf{x}^*$ is a <strong>local minimum</strong> of $f$ if there exists a small neighborhood $\mathcal{U}$ around $\mathbf{x}^*$ such that $f(\mathbf{x}^*) \le f(\mathbf{x})$ for all $\mathbf{x} \in \mathcal{U}$. It is a <strong>global minimum</strong> if $f(\mathbf{x}^*) \le f(\mathbf{x})$ for all possible $\mathbf{x} \in \mathcal{X}$.</p>
+        <p>For a continuously differentiable function, a point where the gradient is zero is called a <strong>critical point</strong> or <strong>stationary point</strong>:</p>
+        <p>$$ \nabla f(\mathbf{x}^*) = \mathbf{0} $$</p>
+        <p>We classify stationary points using the second derivative matrix, the <strong>Hessian</strong> $\mathbf{H}(\mathbf{x}) \in \mathbb{R}^{d \times d}$, defined by $\mathbf{H}_{ij}(\mathbf{x}) = \frac{\partial^2 f(\mathbf{x})}{\partial x_i \partial x_j}$:</p>
+        <ul>
+          <li>
+            <div>
+            <p><strong>Local Minimum</strong>: If $\mathbf{H}(\mathbf{x}^*)$ is positive definite ($\mathbf{H} \succ 0$, all eigenvalues are strictly positive), then the function curves upwards in every direction, confirming a local minimum.</p>
+            </div>
+          </li>
+          <li>
+            <div>
+            <p><strong>Local Maximum</strong>: If $\mathbf{H}(\mathbf{x}^*)$ is negative definite ($\mathbf{H} \prec 0$, all eigenvalues are strictly negative), the function curves downwards, indicating a local maximum.</p>
+            </div>
+          </li>
+          <li>
+            <div>
+            <p><strong>Saddle Point</strong>: If $\mathbf{H}(\mathbf{x}^*)$ is indefinite (having both positive and negative eigenvalues), the function curves upwards in some directions and downwards in others.</p>
+            </div>
+          </li>
+        </ul>
+
+        <h2>Convexity</h2>
+        <p>In deep learning, we often work with non-convex loss landscapes which can contain many local minima and saddle points. However, understanding <strong>convexity</strong> is fundamental because it provides the theoretical boundary where optimisation becomes globally solvable.</p>
+        
+        <h2>Convex Sets</h2>
+        <p>A set $\mathcal{C}$ is <strong>convex</strong> if the line segment connecting any two points in the set lies entirely within $\mathcal{C}$:</p>
+        <p>$$ \forall \mathbf{x}, \mathbf{y} \in \mathcal{C}, \quad \theta \mathbf{x} + (1 - \theta)\mathbf{y} \in \mathcal{C} \quad \text{for all } \theta \in [0, 1] $$</p>
+        <p>Let's break down this mathematical definition to see what it actually means:</p>
+        <ul>
+          <li>
+            <div>
+            <p><strong>The Universal Quantifier ($\forall$)</strong>: The symbol $\forall$ means "for all" or "for every". This indicates that the rule must hold true no matter which pair of points you pick inside the set.</p>
+            </div>
+          </li>
+          <li>
+            <div>
+            <p><strong>The Set Membership ($\in$)</strong>: The symbol $\in$ means "is an element of" or "belongs to". So, $\mathbf{x}, \mathbf{y} \in \mathcal{C}$ means we choose any two points $\mathbf{x}$ and $\mathbf{y}$ that are inside the set $\mathcal{C}$.</p>
+            </div>
+          </li>
+          <li>
+            <div>
+            <p><strong>The Mixture Parameter ($\theta$)</strong>: The parameter $\theta$ (the Greek letter theta) acts like a slider or a percentage regulator between $0$ and $1$ (representing $0\%$ to $100\%$).</p>
+            </div>
+          </li>
+          <li>
+            <div>
+            <p><strong>The Weighted Blend ($\theta \mathbf{x} + (1 - \theta)\mathbf{y}$)</strong>: This expression calculates a weighted average of our two points. If you set $\theta = 1$, the expression evaluates to $\mathbf{x}$. If you set $\theta = 0$, it evaluates to $\mathbf{y}$. If you choose $\theta = 0.5$, it evaluates to the exact midpoint between them. By sweeping $\theta$ from $0$ to $1$, the expression traces out every single point on the straight line segment connecting $\mathbf{y}$ to $\mathbf{x}$.</p>
+            </div>
+          </li>
+        </ul>
+        <p>Combining these parts, the condition $\theta \mathbf{x} + (1 - \theta)\mathbf{y} \in \mathcal{C}$ guarantees that the entire straight line connecting <strong>any</strong> two points in the set remains completely inside the set. Visually, a circle, a solid sphere, or a triangle are convex sets. Conversely, a star shape or a crescent moon is non-convex: if you connect the two outer tips of a crescent moon with a straight line, the middle of that line passes through the empty space outside the moon.</p>
+
+        <h2>Convex Functions</h2>
+        <p>A function $f: \mathcal{C} \to \mathbb{R}$ is <strong>convex</strong> if the line segment connecting any two points on the function's graph lies on or above the graph itself. Mathematically, this is written as:</p>
+        <p>$$ f(\theta \mathbf{x} + (1 - \theta)\mathbf{y}) \le \theta f(\mathbf{x}) + (1 - \theta)f(\mathbf{y}) \quad \text{for all } \theta \in [0, 1] $$</p>
+        <p>This inequality looks intimidating, but it is much easier to read when we compare the two sides:</p>
+        <ul>
+          <li>
+            <div>
+            <p><strong>Left-Hand Side (Function of the Blend)</strong>: The expression $f(\theta \mathbf{x} + (1 - \theta)\mathbf{y})$ tells us to first blend the inputs $\mathbf{x}$ and $\mathbf{y}$ (finding a point on the line segment between them, like their midpoint), and then evaluate the function's height at that blended input. This represents the actual depth or height of the function curve.</p>
+            </div>
+          </li>
+          <li>
+            <div>
+            <p><strong>Right-Hand Side (Blend of the Functions)</strong>: The expression $\theta f(\mathbf{x}) + (1 - \theta)f(\mathbf{y})$ tells us to find the heights of the function at the two endpoints, $f(\mathbf{x})$ and $f(\mathbf{y})$, and then take the weighted average of those heights. This represents the height of the straight secant line (or chord) connecting the two points on the graph.</p>
+            </div>
+          </li>
+        </ul>
+        <p>This mathematically guarantees that the function behaves like a bowl, curving upwards or remaining flat, but never bowing downwards.</p>
+
+        <h2>First-Order Characterization (Slopes & Tangents)</h2>
+        <p>If a function is differentiable, we can characterize its convexity using its first derivative (the gradient). A differentiable function $f$ is convex if and only if:</p>
+        <p>$$ f(\mathbf{y}) \ge f(\mathbf{x}) + \nabla f(\mathbf{x})^\top (\mathbf{y} - \mathbf{x}) $$</p>
+        <p>This formula relates the true shape of the function to its tangent planes. Let's break down the individual terms:</p>
+        <ul>
+          <li>
+            <div>
+            <p><strong>$f(\mathbf{y})$</strong>: The actual value of the function at some target destination point $\mathbf{y}$.</p>
+            </div>
+          </li>
+          <li>
+            <div>
+            <p><strong>$f(\mathbf{x})$</strong>: The value of the function at our current starting point $\mathbf{x}$.</p>
+            </div>
+          </li>
+          <li>
+            <div>
+            <p><strong>$\nabla f(\mathbf{x})$</strong>: The gradient vector at $\mathbf{x}$. This represents the slope of the function and the direction of steepest ascent at our current position.</p>
+            </div>
+          </li>
+          <li>
+            <div>
+            <p><strong>$(\mathbf{y} - \mathbf{x})$</strong>: The displacement vector pointing directly from our starting point $\mathbf{x}$ to our target destination $\mathbf{y}$.</p>
+            </div>
+          </li>
+          <li>
+            <div>
+            <p><strong>$\nabla f(\mathbf{x})^\top (\mathbf{y} - \mathbf{x})$</strong>: This is the vector dot product of the slope and the displacement. It calculates how much the function's height would change if we walked from $\mathbf{x}$ to $\mathbf{y}$ along a perfectly flat, straight ramp that matches the local slope at $\mathbf{x}$. This is the linear approximation of the change.</p>
+            </div>
+          </li>
+        </ul>
+        <p>The entire right-hand side $f(\mathbf{x}) + \nabla f(\mathbf{x})^\top (\mathbf{y} - \mathbf{x})$ is therefore the mathematical formula for the tangent line (in 1D) or tangent plane (in higher dimensions) touching the function at point $\mathbf{x}$.</p>
+        <p>The inequality $\ge$ states that the actual function value $f(\mathbf{y})$ is always at least as high as this tangent plane's prediction. Visually, if you place a flat piece of cardboard tangent to any point on a bowl, the bowl curves upwards away from the cardboard, staying entirely above it. The gradient's linear approximation acts as a <strong>global underestimator</strong> of the function.</p>
+
+        <h2>Second-Order Characterization (Curvature)</h2>
+        <p>If a function is twice-differentiable, we can look at its curvature. A twice-differentiable function $f$ is convex if and only if its Hessian matrix is positive semi-definite everywhere in its domain:</p>
+        <p>$$ \mathbf{H}(\mathbf{x}) \succeq 0 $$</p>
+        <p>Here is what this means in plain terms:</p>
+        <ul>
+          <li>
+            <div>
+            <p><strong>The Hessian Matrix ($\mathbf{H}(\mathbf{x})$)</strong>: The Hessian is a matrix of second-order partial derivatives. It measures how the slopes are changing in every possible direction, representing the multi-dimensional curvature of the function.</p>
+            </div>
+          </li>
+          <li>
+            <div>
+            <p><strong>Positive Semi-Definite ($\succeq 0$)</strong>: The symbol $\succeq 0$ applied to a matrix means it is positive semi-definite. In one dimension, this is equivalent to the scalar second derivative being non-negative ($f''(x) \ge 0$), which means the slope is either constant (a flat line) or increasing (curving upwards). In multiple dimensions, it means that for any direction vector $\mathbf{v}$, the second derivative along that direction, given by the quadratic form $\mathbf{v}^\top \mathbf{H}(\mathbf{x})\mathbf{v}$, is non-negative ($\ge 0$).</p>
+            </div>
+          </li>
+        </ul>
+        <p>This condition guarantees that no matter which direction you walk, and no matter where you are on the function, the landscape is either flat or curving upwards like a valley. It never curves downwards like a dome.</p>
+
+        <div class="note important">
+          <span class="tag">guarantees of convex optimisation</span>
+          <p>Convex functions possess two crucial properties that make them highly desirable:</p>
+          <p>1. Any local minimum is guaranteed to be a <strong>global minimum</strong>.</p>
+          <p>2. The first-order condition $\nabla f(\mathbf{x}^*) = \mathbf{0}$ is both <strong>necessary and sufficient</strong> for global optimality.</p>
+        </div>
+
+        <h2>Gradient Descent Trajectory</h2>
+        <p>To find local minima, we start at a point $\mathbf{x}^{(0)}$ and iteratively step in the direction of steepest descent, which is the negative gradient direction:</p>
+        <p>$$ \mathbf{x}^{(t+1)} = \mathbf{x}^{(t)} - \alpha \nabla f(\mathbf{x}^{(t)}) $$</p>
+        <p>where $\alpha > 0$ is the <strong>learning rate</strong> (or step size).</p>
+        <p>The interactive plot below demonstrates gradient descent on a 2D quadratic function $f(x_1, x_2) = \frac{1}{2}(x_1^2 + \gamma x_2^2)$. The concentric rings represent the function contours. Adjust the conditioning parameter $\gamma$ and the learning rate $\alpha$ to see how the optimization trajectory changes.</p>
+
+        <figure class="chart-card">
+          <div class="eyebrow">01 &middot; interactive descent path</div>
+          <h2>Gradient Descent Trajectory</h2>
+          <div class="chart-legend">
+            <span class="item"><span class="swatch" style="background:#e0e0e0"></span>contours</span>
+            <span class="item"><span class="swatch swatch--dot" style="background:#6B2C5C"></span>trajectory</span>
+          </div>
+          <div class="chart-frame">
+            <canvas id="optChart" aria-label="Interactive 2D gradient descent trajectory" role="img"></canvas>
+          </div>
+          
+          <div style="margin-top: 18px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; background: var(--bg-sunk); padding: 12px; border-radius: 6px; border: 1px solid var(--rule);">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <label for="sliderAlpha" style="font-family: var(--font-mono); font-size: 12px; color: var(--fg-2); min-width: 80px;">&alpha; (lr):</label>
+              <input type="range" id="sliderAlpha" min="0.05" max="1.50" step="0.05" value="0.20" style="flex: 1; accent-color: var(--accent); cursor: pointer;">
+              <span id="valAlpha" style="font-family: var(--font-mono); font-size: 12px; color: var(--fg); min-width: 35px; text-align: right; font-weight: 600;">0.20</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <label for="sliderGamma" style="font-family: var(--font-mono); font-size: 12px; color: var(--fg-2); min-width: 80px;">&gamma; (cond):</label>
+              <input type="range" id="sliderGamma" min="1.0" max="8.0" step="0.5" value="2.0" style="flex: 1; accent-color: var(--accent); cursor: pointer;">
+              <span id="valGamma" style="font-family: var(--font-mono); font-size: 12px; color: var(--fg); min-width: 35px; text-align: right; font-weight: 600;">2.0</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <label for="sliderStartX" style="font-family: var(--font-mono); font-size: 12px; color: var(--fg-2); min-width: 80px;">Start x₁:</label>
+              <input type="range" id="sliderStartX" min="-3.5" max="3.5" step="0.1" value="3.0" style="flex: 1; accent-color: var(--accent); cursor: pointer;">
+              <span id="valStartX" style="font-family: var(--font-mono); font-size: 12px; color: var(--fg); min-width: 35px; text-align: right; font-weight: 600;">3.0</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <label for="sliderStartY" style="font-family: var(--font-mono); font-size: 12px; color: var(--fg-2); min-width: 80px;">Start x₂:</label>
+              <input type="range" id="sliderStartY" min="-3.5" max="3.5" step="0.1" value="3.0" style="flex: 1; accent-color: var(--accent); cursor: pointer;">
+              <span id="valStartY" style="font-family: var(--font-mono); font-size: 12px; color: var(--fg); min-width: 35px; text-align: right; font-weight: 600;">3.0</span>
+            </div>
+          </div>
+          <figcaption class="chart-caption"><p style="margin:0;"><span class="label">fig 1</span> Optimization dynamics. When conditioning $\gamma = 1$, the landscape is symmetric and gradient descent points directly to the center. As $\gamma$ increases, the contours become elongated ellipses. If the learning rate $\alpha$ is too high (specifically, $\alpha > \frac{1}{\gamma}$), the trajectory oscillates. When $\alpha > \frac{2}{\gamma}$, the updates diverge outwards!</p></figcaption>
+        </figure>
+
+        <h2>Constrained Optimisation & Lagrange Multipliers</h2>
+        <p>In many setups, we need to optimize an objective $f(\mathbf{x})$ while satisfying constraints. Consider a problem with a single equality constraint:</p>
+        <p>$$ \min_{\mathbf{x}} f(\mathbf{x}) \quad \text{subject to} \quad g(\mathbf{x}) = 0 $$</p>
+        <p>At the optimal point $\mathbf{x}^*$, the contour line of the objective function $f(\mathbf{x})$ must run tangent to the constraint curve $g(\mathbf{x}) = 0$. If they were not tangent, we could slide along the constraint to find a lower value of $f$. Since their contours are tangent, their normal vectors—represented by the gradients—must be parallel (collinear) at $\mathbf{x}^*$:</p>
+        <p>$$ \nabla f(\mathbf{x}^*) = \lambda \nabla g(\mathbf{x}^*) $$</p>
+        <p>where the scaling constant $\lambda \in \mathbb{R}$ is the <strong>Lagrange multiplier</strong>.</p>
+        <p>We compile this geometric requirement into a single helper function, the <strong>Lagrangian</strong>:</p>
+        <p>$$ \mathcal{L}(\mathbf{x}, \lambda) = f(\mathbf{x}) - \lambda g(\mathbf{x}) $$</p>
+        <p>To find the optimal solution, we search for the critical points of the Lagrangian where the gradients with respect to both the parameters $\mathbf{x}$ and the multiplier $\lambda$ vanish:</p>
+        <p>$$ \nabla_{\mathbf{x}} \mathcal{L}(\mathbf{x}^*, \lambda^*) = \nabla f(\mathbf{x}^*) - \lambda^* \nabla g(\mathbf{x}^*) = \mathbf{0} $$</p>
+        <p>$$ \frac{\partial \mathcal{L}}{\partial \lambda} = -g(\mathbf{x}^*) = 0 $$</p>
+        <p>Solving this system of $d + 1$ equations yields the constrained optimum $\mathbf{x}^*$ (and the corresponding multiplier $\lambda^*$).</p>
+
+        <h2>Implementation: Gradient Descent</h2>
+        <p>Below is a clean Python script implementing Gradient Descent on our 2D quadratic landscape. It records the trajectory steps so you can inspect how the convergence rate behaves numerically.</p>
+
+<pre><code class="language-python">def grad_descent_2d(
+    start_x: float, start_y: float,
+    alpha: float, gamma: float,
+    num_steps: int
+) -> list[tuple[float, float]]:
+    """
+    Runs gradient descent on the function:
+    f(x1, x2) = 0.5 * (x1^2 + gamma * x2^2)
+    Gradient is:
+    grad_f(x1, x2) = [x1, gamma * x2]
+    """
+    x1, x2 = start_x, start_y
+    path = [(x1, x2)]
+    
+    for _ in range(num_steps):
+        # Compute gradient components
+        grad_x1 = x1
+        grad_x2 = gamma * x2
+        
+        # Apply update
+        x1 = x1 - alpha * grad_x1
+        x2 = x2 - alpha * grad_x2
+        path.append((x1, x2))
+        
+    return path
+
+if __name__ == "__main__":
+    alpha = 0.2
+    gamma = 4.0
+    start_x1, start_x2 = 3.0, 3.0
+    
+    trajectory = grad_descent_2d(start_x1, start_x2, alpha, gamma, 10)
+    print("Step-by-step optimization path:")
+    for t, pt in enumerate(trajectory):
+        f_val = 0.5 * (pt[0]**2 + gamma * pt[1]**2)
+        print(f"  Step {t:02d}: x = [{pt[0]:.4f}, {pt[1]:.4f}]ᵀ, f(x) = {f_val:.4f}")
+</code></pre>
+
+        <div class="exercise">
+          <span class="tag">exercise &middot; 0.5.1 <strong>Constrained Quadratic Optimization</strong></span>
+          <p>Minimize the objective function $f(x_1, x_2) = x_1^2 + 2x_2^2$ subject to the linear equality constraint $x_1 + x_2 - 3 = 0$.</p>
+          <p>1. Formulate the Lagrangian $\mathcal{L}(x_1, x_2, \lambda) = f(x_1, x_2) - \lambda g(x_1, x_2)$.</p>
+          <p>2. Calculate the analytical partial derivatives of $\mathcal{L}$ with respect to $x_1$, $x_2$, and $\lambda$, setting them to zero.</p>
+          <p>3. Solve the resulting system of linear equations to find the optimal point $\mathbf{x}^* = [x_1^*, x_2^*]^\top$ and multiplier $\lambda^*$. Verify that the constraint is satisfied.</p>
+        </div>
+        <p>In the next section, we will cover the basics of information theory, including entropy, Kullback-Leibler divergence, and cross-entropy, which form the statistical basis of training objectives in machine learning.</p>
       </div>
 
       <div class="endbar">
@@ -137,6 +390,7 @@
     </article>
   </div>
 </div>
+<script src="./chart.js"></script>
 <script>hljs.highlightAll();</script>
 </body>
 </html>
