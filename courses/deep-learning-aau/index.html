@@ -140,6 +140,48 @@
     margin: 0;
   }
 
+  .course-detail .main h2 {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--fg-3);
+    margin: 40px 0 14px;
+  }
+
+  .topic-card {
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+    padding: 20px 0;
+  }
+
+  .topic-card h3 {
+    font-family: var(--font-mono);
+    font-size: 20px;
+    margin: 0 0 6px;
+  }
+
+  .topic-card p {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    color: var(--fg-3);
+    line-height: 1.55;
+    margin: 0 0 14px;
+  }
+
+  .topic-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 18px;
+  }
+
+  .topic-links a {
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    color: var(--accent);
+  }
+
   @media (max-width: 820px) {
     .topbar {
       align-items: flex-start;
@@ -195,7 +237,18 @@
 
     <div class="main">
       <h1>Machine Learning &amp; Deep Learning.</h1>
-      <p class="placeholder">Course content is being updated. Check back soon.</p>
+      <p class="placeholder">Course materials are organised by topic. Regression is available now, with notes, exercises, and worked examples.</p>
+
+      <h2>Topics</h2>
+      <article class="topic-card">
+        <h3>01 &middot; Regression</h3>
+        <p>Build a complete supervised-learning workflow, from linear models and multiple dimensions to basis functions and regularisation.</p>
+        <div class="topic-links" aria-label="Regression materials">
+          <a href="./topics/01-regression/">Notes &amp; topic guide &nearr;</a>
+          <a href="./topics/01-regression/exercises/">Exercises &nearr;</a>
+          <a href="./examples/regression/scratch/">Worked examples &nearr;</a>
+        </div>
+      </article>
     </div>
   </main>
 </div>
