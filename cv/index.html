@@ -174,6 +174,13 @@
     }
     .cv-org .inst { color: var(--fg-2); }
 
+    .cv-placeholder {
+      margin: 6px 0 0;
+      font-size: 13px;
+      color: var(--fg-4);
+      font-style: italic;
+    }
+
     /* Publications */
     .pub-list { display: flex; flex-direction: column; }
     .pub-list .item { padding: 13px 0; border-bottom: 1px solid var(--rule); }
@@ -194,6 +201,12 @@
       gap: 14px;
       align-items: center;
     }
+    .pub-authors {
+      margin: 0 0 4px;
+      font-family: var(--font-sans);
+      font-size: 13px;
+      color: var(--fg-3);
+    }
     .pub-meta .venue { color: var(--fg-2); font-family: var(--font-mono); font-size: 12px; }
     .pub-meta .status {
       font-family: var(--font-mono);
@@ -202,6 +215,14 @@
       border: 1px solid var(--rule);
       padding: 1px 6px;
       border-radius: 3px;
+    }
+    .pub-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 6px;
+      font-family: var(--font-mono);
+      font-size: 12px;
     }
 
     .pagefoot {
@@ -260,20 +281,55 @@
           <span class="cv-period">2025 – present</span>
         </div>
         <div class="cv-org"><span class="inst">University of Klagenfurt</span></div>
+        <p class="cv-placeholder">Presented and published research on drug recommender systems in the reproducibility track at RecSys 2026.</p>
       </div>
       <div class="item">
         <div class="cv-header">
           <span class="cv-role">MEng — Information and Computer Engineering</span>
           <span class="cv-period">2019 – 2023</span>
         </div>
-        <div class="cv-org"><span class="inst">University of Cambridge</span></div>
+        <div class="cv-org"><span class="inst">University of Cambridge, Downing College</span></div>
+        <p class="cv-placeholder">Studied courses on machine learning, computational statistics, deep learning, computer vision, image processing and mathematical biology.
+          Continued the development of a nutrition app with a specific focus on peer-to-peer device communication.
+        </p>
       </div>
       <div class="item">
         <div class="cv-header">
           <span class="cv-role">BA — Bioengineering</span>
           <span class="cv-period">2019 – 2022</span>
         </div>
-        <div class="cv-org"><span class="inst">University of Cambridge</span></div>
+        <div class="cv-org"><span class="inst">University of Cambridge, Downing College</span></div>
+        <p class="cv-placeholder">Studied courses on mechanics, mathematics, inference, signals and systems and 3D graphics. Developed strong analytical and problem-solving skills in an applied setting.</p>
+      </div>
+        <div class="item">
+        <div class="cv-header">
+          <span class="cv-role">A Levels</span>
+          <span class="cv-period">2017 – 2019</span>
+        </div>
+        <div class="cv-org"><span class="inst">George Abbot School & Sixth Form</span></div>
+        <p class="cv-placeholder">Achieved 3x A* in Mathematics, Physics, and Further Mathematics. Lead a team of students that won the McLaren Manufacturing Challenge. <a href="https://www.getsurrey.co.uk/news/surrey-news/engineers-tomorrow-line-up-mclaren-11086046">news article</a></p>
+      </div>
+    </div>
+
+    <hr class="rule"/>
+
+    <div class="section-head">
+      <h2>Publications</h2>
+    </div>
+    <div class="pub-list">
+      <div class="item">
+        <h3 class="pub-title"><a href="https://dl.acm.org/doi/10.1145/3773078.3831844">Personalised Drug Recommender Systems based on Electronic Health Records: Reproducibility and External Validity</a></h3>
+        <p class="pub-authors">Archie Carpenter and Dietmar Jannach</p>
+        <div class="pub-meta">
+          <span class="venue">RecSys · 2026</span>
+          <span class="status">published</span>
+        </div>
+        <div class="pub-links" aria-label="Publication links">
+          <a href="https://dl.acm.org/doi/10.1145/3773078.3831844">paper</a>
+          <a href="https://doi.org/10.1145/3773078.3831844">DOI</a>
+          <a href="https://github.com/Archie-C/EHRReproducibility">code</a>
+          <a href="../research/carpenter-jannach-2026.bib" download>BibTeX</a>
+        </div>
       </div>
     </div>
 
@@ -289,27 +345,33 @@
           <span class="cv-period">2025 – present</span>
         </div>
         <div class="cv-org"><span class="inst">University of Klagenfurt</span></div>
+        <p class="cv-placeholder">Taught master's level course in Machine Learning and Deep Learning. Responsible for creating exercises and assessments.</p>
       </div>
       <div class="item">
         <div class="cv-header">
           <span class="cv-role">Co-Founder and Tutor</span>
-          <span class="cv-period">2024 – present</span>
+          <span class="cv-period">2024 – 2025</span>
         </div>
         <div class="cv-org"><span class="inst">TuMentor</span></div>
+        <p class="cv-placeholder">Co-founded and managed a tutoring platform, connecting 10s of students with qualified tutors in STEM subjects.</p>
       </div>
       <div class="item">
         <div class="cv-header">
           <span class="cv-role">Private Maths and Physics Tutor</span>
-          <span class="cv-period">2023 – present</span>
+          <span class="cv-period">2023 – 2025</span>
         </div>
         <div class="cv-org">Freelance</div>
+        <p class="cv-placeholder">Provided one-on-one tutoring in over 1000 sessions in Maths and Physics to students on various age groups from 11+ to undergraduate level. 
+          Noteable achievements include improving students' grades from a D to an A in maths A level, and from a D in A level maths to a B in further maths.
+        </p>
       </div>
       <div class="item">
         <div class="cv-header">
-          <span class="cv-role">Front End Developer</span>
+          <span class="cv-role">Software Engineer</span>
           <span class="cv-period">2024 – 2025</span>
         </div>
         <div class="cv-org">Freelance</div>
+        <p class="cv-placeholder">Designed a unique user interface for client facing documentation. Built a responsive <a href="https://docs.innerworks.me/whats-new/2025/11/05/a-new-look-for-the-dashboard">custom user interface</a> from designs, using Next.js and Gsap animations.</p>
       </div>
       <div class="item">
         <div class="cv-header">
@@ -317,13 +379,17 @@
           <span class="cv-period">2023 – 2025</span>
         </div>
         <div class="cv-org"><span class="inst">Aspire Oxbridge</span></div>
+        <p class="cv-placeholder">Desgined and developed a 4-week course helping engineering applicants prepare for Oxbridge interviews.
+          Organised the creation of other STEM courses with 20+ initial students.
+        </p>
       </div>
       <div class="item">
         <div class="cv-header">
-          <span class="cv-role">Front End Developer</span>
+          <span class="cv-role">Software Engineer</span>
           <span class="cv-period">2022 – 2023</span>
         </div>
         <div class="cv-org"><span class="inst">LUGO</span></div>
+        <p class="cv-placeholder">Worked on a machine learning model to classify user input data as 'acceptable' or 'unacceptable' using ResNet, K-means and Gaussian Mixture Models. Collaborated with a small team to build both user and client applications in Flutter, using Git and Jira.</p>
       </div>
       <div class="item">
         <div class="cv-header">
@@ -331,6 +397,7 @@
           <span class="cv-period">2021 – 2023</span>
         </div>
         <div class="cv-org"><span class="inst">M Coded Limited</span></div>
+        <p class="cv-placeholder">Managed company accounts, taxes and general administration. Developed an experimentatl social media application and release it to the Apple App Store using SwiftUI and Firebase, including user authentication, live updates, a simple feed algorithm, and integration with a news API.</p>
       </div>
       <div class="item">
         <div class="cv-header">
@@ -338,28 +405,51 @@
           <span class="cv-period">2014 – 2023</span>
         </div>
         <div class="cv-org"><span class="inst">Pit Farm Tennis Club</span></div>
+        <p class="cv-placeholder">LTA level 1 certified coach responsible for the development and training of groups of up to 20 junior players.
+          Mentored coaches, guiding them on best practices, new drills and technical skills. 
+          Led sessions of up to 90 players and 10+ coaches, managing the smooth running of 6 courts simultaneously.
+        </p>
       </div>
-      <div class="item">
-        <div class="cv-header">
-          <span class="cv-role">Membership Secretary</span>
-          <span class="cv-period">2021 – 2022</span>
-        </div>
-        <div class="cv-org"><span class="inst">Pit Farm Tennis Club</span></div>
-      </div>
+
     </div>
+
 
     <hr class="rule"/>
 
     <div class="section-head">
-      <h2>Publications</h2>
+      <h2>Teaching</h2>
     </div>
-    <div class="pub-list">
-      <div class="item">
-        <h3 class="pub-title">EHR-based drug recommendation — reproducibility study</h3>
-        <div class="pub-meta">
-          <span class="venue">RecSys · 2026</span>
-          <span class="status">forthcoming</span>
-        </div>
+    <div class="cv-list">
+      <div class="item"><p class="cv-placeholder">Machine Learning and Deep Learning [Winter 2026] (AAU)</p></div>
+    </div>
+
+
+    <hr class="rule"/>
+
+    <div class="section-head">
+      <h2>Download</h2>
+    </div>
+    <p class="cv-placeholder">[Coming Soon]</p>
+
+
+
+
+
+        <hr class="rule"/>
+
+    <div class="section-head">
+      <h2>Volunteering</h2>
+    </div>
+    <div>
+      <div>
+          <div class="item">
+          <div class="cv-header">
+            <span class="cv-role">Membership Secretary</span>
+            <span class="cv-period">2021 – 2022</span>
+          </div>
+          <div class="cv-org"><span class="inst">Pit Farm Tennis Club</span></div>
+          <p class="cv-placeholder">Worked on a committee to restructure the club's junior membership programme. Enhanced client relationships and grew the junior membership base to 200+ members.
+          </p>
       </div>
     </div>
 
