@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en" data-palette="paper">
+<head>
+  <meta charset="utf-8"/>
+  <title>contact | archie carpenter</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <link rel="icon" href="../design_system/assets/favicon.svg"/>
+  <link rel="stylesheet" href="../design_system/colors_and_type.css"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+
+    .page {
+      display: grid;
+      grid-template-columns: var(--rail) 1fr;
+      min-height: 100vh;
+      max-width: var(--page-max);
+      margin: 0 auto;
+    }
+
+    .rail {
+      padding: 40px 24px 32px;
+      border-right: 1px solid var(--rule);
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+      position: sticky;
+      top: 0;
+      align-self: start;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    .rail .mark {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 28px;
+      letter-spacing: -0.02em;
+      line-height: 1;
+      color: var(--fg);
+      text-decoration: none;
+    }
+
+    .rail .mark .dot { color: var(--accent); }
+    .rail nav { display: flex; flex-direction: column; }
+    .rail nav a {
+      font-family: var(--font-mono);
+      font-size: 14px;
+      color: var(--fg-2);
+      text-decoration: none;
+      padding: 7px 10px;
+      border-left: 2px solid transparent;
+      margin-left: -10px;
+      border-radius: 0 4px 4px 0;
+      transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+    }
+    .rail nav a:hover { background: var(--bg-2); color: var(--fg); }
+    .rail nav a.active { border-left-color: var(--accent); color: var(--fg); }
+
+    .rail .foot {
+      margin-top: auto;
+      font-family: var(--font-sans);
+      font-size: 12px;
+      color: var(--fg-3);
+      line-height: 1.5;
+    }
+    .rail .foot a { color: var(--fg-2); }
+
+    main {
+      padding: 56px 72px 80px;
+      max-width: 920px;
+      width: 100%;
+    }
+
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--fg-3);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin: 0 0 14px;
+    }
+    h1.hero {
+      font-size: 38px;
+      line-height: 1.1;
+      margin: 0 0 18px;
+      max-width: 24ch;
+    }
+    .intro {
+      font-family: var(--font-sans);
+      font-size: 17px;
+      line-height: 1.55;
+      color: var(--fg);
+      max-width: 72ch;
+      margin: 0 0 36px;
+    }
+
+    .contact-list { display: flex; flex-direction: column; }
+    .contact-item {
+      padding: 18px 0;
+      border-bottom: 1px solid var(--rule);
+    }
+    .contact-item:first-child { border-top: 1px solid var(--rule); }
+    .contact-label {
+      display: block;
+      margin-bottom: 5px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--fg-3);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .contact-placeholder {
+      color: var(--fg-4);
+      font-family: var(--font-mono);
+      font-size: 15px;
+    }
+
+    .pagefoot {
+      margin-top: 64px;
+      padding-top: 18px;
+      border-top: 1px solid var(--rule);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--fg-4);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    @media (max-width: 720px) {
+      .page { grid-template-columns: 1fr; }
+      .rail { height: auto; position: static; border-right: 0; border-bottom: 1px solid var(--rule); }
+      main { padding: 32px 24px 60px; max-width: none; }
+      h1.hero { font-size: 30px; }
+      .pagefoot { flex-direction: column; gap: 6px; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+  <aside class="rail">
+    <a href="../" class="mark">a<span class="dot">.</span>c</a>
+    <nav aria-label="Main navigation">
+      <a href="../">home</a>
+      <a href="../research/">research</a>
+      <a href="../courses/">courses</a>
+      <a href="../projects/">projects</a>
+      <a href="../cv/">cv</a>
+    </nav>
+    <div class="foot">
+      Researcher &amp; teacher.<br/>
+      <a href="../contact/">Get in touch</a>
+    </div>
+  </aside>
+
+  <main>
+    <p class="eyebrow">get in touch</p>
+    <h1 class="hero">Contact</h1>
+    <p class="intro">For professional enquiries or research collaborations, use my work email. For other messages, use my personal email.</p>
+
+    <div class="contact-list" aria-label="Email addresses">
+      <section class="contact-item" aria-labelledby="work-email-label">
+        <h2 class="contact-label" id="work-email-label">Work email</h2>
+        <a class="contact-placeholder" href="mailto:archie.carpenter@aau.at">archie.carpenter@aau.at</a>
+      </section>
+      <section class="contact-item" aria-labelledby="personal-email-label">
+        <h2 class="contact-label" id="personal-email-label">Personal email</h2>
+        <a class="contact-placeholder" href="mailto:archie_l_carpenter@hotmail.com">archie_l_carpenter@hotmail.com</a>
+      </section>
+    </div>
+
+    <div class="pagefoot">
+      <span>archie carpenter · contact</span>
+      <span>© archie carpenter</span>
+    </div>
+  </main>
+</div>
+</body>
+</html>
