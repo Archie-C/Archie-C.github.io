@@ -527,6 +527,7 @@
         <p>In practice, we often use the squared error loss function:</p>
         <p>$$ \mathcal{L} = \sum_{i=1}^n (y_i - \hat{y}_i)^2 $$</p>
         <p>where $y_i$ is the true value and $\hat{y}_i$ is the predicted value from our model.</p>
+        <p>This loss also has a probabilistic interpretation. If each target differs from the prediction by independent Gaussian noise with fixed variance, $y_i = \hat{y}_i + \epsilon_i$ where $\epsilon_i \sim \mathcal{N}(0, \sigma^2)$, then the negative log-likelihood is the squared error scaled by a positive constant, plus a constant. So minimising the negative log-likelihood gives the same weights as minimising squared error.</p>
         <p>Nicely, the minimisation of this function has a closed form solution, which means we can find the optimal parameters without having to use gradient descent or any other iterative optimisation tricks.</p>
 
         <h2>Deriving the 1D solution</h2>
