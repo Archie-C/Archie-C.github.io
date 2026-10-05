@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+
+<html lang="en" data-palette="paper">
+
+<head>
+
+<meta charset="utf-8"/>
+
+<title>Logistic Regression | Deep Learning</title>
+
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+
+<link rel="icon" href="../../../../../design_system/assets/favicon.svg"/>
+
+<link rel="stylesheet" href="../../../../../design_system/colors_and_type.css"/>
+
+<link rel="stylesheet" href="../../../../../design_system/charts.css"/>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"/>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+
+<style>
+
+  :root { --page-w: 1180px; }
+
+
+
+  body { background: var(--bg-2); }
+
+
+
+  .frame {
+
+    max-width: var(--page-w);
+
+    margin: 0 auto;
+
+    background: var(--bg);
+
+    min-height: 100vh;
+
+  }
+
+
+
+  .topbar {
+
+    padding: 20px 32px;
+
+    display: flex;
+
+    align-items: baseline;
+
+    gap: 22px;
+
+    border-bottom: 1px solid var(--rule);
+
+  }
+
+
+
+  .topbar .mark {
+
+    font-family: var(--font-mono);
+
+    font-weight: 700;
+
+    font-size: 22px;
+
+    letter-spacing: -0.02em;
+
+    color: var(--fg);
+
+    text-decoration: none;
+
+  }
+
+
+
+  .topbar .mark .dot { color: var(--accent); }
+
+
+
+  .topbar .crumb {
+
+    font-family: var(--font-mono);
+
+    font-size: 13px;
+
+    color: var(--fg-2);
+
+  }
+
+
+
+  .topbar .crumb a {
+
+    color: var(--fg-3);
+
+    text-decoration: none;
+
+  }
+
+
+
+  .topbar .crumb a:hover { color: var(--fg); }
+
+
+
+  .topbar .crumb .sep {
+
+    color: var(--fg-4);
+
+    margin: 0 8px;
+
+  }
+
+
+
+  .topbar nav {
+
+    margin-left: auto;
+
+    display: flex;
+
+    gap: 16px;
+
+    flex-wrap: wrap;
+
+  }
+
+
+
+  .topbar nav a {
+
+    font-family: var(--font-mono);
+
+    font-size: 13px;
+
+    color: var(--fg-2);
+
+    text-decoration: none;
+
+  }
+
+
+
+  .topbar nav a:hover,
+
+  .topbar nav a.active {
+
+    color: var(--accent);
+
+  }
+
+
+
+  .lecture {
+
+    padding: 40px 32px 80px;
+
+    display: grid;
+
+    grid-template-columns: 240px 1fr;
+
+    gap: 56px;
+
+  }
+
+
+
+  .lecture aside {
+
+    font-family: var(--font-sans);
+
+    font-size: 13px;
+
+    color: var(--fg-3);
+
+    position: sticky;
+
+    top: 24px;
+
+    align-self: start;
+
+    line-height: 1.5;
+
+  }
+
+
+
+  .lecture aside .h {
+
+    font-family: var(--font-mono);
+
+    font-size: 10px;
+
+    letter-spacing: 0.08em;
+
+    text-transform: uppercase;
+
+    color: var(--fg-4);
+
+    display: block;
+
+    margin: 16px 0 6px;
+
+  }
+
+
+
+  .lecture aside .h:first-child { margin-top: 0; }
+
+
+
+  .lecture aside .nav-group {
+
+    font-family: var(--font-mono);
+
+    font-size: 11px;
+
+    color: var(--fg-2);
+
+    margin-top: 10px;
+
+    letter-spacing: 0.04em;
+
+    text-transform: uppercase;
+
+    padding-bottom: 4px;
+
+  }
+
+
+
+  .lecture aside .nav-list {
+
+    display: flex;
+
+    flex-direction: column;
+
+  }
+
+
+
+  .lecture aside .nav-list a {
+
+    font-family: var(--font-mono);
+
+    font-size: 13px;
+
+    color: var(--fg-2);
+
+    text-decoration: none;
+
+    padding: 4px 0 4px 12px;
+
+    border-left: 2px solid transparent;
+
+  }
+
+
+
+  .lecture aside .nav-list a:hover { color: var(--fg); }
+
+
+
+  .lecture aside .nav-list a.current {
+
+    color: var(--fg);
+
+    border-left-color: var(--accent);
+
+    background: var(--accent-soft);
+
+  }
+
+
+
+  .lecture aside .nav-list a.done { color: var(--fg-4); }
+
+
+
+  .lecture article { max-width: 62ch; }
+
+
+
+  .lecture article p,
+
+  .lecture article ul,
+
+  .lecture article ol,
+
+  .lecture article pre,
+
+  .lecture article .note,
+
+  .lecture article .exercise {
+
+    max-width: none;
+
+  }
+
+
+
+  .lecture article .crumb {
+
+    font-family: var(--font-mono);
+
+    font-size: 11px;
+
+    color: var(--accent);
+
+    letter-spacing: 0.06em;
+
+    text-transform: uppercase;
+
+    margin-bottom: 10px;
+
+  }
+
+
+
+  .lecture article .crumb a {
+
+    color: var(--fg-3);
+
+    text-decoration: none;
+
+  }
+
+
+
+  .lecture article .crumb a:hover { color: var(--fg); }
+
+
+
+  .lecture article .crumb .sep {
+
+    color: var(--fg-4);
+
+    margin: 0 6px;
+
+  }
+
+
+
+  .lecture article h1 {
+
+    font-family: var(--font-mono);
+
+    font-weight: 700;
+
+    font-size: 30px;
+
+    line-height: 1.12;
+
+    letter-spacing: -0.015em;
+
+    margin: 0 0 8px;
+
+  }
+
+
+
+  .lecture article .standfirst {
+
+    font-family: var(--font-serif);
+
+    font-style: italic;
+
+    font-size: 17px;
+
+    color: var(--fg-2);
+
+    margin-bottom: 28px;
+
+    max-width: 50ch;
+
+    line-height: 1.5;
+
+  }
+
+
+
+  .body {
+
+    font-family: var(--font-serif);
+
+    font-size: 17px;
+
+    line-height: 1.65;
+
+    color: var(--fg);
+
+  }
+
+
+
+  .body p { margin: 0 0 1em; }
+
+
+
+  .chart-card {
+
+    border: 1px solid var(--rule);
+
+    border-radius: 8px;
+
+    background: var(--bg);
+
+    padding: 18px 18px 16px;
+
+    margin: 1.4em 0;
+
+  }
+
+
+
+  .chart-card .eyebrow {
+
+    font-family: var(--font-mono);
+
+    font-size: 10px;
+
+    font-weight: 500;
+
+    letter-spacing: 0.08em;
+
+    text-transform: uppercase;
+
+    color: var(--fg-3);
+
+    margin-bottom: 4px;
+
+  }
+
+
+
+  .chart-card h3 {
+
+    font-family: var(--font-mono);
+
+    font-size: 14px;
+
+    font-weight: 600;
+
+    color: var(--fg);
+
+    letter-spacing: -0.005em;
+
+    margin: 0 0 12px;
+
+  }
+
+
+
+  .chart-card .chart-legend {
+
+    margin: 4px 0 10px;
+
+  }
+
+
+
+  .chart-frame {
+
+    height: 260px;
+
+  }
+
+
+
+  .chart-frame canvas {
+
+    width: 100%;
+
+    height: 100%;
+
+  }
+
+
+
+  .body ul,
+
+  .body ol {
+
+    list-style: none;
+
+    margin: 1.1em 0 1.4em;
+
+    padding: 0;
+
+    border-top: 1px solid var(--rule);
+
+    border-bottom: 1px solid var(--rule);
+
+    counter-reset: note-list;
+
+  }
+
+
+
+  .body li {
+
+    counter-increment: note-list;
+
+    display: grid;
+
+    grid-template-columns: 44px 1fr;
+
+    column-gap: 14px;
+
+    align-items: baseline;
+
+    padding: 8px 0;
+
+    border-top: 1px dashed var(--rule);
+
+    font-family: var(--font-sans);
+
+    font-size: 14.5px;
+
+    line-height: 1.5;
+
+    color: var(--fg-2);
+
+  }
+
+
+
+  .body li:first-child { border-top: 0; }
+
+
+
+  .body li::before {
+
+    content: counter(note-list, decimal-leading-zero);
+
+    font-family: var(--font-mono);
+
+    font-size: 11.5px;
+
+    color: var(--fg-4);
+
+    letter-spacing: 0.04em;
+
+  }
+
+
+
+  .body ul li::before { content: counter(note-list, decimal-leading-zero); }
+
+
+
+  .body li a {
+
+    color: var(--fg);
+
+    text-decoration: none;
+
+  }
+
+
+
+  .body li a:hover { color: var(--accent); }
+
+
+
+  .body h2 {
+
+    font-family: var(--font-mono);
+
+    font-size: 18px;
+
+    font-weight: 600;
+
+    letter-spacing: -0.005em;
+
+    margin: 1.8em 0 0.5em;
+
+  }
+
+
+
+  .body code {
+
+    font-family: var(--font-mono);
+
+    font-size: 0.9em;
+
+    background: var(--bg-sunk);
+
+    padding: 0.1em 0.36em;
+
+    border-radius: 3px;
+
+  }
+
+
+
+  .body pre {
+
+    font-family: var(--font-mono);
+
+    background: var(--bg-sunk);
+
+    border: 1px solid var(--rule);
+
+    border-radius: 8px;
+
+    padding: 14px 18px;
+
+    font-size: 13px;
+
+    line-height: 1.5;
+
+    overflow-x: auto;
+
+    margin: 1.4em 0;
+
+  }
+
+
+
+  .body pre code {
+
+    background: none;
+
+    padding: 0;
+
+  }
+
+
+
+  .exercise {
+
+    border: 1px solid var(--rule);
+
+    border-left: 3px solid var(--accent);
+
+    border-radius: 4px;
+
+    padding: 14px 18px;
+
+    background: var(--bg-2);
+
+    margin: 1.4em 0;
+
+  }
+
+
+
+  .exercise .tag {
+
+    font-family: var(--font-mono);
+
+    font-size: 11px;
+
+    color: var(--accent);
+
+    letter-spacing: 0.06em;
+
+    text-transform: uppercase;
+
+    font-weight: 600;
+
+  }
+
+
+
+  .exercise .tag b {
+
+    color: var(--fg);
+
+    margin-left: 6px;
+
+  }
+
+
+
+  .exercise p {
+
+    margin: 6px 0 0;
+
+    font-family: var(--font-sans);
+
+    font-size: 14.5px;
+
+    color: var(--fg);
+
+  }
+
+
+
+  .note {
+
+    border: 1px solid var(--rule);
+
+    border-left: 3px solid var(--fg-4);
+
+    border-radius: 4px;
+
+    padding: 14px 18px;
+
+    background: var(--bg-sunk);
+
+    margin: 1.4em 0;
+
+  }
+
+
+
+  .note .tag {
+
+    display: block;
+
+    font-family: var(--font-mono);
+
+    font-size: 11px;
+
+    color: var(--fg-3);
+
+    letter-spacing: 0.06em;
+
+    text-transform: uppercase;
+
+    font-weight: 600;
+
+    margin-bottom: 6px;
+
+  }
+
+
+
+  .note p {
+
+    margin: 0;
+
+    font-family: var(--font-sans);
+
+    font-size: 14.5px;
+
+    line-height: 1.55;
+
+    color: var(--fg);
+
+  }
+
+
+
+  .note.important {
+
+    border-left-color: var(--accent);
+
+    background: var(--accent-soft);
+
+  }
+
+
+
+  .note.important .tag { color: var(--accent); }
+
+
+
+  .endbar {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    gap: 16px;
+
+    margin-top: 40px;
+
+    padding-top: 16px;
+
+    border-top: 1px solid var(--rule);
+
+    font-family: var(--font-mono);
+
+    font-size: 12px;
+
+  }
+
+
+
+  .endbar a {
+
+    color: var(--accent);
+
+    text-decoration: none;
+
+  }
+
+
+
+  .endbar a:hover { text-decoration: underline; }
+
+
+
+  @media (max-width: 820px) {
+
+    .topbar {
+
+      align-items: flex-start;
+
+      flex-direction: column;
+
+      gap: 10px;
+
+    }
+
+
+
+    .topbar nav { margin-left: 0; }
+
+
+
+    .lecture {
+
+      display: block;
+
+      padding: 36px 24px 64px;
+
+    }
+
+
+
+    .lecture aside {
+
+      position: static;
+
+      margin-bottom: 34px;
+
+    }
+
+  }
+
+
+
+  @media (max-width: 640px) {
+
+    .topbar { padding: 18px 20px; }
+
+    .lecture article h1 { font-size: 27px; }
+
+    .endbar { flex-direction: column; }
+
+  }
+
+
+
+  /* Syntax highlighting — built on design system tokens */
+
+  .hljs { color: var(--fg); background: transparent; }
+
+  .hljs-comment, .hljs-quote { color: var(--fg-3); font-style: italic; }
+
+  .hljs-keyword, .hljs-selector-tag { color: var(--accent); font-weight: 600; }
+
+  .hljs-built_in, .hljs-builtin-name { color: var(--warning); }
+
+  .hljs-string, .hljs-attr, .hljs-addition { color: var(--info); }
+
+  .hljs-number, .hljs-literal { color: var(--success); }
+
+  .hljs-title, .hljs-class .hljs-title, .hljs-type { color: var(--warning); }
+
+  .hljs-variable, .hljs-template-variable { color: var(--fg-2); }
+
+  .hljs-params { color: var(--fg-2); }
+
+  .hljs-deletion { color: var(--danger); }
+
+  .hljs-emphasis { font-style: italic; }
+
+  .hljs-strong { font-weight: 700; }
+
+
+
+  .boundary-controls {
+    display: grid;
+    gap: 10px;
+    margin: 4px 0 18px;
+    padding: 12px 0 4px;
+    border-top: 1px solid var(--rule);
+  }
+
+  .boundary-controls label {
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    align-items: center;
+    gap: 12px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--fg-2);
+  }
+
+  .boundary-controls input[type="range"] {
+    width: 100%;
+    accent-color: var(--accent);
+  }
+
+  @media (max-width: 640px) {
+    .boundary-controls label {
+      grid-template-columns: 1fr;
+      gap: 4px;
+    }
+  }
+
+  .scale-controls { margin: 4px 0 18px; padding: 12px 0 4px; border-top: 1px solid var(--rule); }
+  .scale-controls label { display: grid; grid-template-columns: 110px 1fr; align-items: center; gap: 12px; font-family: var(--font-mono); font-size: 11px; color: var(--fg-2); }
+  .scale-controls input[type="range"] { width: 100%; accent-color: var(--accent); }
+  @media (max-width: 640px) { .scale-controls label { grid-template-columns: 1fr; gap: 4px; } }
+
+</style>
+
+</head>
+
+<body>
+<div class="frame">
+  <div class="topbar">
+    <a href="../../../../../" class="mark">a<span class="dot">.</span>c</a>
+    <span class="crumb"><a href="../../../">Deep Learning</a><span class="sep">&rsaquo;</span><a href="../">02 classification</a><span class="sep">&rsaquo;</span>logistic regression</span>
+    <nav aria-label="Course navigation"><a href="../../../" class="active">syllabus</a></nav>
+  </div>
+  <div class="lecture">
+    <aside>
+      <span class="h">course</span>Deep Learning &middot; Winter 2026
+      <span class="h">topic</span>
+      <div class="nav-group">02 &middot; classification</div>
+      <div class="nav-list">
+        <a class="done" href="../linear-classifiers-and-decision-boundaries/">2.1 &middot; linear classifiers and decision boundaries</a>
+        <a class="current" href="./">2.2 &middot; logistic regression</a>
+      </div>
+    </aside>
+    <article>
+      <div class="crumb"><a href="../../../">syllabus</a><span class="sep">&rsaquo;</span><a href="../">topic 02</a><span class="sep">&rsaquo;</span>subtopic 2.2</div>
+      <h1>Logistic Regression.</h1>
+      <p class="standfirst">A linear score tells us which side of a boundary an input lies on. Logistic regression turns that score into a probability.</p>
+      <div class="body">
+        <h2>What this note covers</h2>
+        <ul><li>The logistic sigmoid</li><li>From scores to probabilities</li><li>Logistic regression</li><li>Making predictions</li><li>Implementation details</li></ul>
+        <p>For a more formal definition, see <a href="https://www.bishopbook.com/">Deep learning: Foundations and Concepts</a>.</p>
+
+        <h2>From a score to a probability</h2>
+        <p>In the previous note, we used the linear decision function</p>
+        <p>$$a(\mathbf{x}) = \mathbf{w}^T\mathbf{x} + w_0.$$</p>
+        <p>It can return any real number:</p>
+        <p>$$-\infty < a(\mathbf{x}) < \infty.$$</p>
+        <p>We only used its sign: a positive score meant class 1, and a negative score meant class 0. But a score such as $3.7$ or $-1.4$ is not itself a probability. For binary classification, we would like the model to give us $p(t=1\mid\mathbf{x})$, a value between 0 and 1.</p>
+
+        <h2>The logistic sigmoid</h2>
+        <p>The logistic sigmoid takes any real-valued score and maps it into that interval:</p>
+        <p>$$\sigma(a) = \frac{1}{1 + e^{-a}}.$$</p>
+        <p>Very negative scores are mapped close to 0. A score of 0 maps to 0.5, and very positive scores are mapped close to 1.</p>
+        <figure class="chart-card"><div class="eyebrow">01 &middot; function</div><h3>The logistic sigmoid</h3><div class="chart-frame"><canvas id="sigmoidChart" aria-label="Plot of the logistic sigmoid from minus eight to eight" role="img"></canvas></div><figcaption class="chart-caption"><span class="label">fig 1</span> The sigmoid maps any real-valued score into the interval $(0, 1)$.</figcaption></figure>
+        <div class="note important"><span class="tag">important</span><p>The sigmoid does not change the ordering of scores. A larger linear score still gives a larger output.</p></div>
+
+        <h2>From scores to probabilities</h2>
+        <p>We can combine the linear decision function with the sigmoid. Let</p>
+        <p>$$a(\mathbf{x}) = \mathbf{w}^T\mathbf{x} + w_0$$</p>
+        <p>and define</p>
+        <p>$$y(\mathbf{x}) = \sigma(a(\mathbf{x}))$$</p>
+        <p>or, written out,</p>
+        <p>$$y(\mathbf{x}) = \frac{1}{1+\exp\left(- (\mathbf{w}^T\mathbf{x}+w_0)\right)}.$$</p>
+        <p>We interpret this output as the probability of class 1:</p>
+        <p>$$y(\mathbf{x}) = p(t=1\mid\mathbf{x}).$$</p>
+        <p>For the other class,</p>
+        <p>$$p(t=0\mid\mathbf{x}) = 1-y(\mathbf{x}).$$</p>
+        <p>This model is called logistic regression.</p>
+        <div class="note"><span class="tag">note</span><p>Logistic regression is used for classification. The name comes from constructing a continuous linear score and transforming it with the logistic function.</p></div>
+
+        <h2>Interpreting the output</h2>
+        <p>Suppose a particular input has score $a(\mathbf{x})=1.5$. Its predicted probability of class 1 is</p>
+        <p>$$\sigma(1.5)=\frac{1}{1+e^{-1.5}}\approx 0.82.$$</p>
+        <p>So we read this as $p(t=1\mid\mathbf{x})\approx 0.82$.</p>
+        <p>With a negative score, say $a(\mathbf{x})=-1.5$, the output is about $0.18$. The sigmoid is symmetric around 0.5:</p>
+        <p>$$\sigma(-a)=1-\sigma(a).$$</p>
+
+        <h2>Making predictions</h2>
+        <p>To turn the probability into a class prediction, we use a threshold of 0.5:</p>
+        <p>$$\hat{t}=\begin{cases}1 & y(\mathbf{x}) \geq 0.5 \\ 0 & y(\mathbf{x}) < 0.5.\end{cases}$$</p>
+        <p>Since $\sigma(0)=0.5$, the output is 0.5 exactly when</p>
+        <p>$$\mathbf{w}^T\mathbf{x}+w_0=0.$$</p>
+        <p>That is the same linear decision boundary we introduced in the previous note.</p>
+        <div class="note important"><span class="tag">important</span><p>Applying the sigmoid changes how we interpret the model output, but it does not change the location of the 0.5 decision boundary.</p></div>
+
+        <h2>Applying this to our admissions example</h2>
+        <p>Let us return to the fictional admissions data. We will use a fixed model for now; how to learn its weights comes later. Choose</p>
+        <p>$$a(\mathbf{x})=0.12x_1+0.08x_2-11.2.$$</p>
+        <p>The boundary is still the same line from the previous note, just with all terms scaled by one tenth. A student on the line has predicted probability 0.5; students on either side get probabilities below or above 0.5.</p>
+        <figure class="chart-card"><div class="eyebrow">02 &middot; admissions probabilities</div><h3>Predicted probability and the 0.5 boundary</h3><div class="chart-legend"><span class="item"><span class="swatch swatch--dot" style="background:var(--c-cat-2)"></span>rejected</span><span class="item"><span class="swatch swatch--dot" style="background:var(--c-cat-1)"></span>admitted</span><span class="item"><span class="swatch" style="background:var(--c-cat-3)"></span>p(admitted) = 0.5</span></div><div class="chart-frame"><canvas id="logisticAdmissionsChart" aria-label="Admissions data with logistic regression probabilities and a 0.5 decision boundary" role="img"></canvas></div><figcaption class="chart-caption"><span class="label">fig 2</span> The sigmoid turns the linear score into a gradual change in predicted probability, while the 0.5 contour remains a straight line.</figcaption></figure>
+
+        <h2>How the score affects the probability</h2>
+        <p>Points in the positive direction of the weight vector get larger linear scores and therefore larger probabilities. The chain is</p>
+        <p>$$\mathbf{x} \rightarrow a(\mathbf{x}) \rightarrow \sigma(a) \rightarrow p(t=1\mid\mathbf{x}).$$</p>
+        <p>The score is what matters here; probability is not simply Euclidean distance from the boundary.</p>
+        <div class="note"><span class="tag">note</span><p>Multiplying all weights and the bias by the same positive constant leaves the boundary in the same place, but changes how quickly probabilities move towards 0 and 1.</p></div>
+        <figure class="chart-card"><div class="eyebrow">03 &middot; interactive</div><h3>Scale the linear score</h3><div class="scale-controls"><label><span>scale = <strong id="scaleValue">1</strong></span><input id="scaleSlider" type="range" min="0.25" max="4" step="0.25" value="1" aria-label="Scale the linear score"></label></div><div class="chart-frame"><canvas id="sigmoidScaleChart" aria-label="Interactive sigmoid with adjustable score scale" role="img"></canvas></div><figcaption class="chart-caption"><span class="label">fig 3</span> Each curve crosses $(0, 0.5)$. Increasing the scale sharpens the transition without moving the threshold.</figcaption></figure>
+
+        <h2>Implementation</h2>
+        <p>We can extend the <code>Classifier</code> abstraction from the previous note. The weights and bias are supplied here, so this example focuses on prediction rather than learning them.</p>
+        <p>First, <code>decision_function</code> computes the linear score for each input. Then <code>predict_proba</code> applies the sigmoid to turn each score into a probability.</p>
+        <pre><code class="language-python">import numpy as np
+
+class LogisticRegression(Classifier):
+
+    def __init__(self, weights, bias):
+        self.weights = np.asarray(weights)
+        self.bias = bias
+
+    def fit(self, X, y):
+        raise NotImplementedError("Learning the weights comes next.")
+
+    def decision_function(self, X):
+        return X @ self.weights + self.bias
+
+    def predict_proba(self, X):
+        scores = self.decision_function(X)
+        scores = np.clip(scores, -500, 500)
+        return 1 / (1 + np.exp(-scores))
+
+    def predict(self, X):
+        probabilities = self.predict_proba(X)
+        return (probabilities >= 0.5).astype(int)</code></pre>
+        <p>Finally, <code>predict</code> uses a threshold of 0.5 to turn those probabilities into class labels. The small <code>fit</code> placeholder is needed because <code>Classifier</code> declares it as an abstract method; we will implement learning in the next note.</p>
+        <div class="note"><span class="tag">note</span><p>For very large negative scores, directly evaluating <code>np.exp(-scores)</code> can overflow. Clipping the scores before exponentiation is a compact safeguard for this introductory implementation.</p></div>
+
+        <div class="exercise">
+          <span class="tag">Exercise <b>2.2.1 — Inspect the probabilities</b></span>
+          <p>Implement the prediction code and calculate probabilities for a few students in the admissions example. Check that a score of 0 gives probability 0.5. Then multiply the weights and bias by the same positive constant: the boundary should stay put while the probabilities become more or less confident.</p>
+        </div>
+
+        <h2>Next steps</h2>
+        <p>We now have a model that turns an input into a valid class probability. What we have not yet discussed is how to choose the weights from data.</p>
+        <p>In the next section, we will derive the loss function used to train logistic regression from maximum likelihood. This leads to binary cross-entropy.</p>
+      </div>
+      <div class="endbar"><span><a href="../../../">back to syllabus</a></span><span><a href="../maximum-likelihood-and-binary-cross-entropy/">2.3 &middot; maximum likelihood and binary cross-entropy &rarr;</a></span></div>
+    </article>
+  </div>
+</div>
+<script src="./chart.js"></script><script>hljs.highlightAll();</script>
+</body>
+</html>

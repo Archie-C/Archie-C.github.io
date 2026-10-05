@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+
+<html lang="en" data-palette="paper">
+
+<head>
+
+<meta charset="utf-8"/>
+
+<title>Maximum Likelihood and Binary Cross-Entropy | Deep Learning</title>
+
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+
+<link rel="icon" href="../../../../../design_system/assets/favicon.svg"/>
+
+<link rel="stylesheet" href="../../../../../design_system/colors_and_type.css"/>
+
+<link rel="stylesheet" href="../../../../../design_system/charts.css"/>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"/>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+
+<style>
+
+  :root { --page-w: 1180px; }
+
+
+
+  body { background: var(--bg-2); }
+
+
+
+  .frame {
+
+    max-width: var(--page-w);
+
+    margin: 0 auto;
+
+    background: var(--bg);
+
+    min-height: 100vh;
+
+  }
+
+
+
+  .topbar {
+
+    padding: 20px 32px;
+
+    display: flex;
+
+    align-items: baseline;
+
+    gap: 22px;
+
+    border-bottom: 1px solid var(--rule);
+
+  }
+
+
+
+  .topbar .mark {
+
+    font-family: var(--font-mono);
+
+    font-weight: 700;
+
+    font-size: 22px;
+
+    letter-spacing: -0.02em;
+
+    color: var(--fg);
+
+    text-decoration: none;
+
+  }
+
+
+
+  .topbar .mark .dot { color: var(--accent); }
+
+
+
+  .topbar .crumb {
+
+    font-family: var(--font-mono);
+
+    font-size: 13px;
+
+    color: var(--fg-2);
+
+  }
+
+
+
+  .topbar .crumb a {
+
+    color: var(--fg-3);
+
+    text-decoration: none;
+
+  }
+
+
+
+  .topbar .crumb a:hover { color: var(--fg); }
+
+
+
+  .topbar .crumb .sep {
+
+    color: var(--fg-4);
+
+    margin: 0 8px;
+
+  }
+
+
+
+  .topbar nav {
+
+    margin-left: auto;
+
+    display: flex;
+
+    gap: 16px;
+
+    flex-wrap: wrap;
+
+  }
+
+
+
+  .topbar nav a {
+
+    font-family: var(--font-mono);
+
+    font-size: 13px;
+
+    color: var(--fg-2);
+
+    text-decoration: none;
+
+  }
+
+
+
+  .topbar nav a:hover,
+
+  .topbar nav a.active {
+
+    color: var(--accent);
+
+  }
+
+
+
+  .lecture {
+
+    padding: 40px 32px 80px;
+
+    display: grid;
+
+    grid-template-columns: 240px 1fr;
+
+    gap: 56px;
+
+  }
+
+
+
+  .lecture aside {
+
+    font-family: var(--font-sans);
+
+    font-size: 13px;
+
+    color: var(--fg-3);
+
+    position: sticky;
+
+    top: 24px;
+
+    align-self: start;
+
+    line-height: 1.5;
+
+  }
+
+
+
+  .lecture aside .h {
+
+    font-family: var(--font-mono);
+
+    font-size: 10px;
+
+    letter-spacing: 0.08em;
+
+    text-transform: uppercase;
+
+    color: var(--fg-4);
+
+    display: block;
+
+    margin: 16px 0 6px;
+
+  }
+
+
+
+  .lecture aside .h:first-child { margin-top: 0; }
+
+
+
+  .lecture aside .nav-group {
+
+    font-family: var(--font-mono);
+
+    font-size: 11px;
+
+    color: var(--fg-2);
+
+    margin-top: 10px;
+
+    letter-spacing: 0.04em;
+
+    text-transform: uppercase;
+
+    padding-bottom: 4px;
+
+  }
+
+
+
+  .lecture aside .nav-list {
+
+    display: flex;
+
+    flex-direction: column;
+
+  }
+
+
+
+  .lecture aside .nav-list a {
+
+    font-family: var(--font-mono);
+
+    font-size: 13px;
+
+    color: var(--fg-2);
+
+    text-decoration: none;
+
+    padding: 4px 0 4px 12px;
+
+    border-left: 2px solid transparent;
+
+  }
+
+
+
+  .lecture aside .nav-list a:hover { color: var(--fg); }
+
+
+
+  .lecture aside .nav-list a.current {
+
+    color: var(--fg);
+
+    border-left-color: var(--accent);
+
+    background: var(--accent-soft);
+
+  }
+
+
+
+  .lecture aside .nav-list a.done { color: var(--fg-4); }
+
+
+
+  .lecture article { max-width: 62ch; }
+
+
+
+  .lecture article p,
+
+  .lecture article ul,
+
+  .lecture article ol,
+
+  .lecture article pre,
+
+  .lecture article .note,
+
+  .lecture article .exercise {
+
+    max-width: none;
+
+  }
+
+
+
+  .lecture article .crumb {
+
+    font-family: var(--font-mono);
+
+    font-size: 11px;
+
+    color: var(--accent);
+
+    letter-spacing: 0.06em;
+
+    text-transform: uppercase;
+
+    margin-bottom: 10px;
+
+  }
+
+
+
+  .lecture article .crumb a {
+
+    color: var(--fg-3);
+
+    text-decoration: none;
+
+  }
+
+
+
+  .lecture article .crumb a:hover { color: var(--fg); }
+
+
+
+  .lecture article .crumb .sep {
+
+    color: var(--fg-4);
+
+    margin: 0 6px;
+
+  }
+
+
+
+  .lecture article h1 {
+
+    font-family: var(--font-mono);
+
+    font-weight: 700;
+
+    font-size: 30px;
+
+    line-height: 1.12;
+
+    letter-spacing: -0.015em;
+
+    margin: 0 0 8px;
+
+  }
+
+
+
+  .lecture article .standfirst {
+
+    font-family: var(--font-serif);
+
+    font-style: italic;
+
+    font-size: 17px;
+
+    color: var(--fg-2);
+
+    margin-bottom: 28px;
+
+    max-width: 50ch;
+
+    line-height: 1.5;
+
+  }
+
+
+
+  .body {
+
+    font-family: var(--font-serif);
+
+    font-size: 17px;
+
+    line-height: 1.65;
+
+    color: var(--fg);
+
+  }
+
+
+
+  .body p { margin: 0 0 1em; }
+
+
+
+  .chart-card {
+
+    border: 1px solid var(--rule);
+
+    border-radius: 8px;
+
+    background: var(--bg);
+
+    padding: 18px 18px 16px;
+
+    margin: 1.4em 0;
+
+  }
+
+
+
+  .chart-card .eyebrow {
+
+    font-family: var(--font-mono);
+
+    font-size: 10px;
+
+    font-weight: 500;
+
+    letter-spacing: 0.08em;
+
+    text-transform: uppercase;
+
+    color: var(--fg-3);
+
+    margin-bottom: 4px;
+
+  }
+
+
+
+  .chart-card h3 {
+
+    font-family: var(--font-mono);
+
+    font-size: 14px;
+
+    font-weight: 600;
+
+    color: var(--fg);
+
+    letter-spacing: -0.005em;
+
+    margin: 0 0 12px;
+
+  }
+
+
+
+  .chart-card .chart-legend {
+
+    margin: 4px 0 10px;
+
+  }
+
+
+
+  .chart-frame {
+
+    height: 260px;
+
+  }
+
+
+
+  .chart-frame canvas {
+
+    width: 100%;
+
+    height: 100%;
+
+  }
+
+
+
+  .body ul,
+
+  .body ol {
+
+    list-style: none;
+
+    margin: 1.1em 0 1.4em;
+
+    padding: 0;
+
+    border-top: 1px solid var(--rule);
+
+    border-bottom: 1px solid var(--rule);
+
+    counter-reset: note-list;
+
+  }
+
+
+
+  .body li {
+
+    counter-increment: note-list;
+
+    display: grid;
+
+    grid-template-columns: 44px 1fr;
+
+    column-gap: 14px;
+
+    align-items: baseline;
+
+    padding: 8px 0;
+
+    border-top: 1px dashed var(--rule);
+
+    font-family: var(--font-sans);
+
+    font-size: 14.5px;
+
+    line-height: 1.5;
+
+    color: var(--fg-2);
+
+  }
+
+
+
+  .body li:first-child { border-top: 0; }
+
+
+
+  .body li::before {
+
+    content: counter(note-list, decimal-leading-zero);
+
+    font-family: var(--font-mono);
+
+    font-size: 11.5px;
+
+    color: var(--fg-4);
+
+    letter-spacing: 0.04em;
+
+  }
+
+
+
+  .body ul li::before { content: counter(note-list, decimal-leading-zero); }
+
+
+
+  .body li a {
+
+    color: var(--fg);
+
+    text-decoration: none;
+
+  }
+
+
+
+  .body li a:hover { color: var(--accent); }
+
+
+
+  .body h2 {
+
+    font-family: var(--font-mono);
+
+    font-size: 18px;
+
+    font-weight: 600;
+
+    letter-spacing: -0.005em;
+
+    margin: 1.8em 0 0.5em;
+
+  }
+
+
+
+  .body code {
+
+    font-family: var(--font-mono);
+
+    font-size: 0.9em;
+
+    background: var(--bg-sunk);
+
+    padding: 0.1em 0.36em;
+
+    border-radius: 3px;
+
+  }
+
+
+
+  .body pre {
+
+    font-family: var(--font-mono);
+
+    background: var(--bg-sunk);
+
+    border: 1px solid var(--rule);
+
+    border-radius: 8px;
+
+    padding: 14px 18px;
+
+    font-size: 13px;
+
+    line-height: 1.5;
+
+    overflow-x: auto;
+
+    margin: 1.4em 0;
+
+  }
+
+
+
+  .body pre code {
+
+    background: none;
+
+    padding: 0;
+
+  }
+
+
+
+  .exercise {
+
+    border: 1px solid var(--rule);
+
+    border-left: 3px solid var(--accent);
+
+    border-radius: 4px;
+
+    padding: 14px 18px;
+
+    background: var(--bg-2);
+
+    margin: 1.4em 0;
+
+  }
+
+
+
+  .exercise .tag {
+
+    font-family: var(--font-mono);
+
+    font-size: 11px;
+
+    color: var(--accent);
+
+    letter-spacing: 0.06em;
+
+    text-transform: uppercase;
+
+    font-weight: 600;
+
+  }
+
+
+
+  .exercise .tag b {
+
+    color: var(--fg);
+
+    margin-left: 6px;
+
+  }
+
+
+
+  .exercise p {
+
+    margin: 6px 0 0;
+
+    font-family: var(--font-sans);
+
+    font-size: 14.5px;
+
+    color: var(--fg);
+
+  }
+
+
+
+  .note {
+
+    border: 1px solid var(--rule);
+
+    border-left: 3px solid var(--fg-4);
+
+    border-radius: 4px;
+
+    padding: 14px 18px;
+
+    background: var(--bg-sunk);
+
+    margin: 1.4em 0;
+
+  }
+
+
+
+  .note .tag {
+
+    display: block;
+
+    font-family: var(--font-mono);
+
+    font-size: 11px;
+
+    color: var(--fg-3);
+
+    letter-spacing: 0.06em;
+
+    text-transform: uppercase;
+
+    font-weight: 600;
+
+    margin-bottom: 6px;
+
+  }
+
+
+
+  .note p {
+
+    margin: 0;
+
+    font-family: var(--font-sans);
+
+    font-size: 14.5px;
+
+    line-height: 1.55;
+
+    color: var(--fg);
+
+  }
+
+
+
+  .note.important {
+
+    border-left-color: var(--accent);
+
+    background: var(--accent-soft);
+
+  }
+
+
+
+  .note.important .tag { color: var(--accent); }
+
+
+
+  .endbar {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    gap: 16px;
+
+    margin-top: 40px;
+
+    padding-top: 16px;
+
+    border-top: 1px solid var(--rule);
+
+    font-family: var(--font-mono);
+
+    font-size: 12px;
+
+  }
+
+
+
+  .endbar a {
+
+    color: var(--accent);
+
+    text-decoration: none;
+
+  }
+
+
+
+  .endbar a:hover { text-decoration: underline; }
+
+
+
+  @media (max-width: 820px) {
+
+    .topbar {
+
+      align-items: flex-start;
+
+      flex-direction: column;
+
+      gap: 10px;
+
+    }
+
+
+
+    .topbar nav { margin-left: 0; }
+
+
+
+    .lecture {
+
+      display: block;
+
+      padding: 36px 24px 64px;
+
+    }
+
+
+
+    .lecture aside {
+
+      position: static;
+
+      margin-bottom: 34px;
+
+    }
+
+  }
+
+
+
+  @media (max-width: 640px) {
+
+    .topbar { padding: 18px 20px; }
+
+    .lecture article h1 { font-size: 27px; }
+
+    .endbar { flex-direction: column; }
+
+  }
+
+
+
+  /* Syntax highlighting — built on design system tokens */
+
+  .hljs { color: var(--fg); background: transparent; }
+
+  .hljs-comment, .hljs-quote { color: var(--fg-3); font-style: italic; }
+
+  .hljs-keyword, .hljs-selector-tag { color: var(--accent); font-weight: 600; }
+
+  .hljs-built_in, .hljs-builtin-name { color: var(--warning); }
+
+  .hljs-string, .hljs-attr, .hljs-addition { color: var(--info); }
+
+  .hljs-number, .hljs-literal { color: var(--success); }
+
+  .hljs-title, .hljs-class .hljs-title, .hljs-type { color: var(--warning); }
+
+  .hljs-variable, .hljs-template-variable { color: var(--fg-2); }
+
+  .hljs-params { color: var(--fg-2); }
+
+  .hljs-deletion { color: var(--danger); }
+
+  .hljs-emphasis { font-style: italic; }
+
+  .hljs-strong { font-weight: 700; }
+
+  .scale-controls { margin: 4px 0 18px; padding: 12px 0 4px; border-top: 1px solid var(--rule); }
+  .scale-controls label { display: grid; grid-template-columns: 110px 1fr; align-items: center; gap: 12px; font-family: var(--font-mono); font-size: 11px; color: var(--fg-2); }
+  .scale-controls input[type="range"] { width: 100%; accent-color: var(--accent); }
+  @media (max-width: 640px) { .scale-controls label { grid-template-columns: 1fr; gap: 4px; } }
+
+</style>
+
+</head>
+
+<body>
+<div class="frame">
+  <div class="topbar">
+    <a href="../../../../../" class="mark">a<span class="dot">.</span>c</a>
+    <span class="crumb"><a href="../../../">Deep Learning</a><span class="sep">&rsaquo;</span><a href="../">02 classification</a><span class="sep">&rsaquo;</span>maximum likelihood and binary cross-entropy</span>
+    <nav aria-label="Course navigation"><a href="../../../" class="active">syllabus</a></nav>
+  </div>
+  <div class="lecture">
+    <aside>
+      <span class="h">course</span>Deep Learning &middot; Winter 2026
+      <span class="h">topic</span>
+      <div class="nav-group">02 &middot; classification</div>
+      <div class="nav-list">
+        <a class="done" href="../linear-classifiers-and-decision-boundaries/">2.1 &middot; linear classifiers and decision boundaries</a>
+        <a class="done" href="../logistic-regression/">2.2 &middot; logistic regression</a>
+        <a class="current" href="./">2.3 &middot; maximum likelihood and binary cross-entropy</a>
+      </div>
+    </aside>
+    <article>
+      <div class="crumb"><a href="../../../">syllabus</a><span class="sep">&rsaquo;</span><a href="../">topic 02</a><span class="sep">&rsaquo;</span>subtopic 2.3</div>
+      <h1>Maximum Likelihood and Binary Cross-Entropy.</h1>
+      <p class="standfirst">Logistic regression gives us probabilities. Now we need a way to choose weights that make those probabilities agree with the observed labels.</p>
+      <div class="body">
+        <h2>What this note covers</h2>
+        <ul><li>Modelling binary targets probabilistically</li><li>The likelihood function</li><li>Maximum likelihood</li><li>Binary cross-entropy</li><li>Optimising logistic regression</li></ul>
+        <p>For a more formal definition, see <a href="https://www.bishopbook.com/">Deep learning: Foundations and Concepts</a>.</p>
+
+        <h2>Starting from logistic regression</h2>
+        <p>In the previous note, we used logistic regression to turn a linear score into a probability:</p>
+        <p>$$y(\mathbf{x})=\sigma(\mathbf{w}^T\mathbf{x}+w_0),$$</p>
+        <p>where $y(\mathbf{x})=p(t=1\mid\mathbf{x})$. The target for each example is binary, so $t\in\{0,1\}$. Until now, we have treated the weights as if they were already known. We now need an objective that tells us whether a particular choice of weights explains the labels well.</p>
+
+        <h2>The probability of one observation</h2>
+        <p>For observation $n$, let $y_n=p(t_n=1\mid\mathbf{x}_n)$. The probability of target 1 is $y_n$, and the probability of target 0 is $1-y_n$.</p>
+        <p>We can write both cases in one expression:</p>
+        <p>$$p(t_n\mid\mathbf{x}_n,\mathbf{w})=y_n^{t_n}(1-y_n)^{1-t_n}.$$</p>
+        <p>For $t_n=1$, this becomes</p>
+        <p>$$y_n^1(1-y_n)^0=y_n,$$</p>
+        <p>and for $t_n=0$, it becomes</p>
+        <p>$$y_n^0(1-y_n)^1=1-y_n.$$</p>
+        <div class="note important"><span class="tag">important</span><p>This compact expression just selects the probability assigned to the target that actually occurred.</p></div>
+        <p>This is a Bernoulli model: there are two possible outcomes, 0 and 1, with probabilities $1-y_n$ and $y_n$.</p>
+
+        <h2>The likelihood of the dataset</h2>
+        <p>Suppose our dataset is</p>
+        <p>$$\mathcal{D}=\{(\mathbf{x}_n,t_n)\}_{n=1}^{N}.$$</p>
+        <p>If the observations are independent given the model parameters, their probabilities multiply. The likelihood of all the observed targets is therefore</p>
+        <p>$$p(\mathbf{t}\mid\mathbf{X},\mathbf{w})=\prod_{n=1}^{N}y_n^{t_n}(1-y_n)^{1-t_n}.$$</p>
+        <p>Each observation contributes the probability the model assigned to the class that occurred. Multiplying these probabilities gives a measure of how plausible the whole dataset is under the model.</p>
+        <p>For example, take true labels $[1,0,1]$ and predicted probabilities for class 1 of $[0.9,0.2,0.7]$. The likelihood is</p>
+        <p>$$0.9\times(1-0.2)\times0.7=0.504.$$</p>
+        <p>A second model gives probabilities $[0.6,0.7,0.4]$. Its likelihood is $0.6\times(1-0.7)\times0.4=0.072$, which is much lower.</p>
+        <figure class="chart-card"><div class="eyebrow">01 &middot; illustrative comparison</div><h3>Likelihood on a tiny dataset</h3><div class="chart-frame"><canvas id="likelihoodComparisonChart" aria-label="Illustrative likelihood values for four models on the same three examples" role="img"></canvas></div><figcaption class="chart-caption"><span class="label">fig 1</span> These values are illustrative. Models that assign higher probability to the observed labels achieve higher likelihood.</figcaption></figure>
+
+        <h2>Why use the log-likelihood?</h2>
+        <p>When many probabilities between 0 and 1 are multiplied, the result can become extremely small. Products are also awkward to work with, so we take the logarithm. Using $\log(ab)=\log a+\log b$ turns the product into a sum:</p>
+        <p>$$\begin{aligned}\log p(\mathbf{t}\mid\mathbf{X},\mathbf{w})&=\log\prod_{n=1}^{N} y_n^{t_n}(1-y_n)^{1-t_n}\\&=\sum_{n=1}^{N}\left[t_n\log y_n+(1-t_n)\log(1-y_n)\right].\end{aligned}$$</p>
+        <p>The log-likelihood is easier to calculate and optimise, and it ranks models in the same order as the likelihood.</p>
+        <div class="note important"><span class="tag">important</span><p>The logarithm is strictly increasing, so the parameters that maximise the likelihood also maximise the log-likelihood.</p></div>
+
+        <h2>From maximum likelihood to a loss</h2>
+        <p>Maximum likelihood asks us to maximise the log-likelihood. Optimisation is often written as minimisation, so we instead minimise its negative:</p>
+        <p>$$\mathcal{L}=-\sum_{n=1}^{N}\left[t_n\log y_n+(1-t_n)\log(1-y_n)\right].$$</p>
+        <p>This is the binary cross-entropy loss. It is also common to use the mean over the examples:</p>
+        <p>$$\mathcal{L}_{\mathrm{BCE}}=-\frac{1}{N}\sum_{n=1}^{N}\left[t_n\log y_n+(1-t_n)\log(1-y_n)\right].$$</p>
+        <p>The sum and mean have the same minimiser. The mean just makes loss values easier to compare across datasets of different sizes.</p>
+        <div class="note important"><span class="tag">important</span><p>Binary cross-entropy is not an arbitrary loss function. For logistic regression, it follows directly from maximum likelihood under a Bernoulli model for the targets.</p></div>
+
+        <h2>The loss for one observation</h2>
+        <p>For a positive example, where $t=1$, the loss reduces to $-\log y$. For a negative example, where $t=0$, it is $-\log(1-y)$.</p>
+        <p>A correct, confident prediction gives a small loss. An uncertain prediction gives a moderate loss. A confidently wrong prediction gives a very large loss.</p>
+        <figure class="chart-card"><div class="eyebrow">02 &middot; binary cross-entropy</div><h3>Loss for one observation</h3><div class="chart-legend"><span class="item"><span class="swatch" style="background:var(--c-cat-1)"></span>target t = 1</span><span class="item"><span class="swatch" style="background:var(--c-cat-2)"></span>target t = 0</span></div><div class="chart-frame"><canvas id="binaryCrossEntropyChart" aria-label="Binary cross-entropy for positive and negative targets over predicted probability" role="img"></canvas></div><figcaption class="chart-caption"><span class="label">fig 2</span> For a positive example, predicting 1 is rewarded and predicting 0 is heavily penalised; the reverse holds for a negative example. The true loss tends to infinity at a confidently wrong prediction.</figcaption></figure>
+
+        <h2>Why not squared error?</h2>
+        <p>In regression, squared error follows naturally when we model the targets with a Gaussian distribution. Here the targets are binary, so a Bernoulli distribution is a better fit. For logistic regression, maximum likelihood under that Bernoulli model gives us cross-entropy.</p>
+        <p>We could use squared error for a binary task, but it is not the natural probabilistic objective for the model we have defined.</p>
+
+        <h2>The loss as a function of the score</h2>
+        <p>Recall that $y=\sigma(a)$. For a positive example the loss is $-\log\sigma(a)$; for a negative example it is $-\log(1-\sigma(a))$.</p>
+        <p>Large positive scores are good for class 1, while large negative scores are good for class 0. A score far in the wrong direction gives a large loss.</p>
+        <figure class="chart-card"><div class="eyebrow">03 &middot; score and loss</div><h3>Binary cross-entropy against the linear score</h3><div class="chart-legend"><span class="item"><span class="swatch" style="background:var(--c-cat-1)"></span>target t = 1</span><span class="item"><span class="swatch" style="background:var(--c-cat-2)"></span>target t = 0</span></div><div class="chart-frame"><canvas id="lossVsScoreChart" aria-label="Binary cross-entropy loss against linear score for targets zero and one" role="img"></canvas></div><figcaption class="chart-caption"><span class="label">fig 3</span> The loss encourages the score to become positive for class 1 and negative for class 0.</figcaption></figure>
+
+        <h2>Optimising logistic regression</h2>
+        <p>Unlike ordinary least squares, logistic regression does not have the same simple closed-form solution. We usually find its weights iteratively: initialise them, compute predictions and the loss, calculate gradients, update the parameters, and repeat.</p>
+        <p>For one example, write the loss in terms of the score $a$:</p>
+        <p>$$\ell=-t\log y-(1-t)\log(1-y),\qquad y=\sigma(a).$$</p>
+        <p>The sigmoid derivative is $\frac{dy}{da}=y(1-y)$. Applying the chain rule gives</p>
+        <p>$$\frac{d\ell}{da}=\left(-\frac{t}{y}+\frac{1-t}{1-y}\right)y(1-y)=y-t.$$</p>
+        <p>Since $a=\mathbf{w}^T\mathbf{x}+w_0$, the score changes by $\mathbf{x}$ when we change the weights, and by 1 when we change the bias. So for the summed loss:</p>
+        <p>$$\frac{\partial\mathcal{L}}{\partial\mathbf{w}}=\sum_{n=1}^{N}(y_n-t_n)\mathbf{x}_n,\qquad\frac{\partial\mathcal{L}}{\partial w_0}=\sum_{n=1}^{N}(y_n-t_n).$$</p>
+        <p>For the mean BCE, divide both gradients by $N$. Each example contributes its prediction error, $y_n-t_n$, multiplied by its input. This prediction error times input pattern will appear again in neural networks.</p>
+        <p>Gradient descent turns these gradients into actual parameter updates. With learning rate $\eta$, subtract the gradient from each parameter:</p>
+        <p>$$\mathbf{w}\leftarrow\mathbf{w}-\eta\frac{1}{N}\sum_{n=1}^{N}(y_n-t_n)\mathbf{x}_n,\qquad w_0\leftarrow w_0-\eta\frac{1}{N}\sum_{n=1}^{N}(y_n-t_n).$$</p>
+        <p>The gradient points in the direction that increases the loss, so subtracting it moves the parameters downhill. The learning rate $\eta$ controls the size of each step: if it is too large, we can jump past a good solution; if it is small, learning takes longer. In the code below, <code>dw</code> and <code>db</code> are the two gradients, and the last two lines apply exactly these updates.</p>
+        <p>We repeat the following steps:</p>
+        <ol><li>Initialise the weights and bias.</li><li>Compute the predicted probabilities.</li><li>Compute the BCE and its gradients.</li><li>Update the weights and bias.</li><li>Repeat for a number of epochs.</li></ol>
+        <figure class="chart-card"><div class="eyebrow">04 &middot; illustrative training</div><h3>Loss during training</h3><div class="chart-frame"><canvas id="trainingLossChart" aria-label="Illustrative binary cross-entropy decreasing over training epochs" role="img"></canvas></div><figcaption class="chart-caption"><span class="label">fig 4</span> An illustrative training trajectory: the loss decreases as the parameters are updated. This curve is not generated by the Python example.</figcaption></figure>
+
+        <h2>Implementation</h2>
+        <p>We can now extend the <code>LogisticRegression</code> class from the previous note. We will use NumPy to compute the mean BCE and its gradients.</p>
+        <h2>Initialising the model</h2>
+        <p>Start with a learning rate and number of epochs. The weights are initialised when we call <code>fit</code>, once we know how many input features there are.</p>
+        <pre><code class="language-python">import numpy as np
+
+class LogisticRegression(Classifier):
+
+    def __init__(self, learning_rate=0.01, epochs=1000):
+        self.learning_rate = learning_rate
+        self.epochs = epochs
+        self.weights = None
+        self.bias = 0.0
+        self.loss_history = []</code></pre>
+        <h2>Computing the loss</h2>
+        <p>We clip probabilities slightly away from 0 and 1 because $\log(0)$ is undefined. This function calculates the mean loss across the examples:</p>
+        <pre><code class="language-python">def binary_cross_entropy(y_true, y_pred):
+    eps = 1e-12
+    y_pred = np.clip(y_pred, eps, 1 - eps)
+    return -np.mean(
+        y_true * np.log(y_pred)
+        + (1 - y_true) * np.log(1 - y_pred)
+    )</code></pre>
+        <h2>Computing predictions and gradients</h2>
+        <p>Add these methods to the class. The sigmoid and decision function give us probabilities. In each training step, the difference between the predicted probability and target gives the error used for both gradients.</p>
+        <pre><code class="language-python">    def _sigmoid(self, scores):
+        scores = np.clip(scores, -500, 500)
+        return 1 / (1 + np.exp(-scores))
+
+    def decision_function(self, X):
+        return X @ self.weights + self.bias
+
+    def predict_proba(self, X):
+        return self._sigmoid(self.decision_function(X))</code></pre>
+        <h2>Updating the parameters</h2>
+        <p>The matrix product <code>X.T @ error</code> adds each input weighted by its prediction error. Dividing by the number of examples gives the gradients for the mean BCE. We then take a small step in the opposite direction.</p>
+        <pre><code class="language-python">    def fit(self, X, y):
+        n_samples, n_features = X.shape
+        y = np.asarray(y)
+        self.weights = np.zeros(n_features)
+        self.bias = 0.0
+        self.loss_history = []
+
+        for _ in range(self.epochs):
+            probabilities = self.predict_proba(X)
+            self.loss_history.append(
+                binary_cross_entropy(y, probabilities)
+            )
+            error = probabilities - y
+            dw = X.T @ error / n_samples
+            db = np.mean(error)
+            self.weights -= self.learning_rate * dw
+            self.bias -= self.learning_rate * db</code></pre>
+        <h2>Making predictions</h2>
+        <p>As before, we use a threshold of 0.5 to turn probabilities into class labels:</p>
+        <pre><code class="language-python">    def predict(self, X):
+        probabilities = self.predict_proba(X)
+        return (probabilities >= 0.5).astype(int)</code></pre>
+        <p>These methods are the pieces of the <code>LogisticRegression</code> class. The abstract <code>Classifier</code> base class is the one introduced in 2.1.</p>
+
+        <div class="exercise"><span class="tag">Exercise <b>2.3.1 — Train logistic regression</b></span><p>Implement BCE and the <code>fit</code> method, then train on the admissions data. Check that the loss decreases, inspect the predicted probabilities, and compare the learned boundary with the hand-chosen one from 2.2. Why does the loss become very large when a target of 1 is assigned a probability close to 0?</p></div>
+        <h2>Next steps</h2>
+        <p>We now know how to define, interpret, and train a binary logistic regression classifier.</p>
+        <p>So far, however, our decision boundary is still linear in the original input features. In the next section, we will see how basis functions allow the same classifier to produce nonlinear decision boundaries.</p>
+      </div>
+      <div class="endbar"><span><a href="../../../">back to syllabus</a></span><span><a href="#" aria-disabled="true">next section &rarr;</a></span></div>
+    </article>
+  </div>
+</div>
+<script src="./chart.js"></script><script>hljs.highlightAll();</script>
+</body>
+</html>
