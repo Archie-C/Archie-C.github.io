@@ -592,8 +592,8 @@
           <figcaption class="chart-caption"><span class="label">fig 1</span> Nine data points drawn from y = 0.8x&#179; + 0.5x + &epsilon;, where &epsilon; ~ N(0, 15&sup2;). The noise makes the cubic structure hard to see.</figcaption>
         </figure>
 
-        <h2>Linear regression — high bias, low variance</h2>
-        <p>A linear model can never capture a cubic curve — no matter how much data it sees, the straight line is systematically wrong. This is <strong>high bias</strong>. However, the two fits below look very similar to each other even though they were trained on slightly different datasets. That stability is <strong>low variance</strong>.</p>
+        <h2>Linear regression: high bias, low variance</h2>
+        <p>A linear model can never capture a cubic curve, no matter how much data it sees; the straight line is systematically wrong. This is <strong>high bias</strong>. However, the two fits below look very similar to each other even though they were trained on slightly different datasets. That stability is <strong>low variance</strong>.</p>
 
         <div class="chart-pair">
           <figure class="chart-card">
@@ -621,8 +621,8 @@
         </div>
         <p class="chart-caption"><span class="label">fig 2&ndash;3</span> The same linear model fitted to two slightly different draws from the same process. The lines are consistent across datasets (low variance) but consistently miss the curvature (high bias).</p>
 
-        <h2>Cubic regression — correct complexity</h2>
-        <p>Now we use a cubic polynomial — the right model class for this data. Because the true generator is also cubic, the model can in principle recover the exact function. Both fits are good and remain consistent across the two datasets: <strong>low bias and low variance</strong>.</p>
+        <h2>Cubic regression: correct complexity</h2>
+        <p>Now we use a cubic polynomial, the right model class for this data. Because the true generator is also cubic, the model can in principle recover the exact function. Both fits are good and remain consistent across the two datasets: <strong>low bias and low variance</strong>.</p>
 
         <div class="chart-pair">
           <figure class="chart-card">
@@ -650,8 +650,8 @@
         </div>
         <p class="chart-caption"><span class="label">fig 4&ndash;5</span> Cubic fits on both datasets. The model matches the true functional form and gives consistent, accurate predictions across draws.</p>
 
-        <h2>9th degree regression — low bias, high variance</h2>
-        <p>Finally, a 9th degree polynomial. With 10 free parameters and only 9 data points, the model can interpolate all training points exactly — training error is essentially zero. But look at how drastically different the two fitted curves are. A small change in the data leads to a completely different model. This is <strong>high variance</strong>. Dave's model.</p>
+        <h2>9th degree regression: low bias, high variance</h2>
+        <p>Finally, a 9th degree polynomial. With 10 free parameters and only 9 data points, the model can interpolate all training points exactly, so training error is essentially zero. But look at how drastically different the two fitted curves are. A small change in the data leads to a completely different model. This is <strong>high variance</strong>. Dave's model.</p>
 
         <div class="chart-pair">
           <figure class="chart-card">
@@ -677,7 +677,7 @@
             </div>
           </figure>
         </div>
-        <p class="chart-caption"><span class="label">fig 6&ndash;7</span> 9th degree fits on both datasets. The model passes through all training points but varies wildly between datasets — a hallmark of high variance and severe overfitting. Values beyond &plusmn;300 are clipped for readability.</p>
+        <p class="chart-caption"><span class="label">fig 6&ndash;7</span> 9th degree fits on both datasets. The model passes through all training points but varies wildly between datasets, a hallmark of high variance and severe overfitting. Values beyond &plusmn;300 are clipped for readability.</p>
 
         <div class="note important">
           <span class="tag">key takeaway</span>
