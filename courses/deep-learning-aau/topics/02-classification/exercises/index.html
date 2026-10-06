@@ -72,16 +72,69 @@
         <li class="question">
           <span class="question-number">01</span>
           <div>
-            <h2 class="question-title">Exercise title</h2>
+            <h2 class="question-title">Question 1</h2>
             <div class="question-content">
-              <p>Add the exercise prompt here.</p>
+              <p>A binary classifier predicts class A when</p>
+              <p>$$ a(\mathbf{x}) = w_0 + w_1 x_1 + w_2 x_2 > 0 $$</p>
+              <p>with</p>
+              <p>$$ w_0 = -1, w_1 = 2, w_2 = -3 $$</p>
+              <ol type="a">
+                <li>Predict the class for the input vectors $\mathbf{x} = (1, 1)$ and $\mathbf{x} = (0, 1)$.</li>
+                <li>Derive the decision boundary for this classifier.</li>
+                <li>Explain geometrically what $w_0$, and the vector $\mathbf{w} = (w_1, w_2)$ control.</li>
+                <li>Explain what happens to the decision boundary if only $w_0$ is increased.</li>
+              </ol>
+            </div>
+          </div>
+        </li>
+
+        <li class="question">
+          <span class="question-number">02</span>
+          <div>
+            <h2 class="question-title">Question 2</h2>
+            <div class="question-content">
+              <p>A classifier is used to detect a rare manufacturing defect. On 1000 components:</p>
+              <ul>
+                <li>20 are actually defective.</li>
+                <li>The model correctly detects 12.</li>
+                <li>It incorrectly flags 30 non-defective components.</li>
+              </ul>
+              <ol type="a">
+                <li>Construct a confusion matrix for this data.</li>
+                <li>Calculate the accuracy, precision and recall of the classifier.</li>
+                <li>A classifier that predicts "non-defective" for all components obtains what accuracy for this example?</li>
+                <li>Explain why accuracy is a poor evaluation metric for this problem.</li>
+                <li>Which metric would you prioritise if allowing a defective component through is particularly dangerous.</li>
+              </ol>
+            </div>
+          </div>
+        </li>
+
+        <li class="question">
+          <span class="question-number">03</span>
+          <div>
+            <h2 class="question-title">Question 3</h2>
+            <div class="question-content">
+              <p>Consider a binary training set that is perfectly linearly separable and a logistic
+                regression model trained by maximum-likelihood.
+              </p>
+              <ol type="a">
+                <li>Suppose $\mathbf{w}$ correctly separates all observations. Explain what happens
+                  to the predicted probabilities if we replace $\mathbf{w}$ with $c\mathbf{w}$ for some $c > 1$.
+                </li>
+                <li>What happens to the cross-entropy training loss as $c \to \infty$?</li>
+                <li>Explain why the unregularised maximum-likelihood estimate therefore does not have a finite optimum.</li>
+                <li>Does this mean that logistic regression cannot correctly classify all observations?</li>
+                <li>Explain how $L_2$ regularisation addresses this issue.</li>
+                <li>Would regularising change the training-set decision boundary?</li>
+              </ol>
             </div>
           </div>
         </li>
       </ol>
     </section>
 
-    <p class="page-note">Exercise prompts will be added here.</p>
+
     <div class="page-links">
       <a href="../">&larr; 02 Classification topic guide</a>
       <a href="../evaluating-classifiers/">2.6 Evaluating classifiers &nearr;</a>
