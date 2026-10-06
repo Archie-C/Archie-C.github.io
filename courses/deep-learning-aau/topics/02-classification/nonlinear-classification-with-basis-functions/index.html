@@ -976,9 +976,9 @@
         <div class="note important"><span class="tag">important</span><p>A linear model does not necessarily produce a straight line in the original input space. It is called linear because the parameters enter the model linearly.</p></div>
 
         <h2>Other basis functions</h2>
-        <p>Polynomial functions are not the only choice. In nonlinear regression, we also met Gaussian or radial basis functions, for example</p>
+        <p>Polynomial functions are not the only option. In nonlinear regression, we also saw Gaussian or radial basis functions, for example</p>
         <p>$$\phi_j(\mathbf{x})=\exp\left(-\frac{\|\mathbf{x}-\boldsymbol{\mu}_j\|^2}{2s^2}\right),$$</p>
-        <p>and sigmoidal basis functions. The same basis-function machinery can be reused for classification. The difference is in the output: regression maps a linear combination of basis features to a continuous prediction, while binary classification applies a sigmoid to that score to produce a class probability.</p>
+        <p>and sigmoidal basis functions. The same basis-functions can be reused for classification. The difference is in the output: regression maps a linear combination of basis features to a continuous prediction, while binary classification applies a sigmoid to that score to produce a class probability.</p>
         <p>As with polynomial regression, adding more basis functions gives the classifier more ways to fit the data. A degree-1 polynomial gives a linear boundary; degree 2 allows quadratic boundaries. Richer transformations can draw more complicated boundaries, but they can also fit noise and overfit the training examples.</p>
 
         <h2>Implementation</h2>
@@ -1008,10 +1008,6 @@ model.fit(X_phi, y)</code></pre>
         <pre><code class="language-python">X_new_phi = polynomial_features(X_new)
 predictions = model.predict(X_new_phi)</code></pre>
         <div class="note important"><span class="tag">important</span><p>The transformation used during training must also be used during prediction. If the model was trained on $(x_1,x_2,x_1^2,x_1x_2,x_2^2)$, every new observation must be represented by those same five features in the same order.</p></div>
-
-        <h2>Returning to our example</h2>
-        <p>Using only $(x_1,x_2)$ gave us a straight boundary that could not separate the centre from the surrounding points. Adding $x_1^2+x_2^2$ gave the classifier a representation where a single threshold was enough.</p>
-        <div class="note important"><span class="tag">important</span><p>We did not make the classifier nonlinear by changing logistic regression. We made the overall input-output function nonlinear by changing the features that logistic regression receives.</p></div>
 
         <div class="exercise"><span class="tag">Exercise <b>2.4.1 — Build a nonlinear classifier</b></span><p>Use the circular dataset from this note. Fit logistic regression using only $x_1$ and $x_2$, then inspect its boundary. Add $x_1^2+x_2^2$ as a feature, fit the classifier again, and compare the predictions and boundaries. Why can the transformed model separate the classes? Is the classifier linear in feature space, and is its boundary linear in the original input space? If you like, extend the transformation to the complete degree-2 polynomial basis.</p></div>
 
