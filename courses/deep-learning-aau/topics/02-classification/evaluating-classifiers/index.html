@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en" data-palette="paper">
+<head>
+<meta charset="utf-8"/>
+<title>Evaluating Classifiers | Deep Learning</title>
+<meta name="description" content="Evaluate classifiers with the confusion matrix, accuracy, precision, recall, F1, and decision thresholds."/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link rel="icon" href="../../../../../design_system/assets/favicon.svg"/>
+<link rel="stylesheet" href="../../../../../design_system/colors_and_type.css"/>
+<link rel="stylesheet" href="../../../../../design_system/charts.css"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+  :root { --page-w: 1180px; }
+  body { background: var(--bg-2); }
+  .frame { max-width: var(--page-w); margin: 0 auto; background: var(--bg); min-height: 100vh; }
+  .topbar { padding: 20px 32px; display: flex; align-items: baseline; gap: 22px; border-bottom: 1px solid var(--rule); }
+  .topbar .mark { font-family: var(--font-mono); font-weight: 700; font-size: 22px; letter-spacing: -0.02em; color: var(--fg); text-decoration: none; }
+  .topbar .mark .dot { color: var(--accent); }
+  .topbar .crumb { font-family: var(--font-mono); font-size: 13px; color: var(--fg-2); }
+  .topbar .crumb a { color: var(--fg-3); text-decoration: none; }
+  .topbar .crumb a:hover { color: var(--fg); }
+  .topbar .crumb .sep { color: var(--fg-4); margin: 0 8px; }
+  .topbar nav { margin-left: auto; display: flex; gap: 16px; flex-wrap: wrap; }
+  .topbar nav a { font-family: var(--font-mono); font-size: 13px; color: var(--fg-2); text-decoration: none; }
+  .topbar nav a:hover, .topbar nav a.active { color: var(--accent); }
+  .lecture { padding: 40px 32px 80px; display: grid; grid-template-columns: 240px 1fr; gap: 56px; }
+  .lecture aside { font-family: var(--font-sans); font-size: 13px; color: var(--fg-3); position: sticky; top: 24px; align-self: start; line-height: 1.5; }
+  .lecture aside .h { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-4); display: block; margin: 16px 0 6px; }
+  .lecture aside .h:first-child { margin-top: 0; }
+  .lecture aside .nav-group { font-family: var(--font-mono); font-size: 11px; color: var(--fg-2); margin-top: 10px; letter-spacing: 0.04em; text-transform: uppercase; padding-bottom: 4px; }
+  .lecture aside .nav-list { display: flex; flex-direction: column; }
+  .lecture aside .nav-list a { font-family: var(--font-mono); font-size: 13px; color: var(--fg-2); text-decoration: none; padding: 4px 0 4px 12px; border-left: 2px solid transparent; }
+  .lecture aside .nav-list a:hover { color: var(--fg); }
+  .lecture aside .nav-list a.current { color: var(--fg); border-left-color: var(--accent); background: var(--accent-soft); }
+  .lecture article { max-width: 62ch; }
+  .lecture article p, .lecture article ul, .lecture article ol, .lecture article pre, .lecture article .note, .lecture article .exercise { max-width: none; }
+  .lecture article .crumb { font-family: var(--font-mono); font-size: 11px; color: var(--accent); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 10px; }
+  .lecture article .crumb a { color: var(--fg-3); text-decoration: none; }
+  .lecture article .crumb .sep { color: var(--fg-4); margin: 0 6px; }
+  .lecture article h1 { font-family: var(--font-mono); font-weight: 700; font-size: 30px; line-height: 1.12; letter-spacing: -0.015em; margin: 0 0 8px; }
+  .lecture article .standfirst { font-family: var(--font-serif); font-style: italic; font-size: 17px; color: var(--fg-2); margin-bottom: 28px; max-width: 50ch; line-height: 1.5; }
+  .body { font-family: var(--font-serif); font-size: 17px; line-height: 1.65; color: var(--fg); }
+  .body p { margin: 0 0 1em; }
+  .body h2 { font-family: var(--font-mono); font-size: 18px; font-weight: 600; letter-spacing: -0.005em; margin: 1.8em 0 0.5em; }
+  .body ul, .body ol { list-style: none; margin: 1.1em 0 1.4em; padding: 0; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); counter-reset: note-list; }
+  .body li { counter-increment: note-list; display: grid; grid-template-columns: 44px 1fr; column-gap: 14px; align-items: baseline; padding: 8px 0; border-top: 1px dashed var(--rule); font-family: var(--font-sans); font-size: 14.5px; line-height: 1.5; color: var(--fg-2); }
+  .body li:first-child { border-top: 0; }
+  .body li::before { content: counter(note-list, decimal-leading-zero); font-family: var(--font-mono); font-size: 11.5px; color: var(--fg-4); letter-spacing: 0.04em; }
+  .body code { font-family: var(--font-mono); font-size: 0.9em; background: var(--bg-sunk); padding: 0.1em 0.36em; border-radius: 3px; }
+  .body pre { font-family: var(--font-mono); background: var(--bg-sunk); border: 1px solid var(--rule); border-radius: 8px; padding: 14px 18px; font-size: 13px; line-height: 1.5; overflow-x: auto; margin: 1.4em 0; }
+  .body pre code { background: none; padding: 0; }
+  .chart-card { border: 1px solid var(--rule); border-radius: 8px; background: var(--bg); padding: 18px 18px 16px; margin: 1.4em 0; }
+  .chart-card .eyebrow { font-family: var(--font-mono); font-size: 10px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-3); margin-bottom: 4px; }
+  .chart-card h3 { font-family: var(--font-mono); font-size: 14px; font-weight: 600; color: var(--fg); letter-spacing: -0.005em; margin: 0 0 12px; }
+  .chart-card .chart-legend { margin: 4px 0 10px; }
+  .chart-frame { height: 260px; }
+  .chart-frame canvas { width: 100%; height: 100%; }
+  .note, .exercise { border: 1px solid var(--rule); border-left: 3px solid var(--fg-4); border-radius: 4px; padding: 14px 18px; background: var(--bg-sunk); margin: 1.4em 0; }
+  .note .tag, .exercise .tag { display: block; font-family: var(--font-mono); font-size: 11px; color: var(--fg-3); letter-spacing: 0.06em; text-transform: uppercase; font-weight: 600; margin-bottom: 6px; }
+  .note p, .exercise p { margin: 0; font-family: var(--font-sans); font-size: 14.5px; line-height: 1.55; color: var(--fg); }
+  .note.important, .exercise { border-left-color: var(--accent); background: var(--accent-soft); }
+  .note.important .tag, .exercise .tag { color: var(--accent); }
+  .exercise .tag b { color: var(--fg); margin-left: 6px; }
+  .threshold-controls { margin: 4px 0 14px; padding: 12px 0 4px; border-top: 1px solid var(--rule); }
+  .threshold-controls label { display: grid; grid-template-columns: 110px 1fr; align-items: center; gap: 12px; font-family: var(--font-mono); font-size: 11px; color: var(--fg-2); }
+  .threshold-controls input[type="range"] { width: 100%; accent-color: var(--accent); }
+  .metric-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 10px 0 16px; }
+  .metric { border-top: 1px solid var(--rule); padding: 8px 4px; font-family: var(--font-mono); font-size: 11px; color: var(--fg-3); }
+  .metric strong { display: block; color: var(--fg); font-size: 16px; margin-top: 3px; }
+  .counts { font-family: var(--font-mono); font-size: 11px; color: var(--fg-2); margin: 6px 0 12px; }
+  .matrix { width: 100%; border-collapse: collapse; margin: 1em 0 1.4em; font-family: var(--font-mono); font-size: 13px; text-align: center; }
+  .matrix th, .matrix td { border: 1px solid var(--rule); padding: 9px 10px; }
+  .matrix th { background: var(--bg-2); color: var(--fg-2); font-weight: 500; }
+  .chart-caption { font-family: var(--font-sans); font-size: 13px; color: var(--fg-3); line-height: 1.5; margin-top: 10px; }
+  .chart-caption .label { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; color: var(--fg-4); margin-right: 8px; }
+  .endbar { display: flex; justify-content: space-between; gap: 16px; margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--rule); font-family: var(--font-mono); font-size: 12px; }
+  .endbar a { color: var(--accent); text-decoration: none; }
+  .endbar a:hover { text-decoration: underline; }
+  @media (max-width: 820px) { .topbar { align-items: flex-start; flex-direction: column; gap: 10px; } .topbar nav { margin-left: 0; } .lecture { display: block; padding: 36px 24px 64px; } .lecture aside { position: static; margin-bottom: 34px; } }
+  @media (max-width: 640px) { .topbar { padding: 18px 20px; } .lecture article h1 { font-size: 27px; } .endbar { flex-direction: column; } .metric-grid { grid-template-columns: repeat(2, 1fr); } .threshold-controls label { grid-template-columns: 1fr; gap: 4px; } }
+  .hljs { color: var(--fg); background: transparent; }
+  .hljs-comment, .hljs-quote { color: var(--fg-3); font-style: italic; }
+  .hljs-keyword, .hljs-selector-tag { color: var(--accent); font-weight: 600; }
+  .hljs-built_in, .hljs-builtin-name { color: var(--warning); }
+  .hljs-string, .hljs-attr, .hljs-addition { color: var(--info); }
+  .hljs-number, .hljs-literal { color: var(--success); }
+</style>
+</head>
+<body>
+<div class="frame">
+  <div class="topbar">
+    <a href="../../../../../" class="mark">a<span class="dot">.</span>c</a>
+    <span class="crumb"><a href="../../../">Deep Learning</a><span class="sep">&rsaquo;</span><a href="../">02 classification</a><span class="sep">&rsaquo;</span>evaluating classifiers</span>
+    <nav aria-label="Course navigation"><a href="../../../" class="active">syllabus</a></nav>
+  </div>
+  <div class="lecture">
+    <aside>
+      <span class="h">course</span>Deep Learning &middot; Winter 2026
+      <span class="h">topic</span><div class="nav-group">02 &middot; classification</div>
+      <div class="nav-list">
+        <a href="../linear-classifiers-and-decision-boundaries/">2.1 &middot; linear classifiers and decision boundaries</a>
+        <a href="../logistic-regression/">2.2 &middot; logistic regression</a>
+        <a href="../maximum-likelihood-and-binary-cross-entropy/">2.3 &middot; maximum likelihood and binary cross-entropy</a>
+        <a href="../nonlinear-classification-with-basis-functions/">2.4 &middot; nonlinear classification with basis functions</a>
+        <a href="../multiclass-classification-and-softmax/">2.5 &middot; multiclass classification and softmax</a>
+        <a class="current" href="./">2.6 &middot; evaluating classifiers</a>
+      </div>
+    </aside>
+    <article>
+      <div class="crumb"><a href="../../../">syllabus</a><span class="sep">&rsaquo;</span><a href="../">topic 02</a><span class="sep">&rsaquo;</span>subtopic 2.6</div>
+      <h1>Evaluating Classifiers.</h1>
+      <p class="standfirst">A classifier gives us predictions. Now we need a way to see what it gets right, and what it misses.</p>
+      <div class="body">
+        <h2>What this note covers</h2>
+        <ul>
+          <li>Correct and incorrect predictions</li><li>The confusion matrix</li><li>Accuracy</li><li>Precision and recall</li><li>F1 score</li><li>Classification thresholds</li>
+        </ul>
+        <p>For a more formal treatment, see <a href="https://www.bishopbook.com/">Deep learning: Foundations and Concepts</a>.</p>
+
+        <h2>A small example</h2>
+        <p>Suppose a classifier is used to detect whether a patient has a disease. For each patient, the true target is $t\in\{0,1\}$: $1$ means the disease is present, and $0$ means it is absent.</p>
+        <p>The classifier gives us a probability for the positive class, $y(\mathbf{x})=p(t=1\mid\mathbf{x})$. To make a class prediction, we use a threshold. For now, predict positive whenever $y(\mathbf{x})\geq 0.5$.</p>
+        <p>Here are fourteen patients. The predicted class in the table uses this threshold.</p>
+        <table class="matrix" aria-label="True classes, predicted probabilities, and predicted classes for fourteen patients">
+          <thead><tr><th>Patient</th><th>True class</th><th>Predicted probability</th><th>Predicted class</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>1</td><td>0.82</td><td>1</td></tr><tr><td>2</td><td>0</td><td>0.18</td><td>0</td></tr><tr><td>3</td><td>0</td><td>0.67</td><td>1</td></tr><tr><td>4</td><td>1</td><td>0.42</td><td>0</td></tr><tr><td>5</td><td>1</td><td>0.73</td><td>1</td></tr><tr><td>6</td><td>0</td><td>0.31</td><td>0</td></tr><tr><td>7</td><td>1</td><td>0.55</td><td>1</td></tr><tr><td>8</td><td>0</td><td>0.09</td><td>0</td></tr><tr><td>9</td><td>1</td><td>0.91</td><td>1</td></tr><tr><td>10</td><td>0</td><td>0.62</td><td>1</td></tr><tr><td>11</td><td>0</td><td>0.24</td><td>0</td></tr><tr><td>12</td><td>1</td><td>0.38</td><td>0</td></tr><tr><td>13</td><td>0</td><td>0.48</td><td>0</td></tr><tr><td>14</td><td>1</td><td>0.77</td><td>1</td></tr>
+          </tbody>
+        </table>
+        <figure class="chart-card">
+          <div class="eyebrow">01 &middot; predictions</div><h3>From probabilities to decisions</h3>
+          <div class="chart-legend"><span class="item"><span class="swatch swatch--dot" style="background:var(--c-cat-2)"></span>true class 0</span><span class="item"><span class="swatch swatch--dot" style="background:var(--c-cat-1)"></span>true class 1</span><span class="item"><span class="swatch" style="background:var(--c-cat-3)"></span>threshold 0.5</span></div>
+          <div class="chart-frame"><canvas id="classificationPredictionsChart" aria-label="Predicted probability for fourteen patients with true classes and a threshold of 0.5" role="img"></canvas></div>
+          <figcaption class="chart-caption"><span class="label">fig 1</span>The threshold turns each probability into a class prediction. Mistakes can occur on either side: a negative patient may be predicted positive, or a positive patient may be missed.</figcaption>
+        </figure>
+        <p>Some predictions are correct and some are not. Let's give those outcomes names so we can count them.</p>
+
+        <h2>Four possible outcomes</h2>
+        <p>A <strong>true positive</strong> (TP) is a positive prediction for a patient who has the disease. A <strong>false positive</strong> (FP) is a positive prediction for a patient who does not.</p>
+        <p>A <strong>true negative</strong> (TN) is a negative prediction for a patient who does not have the disease. A <strong>false negative</strong> (FN) is a negative prediction for a patient who does.</p>
+        <p>For our example, count the observations above the threshold first, then check their true class. There are 5 TP and 2 FP. Below the threshold there are 5 TN and 2 FN.</p>
+
+        <h2>The confusion matrix</h2>
+        <p>A confusion matrix is a compact way to organise these four counts. This page puts the actual class in the rows and the predicted class in the columns.</p>
+        <table class="matrix" aria-label="Confusion matrix with actual classes in rows and predicted classes in columns">
+          <thead><tr><th colspan="2" rowspan="2">Actual</th><th colspan="2">Predicted</th></tr><tr><th>Negative</th><th>Positive</th></tr></thead>
+          <tbody><tr><th>Negative</th><td>TN = 5</td><td>FP = 2</td></tr><tr><th>Positive</th><td>FN = 2</td><td>TP = 5</td></tr></tbody>
+        </table>
+        <div class="note important"><span class="tag">Important</span><p>Always check which axis represents the true class and which represents the predicted class when reading a confusion matrix.</p></div>
+
+        <h2>Accuracy</h2>
+        <p>What fraction of our predictions were correct? Accuracy counts the true positives and true negatives, then divides by all observations:</p>
+        <p>$$\text{Accuracy}=\frac{TP+TN}{TP+TN+FP+FN}$$</p>
+        <p>For these patients, accuracy is $(5+5)/14\approx 0.71$. So the classifier predicted the correct class for about 71% of the observations.</p>
+
+        <h2>When accuracy can mislead us</h2>
+        <p>Now suppose 99 out of 100 patients do not have the disease. A classifier that always predicts negative is correct 99 times, so its accuracy is 99%. But it never finds a positive patient.</p>
+        <figure class="chart-card"><div class="eyebrow">02 &middot; class imbalance</div><h3>High accuracy does not always mean a useful classifier</h3><div class="chart-frame"><canvas id="classImbalanceChart" aria-label="An imbalanced dataset with ninety-nine negative observations and one positive observation" role="img"></canvas></div><figcaption class="chart-caption"><span class="label">fig 2</span>A model can appear accurate simply by predicting the common class. Here it misses the only positive observation.</figcaption></figure>
+        <p>Accuracy gives every observation equal weight. Sometimes, though, one kind of mistake matters more than another.</p>
+
+        <h2>Precision</h2>
+        <p>Precision answers a slightly different question: when the model predicts positive, how often is it actually correct?</p>
+        <p>$$\text{Precision}=\frac{TP}{TP+FP}$$</p>
+        <p>The denominator $TP+FP$ is the total number of positive predictions. Here, precision is $5/(5+2)\approx 0.71$. About 71% of patients predicted positive really have the disease. Precision matters when a false alarm leads to a costly follow-up test.</p>
+
+        <h2>Recall</h2>
+        <p>Recall looks at the problem from the other direction. Of all the positive examples in the data, how many did the model actually find?</p>
+        <p>$$\text{Recall}=\frac{TP}{TP+FN}$$</p>
+        <p>The denominator $TP+FN$ is the total number of patients who have the disease. Here, recall is $5/(5+2)\approx 0.71$. In disease screening, recall matters because a missed positive case may be costly.</p>
+
+        <div class="note important"><span class="tag">Precision and recall</span><p>Precision asks: when the model says positive, how often is it right? Recall asks: of the positives that exist, how many did the model find?</p></div>
+
+        <h2>F1 score</h2>
+        <p>Sometimes we want one number that balances precision and recall. The F1 score is their harmonic mean:</p>
+        <p>$$F_1=2\frac{\text{Precision}\times\text{Recall}}{\text{Precision}+\text{Recall}}$$</p>
+        <p>It is high only when both precision and recall are high; a low value for either one pulls F1 down. Here, precision and recall are both about 0.71, so $F_1\approx 0.71$.</p>
+
+        <h2>The classification threshold</h2>
+        <p>Our probabilities came from the classifier, but we chose 0.5 as the point where a probability becomes a positive prediction. That is a common default, but we can choose another threshold.</p>
+        <p>Lowering it from 0.5 to 0.3 makes more patients positive. This usually finds more of the actual positive cases, while also creating more false alarms. Raising it generally does the opposite.</p>
+        <figure class="chart-card"><div class="eyebrow">03 &middot; threshold</div><h3>Changing the decision threshold</h3>
+          <div class="threshold-controls"><label><span>threshold = <strong id="thresholdValue">0.50</strong></span><input id="thresholdSlider" type="range" min="0.1" max="0.9" step="0.05" value="0.5" aria-label="Classification threshold"></label></div>
+          <div class="metric-grid" aria-live="polite">
+            <div class="metric">Accuracy<strong id="thresholdAccuracy">0.71</strong></div><div class="metric">Precision<strong id="thresholdPrecision">0.71</strong></div><div class="metric">Recall<strong id="thresholdRecall">0.71</strong></div><div class="metric">F1<strong id="thresholdF1">0.71</strong></div>
+          </div>
+          <div class="counts" aria-live="polite">TP <span id="thresholdTP">5</span> &middot; TN <span id="thresholdTN">5</span> &middot; FP <span id="thresholdFP">2</span> &middot; FN <span id="thresholdFN">2</span></div>
+          <div class="chart-frame"><canvas id="thresholdChart" aria-label="Interactive chart of predicted probabilities with adjustable decision threshold" role="img"></canvas></div>
+          <figcaption class="chart-caption"><span class="label">fig 3</span>Changing the threshold changes which observations are predicted positive and therefore changes the evaluation metrics.</figcaption>
+        </figure>
+        <p>Move the threshold down and there are more positive predictions, usually fewer false negatives and more false positives. Recall tends to rise and precision may fall. Move it up and the usual pattern is reversed. The chart uses the same patients as before.</p>
+
+        <h2>A short note on multiclass problems</h2>
+        <p>Accuracy works the same way with several classes: it is the number of correct predictions divided by the total number of predictions. A confusion matrix has one row and column for each class, so three classes give a $3\times3$ matrix. Precision and recall can be calculated for each class in turn by treating it as positive and the others as negative.</p>
+
+        <h2>Implementing the metrics</h2>
+        <p>We can calculate these quantities directly with NumPy. First use the threshold to turn probabilities into class predictions. Then count each kind of outcome.</p>
+        <pre><code class="language-python">import numpy as np
+
+y_true = np.array([1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1])
+y_prob = np.array([0.82, 0.18, 0.67, 0.42, 0.73, 0.31, 0.55,
+                   0.09, 0.91, 0.62, 0.24, 0.38, 0.48, 0.77])
+threshold = 0.5
+y_pred = (y_prob &gt;= threshold).astype(int)
+
+tp = np.sum((y_true == 1) &amp; (y_pred == 1))
+tn = np.sum((y_true == 0) &amp; (y_pred == 0))
+fp = np.sum((y_true == 0) &amp; (y_pred == 1))
+fn = np.sum((y_true == 1) &amp; (y_pred == 0))</code></pre>
+        <p>Each expression selects the observations with the matching true and predicted labels. We can use the counts to implement the metrics. If a denominator is zero, returning zero keeps the result defined.</p>
+        <pre><code class="language-python">def accuracy(y_true, y_pred):
+    return np.mean(y_true == y_pred)
+
+def precision(y_true, y_pred):
+    tp = np.sum((y_true == 1) &amp; (y_pred == 1))
+    fp = np.sum((y_true == 0) &amp; (y_pred == 1))
+    return tp / (tp + fp) if tp + fp &gt; 0 else 0.0
+
+def recall(y_true, y_pred):
+    tp = np.sum((y_true == 1) &amp; (y_pred == 1))
+    fn = np.sum((y_true == 1) &amp; (y_pred == 0))
+    return tp / (tp + fn) if tp + fn &gt; 0 else 0.0
+
+def f1_score(y_true, y_pred):
+    p = precision(y_true, y_pred)
+    r = recall(y_true, y_pred)
+    return 2 * p * r / (p + r) if p + r &gt; 0 else 0.0
+
+def evaluate(y_true, y_prob, threshold=0.5):
+    y_pred = (y_prob &gt;= threshold).astype(int)
+    return {
+        "accuracy": accuracy(y_true, y_pred),
+        "precision": precision(y_true, y_pred),
+        "recall": recall(y_true, y_pred),
+        "f1": f1_score(y_true, y_pred),
+    }</code></pre>
+
+        <h2>Back to our patients</h2>
+        <p>At threshold 0.5, we have TP = 5, TN = 5, FP = 2, and FN = 2. Accuracy, precision, recall, and F1 are each about 0.71 for this example.</p>
+        <div class="exercise"><span class="tag">Exercise &middot; 2.6.1 <b>Evaluate a classifier</b></span><p>Implement accuracy, precision, recall, and F1 from scratch, and check your results on these patients. Recalculate the metrics with thresholds 0.3 and 0.7. Which metric changes most, and why? If missing a positive patient is costly, would you choose a higher or lower threshold?</p></div>
+        <p>There is no single metric that describes every part of a classifier's performance. Accuracy measures overall correctness; precision and recall describe different kinds of mistakes. Which one matters most depends on the problem.</p>
+        <div class="endbar"><a href="../multiclass-classification-and-softmax/">&larr; 2.5 Multiclass classification and softmax</a><a href="../">02 Classification topic guide &nearr;</a></div>
+      </div>
+    </article>
+  </div>
+</div>
+<script src="./chart.js"></script>
+<script>if (window.hljs) hljs.highlightAll();</script>
+</body>
+</html>
