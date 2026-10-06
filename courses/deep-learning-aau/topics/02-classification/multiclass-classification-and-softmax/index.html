@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+
+<html lang="en" data-palette="paper">
+
+<head>
+
+<meta charset="utf-8"/>
+
+<title>Multiclass Classification and Softmax | Deep Learning</title>
+
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+
+<link rel="icon" href="../../../../../design_system/assets/favicon.svg"/>
+
+<link rel="stylesheet" href="../../../../../design_system/colors_and_type.css"/>
+
+<link rel="stylesheet" href="../../../../../design_system/charts.css"/>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"/>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+
+<style>
+
+  :root { --page-w: 1180px; }
+
+
+
+  body { background: var(--bg-2); }
+
+
+
+  .frame {
+
+    max-width: var(--page-w);
+
+    margin: 0 auto;
+
+    background: var(--bg);
+
+    min-height: 100vh;
+
+  }
+
+
+
+  .topbar {
+
+    padding: 20px 32px;
+
+    display: flex;
+
+    align-items: baseline;
+
+    gap: 22px;
+
+    border-bottom: 1px solid var(--rule);
+
+  }
+
+
+
+  .topbar .mark {
+
+    font-family: var(--font-mono);
+
+    font-weight: 700;
+
+    font-size: 22px;
+
+    letter-spacing: -0.02em;
+
+    color: var(--fg);
+
+    text-decoration: none;
+
+  }
+
+
+
+  .topbar .mark .dot { color: var(--accent); }
+
+
+
+  .topbar .crumb {
+
+    font-family: var(--font-mono);
+
+    font-size: 13px;
+
+    color: var(--fg-2);
+
+  }
+
+
+
+  .topbar .crumb a {
+
+    color: var(--fg-3);
+
+    text-decoration: none;
+
+  }
+
+
+
+  .topbar .crumb a:hover { color: var(--fg); }
+
+
+
+  .topbar .crumb .sep {
+
+    color: var(--fg-4);
+
+    margin: 0 8px;
+
+  }
+
+
+
+  .topbar nav {
+
+    margin-left: auto;
+
+    display: flex;
+
+    gap: 16px;
+
+    flex-wrap: wrap;
+
+  }
+
+
+
+  .topbar nav a {
+
+    font-family: var(--font-mono);
+
+    font-size: 13px;
+
+    color: var(--fg-2);
+
+    text-decoration: none;
+
+  }
+
+
+
+  .topbar nav a:hover,
+
+  .topbar nav a.active {
+
+    color: var(--accent);
+
+  }
+
+
+
+  .lecture {
+
+    padding: 40px 32px 80px;
+
+    display: grid;
+
+    grid-template-columns: 240px 1fr;
+
+    gap: 56px;
+
+  }
+
+
+
+  .lecture aside {
+
+    font-family: var(--font-sans);
+
+    font-size: 13px;
+
+    color: var(--fg-3);
+
+    position: sticky;
+
+    top: 24px;
+
+    align-self: start;
+
+    line-height: 1.5;
+
+  }
+
+
+
+  .lecture aside .h {
+
+    font-family: var(--font-mono);
+
+    font-size: 10px;
+
+    letter-spacing: 0.08em;
+
+    text-transform: uppercase;
+
+    color: var(--fg-4);
+
+    display: block;
+
+    margin: 16px 0 6px;
+
+  }
+
+
+
+  .lecture aside .h:first-child { margin-top: 0; }
+
+
+
+  .lecture aside .nav-group {
+
+    font-family: var(--font-mono);
+
+    font-size: 11px;
+
+    color: var(--fg-2);
+
+    margin-top: 10px;
+
+    letter-spacing: 0.04em;
+
+    text-transform: uppercase;
+
+    padding-bottom: 4px;
+
+  }
+
+
+
+  .lecture aside .nav-list {
+
+    display: flex;
+
+    flex-direction: column;
+
+  }
+
+
+
+  .lecture aside .nav-list a {
+
+    font-family: var(--font-mono);
+
+    font-size: 13px;
+
+    color: var(--fg-2);
+
+    text-decoration: none;
+
+    padding: 4px 0 4px 12px;
+
+    border-left: 2px solid transparent;
+
+  }
+
+
+
+  .lecture aside .nav-list a:hover { color: var(--fg); }
+
+
+
+  .lecture aside .nav-list a.current {
+
+    color: var(--fg);
+
+    border-left-color: var(--accent);
+
+    background: var(--accent-soft);
+
+  }
+
+
+
+  .lecture aside .nav-list a.done { color: var(--fg-4); }
+
+
+
+  .lecture article { max-width: 62ch; }
+
+
+
+  .lecture article p,
+
+  .lecture article ul,
+
+  .lecture article ol,
+
+  .lecture article pre,
+
+  .lecture article .note,
+
+  .lecture article .exercise {
+
+    max-width: none;
+
+  }
+
+
+
+  .lecture article .crumb {
+
+    font-family: var(--font-mono);
+
+    font-size: 11px;
+
+    color: var(--accent);
+
+    letter-spacing: 0.06em;
+
+    text-transform: uppercase;
+
+    margin-bottom: 10px;
+
+  }
+
+
+
+  .lecture article .crumb a {
+
+    color: var(--fg-3);
+
+    text-decoration: none;
+
+  }
+
+
+
+  .lecture article .crumb a:hover { color: var(--fg); }
+
+
+
+  .lecture article .crumb .sep {
+
+    color: var(--fg-4);
+
+    margin: 0 6px;
+
+  }
+
+
+
+  .lecture article h1 {
+
+    font-family: var(--font-mono);
+
+    font-weight: 700;
+
+    font-size: 30px;
+
+    line-height: 1.12;
+
+    letter-spacing: -0.015em;
+
+    margin: 0 0 8px;
+
+  }
+
+
+
+  .lecture article .standfirst {
+
+    font-family: var(--font-serif);
+
+    font-style: italic;
+
+    font-size: 17px;
+
+    color: var(--fg-2);
+
+    margin-bottom: 28px;
+
+    max-width: 50ch;
+
+    line-height: 1.5;
+
+  }
+
+
+
+  .body {
+
+    font-family: var(--font-serif);
+
+    font-size: 17px;
+
+    line-height: 1.65;
+
+    color: var(--fg);
+
+  }
+
+
+
+  .body p { margin: 0 0 1em; }
+
+
+
+  .chart-card {
+
+    border: 1px solid var(--rule);
+
+    border-radius: 8px;
+
+    background: var(--bg);
+
+    padding: 18px 18px 16px;
+
+    margin: 1.4em 0;
+
+  }
+
+
+
+  .chart-card .eyebrow {
+
+    font-family: var(--font-mono);
+
+    font-size: 10px;
+
+    font-weight: 500;
+
+    letter-spacing: 0.08em;
+
+    text-transform: uppercase;
+
+    color: var(--fg-3);
+
+    margin-bottom: 4px;
+
+  }
+
+
+
+  .chart-card h3 {
+
+    font-family: var(--font-mono);
+
+    font-size: 14px;
+
+    font-weight: 600;
+
+    color: var(--fg);
+
+    letter-spacing: -0.005em;
+
+    margin: 0 0 12px;
+
+  }
+
+
+
+  .chart-card .chart-legend {
+
+    margin: 4px 0 10px;
+
+  }
+
+
+
+  .chart-frame {
+
+    height: 260px;
+
+  }
+
+
+
+  .chart-frame canvas {
+
+    width: 100%;
+
+    height: 100%;
+
+  }
+
+
+
+  .body ul,
+
+  .body ol {
+
+    list-style: none;
+
+    margin: 1.1em 0 1.4em;
+
+    padding: 0;
+
+    border-top: 1px solid var(--rule);
+
+    border-bottom: 1px solid var(--rule);
+
+    counter-reset: note-list;
+
+  }
+
+
+
+  .body li {
+
+    counter-increment: note-list;
+
+    display: grid;
+
+    grid-template-columns: 44px 1fr;
+
+    column-gap: 14px;
+
+    align-items: baseline;
+
+    padding: 8px 0;
+
+    border-top: 1px dashed var(--rule);
+
+    font-family: var(--font-sans);
+
+    font-size: 14.5px;
+
+    line-height: 1.5;
+
+    color: var(--fg-2);
+
+  }
+
+
+
+  .body li:first-child { border-top: 0; }
+
+
+
+  .body li::before {
+
+    content: counter(note-list, decimal-leading-zero);
+
+    font-family: var(--font-mono);
+
+    font-size: 11.5px;
+
+    color: var(--fg-4);
+
+    letter-spacing: 0.04em;
+
+  }
+
+
+
+  .body ul li::before { content: counter(note-list, decimal-leading-zero); }
+
+
+
+  .body li a {
+
+    color: var(--fg);
+
+    text-decoration: none;
+
+  }
+
+
+
+  .body li a:hover { color: var(--accent); }
+
+
+
+  .body h2 {
+
+    font-family: var(--font-mono);
+
+    font-size: 18px;
+
+    font-weight: 600;
+
+    letter-spacing: -0.005em;
+
+    margin: 1.8em 0 0.5em;
+
+  }
+
+
+
+  .body code {
+
+    font-family: var(--font-mono);
+
+    font-size: 0.9em;
+
+    background: var(--bg-sunk);
+
+    padding: 0.1em 0.36em;
+
+    border-radius: 3px;
+
+  }
+
+
+
+  .body pre {
+
+    font-family: var(--font-mono);
+
+    background: var(--bg-sunk);
+
+    border: 1px solid var(--rule);
+
+    border-radius: 8px;
+
+    padding: 14px 18px;
+
+    font-size: 13px;
+
+    line-height: 1.5;
+
+    overflow-x: auto;
+
+    margin: 1.4em 0;
+
+  }
+
+
+
+  .body pre code {
+
+    background: none;
+
+    padding: 0;
+
+  }
+
+
+
+  .exercise {
+
+    border: 1px solid var(--rule);
+
+    border-left: 3px solid var(--accent);
+
+    border-radius: 4px;
+
+    padding: 14px 18px;
+
+    background: var(--bg-2);
+
+    margin: 1.4em 0;
+
+  }
+
+
+
+  .exercise .tag {
+
+    font-family: var(--font-mono);
+
+    font-size: 11px;
+
+    color: var(--accent);
+
+    letter-spacing: 0.06em;
+
+    text-transform: uppercase;
+
+    font-weight: 600;
+
+  }
+
+
+
+  .exercise .tag b {
+
+    color: var(--fg);
+
+    margin-left: 6px;
+
+  }
+
+
+
+  .exercise p {
+
+    margin: 6px 0 0;
+
+    font-family: var(--font-sans);
+
+    font-size: 14.5px;
+
+    color: var(--fg);
+
+  }
+
+
+
+  .note {
+
+    border: 1px solid var(--rule);
+
+    border-left: 3px solid var(--fg-4);
+
+    border-radius: 4px;
+
+    padding: 14px 18px;
+
+    background: var(--bg-sunk);
+
+    margin: 1.4em 0;
+
+  }
+
+
+
+  .note .tag {
+
+    display: block;
+
+    font-family: var(--font-mono);
+
+    font-size: 11px;
+
+    color: var(--fg-3);
+
+    letter-spacing: 0.06em;
+
+    text-transform: uppercase;
+
+    font-weight: 600;
+
+    margin-bottom: 6px;
+
+  }
+
+
+
+  .note p {
+
+    margin: 0;
+
+    font-family: var(--font-sans);
+
+    font-size: 14.5px;
+
+    line-height: 1.55;
+
+    color: var(--fg);
+
+  }
+
+
+
+  .note.important {
+
+    border-left-color: var(--accent);
+
+    background: var(--accent-soft);
+
+  }
+
+
+
+  .note.important .tag { color: var(--accent); }
+
+
+
+  .endbar {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    gap: 16px;
+
+    margin-top: 40px;
+
+    padding-top: 16px;
+
+    border-top: 1px solid var(--rule);
+
+    font-family: var(--font-mono);
+
+    font-size: 12px;
+
+  }
+
+
+
+  .endbar a {
+
+    color: var(--accent);
+
+    text-decoration: none;
+
+  }
+
+
+
+  .endbar a:hover { text-decoration: underline; }
+
+
+
+  @media (max-width: 820px) {
+
+    .topbar {
+
+      align-items: flex-start;
+
+      flex-direction: column;
+
+      gap: 10px;
+
+    }
+
+
+
+    .topbar nav { margin-left: 0; }
+
+
+
+    .lecture {
+
+      display: block;
+
+      padding: 36px 24px 64px;
+
+    }
+
+
+
+    .lecture aside {
+
+      position: static;
+
+      margin-bottom: 34px;
+
+    }
+
+  }
+
+
+
+  @media (max-width: 640px) {
+
+    .topbar { padding: 18px 20px; }
+
+    .lecture article h1 { font-size: 27px; }
+
+    .endbar { flex-direction: column; }
+
+  }
+
+
+
+  /* Syntax highlighting — built on design system tokens */
+
+  .hljs { color: var(--fg); background: transparent; }
+
+  .hljs-comment, .hljs-quote { color: var(--fg-3); font-style: italic; }
+
+  .hljs-keyword, .hljs-selector-tag { color: var(--accent); font-weight: 600; }
+
+  .hljs-built_in, .hljs-builtin-name { color: var(--warning); }
+
+  .hljs-string, .hljs-attr, .hljs-addition { color: var(--info); }
+
+  .hljs-number, .hljs-literal { color: var(--success); }
+
+  .hljs-title, .hljs-class .hljs-title, .hljs-type { color: var(--warning); }
+
+  .hljs-variable, .hljs-template-variable { color: var(--fg-2); }
+
+  .hljs-params { color: var(--fg-2); }
+
+  .hljs-deletion { color: var(--danger); }
+
+  .hljs-emphasis { font-style: italic; }
+
+  .hljs-strong { font-weight: 700; }
+
+</style>
+
+  <!-- Cloudflare Web Analytics -->
+  <script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "f63b2ef074b74a5e8e78014b83a4071d"}'></script>
+  <!-- End Cloudflare Web Analytics -->
+</head>
+
+<body>
+<div class="frame">
+  <div class="topbar">
+    <a href="../../../../../" class="mark">a<span class="dot">.</span>c</a>
+    <span class="crumb"><a href="../../../">Deep Learning</a><span class="sep">&rsaquo;</span><a href="../">02 classification</a><span class="sep">&rsaquo;</span>multiclass classification</span>
+    <nav aria-label="Course navigation"><a href="../../../" class="active">syllabus</a></nav>
+  </div>
+  <div class="lecture">
+    <aside>
+      <span class="h">course</span>Deep Learning &middot; Winter 2026
+      <span class="h">topic</span>
+      <div class="nav-group">02 &middot; classification</div>
+      <div class="nav-list">
+        <a class="done" href="../linear-classifiers-and-decision-boundaries/">2.1 &middot; linear classifiers and decision boundaries</a>
+        <a class="done" href="../logistic-regression/">2.2 &middot; logistic regression</a>
+        <a class="done" href="../maximum-likelihood-and-binary-cross-entropy/">2.3 &middot; maximum likelihood and binary cross-entropy</a>
+        <a class="done" href="../nonlinear-classification-with-basis-functions/">2.4 &middot; nonlinear classification with basis functions</a>
+        <a class="current" href="./">2.5 &middot; multiclass classification and softmax</a>
+      </div>
+    </aside>
+    <article>
+      <div class="crumb"><a href="../../../">syllabus</a><span class="sep">&rsaquo;</span><a href="../">topic 02</a><span class="sep">&rsaquo;</span>subtopic 2.5</div>
+      <h1>Multiclass Classification and Softmax.</h1>
+      <p class="standfirst">So far, we have classified observations into two classes. Many problems have more possible outcomes, so now we need to extend our classifier.</p>
+      <div class="body">
+        <h2>What this note covers</h2>
+        <ul><li>Multiclass classification</li><li>One score per class</li><li>The softmax function</li><li>Multiclass cross-entropy</li><li>Implementation details</li></ul>
+        <p>For a more formal definition, see <a href="https://www.bishopbook.com/">Deep learning: Foundations and Concepts</a>.</p>
+
+        <h2>The multiclass problem</h2>
+        <p>Suppose we want to classify flowers using two measurements. Each flower belongs to one of three classes: red, blue, or yellow. The points below show a simple example where the groups are easy to distinguish.</p>
+        <figure class="chart-card"><div class="eyebrow">01 &middot; three classes</div><h3>A multiclass classification problem</h3><div class="chart-legend"><span class="item"><span class="swatch swatch--dot" style="background:var(--c-cat-5)"></span>red flowers</span><span class="item"><span class="swatch swatch--dot" style="background:var(--c-cat-2)"></span>blue flowers</span><span class="item"><span class="swatch swatch--dot" style="background:var(--c-cat-4)"></span>yellow flowers</span></div><div class="chart-frame"><canvas id="multiclassDataChart" aria-label="Scatter plot of three flower classes measured by two features" role="img"></canvas></div><figcaption class="chart-caption"><span class="label">fig 1</span> Each observation can now belong to one of three possible classes.</figcaption></figure>
+        <p>Binary logistic regression only needed to answer, “Is this class 1 or class 0?” Now we need to choose between several classes:</p>
+        <p>$$\mathcal{C}_1,\mathcal{C}_2,\ldots,\mathcal{C}_K.$$</p>
+        <p>Here $K$ is the number of classes. In our flower example, $K=3$.</p>
+
+        <h2>One score per class</h2>
+        <p>For binary classification, we calculated one linear score, $a(\mathbf{x})=\mathbf{w}^T\mathbf{x}+w_0$. For multiclass classification, we give each class its own score:</p>
+        <p>$$a_k(\mathbf{x})=\mathbf{w}_k^T\mathbf{x}+w_{k0},\qquad k=1,\ldots,K.$$</p>
+        <p>Each class gets its own weights and therefore its own score. With three classes, we have $a_1(\mathbf{x})$, $a_2(\mathbf{x})$, and $a_3(\mathbf{x})$. A larger score means the model considers that class more plausible.</p>
+        <p>For example, the scores might be</p>
+        <p>$$a_1=1.2,\qquad a_2=3.1,\qquad a_3=-0.4.$$</p>
+        <p>Class 2 has the largest score, but these are unrestricted real numbers, not probabilities. We need to turn them into values between 0 and 1 that add up to one.</p>
+
+        <h2>The softmax function</h2>
+        <p>For each class, softmax exponentiates its score and divides by the sum of all the exponentials:</p>
+        <p>$$y_k=\frac{\exp(a_k)}{\sum_{j=1}^{K}\exp(a_j)}.$$</p>
+        <p>The exponential makes each value positive. Dividing by their sum normalises the values, so $0&lt;y_k&lt;1$ and $\sum_{k=1}^{K}y_k=1$. We can then read each output as a class probability:</p>
+        <p>$$y_k=p(\mathcal{C}_k\mid\mathbf{x}).$$</p>
+        <div class="note important"><span class="tag">important</span><p>Softmax takes the set of class scores and turns them into a probability distribution over the classes.</p></div>
+
+        <h2>A small softmax example</h2>
+        <p>Let's use the scores from above. Their exponentials are approximately $3.320$, $22.198$, and $0.670$. Their sum is about $26.188$, so the probabilities are</p>
+        <p>$$\begin{aligned}y_1&=3.320/26.188\approx0.127,\\y_2&=22.198/26.188\approx0.848,\\y_3&=0.670/26.188\approx0.026.\end{aligned}$$</p>
+        <p>As expected, class 2 has the largest probability. To make a prediction, we choose the class with the largest probability:</p>
+        <p>$$\hat{k}=\arg\max_k y_k.$$</p>
+        <p>In plain English, this means “choose the index of the largest probability.” Softmax preserves the ordering of scores, so it is also the class with the largest score: $\hat{k}=\arg\max_k a_k$.</p>
+        <figure class="chart-card"><div class="eyebrow">02 &middot; softmax</div><h3>From class scores to probabilities</h3><div class="chart-frame"><canvas id="softmaxExampleChart" aria-label="Softmax probabilities for three class scores" role="img"></canvas></div><figcaption class="chart-caption"><span class="label">fig 2</span> Softmax turns the three scores into probabilities that sum to one. Hover to see each raw score.</figcaption></figure>
+
+        <h2>Why not apply sigmoid to every class?</h2>
+        <p>If we applied sigmoid independently to three scores, we might get probabilities such as $0.8$, $0.7$, and $0.6$. These values do not have to sum to one.</p>
+        <p>When an observation belongs to exactly one class, the classes compete: increasing the probability of one class leaves less probability for the others. Softmax captures this by making the probabilities sum to one. Independent sigmoids are useful when several labels can be true at the same time, which is a different problem.</p>
+
+        <h2>Decision boundaries</h2>
+        <p>The model predicts whichever class has the largest score. The boundary between classes $i$ and $j$ is where their scores are equal:</p>
+        <p>$$a_i(\mathbf{x})=a_j(\mathbf{x}).$$</p>
+        <p>Substituting the linear scores and rearranging gives</p>
+        <p>$$ (\mathbf{w}_i-\mathbf{w}_j)^T\mathbf{x}+(w_{i0}-w_{j0})=0. $$</p>
+        <p>This is still a linear boundary. A multiclass linear classifier divides the input space into regions, with one predicted class in each region.</p>
+        <figure class="chart-card"><div class="eyebrow">03 &middot; decision boundaries</div><h3>One region for each class</h3><div class="chart-legend"><span class="item"><span class="swatch swatch--dot" style="background:var(--c-cat-5)"></span>red flowers</span><span class="item"><span class="swatch swatch--dot" style="background:var(--c-cat-2)"></span>blue flowers</span><span class="item"><span class="swatch swatch--dot" style="background:var(--c-cat-4)"></span>yellow flowers</span><span class="item"><span class="swatch" style="background:var(--c-cat-1)"></span>pairwise boundaries</span></div><div class="chart-frame"><canvas id="multiclassBoundaryChart" aria-label="Three flower classes with illustrative linear decision boundaries" role="img"></canvas></div><figcaption class="chart-caption"><span class="label">fig 3</span> The largest score changes across each boundary, dividing the space into decision regions.</figcaption></figure>
+
+        <h2>Representing the target</h2>
+        <p>During training, we know which class each observation belongs to. For a flower in class 2, we can represent the target as</p>
+        <p>$$\mathbf{t}=\begin{pmatrix}0\\1\\0\end{pmatrix}.$$</p>
+        <p>Exactly one element is 1 because exactly one class is correct. For $K$ classes, we can write each target value as</p>
+        <p>$$t_k=\begin{cases}1 & \text{if the observation belongs to class }k,\\0 & \text{otherwise.}\end{cases}$$</p>
+        <p>This representation is commonly called one-hot encoding.</p>
+
+        <h2>Multiclass cross-entropy</h2>
+        <p>We already used binary cross-entropy to reward a model for assigning high probability to the class that occurred. The same idea extends naturally to $K$ classes. For one observation, the loss is</p>
+        <p>$$\mathcal{L}=-\sum_{k=1}^{K}t_k\log y_k.$$</p>
+        <p>Only one target value is 1, so all the other terms disappear. If class 2 is correct, for example, then $\mathcal{L}=-\log y_2$. The loss is the negative log probability assigned to the correct class.</p>
+        <p>For a dataset of $N$ observations, we add the loss for each observation, or take its mean:</p>
+        <p>$$\mathcal{L}=-\sum_{n=1}^{N}\sum_{k=1}^{K}t_{nk}\log y_{nk},\qquad \mathcal{L}_{\mathrm{mean}}=-\frac{1}{N}\sum_{n=1}^{N}\sum_{k=1}^{K}t_{nk}\log y_{nk}.$$</p>
+        <p>This is the multiclass version of the cross-entropy loss derived in the previous note.</p>
+        <div class="note important"><span class="tag">important</span><p>Because the target is one-hot encoded, multiclass cross-entropy is simply the negative log probability assigned to the correct class.</p></div>
+
+        <h2>A quick loss example</h2>
+        <p>Suppose the true class is class 2. Three models assign it probabilities of $0.90$, $0.40$, and $0.10$. Their losses are</p>
+        <p>$$-\log(0.90)\approx0.105,\qquad-\log(0.40)\approx0.916,\qquad-\log(0.10)\approx2.303.$$</p>
+        <p>Model A gets a small loss, and Model B gets a larger one. Model C is confidently wrong and receives a much larger loss.</p>
+        <figure class="chart-card"><div class="eyebrow">04 &middot; cross-entropy</div><h3>Loss for the correct-class probability</h3><div class="chart-frame"><canvas id="multiclassLossChart" aria-label="Cross-entropy loss as a function of probability assigned to the correct class" role="img"></canvas></div><figcaption class="chart-caption"><span class="label">fig 4</span> As in binary cross-entropy, assigning a low probability to the correct class is penalised heavily.</figcaption></figure>
+
+        <h2>Numerical stability</h2>
+        <p>Softmax contains exponentials, which can become very large for large scores. In practice, we subtract the largest score before exponentiating:</p>
+        <p>$$y_k=\frac{\exp(a_k-\max_j a_j)}{\sum_j\exp(a_j-\max_j a_j)}.$$</p>
+        <p>Subtracting the same value from every score does not change the probabilities. It simply keeps the exponentials smaller and easier to calculate.</p>
+
+        <h2>Implementation</h2>
+        <p>We can implement softmax with NumPy. Each row of <code>scores</code> contains the scores for one observation. We subtract the largest score in each row, exponentiate, then divide each value by its row's sum.</p>
+        <pre><code class="language-python">import numpy as np
+
+def softmax(scores):
+    shifted_scores = scores - np.max(
+        scores, axis=1, keepdims=True
+    )
+    exp_scores = np.exp(shifted_scores)
+    return exp_scores / np.sum(
+        exp_scores, axis=1, keepdims=True
+    )</code></pre>
+        <p>The <code>keepdims=True</code> argument keeps the row dimension so NumPy can divide each score by the sum for its observation.</p>
+
+        <h2>Setting up the classifier</h2>
+        <p>With $D$ input features and $K$ classes, we use a weight matrix $W\in\mathbb{R}^{D\times K}$ and a bias vector $\mathbf{b}\in\mathbb{R}^{K}$. For a matrix of inputs $X$, the score matrix is $A=XW+\mathbf{b}$, and the probabilities are $Y=\operatorname{softmax}(A)$.</p>
+        <p>Here is the start of a classifier. We initialise the weights once we know how many input features and classes there are. In the code below, class labels are integer indices starting at 0.</p>
+        <pre><code class="language-python">class SoftmaxClassifier:
+    def __init__(self, learning_rate=0.1, epochs=1000):
+        self.learning_rate = learning_rate
+        self.epochs = epochs
+        self.weights = None
+        self.bias = None
+        self.loss_history = []
+
+    @staticmethod
+    def _softmax(scores):
+        shifted = scores - np.max(
+            scores, axis=1, keepdims=True
+        )
+        exp_scores = np.exp(shifted)
+        return exp_scores / np.sum(
+            exp_scores, axis=1, keepdims=True
+        )</code></pre>
+        <p>The matrix product gives one score per class. Softmax then converts each row of scores into a row of probabilities:</p>
+        <pre><code class="language-python">    def decision_function(self, X):
+        return X @ self.weights + self.bias
+
+    def predict_proba(self, X):
+        return self._softmax(
+            self.decision_function(X)
+        )
+
+    def predict(self, X):
+        probabilities = self.predict_proba(X)
+        return np.argmax(probabilities, axis=1)</code></pre>
+        <p><code>np.argmax</code> returns the index of the largest value in each row, giving the predicted class.</p>
+
+        <h2>Computing multiclass cross-entropy</h2>
+        <p>We can keep the labels as integer class indices. This function looks up the probability assigned to the correct class in each row, clips it away from zero, and averages the negative log probabilities.</p>
+        <pre><code class="language-python">def cross_entropy(y_true, y_pred):
+    eps = 1e-12
+    y_pred = np.clip(y_pred, eps, 1.0)
+    correct = y_pred[np.arange(len(y_true)), y_true]
+    return -np.mean(np.log(correct))</code></pre>
+        <p>For example, if <code>y_true[0]</code> is 2, then <code>y_pred[0, 2]</code> is the probability assigned to the correct class for the first observation.</p>
+
+        <h2>Training the model</h2>
+        <p>The gradient keeps the same familiar prediction-minus-target form as in logistic regression. Here both values are vectors, one entry per class. We convert the integer labels to one-hot rows so that we can subtract them from the predicted probabilities.</p>
+        <p>For the mean loss, the parameter gradients are $\nabla_W\mathcal{L}=X^T(Y-T)/N$ and $\nabla_{\mathbf{b}}\mathcal{L}=\operatorname{mean}(Y-T)$. We can therefore adapt the same gradient-descent update:</p>
+        <pre><code class="language-python">    def fit(self, X, y):
+        n_samples, n_features = X.shape
+        y = np.asarray(y, dtype=int)
+        n_classes = int(np.max(y)) + 1
+        targets = np.eye(n_classes)[y]
+
+        self.weights = np.zeros(
+            (n_features, n_classes)
+        )
+        self.bias = np.zeros(n_classes)
+        self.loss_history = []
+
+        for _ in range(self.epochs):
+            probabilities = self.predict_proba(X)
+            self.loss_history.append(
+                cross_entropy(y, probabilities)
+            )
+            error = probabilities - targets
+            dw = X.T @ error / n_samples
+            db = np.mean(error, axis=0)
+            self.weights -= self.learning_rate * dw
+            self.bias -= self.learning_rate * db</code></pre>
+        <p>The rows of <code>targets</code> are one-hot encoded. Subtracting them from the probabilities gives the error for each class, and the updates move the weights and biases in the direction that reduces the mean cross-entropy.</p>
+
+        <h2>Applying this to the flower example</h2>
+        <p>Suppose our model gives one flower the scores $(0.8,\ 2.4,\ -0.3)$. Applying softmax gives approximately $(0.159,\ 0.788,\ 0.053)$.</p>
+        <p>So the prediction is $\hat{k}=2$. The model chooses class 2 because it receives the largest probability. We now have a way to turn measurements into class probabilities and a prediction.</p>
+
+        <div class="exercise"><span class="tag">Exercise <b>2.5.1 — Implement softmax classification</b></span><p>Implement softmax and check that each row of probabilities sums to 1. Then implement multiclass cross-entropy, apply your classifier to a three-class dataset, and check that <code>predict</code> returns the class with the largest probability. What happens to the softmax probabilities if you add the same constant to every class score?</p></div>
+        <h2>Next steps</h2>
+        <p>We can now classify two classes with a sigmoid or several classes with softmax. We can produce class predictions and probabilities, but we still need a way to decide whether our classifier is actually good. In the next section, we will look at how classification models are evaluated.</p>
+      </div>
+      <div class="endbar"><span><a href="../nonlinear-classification-with-basis-functions/">&larr; 2.4 &middot; nonlinear classification with basis functions</a></span><span><a href="../">classification topic guide &rarr;</a></span></div>
+    </article>
+  </div>
+</div>
+<script src="./chart.js"></script><script>hljs.highlightAll();</script>
+</body>
+</html>
