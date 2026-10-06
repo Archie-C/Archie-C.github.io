@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+
+<html lang="en" data-palette="paper">
+
+<head>
+
+<meta charset="utf-8"/>
+
+<title>Nonlinear Classification with Basis Functions | Deep Learning</title>
+
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+
+<link rel="icon" href="../../../../../design_system/assets/favicon.svg"/>
+
+<link rel="stylesheet" href="../../../../../design_system/colors_and_type.css"/>
+
+<link rel="stylesheet" href="../../../../../design_system/charts.css"/>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"/>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+
+<style>
+
+  :root { --page-w: 1180px; }
+
+
+
+  body { background: var(--bg-2); }
+
+
+
+  .frame {
+
+    max-width: var(--page-w);
+
+    margin: 0 auto;
+
+    background: var(--bg);
+
+    min-height: 100vh;
+
+  }
+
+
+
+  .topbar {
+
+    padding: 20px 32px;
+
+    display: flex;
+
+    align-items: baseline;
+
+    gap: 22px;
+
+    border-bottom: 1px solid var(--rule);
+
+  }
+
+
+
+  .topbar .mark {
+
+    font-family: var(--font-mono);
+
+    font-weight: 700;
+
+    font-size: 22px;
+
+    letter-spacing: -0.02em;
+
+    color: var(--fg);
+
+    text-decoration: none;
+
+  }
+
+
+
+  .topbar .mark .dot { color: var(--accent); }
+
+
+
+  .topbar .crumb {
+
+    font-family: var(--font-mono);
+
+    font-size: 13px;
+
+    color: var(--fg-2);
+
+  }
+
+
+
+  .topbar .crumb a {
+
+    color: var(--fg-3);
+
+    text-decoration: none;
+
+  }
+
+
+
+  .topbar .crumb a:hover { color: var(--fg); }
+
+
+
+  .topbar .crumb .sep {
+
+    color: var(--fg-4);
+
+    margin: 0 8px;
+
+  }
+
+
+
+  .topbar nav {
+
+    margin-left: auto;
+
+    display: flex;
+
+    gap: 16px;
+
+    flex-wrap: wrap;
+
+  }
+
+
+
+  .topbar nav a {
+
+    font-family: var(--font-mono);
+
+    font-size: 13px;
+
+    color: var(--fg-2);
+
+    text-decoration: none;
+
+  }
+
+
+
+  .topbar nav a:hover,
+
+  .topbar nav a.active {
+
+    color: var(--accent);
+
+  }
+
+
+
+  .lecture {
+
+    padding: 40px 32px 80px;
+
+    display: grid;
+
+    grid-template-columns: 240px 1fr;
+
+    gap: 56px;
+
+  }
+
+
+
+  .lecture aside {
+
+    font-family: var(--font-sans);
+
+    font-size: 13px;
+
+    color: var(--fg-3);
+
+    position: sticky;
+
+    top: 24px;
+
+    align-self: start;
+
+    line-height: 1.5;
+
+  }
+
+
+
+  .lecture aside .h {
+
+    font-family: var(--font-mono);
+
+    font-size: 10px;
+
+    letter-spacing: 0.08em;
+
+    text-transform: uppercase;
+
+    color: var(--fg-4);
+
+    display: block;
+
+    margin: 16px 0 6px;
+
+  }
+
+
+
+  .lecture aside .h:first-child { margin-top: 0; }
+
+
+
+  .lecture aside .nav-group {
+
+    font-family: var(--font-mono);
+
+    font-size: 11px;
+
+    color: var(--fg-2);
+
+    margin-top: 10px;
+
+    letter-spacing: 0.04em;
+
+    text-transform: uppercase;
+
+    padding-bottom: 4px;
+
+  }
+
+
+
+  .lecture aside .nav-list {
+
+    display: flex;
+
+    flex-direction: column;
+
+  }
+
+
+
+  .lecture aside .nav-list a {
+
+    font-family: var(--font-mono);
+
+    font-size: 13px;
+
+    color: var(--fg-2);
+
+    text-decoration: none;
+
+    padding: 4px 0 4px 12px;
+
+    border-left: 2px solid transparent;
+
+  }
+
+
+
+  .lecture aside .nav-list a:hover { color: var(--fg); }
+
+
+
+  .lecture aside .nav-list a.current {
+
+    color: var(--fg);
+
+    border-left-color: var(--accent);
+
+    background: var(--accent-soft);
+
+  }
+
+
+
+  .lecture aside .nav-list a.done { color: var(--fg-4); }
+
+
+
+  .lecture article { max-width: 62ch; }
+
+
+
+  .lecture article p,
+
+  .lecture article ul,
+
+  .lecture article ol,
+
+  .lecture article pre,
+
+  .lecture article .note,
+
+  .lecture article .exercise {
+
+    max-width: none;
+
+  }
+
+
+
+  .lecture article .crumb {
+
+    font-family: var(--font-mono);
+
+    font-size: 11px;
+
+    color: var(--accent);
+
+    letter-spacing: 0.06em;
+
+    text-transform: uppercase;
+
+    margin-bottom: 10px;
+
+  }
+
+
+
+  .lecture article .crumb a {
+
+    color: var(--fg-3);
+
+    text-decoration: none;
+
+  }
+
+
+
+  .lecture article .crumb a:hover { color: var(--fg); }
+
+
+
+  .lecture article .crumb .sep {
+
+    color: var(--fg-4);
+
+    margin: 0 6px;
+
+  }
+
+
+
+  .lecture article h1 {
+
+    font-family: var(--font-mono);
+
+    font-weight: 700;
+
+    font-size: 30px;
+
+    line-height: 1.12;
+
+    letter-spacing: -0.015em;
+
+    margin: 0 0 8px;
+
+  }
+
+
+
+  .lecture article .standfirst {
+
+    font-family: var(--font-serif);
+
+    font-style: italic;
+
+    font-size: 17px;
+
+    color: var(--fg-2);
+
+    margin-bottom: 28px;
+
+    max-width: 50ch;
+
+    line-height: 1.5;
+
+  }
+
+
+
+  .body {
+
+    font-family: var(--font-serif);
+
+    font-size: 17px;
+
+    line-height: 1.65;
+
+    color: var(--fg);
+
+  }
+
+
+
+  .body p { margin: 0 0 1em; }
+
+
+
+  .chart-card {
+
+    border: 1px solid var(--rule);
+
+    border-radius: 8px;
+
+    background: var(--bg);
+
+    padding: 18px 18px 16px;
+
+    margin: 1.4em 0;
+
+  }
+
+
+
+  .chart-card .eyebrow {
+
+    font-family: var(--font-mono);
+
+    font-size: 10px;
+
+    font-weight: 500;
+
+    letter-spacing: 0.08em;
+
+    text-transform: uppercase;
+
+    color: var(--fg-3);
+
+    margin-bottom: 4px;
+
+  }
+
+
+
+  .chart-card h3 {
+
+    font-family: var(--font-mono);
+
+    font-size: 14px;
+
+    font-weight: 600;
+
+    color: var(--fg);
+
+    letter-spacing: -0.005em;
+
+    margin: 0 0 12px;
+
+  }
+
+
+
+  .chart-card .chart-legend {
+
+    margin: 4px 0 10px;
+
+  }
+
+
+
+  .chart-frame {
+
+    height: 260px;
+
+  }
+
+
+
+  .chart-frame canvas {
+
+    width: 100%;
+
+    height: 100%;
+
+  }
+
+
+
+  .body ul,
+
+  .body ol {
+
+    list-style: none;
+
+    margin: 1.1em 0 1.4em;
+
+    padding: 0;
+
+    border-top: 1px solid var(--rule);
+
+    border-bottom: 1px solid var(--rule);
+
+    counter-reset: note-list;
+
+  }
+
+
+
+  .body li {
+
+    counter-increment: note-list;
+
+    display: grid;
+
+    grid-template-columns: 44px 1fr;
+
+    column-gap: 14px;
+
+    align-items: baseline;
+
+    padding: 8px 0;
+
+    border-top: 1px dashed var(--rule);
+
+    font-family: var(--font-sans);
+
+    font-size: 14.5px;
+
+    line-height: 1.5;
+
+    color: var(--fg-2);
+
+  }
+
+
+
+  .body li:first-child { border-top: 0; }
+
+
+
+  .body li::before {
+
+    content: counter(note-list, decimal-leading-zero);
+
+    font-family: var(--font-mono);
+
+    font-size: 11.5px;
+
+    color: var(--fg-4);
+
+    letter-spacing: 0.04em;
+
+  }
+
+
+
+  .body ul li::before { content: counter(note-list, decimal-leading-zero); }
+
+
+
+  .body li a {
+
+    color: var(--fg);
+
+    text-decoration: none;
+
+  }
+
+
+
+  .body li a:hover { color: var(--accent); }
+
+
+
+  .body h2 {
+
+    font-family: var(--font-mono);
+
+    font-size: 18px;
+
+    font-weight: 600;
+
+    letter-spacing: -0.005em;
+
+    margin: 1.8em 0 0.5em;
+
+  }
+
+
+
+  .body code {
+
+    font-family: var(--font-mono);
+
+    font-size: 0.9em;
+
+    background: var(--bg-sunk);
+
+    padding: 0.1em 0.36em;
+
+    border-radius: 3px;
+
+  }
+
+
+
+  .body pre {
+
+    font-family: var(--font-mono);
+
+    background: var(--bg-sunk);
+
+    border: 1px solid var(--rule);
+
+    border-radius: 8px;
+
+    padding: 14px 18px;
+
+    font-size: 13px;
+
+    line-height: 1.5;
+
+    overflow-x: auto;
+
+    margin: 1.4em 0;
+
+  }
+
+
+
+  .body pre code {
+
+    background: none;
+
+    padding: 0;
+
+  }
+
+
+
+  .exercise {
+
+    border: 1px solid var(--rule);
+
+    border-left: 3px solid var(--accent);
+
+    border-radius: 4px;
+
+    padding: 14px 18px;
+
+    background: var(--bg-2);
+
+    margin: 1.4em 0;
+
+  }
+
+
+
+  .exercise .tag {
+
+    font-family: var(--font-mono);
+
+    font-size: 11px;
+
+    color: var(--accent);
+
+    letter-spacing: 0.06em;
+
+    text-transform: uppercase;
+
+    font-weight: 600;
+
+  }
+
+
+
+  .exercise .tag b {
+
+    color: var(--fg);
+
+    margin-left: 6px;
+
+  }
+
+
+
+  .exercise p {
+
+    margin: 6px 0 0;
+
+    font-family: var(--font-sans);
+
+    font-size: 14.5px;
+
+    color: var(--fg);
+
+  }
+
+
+
+  .note {
+
+    border: 1px solid var(--rule);
+
+    border-left: 3px solid var(--fg-4);
+
+    border-radius: 4px;
+
+    padding: 14px 18px;
+
+    background: var(--bg-sunk);
+
+    margin: 1.4em 0;
+
+  }
+
+
+
+  .note .tag {
+
+    display: block;
+
+    font-family: var(--font-mono);
+
+    font-size: 11px;
+
+    color: var(--fg-3);
+
+    letter-spacing: 0.06em;
+
+    text-transform: uppercase;
+
+    font-weight: 600;
+
+    margin-bottom: 6px;
+
+  }
+
+
+
+  .note p {
+
+    margin: 0;
+
+    font-family: var(--font-sans);
+
+    font-size: 14.5px;
+
+    line-height: 1.55;
+
+    color: var(--fg);
+
+  }
+
+
+
+  .note.important {
+
+    border-left-color: var(--accent);
+
+    background: var(--accent-soft);
+
+  }
+
+
+
+  .note.important .tag { color: var(--accent); }
+
+
+
+  .endbar {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    gap: 16px;
+
+    margin-top: 40px;
+
+    padding-top: 16px;
+
+    border-top: 1px solid var(--rule);
+
+    font-family: var(--font-mono);
+
+    font-size: 12px;
+
+  }
+
+
+
+  .endbar a {
+
+    color: var(--accent);
+
+    text-decoration: none;
+
+  }
+
+
+
+  .endbar a:hover { text-decoration: underline; }
+
+
+
+  @media (max-width: 820px) {
+
+    .topbar {
+
+      align-items: flex-start;
+
+      flex-direction: column;
+
+      gap: 10px;
+
+    }
+
+
+
+    .topbar nav { margin-left: 0; }
+
+
+
+    .lecture {
+
+      display: block;
+
+      padding: 36px 24px 64px;
+
+    }
+
+
+
+    .lecture aside {
+
+      position: static;
+
+      margin-bottom: 34px;
+
+    }
+
+  }
+
+
+
+  @media (max-width: 640px) {
+
+    .topbar { padding: 18px 20px; }
+
+    .lecture article h1 { font-size: 27px; }
+
+    .endbar { flex-direction: column; }
+
+  }
+
+
+
+  /* Syntax highlighting — built on design system tokens */
+
+  .hljs { color: var(--fg); background: transparent; }
+
+  .hljs-comment, .hljs-quote { color: var(--fg-3); font-style: italic; }
+
+  .hljs-keyword, .hljs-selector-tag { color: var(--accent); font-weight: 600; }
+
+  .hljs-built_in, .hljs-builtin-name { color: var(--warning); }
+
+  .hljs-string, .hljs-attr, .hljs-addition { color: var(--info); }
+
+  .hljs-number, .hljs-literal { color: var(--success); }
+
+  .hljs-title, .hljs-class .hljs-title, .hljs-type { color: var(--warning); }
+
+  .hljs-variable, .hljs-template-variable { color: var(--fg-2); }
+
+  .hljs-params { color: var(--fg-2); }
+
+  .hljs-deletion { color: var(--danger); }
+
+  .hljs-emphasis { font-style: italic; }
+
+  .hljs-strong { font-weight: 700; }
+
+  .scale-controls { margin: 4px 0 18px; padding: 12px 0 4px; border-top: 1px solid var(--rule); }
+  .scale-controls label { display: grid; grid-template-columns: 110px 1fr; align-items: center; gap: 12px; font-family: var(--font-mono); font-size: 11px; color: var(--fg-2); }
+  .scale-controls input[type="range"] { width: 100%; accent-color: var(--accent); }
+  @media (max-width: 640px) { .scale-controls label { grid-template-columns: 1fr; gap: 4px; } }
+
+</style>
+
+  <!-- Cloudflare Web Analytics -->
+  <script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "f63b2ef074b74a5e8e78014b83a4071d"}'></script>
+  <!-- End Cloudflare Web Analytics -->
+</head>
+
+<body>
+<div class="frame">
+  <div class="topbar">
+    <a href="../../../../../" class="mark">a<span class="dot">.</span>c</a>
+    <span class="crumb"><a href="../../../">Deep Learning</a><span class="sep">&rsaquo;</span><a href="../">02 classification</a><span class="sep">&rsaquo;</span>nonlinear classification</span>
+    <nav aria-label="Course navigation"><a href="../../../" class="active">syllabus</a></nav>
+  </div>
+  <div class="lecture">
+    <aside>
+      <span class="h">course</span>Deep Learning &middot; Winter 2026
+      <span class="h">topic</span>
+      <div class="nav-group">02 &middot; classification</div>
+      <div class="nav-list">
+        <a class="done" href="../linear-classifiers-and-decision-boundaries/">2.1 &middot; linear classifiers and decision boundaries</a>
+        <a class="done" href="../logistic-regression/">2.2 &middot; logistic regression</a>
+        <a class="done" href="../maximum-likelihood-and-binary-cross-entropy/">2.3 &middot; maximum likelihood and binary cross-entropy</a>
+        <a class="current" href="./">2.4 &middot; nonlinear classification with basis functions</a>
+      </div>
+    </aside>
+    <article>
+      <div class="crumb"><a href="../../../">syllabus</a><span class="sep">&rsaquo;</span><a href="../">topic 02</a><span class="sep">&rsaquo;</span>subtopic 2.4</div>
+      <h1>Nonlinear Classification with Basis Functions.</h1>
+      <p class="standfirst">A straight-line boundary cannot separate every dataset. Transforming the inputs first lets the same classifier draw more flexible boundaries.</p>
+      <div class="body">
+        <h2>What this note covers</h2>
+        <ul><li>The limitation of linear decision boundaries</li><li>Basis-function transformations</li><li>Classification in feature space</li><li>Polynomial decision boundaries</li><li>Implementation details</li></ul>
+        <p>For a more formal definition, see <a href="https://www.bishopbook.com/">Deep learning: Foundations and Concepts</a>.</p>
+
+        <h2>The limitation of a linear classifier</h2>
+        <p>In the previous notes, we used logistic regression to turn a linear score into a probability:</p>
+        <p>$$y(\mathbf{x})=\sigma(\mathbf{w}^T\mathbf{x}+w_0).$$</p>
+        <p>The predicted probability is useful, but the score still has a limitation. Its 0.5 boundary occurs when</p>
+        <p>$$\mathbf{w}^T\mathbf{x}+w_0=0.$$</p>
+        <p>If $\mathbf{x}$ contains the original input variables, this equation is linear in those variables. With two inputs, it describes a straight line.</p>
+        <p>Now consider a simple dataset with one class near the centre and another spread around it. No matter where we draw a straight line, it cannot put all of the central points on one side and all of the surrounding points on the other. The issue is not that logistic regression cannot give useful probabilities. Its linear score is too restrictive for this pattern.</p>
+        <figure class="chart-card"><div class="eyebrow">01 &middot; nonlinear data</div><h3>A problem a straight line cannot solve</h3><div class="chart-legend"><span class="item"><span class="swatch swatch--dot" style="background:var(--c-cat-2)"></span>class 0</span><span class="item"><span class="swatch swatch--dot" style="background:var(--c-cat-1)"></span>class 1</span></div><div class="chart-frame"><canvas id="nonlinearDataChart" aria-label="Two-dimensional data with class zero near the centre and class one around the outside, without a decision boundary" role="img"></canvas></div><figcaption class="chart-caption"><span class="label">fig 1</span> No single linear decision boundary can perfectly separate these two classes.</figcaption></figure>
+
+        <h2>Transforming the input</h2>
+        <p>In <a href="../../01-regression/non-linear-regression/">nonlinear regression</a>, we transformed the inputs with basis functions before fitting a linear model. We can use the same idea here. Instead of applying logistic regression directly to $\mathbf{x}$, first map it to a feature vector:</p>
+        <p>$$\mathbf{x}\longrightarrow\boldsymbol{\phi}(\mathbf{x}).$$</p>
+        <p>The score is now a weighted sum of the transformed features, plus a bias:</p>
+        <p>$$a(\mathbf{x})=\mathbf{w}^T\boldsymbol{\phi}(\mathbf{x})+w_0.$$</p>
+        <p>We then pass that score through the same sigmoid as before:</p>
+        <p>$$y(\mathbf{x})=\sigma\left(\mathbf{w}^T\boldsymbol{\phi}(\mathbf{x})+w_0\right)=p(t=1\mid\mathbf{x}).$$</p>
+        <p>The 0.5 boundary is still where the score is zero, so $\mathbf{w}^T\boldsymbol{\phi}(\mathbf{x})+w_0=0$.</p>
+        <div class="note important"><span class="tag">important</span><p>The classifier is still linear in the transformed features $\boldsymbol{\phi}(\mathbf{x})$, but its decision boundary does not need to be linear in the original input $\mathbf{x}$.</p></div>
+
+        <h2>A simple nonlinear transformation</h2>
+        <p>Return to the centre-and-surrounding-points example. A useful feature is</p>
+        <p>$$\phi(\mathbf{x})=x_1^2+x_2^2.$$</p>
+        <p>This is the squared distance from the origin. Points near the centre have small values; points farther away have larger values. So the two classes that overlap when we look at $(x_1,x_2)$ separately can become easy to distinguish using this one feature.</p>
+        <p>For example, use the score</p>
+        <p>$$a(\mathbf{x})=w_1(x_1^2+x_2^2)+w_0.$$</p>
+        <p>The decision boundary occurs when the score is zero:</p>
+        <p>$$w_1(x_1^2+x_2^2)+w_0=0.$$</p>
+        <p>If $w_1\ne 0$, rearranging gives</p>
+        <p>$$x_1^2+x_2^2=-\frac{w_0}{w_1}.$$</p>
+        <p>This is the equation of a circle centred at the origin. The model itself has not become a complicated nonlinear algorithm. We have changed the features supplied to the same logistic classifier.</p>
+        <figure class="chart-card"><div class="eyebrow">02 &middot; nonlinear boundary</div><h3>A linear classifier after transformation</h3><div class="chart-legend"><span class="item"><span class="swatch swatch--dot" style="background:var(--c-cat-2)"></span>class 0</span><span class="item"><span class="swatch swatch--dot" style="background:var(--c-cat-1)"></span>class 1</span><span class="item"><span class="swatch" style="background:var(--c-cat-3)"></span>decision boundary</span></div><div class="chart-frame"><canvas id="circularBoundaryChart" aria-label="The centre and surrounding classes separated by a circular decision boundary" role="img"></canvas></div><figcaption class="chart-caption"><span class="label">fig 2</span> The classifier is linear in $x_1^2+x_2^2$, but its boundary is circular in the original input space.</figcaption></figure>
+
+        <h2>Feature space</h2>
+        <p>The space made by the transformed features is called <strong>feature space</strong>. For the feature $z=x_1^2+x_2^2$, each original observation $(x_1,x_2)$ is represented by a single number, $z$.</p>
+        <p>In this new space, the centre points have small $z$ values and the surrounding points have large ones. A threshold $c$ can separate them: one class has $z&lt;c$, while the other has $z&gt;c$. The curved separation in the original view has become a simple linear threshold in feature space.</p>
+        <figure class="chart-card"><div class="eyebrow">03 &middot; feature space</div><h3>The same data after transformation</h3><div class="chart-legend"><span class="item"><span class="swatch swatch--dot" style="background:var(--c-cat-2)"></span>class 0</span><span class="item"><span class="swatch swatch--dot" style="background:var(--c-cat-1)"></span>class 1</span><span class="item"><span class="swatch" style="background:var(--c-cat-3)"></span>threshold</span></div><div class="chart-frame"><canvas id="featureSpaceChart" aria-label="The same observations arranged by squared distance, separated by a vertical threshold" role="img"></canvas></div><figcaption class="chart-caption"><span class="label">fig 3</span> The transformation turns the nonlinear separation problem into a threshold in feature space; the vertical positions only spread overlapping points out for display.</figcaption></figure>
+
+        <h2>Polynomial basis functions</h2>
+        <p>We chose the radial feature because it suited this particular dataset. A more general choice is to include polynomial terms for both inputs. One degree-2 basis is</p>
+        <p>$$\boldsymbol{\phi}(\mathbf{x})=\begin{pmatrix}1\\x_1\\x_2\\x_1^2\\x_1x_2\\x_2^2\end{pmatrix}.$$</p>
+        <p>The score becomes</p>
+        <p>$$a(\mathbf{x})=\mathbf{w}^T\boldsymbol{\phi}(\mathbf{x})=w_0+w_1x_1+w_2x_2+w_3x_1^2+w_4x_1x_2+w_5x_2^2.$$</p>
+        <p>The boundary is still found by setting $a(\mathbf{x})=0$, but it can now be curved. Depending on the weights, it can describe circles, ellipses, parabolas, and other quadratic curves. The main point is the added flexibility; we do not need to study each curve in detail.</p>
+        <figure class="chart-card"><div class="eyebrow">04 &middot; polynomial features</div><h3>A more flexible decision boundary</h3><div class="chart-legend"><span class="item"><span class="swatch swatch--dot" style="background:var(--c-cat-2)"></span>class 0</span><span class="item"><span class="swatch swatch--dot" style="background:var(--c-cat-1)"></span>class 1</span><span class="item"><span class="swatch" style="background:var(--c-cat-3)"></span>polynomial boundary</span></div><div class="chart-frame"><canvas id="polynomialBoundaryChart" aria-label="Two classes separated by a curved quadratic decision boundary" role="img"></canvas></div><figcaption class="chart-caption"><span class="label">fig 4</span> Adding polynomial basis functions lets a linear classifier in feature space produce a curved boundary in the original inputs.</figcaption></figure>
+
+        <h2>Linear in the parameters</h2>
+        <p>Compare $w_0+w_1x$ with $w_0+w_1x+w_2x^2$. The second score is nonlinear in the input $x$, because it contains $x^2$. But both expressions are linear in their parameters: each weight appears only as a coefficient, not inside a nonlinear function.</p>
+        <p>This is the same distinction we made for nonlinear regression. We can use the word “linear” for the relationship to the parameters even when the curve in the original input space is not a straight line.</p>
+        <div class="note important"><span class="tag">important</span><p>A linear model does not necessarily produce a straight line in the original input space. It is called linear because the parameters enter the model linearly.</p></div>
+
+        <h2>Other basis functions</h2>
+        <p>Polynomial functions are not the only choice. In nonlinear regression, we also met Gaussian or radial basis functions, for example</p>
+        <p>$$\phi_j(\mathbf{x})=\exp\left(-\frac{\|\mathbf{x}-\boldsymbol{\mu}_j\|^2}{2s^2}\right),$$</p>
+        <p>and sigmoidal basis functions. The same basis-function machinery can be reused for classification. The difference is in the output: regression maps a linear combination of basis features to a continuous prediction, while binary classification applies a sigmoid to that score to produce a class probability.</p>
+        <p>As with polynomial regression, adding more basis functions gives the classifier more ways to fit the data. A degree-1 polynomial gives a linear boundary; degree 2 allows quadratic boundaries. Richer transformations can draw more complicated boundaries, but they can also fit noise and overfit the training examples.</p>
+
+        <h2>Implementation</h2>
+        <p>The logistic-regression algorithm does not need to change. We transform the inputs first, then reuse the same <code>fit</code> and <code>predict</code> methods from the previous note.</p>
+        <p>Here is a manual degree-2 feature transformation using NumPy:</p>
+        <pre><code class="language-python">def polynomial_features(X):
+    x1 = X[:, 0]
+    x2 = X[:, 1]
+
+    return np.column_stack([
+        x1,        # original first input
+        x2,        # original second input
+        x1 ** 2,   # squared first input
+        x1 * x2,   # interaction between the inputs
+        x2 ** 2    # squared second input
+    ])</code></pre>
+        <p>The two original features let the boundary tilt or shift. The squared terms add curvature, and the product lets the two inputs interact. As in the preceding implementation, the classifier keeps its bias separately.</p>
+        <pre><code class="language-python">X_phi = polynomial_features(X)
+
+model = LogisticRegression(
+    learning_rate=0.01,
+    epochs=1000
+)
+
+model.fit(X_phi, y)</code></pre>
+        <p>Before prediction, transform new observations in exactly the same way:</p>
+        <pre><code class="language-python">X_new_phi = polynomial_features(X_new)
+predictions = model.predict(X_new_phi)</code></pre>
+        <div class="note important"><span class="tag">important</span><p>The transformation used during training must also be used during prediction. If the model was trained on $(x_1,x_2,x_1^2,x_1x_2,x_2^2)$, every new observation must be represented by those same five features in the same order.</p></div>
+
+        <h2>Returning to our example</h2>
+        <p>Using only $(x_1,x_2)$ gave us a straight boundary that could not separate the centre from the surrounding points. Adding $x_1^2+x_2^2$ gave the classifier a representation where a single threshold was enough.</p>
+        <div class="note important"><span class="tag">important</span><p>We did not make the classifier nonlinear by changing logistic regression. We made the overall input-output function nonlinear by changing the features that logistic regression receives.</p></div>
+
+        <div class="exercise"><span class="tag">Exercise <b>2.4.1 — Build a nonlinear classifier</b></span><p>Use the circular dataset from this note. Fit logistic regression using only $x_1$ and $x_2$, then inspect its boundary. Add $x_1^2+x_2^2$ as a feature, fit the classifier again, and compare the predictions and boundaries. Why can the transformed model separate the classes? Is the classifier linear in feature space, and is its boundary linear in the original input space? If you like, extend the transformation to the complete degree-2 polynomial basis.</p></div>
+
+        <h2>Next steps</h2>
+        <p>Basis functions let a simple model represent nonlinear relationships, but we still have to choose the transformation ourselves. Later in the course, neural networks will learn useful nonlinear representations directly from data.</p>
+        <p>So far, all of our classification problems have involved two classes. In the next section, we will extend these ideas to problems where an observation may belong to one of several classes.</p>
+      </div>
+      <div class="endbar"><span><a href="../maximum-likelihood-and-binary-cross-entropy/">&larr; 2.3 &middot; maximum likelihood and binary cross-entropy</a></span><span><a href="../">classification topic guide</a></span></div>
+    </article>
+  </div>
+</div>
+<script src="./chart.js"></script><script>hljs.highlightAll();</script>
+</body>
+</html>
