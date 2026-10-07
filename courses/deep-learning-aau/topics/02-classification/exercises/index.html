@@ -101,14 +101,14 @@
               <ul>
                 <li>20 are actually defective.</li>
                 <li>The model correctly detects 12.</li>
-                <li>It incorrectly flags 30 non-defective components.</li>
+                <li>The model incorrectly flags 30 non-defective components.</li>
               </ul>
               <ol type="a">
                 <li>Construct a confusion matrix for this data.</li>
                 <li>Calculate the accuracy, precision and recall of the classifier.</li>
                 <li>A classifier that predicts "non-defective" for all components obtains what accuracy for this example?</li>
                 <li>Explain why accuracy is a poor evaluation metric for this problem.</li>
-                <li>Which metric would you prioritise if allowing a defective component through is particularly dangerous.</li>
+                <li>Which metric would you prioritise if allowing a defective component through is particularly dangerous?</li>
               </ol>
             </div>
           </div>
@@ -127,10 +127,10 @@
                   to the predicted probabilities if we replace $\mathbf{w}$ with $c\mathbf{w}$ for some $c > 1$.
                 </li>
                 <li>What happens to the cross-entropy training loss as $c \to \infty$?</li>
-                <li>Explain why the unregularised maximum-likelihood estimate therefore does not have a finite optimum.</li>
-                <li>Does this mean that logistic regression cannot correctly classify all observations?</li>
-                <li>Explain how $L_2$ regularisation addresses this issue.</li>
-                <li>Would regularising change the training-set decision boundary?</li>
+                <li>Explain why the unregularised maximum-likelihood estimate therefore does not have a finite optimum in this case.</li>
+                <li>In the context of the question, does this mean that logistic regression cannot correctly classify all observations?</li>
+                <li>Explain how $L_2$ regularisation addresses this issue when the training set is perfectly linearly separable.</li>
+                <li>Would regularising change this training-set decision boundary?</li>
               </ol>
             </div>
           </div>
