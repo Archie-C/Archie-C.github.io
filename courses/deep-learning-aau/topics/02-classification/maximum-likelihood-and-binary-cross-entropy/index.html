@@ -985,7 +985,8 @@
         <figure class="chart-card"><div class="eyebrow">03 &middot; score and loss</div><h3>Binary cross-entropy against the linear score</h3><div class="chart-legend"><span class="item"><span class="swatch" style="background:var(--c-cat-1)"></span>target t = 1</span><span class="item"><span class="swatch" style="background:var(--c-cat-2)"></span>target t = 0</span></div><div class="chart-frame"><canvas id="lossVsScoreChart" aria-label="Binary cross-entropy loss against linear score for targets zero and one" role="img"></canvas></div><figcaption class="chart-caption"><span class="label">fig 3</span> The loss encourages the score to become positive for class 1 and negative for class 0.</figcaption></figure>
 
         <h2>Optimising logistic regression</h2>
-        <p>Unlike ordinary least squares, logistic regression does not have the same simple closed-form solution. We usually find its weights iteratively: initialise them, compute predictions and the loss, calculate gradients, update the parameters, and repeat.</p>
+        <p>To find the best weights, we could set the gradients of the loss to zero and solve for them. Unlike ordinary least squares, this does not give us a general closed-form solution: the equations contain the sigmoid of expressions involving the unknown weights, so we cannot usually rearrange them to isolate the weights.</p>
+        <p>Instead, we use numerical optimisation to search for weights that minimise the loss. Gradient descent is one such method: it uses the gradients to make repeated updates. Other methods, such as Newton's method, are also possible; here we use gradient descent because its updates follow directly from the gradients we have derived.</p>
         <p>For one example, write the loss in terms of the score $a$:</p>
         <p>$$\ell=-t\log y-(1-t)\log(1-y),\qquad y=\sigma(a).$$</p>
         <p>The sigmoid derivative is $\frac{dy}{da}=y(1-y)$. Applying the chain rule gives</p>
