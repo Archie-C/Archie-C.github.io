@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en" data-palette="paper">
+<head>
+<meta charset="utf-8"/>
+<title>Regression as Probabilistic Modelling | Deep Learning</title>
+  <meta name="description" content="An optional note deriving squared error from a Gaussian observation model and maximum likelihood."/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link rel="icon" href="../../../../../design_system/assets/favicon.svg"/>
+<link rel="stylesheet" href="../../../../../design_system/colors_and_type.css"/>
+<link rel="stylesheet" href="../../../../../design_system/charts.css"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+  :root { --page-w: 1180px; }
+
+  body { background: var(--bg-2); }
+
+  .frame {
+    max-width: var(--page-w);
+    margin: 0 auto;
+    background: var(--bg);
+    min-height: 100vh;
+  }
+
+  .topbar {
+    padding: 20px 32px;
+    display: flex;
+    align-items: baseline;
+    gap: 22px;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .topbar .mark {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 22px;
+    letter-spacing: -0.02em;
+    color: var(--fg);
+    text-decoration: none;
+  }
+
+  .topbar .mark .dot { color: var(--accent); }
+
+  .topbar .crumb {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--fg-2);
+  }
+
+  .topbar .crumb a {
+    color: var(--fg-3);
+    text-decoration: none;
+  }
+
+  .topbar .crumb a:hover { color: var(--fg); }
+
+  .topbar .crumb .sep {
+    color: var(--fg-4);
+    margin: 0 8px;
+  }
+
+  .topbar nav {
+    margin-left: auto;
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .topbar nav a {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--fg-2);
+    text-decoration: none;
+  }
+
+  .topbar nav a:hover,
+  .topbar nav a.active {
+    color: var(--accent);
+  }
+
+  .lecture {
+    padding: 40px 32px 80px;
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 56px;
+  }
+
+  .lecture aside {
+    font-family: var(--font-sans);
+    font-size: 13px;
+    color: var(--fg-3);
+    position: sticky;
+    top: 24px;
+    align-self: start;
+    line-height: 1.5;
+  }
+
+  .lecture aside .h {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--fg-4);
+    display: block;
+    margin: 16px 0 6px;
+  }
+
+  .lecture aside .h:first-child { margin-top: 0; }
+
+  .lecture aside .nav-group {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--fg-2);
+    margin-top: 10px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding-bottom: 4px;
+  }
+
+  .lecture aside .nav-list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .lecture aside .nav-list a {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--fg-2);
+    text-decoration: none;
+    padding: 4px 0 4px 12px;
+    border-left: 2px solid transparent;
+  }
+
+  .lecture aside .nav-list a:hover { color: var(--fg); }
+
+  .lecture aside .nav-list a.current {
+    color: var(--fg);
+    border-left-color: var(--accent);
+    background: var(--accent-soft);
+  }
+
+  .lecture aside .nav-list a.done { color: var(--fg-4); }
+
+  .lecture article { max-width: 62ch; }
+
+  .lecture article p,
+  .lecture article ul,
+  .lecture article ol,
+  .lecture article pre,
+  .lecture article .note,
+  .lecture article .exercise {
+    max-width: none;
+  }
+
+  .lecture article .crumb {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .lecture article .crumb a {
+    color: var(--fg-3);
+    text-decoration: none;
+  }
+
+  .lecture article .crumb a:hover { color: var(--fg); }
+
+  .lecture article .crumb .sep {
+    color: var(--fg-4);
+    margin: 0 6px;
+  }
+
+  .lecture article h1 {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 30px;
+    line-height: 1.12;
+    letter-spacing: -0.015em;
+    margin: 0 0 8px;
+  }
+
+  .lecture article .standfirst {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 17px;
+    color: var(--fg-2);
+    margin-bottom: 28px;
+    max-width: 50ch;
+    line-height: 1.5;
+  }
+
+  .body {
+    font-family: var(--font-serif);
+    font-size: 17px;
+    line-height: 1.65;
+    color: var(--fg);
+  }
+
+  .body p { margin: 0 0 1em; }
+
+  .chart-card {
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    background: var(--bg);
+    padding: 18px 18px 16px;
+    margin: 1.4em 0;
+  }
+
+  .chart-card .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--fg-3);
+    margin-bottom: 4px;
+  }
+
+  .chart-card h3 {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--fg);
+    letter-spacing: -0.005em;
+    margin: 0 0 12px;
+  }
+
+  .chart-card .chart-legend {
+    margin: 4px 0 10px;
+  }
+
+  .chart-frame {
+    height: 260px;
+  }
+
+  .chart-frame canvas {
+    width: 100%;
+    height: 100%;
+  }
+
+  .body ul,
+  .body ol {
+    list-style: none;
+    margin: 1.1em 0 1.4em;
+    padding: 0;
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+    counter-reset: note-list;
+  }
+
+  .body li {
+    counter-increment: note-list;
+    display: grid;
+    grid-template-columns: 44px 1fr;
+    column-gap: 14px;
+    align-items: baseline;
+    padding: 8px 0;
+    border-top: 1px dashed var(--rule);
+    font-family: var(--font-sans);
+    font-size: 14.5px;
+    line-height: 1.5;
+    color: var(--fg-2);
+  }
+
+  .body li:first-child { border-top: 0; }
+
+  .body li::before {
+    content: counter(note-list, decimal-leading-zero);
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    color: var(--fg-4);
+    letter-spacing: 0.04em;
+  }
+
+  .body ul li::before { content: counter(note-list, decimal-leading-zero); }
+
+  .body li a {
+    color: var(--fg);
+    text-decoration: none;
+  }
+
+  .body li a:hover { color: var(--accent); }
+
+  .body h2 {
+    font-family: var(--font-mono);
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: -0.005em;
+    margin: 1.8em 0 0.5em;
+  }
+
+  .body code {
+    font-family: var(--font-mono);
+    font-size: 0.9em;
+    background: var(--bg-sunk);
+    padding: 0.1em 0.36em;
+    border-radius: 3px;
+  }
+
+  .body pre {
+    font-family: var(--font-mono);
+    background: var(--bg-sunk);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 14px 18px;
+    font-size: 13px;
+    line-height: 1.5;
+    overflow-x: auto;
+    margin: 1.4em 0;
+  }
+
+  .body pre code {
+    background: none;
+    padding: 0;
+  }
+
+  .exercise {
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--accent);
+    border-radius: 4px;
+    padding: 14px 18px;
+    background: var(--bg-2);
+    margin: 1.4em 0;
+  }
+
+  .exercise .tag {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+
+  .exercise .tag b {
+    color: var(--fg);
+    margin-left: 6px;
+  }
+
+  .exercise p {
+    margin: 6px 0 0;
+    font-family: var(--font-sans);
+    font-size: 14.5px;
+    color: var(--fg);
+  }
+
+  .note {
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--fg-4);
+    border-radius: 4px;
+    padding: 14px 18px;
+    background: var(--bg-sunk);
+    margin: 1.4em 0;
+  }
+
+  .note .tag {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--fg-3);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  .note p {
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: 14.5px;
+    line-height: 1.55;
+    color: var(--fg);
+  }
+
+  .note.important {
+    border-left-color: var(--accent);
+    background: var(--accent-soft);
+  }
+
+  .note.important .tag { color: var(--accent); }
+
+  .endbar {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 40px;
+    padding-top: 16px;
+    border-top: 1px solid var(--rule);
+    font-family: var(--font-mono);
+    font-size: 12px;
+  }
+
+  .endbar a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+
+  .endbar a:hover { text-decoration: underline; }
+
+  @media (max-width: 820px) {
+    .topbar {
+      align-items: flex-start;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .topbar nav { margin-left: 0; }
+
+    .lecture {
+      display: block;
+      padding: 36px 24px 64px;
+    }
+
+    .lecture aside {
+      position: static;
+      margin-bottom: 34px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .topbar { padding: 18px 20px; }
+    .lecture article h1 { font-size: 27px; }
+    .endbar { flex-direction: column; }
+  }
+
+  /* Syntax highlighting — built on design system tokens */
+  .hljs { color: var(--fg); background: transparent; }
+  .hljs-comment, .hljs-quote { color: var(--fg-3); font-style: italic; }
+  .hljs-keyword, .hljs-selector-tag { color: var(--accent); font-weight: 600; }
+  .hljs-built_in, .hljs-builtin-name { color: var(--warning); }
+  .hljs-string, .hljs-attr, .hljs-addition { color: var(--info); }
+  .hljs-number, .hljs-literal { color: var(--success); }
+  .hljs-title, .hljs-class .hljs-title, .hljs-type { color: var(--warning); }
+  .hljs-variable, .hljs-template-variable { color: var(--fg-2); }
+  .hljs-params { color: var(--fg-2); }
+  .hljs-deletion { color: var(--danger); }
+  .hljs-emphasis { font-style: italic; }
+  .hljs-strong { font-weight: 700; }
+</style>
+  <!-- Cloudflare Web Analytics -->
+  <script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "f63b2ef074b74a5e8e78014b83a4071d"}'></script>
+  <!-- End Cloudflare Web Analytics -->
+</head>
+<body>
+<div class="frame">
+  <div class="topbar">
+    <a href="../../../../../" class="mark">a<span class="dot">.</span>c</a>
+    <span class="crumb">
+      <a href="../../../">Deep Learning</a><span class="sep">&rsaquo;</span>
+      <a href="../">01 regression</a><span class="sep">&rsaquo;</span>
+      regression as probabilistic modelling
+    </span>
+    <nav aria-label="Course navigation">
+      <a href="../../../" class="active">syllabus</a>
+    
+      <a href="/contact/">contact</a>
+    </nav>
+  </div>
+
+  <div class="lecture">
+    <aside>
+      <span class="h">course</span>
+      Deep Learning &middot; Winter 2026
+
+      <span class="h">topic</span>
+      <div class="nav-group">01 &middot; regression</div>
+      <div class="nav-list">
+        <a href="../linear-regression/">1.1 &middot; linear regression</a>
+        <a href="../multiple-input-dimensions/">1.2 &middot; multiple input dimensions</a>
+        <a href="../multiple-output-dimensions/">1.3 &middot; multiple output dimensions</a>
+        <a href="../non-linear-regression/">1.4 &middot; non-linear regression</a>
+        <a href="../regularisation/">1.5 &middot; regularisation</a>
+        <a href="../exercises/">1.6 &middot; exercises</a>
+        <a class="current" href="./" aria-current="page">optional &middot; probabilistic regression</a>
+      </div>
+    </aside>
+
+    <article>
+      <div class="crumb">
+        <a href="../../../">syllabus</a><span class="sep">&rsaquo;</span>
+        <a href="../">topic 01</a><span class="sep">&rsaquo;</span>
+        optional note
+      </div>
+      <h1>Regression as Probabilistic Modelling.</h1>
+      <p class="standfirst">Squared error can be understood as a likelihood objective: it follows from a model that treats each target as a noisy observation around the regression prediction.</p>
+
+      <div class="body">
+        <h2>From a prediction to a distribution</h2>
+        <p>A regression function gives a point prediction for an input. For an input vector $\mathbf{x}$ and parameters $\mathbf{w}$, write this prediction as $y(\mathbf{x},\mathbf{w})$. An observed target $t$ will rarely equal it exactly, so model the difference as observation noise:</p>
+        <p>$$ t = y(\mathbf{x},\mathbf{w}) + \epsilon, \qquad \epsilon \sim \mathcal{N}(0,\sigma^2). $$</p>
+        <p>Adding Gaussian noise to a fixed prediction means that the target has a Gaussian conditional distribution:</p>
+        <p>$$ p(t\mid\mathbf{x},\mathbf{w},\sigma^2) = \mathcal{N}\!\left(t\mid y(\mathbf{x},\mathbf{w}),\sigma^2\right). $$</p>
+        <p>Here $y(\mathbf{x},\mathbf{w})$ is the conditional mean: the average target predicted for inputs like $\mathbf{x}$ under this model. The variance $\sigma^2$ describes the assumed spread of observations around that mean. The model therefore predicts a distribution of possible target values, even when we report only its mean.</p>
+
+        <h2>The likelihood of a dataset</h2>
+        <p>Now consider $N$ observed input-target pairs, $\mathcal{D}=\{(\mathbf{x}_n,t_n)\}_{n=1}^{N}$. Assume targets are conditionally independent given their inputs and the model parameters. The joint density of the observed target vector $\mathbf{t}$ is then the product of the individual Gaussian densities:</p>
+        <p>$$ p(\mathbf{t}\mid\mathbf{X},\mathbf{w},\sigma^2) = \prod_{n=1}^{N} \mathcal{N}\!\left(t_n\mid y(\mathbf{x}_n,\mathbf{w}),\sigma^2\right). $$</p>
+        <p>As a probability density, this expression describes how density is distributed over possible datasets when $\mathbf{X}$, $\mathbf{w}$, and $\sigma^2$ are fixed. Once the dataset has been observed, we can instead regard the same expression as a <strong>likelihood function</strong>: the data are held fixed, and we ask which values of $\mathbf{w}$ make those observations most plausible under the model. We may also vary $\sigma^2$, though for now we keep it fixed.</p>
+
+        <h2>From likelihood to squared error</h2>
+        <p>The logarithm turns the product of densities into a sum. Substituting the Gaussian density gives:</p>
+        <p>$$
+        \begin{aligned}
+        \log p(\mathbf{t}\mid\mathbf{X},\mathbf{w},\sigma^2)
+        &= \sum_{n=1}^{N} \log \mathcal{N}\!\left(t_n\mid y(\mathbf{x}_n,\mathbf{w}),\sigma^2\right) \\
+        &= -\frac{1}{2\sigma^2}\sum_{n=1}^{N}\left(t_n-y(\mathbf{x}_n,\mathbf{w})\right)^2
+           -\frac{N}{2}\log\sigma^2-\frac{N}{2}\log(2\pi).
+        \end{aligned}
+        $$</p>
+        <p>To find the maximum-likelihood parameters $\mathbf{w}_{\mathrm{ML}}$, maximize this log likelihood. With $\sigma^2$ fixed, the last two terms are constants with respect to $\mathbf{w}$, so they cannot change which weights give the maximum. The remaining term is the negative of the sum of squared residuals multiplied by the positive constant $1/(2\sigma^2)$. Multiplying an objective by a positive constant does not change its minimizer, and maximizing log likelihood is equivalent to minimizing negative log likelihood. Therefore:</p>
+        <p>$$ \mathbf{w}_{\mathrm{ML}} = \arg\min_{\mathbf{w}}\;\frac{1}{2}\sum_{n=1}^{N}\left(y(\mathbf{x}_n,\mathbf{w})-t_n\right)^2. $$</p>
+        <p>The factor $1/2$ is also a positive constant, often included because it simplifies derivatives. Using the mean squared error instead of the sum only divides by the fixed number of observations $N$, so it has the same optimum.</p>
+
+        <h2>What assumptions did we make?</h2>
+        <p>This result follows from a specific observation model. It assumes:</p>
+        <ol>
+          <li>The target is continuous, so a Gaussian density is a suitable model for its values.</li>
+          <li>Errors are Gaussian around the model prediction.</li>
+          <li>Errors have mean zero, so the prediction is the conditional mean.</li>
+          <li>The variance $\sigma^2$ is the same for every input, an assumption called homoscedastic noise.</li>
+          <li>Observations are conditionally independent given their inputs and the model.</li>
+        </ol>
+        <p>Change the assumed noise distribution and the likelihood, and therefore the loss, changes too. For example, Laplace-distributed errors lead to an absolute-error objective. The squared-error result is not universal: it is the consequence of the Gaussian, constant-variance assumptions above.</p>
+
+        <h2>What does the model predict?</h2>
+        <p>The value $y(\mathbf{x},\mathbf{w})$ is the predicted conditional mean. The distribution $p(t\mid\mathbf{x},\mathbf{w},\sigma^2)$ describes possible target values around that mean under the assumed noise model. Ordinary least-squares regression often reports only the mean prediction, while its usual squared-error objective can be understood as fitting the mean by maximum likelihood under Gaussian observation noise.</p>
+
+        <div class="note important">
+          <span class="tag">key takeaway</span>
+          <p>Squared error is the negative log-likelihood, up to constants and a positive scale, for independent Gaussian observation noise with fixed variance. A different noise model can imply a different loss.</p>
+        </div>
+
+        <div class="exercise">
+          <span class="tag">check your understanding</span>
+          <ol>
+            <li>Why can the final two terms in the log likelihood be ignored when optimizing $\mathbf{w}$ with $\sigma^2$ fixed?</li>
+            <li>If the observation noise were Laplace-distributed instead, why might squared error no longer be the corresponding likelihood objective?</li>
+            <li>What does $y(\mathbf{x},\mathbf{w})$ tell you, and what additional information does the full conditional distribution provide?</li>
+          </ol>
+        </div>
+
+        <p>Further reading: Bishop and Bishop, <a href="https://link.springer.com/book/10.1007/978-3-031-45468-4">Deep Learning: Foundations and Concepts</a>, especially “Standard Distributions” and “Single-layer Networks: Regression.”</p>
+      </div>
+
+      <div class="endbar">
+        <span><a href="../">back to regression</a></span>
+        <span><a href="../linear-regression/">linear regression &rarr;</a></span>
+      </div>
+    </article>
+  </div>
+</div>
+<script>hljs.highlightAll();</script>
+</body>
+</html>
