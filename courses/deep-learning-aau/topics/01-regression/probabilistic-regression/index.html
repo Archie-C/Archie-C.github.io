@@ -505,55 +505,53 @@
         <p>As a probability density, this expression describes how density is distributed over possible datasets when $\mathbf{X}$, $\mathbf{w}$, and $\sigma^2$ are fixed. Once the dataset has been observed, we can instead regard the same expression as a <strong>likelihood function</strong>: the data are held fixed, and we ask which values of $\mathbf{w}$ make those observations most plausible under the model. We may also vary $\sigma^2$, though for now we keep it fixed.</p>
 
         <h2>From likelihood to squared error</h2>
-        <p>Write $\hat{t}_n = y(\mathbf{x}_n,\mathbf{w})$ for the prediction of the $n$th target. We now take the logarithm of the dataset density. The log of a product is the sum of the logs:</p>
+        <p>Write $\hat{t}_n = y(\mathbf{x}_n,\mathbf{w})$ for the prediction of the $n$th target, and let $p_n=\mathcal{N}(t_n\mid\hat{t}_n,\sigma^2)$ denote its density. Taking the logarithm turns the product of densities into a sum:</p>
         <p>$$
-        \begin{gathered}
-        \log p(\mathbf{t}\mid\mathbf{X},\mathbf{w},\sigma^2) \\
-        = \log \prod_{n=1}^{N} \mathcal{N}\!\left(t_n\mid\hat{t}_n,\sigma^2\right) \\
-        = \sum_{n=1}^{N} \log \mathcal{N}\!\left(t_n\mid\hat{t}_n,\sigma^2\right)
-        \end{gathered}
+        \begin{aligned}
+        \log p(\mathbf{t}\mid\mathbf{X},\mathbf{w},\sigma^2)
+        &= \log\prod_{n=1}^{N}p_n \\
+        &= \sum_{n=1}^{N}\log p_n
+        \end{aligned}
         $$</p>
         <p>For one observation, the Gaussian density is a normalising factor multiplied by an exponential that penalises its squared residual:</p>
         <p>$$
-        \begin{gathered}
-        \mathcal{N}\!\left(t_n\mid\hat{t}_n,\sigma^2\right) \\
-        = \frac{1}{\sqrt{2\pi\sigma^2}} \\
-        \qquad\cdot\exp\!\left(-\frac{(t_n-\hat{t}_n)^2}{2\sigma^2}\right).
-        \end{gathered}
+        \begin{aligned}
+        p_n &= \frac{1}{\sqrt{2\pi\sigma^2}} \\
+        &\quad\cdot\exp\!\left(-\frac{(t_n-\hat{t}_n)^2}{2\sigma^2}\right).
+        \end{aligned}
         $$</p>
-        <p>Taking its logarithm turns the multiplication into addition. The logarithm of the exponential returns its exponent, and the logarithm of the normalising factor becomes $-\frac{1}{2}\log(2\pi\sigma^2)$:</p>
+        <p>Taking its logarithm turns the multiplication into addition. Since $\log\exp(a)=a$, the exponential contributes its exponent. The normalising factor contributes $-\frac{1}{2}\log(2\pi\sigma^2)$:</p>
         <p>$$
-        \begin{gathered}
-        \log \mathcal{N}\!\left(t_n\mid\hat{t}_n,\sigma^2\right) \\
-        = \log\!\left(\frac{1}{\sqrt{2\pi\sigma^2}}\right) \\
-        \quad + \log\!\left[\exp\!\left(-\frac{(t_n-\hat{t}_n)^2}{2\sigma^2}\right)\right] \\
-        = -\frac{1}{2}\log(2\pi\sigma^2) \\
-        -\frac{(t_n-\hat{t}_n)^2}{2\sigma^2}.
-        \end{gathered}
+        \begin{aligned}
+        \log p_n &= \log\!\left(\frac{1}{\sqrt{2\pi\sigma^2}}\right) \\
+        &\quad + \log\!\left[\exp\!\left(-\frac{(t_n-\hat{t}_n)^2}{2\sigma^2}\right)\right] \\
+        &= -\frac{1}{2}\log(2\pi\sigma^2)
+           -\frac{(t_n-\hat{t}_n)^2}{2\sigma^2}.
+        \end{aligned}
         $$</p>
-        <p>Substitute the single-observation log density into the sum over all $N$ observations. Separating the normalising term from the residual term gives:</p>
+        <p>Substitute this single-observation log density into the sum. Distributing the sum over its two terms gives:</p>
         <p>$$
-        \begin{gathered}
-        \log p(\mathbf{t}\mid\mathbf{X},\mathbf{w},\sigma^2) \\
-        = -\sum_{n=1}^{N}\frac{1}{2}\log(2\pi\sigma^2) \\
-        -\frac{1}{2\sigma^2}\sum_{n=1}^{N}(t_n-\hat{t}_n)^2
-        \end{gathered}
+        \begin{aligned}
+        \log p(\mathbf{t}\mid\mathbf{X},\mathbf{w},\sigma^2)
+        &= -\sum_{n=1}^{N}\frac{1}{2}\log(2\pi\sigma^2) \\
+        &\quad -\frac{1}{2\sigma^2}\sum_{n=1}^{N}(t_n-\hat{t}_n)^2
+        \end{aligned}
         $$</p>
-        <p>The normalising term is identical for every observation, so its sum is $-\frac{N}{2}\log(2\pi\sigma^2)$. The residual terms share the factor $1/(2\sigma^2)$, which is why it sits outside their sum:</p>
+        <p>The normalising term is identical for every observation, so its sum is $-\frac{N}{2}\log(2\pi\sigma^2)$. The residual terms share the factor $1/(2\sigma^2)$, which can be taken outside their sum:</p>
         <p>$$
-        \begin{gathered}
-        \log p(\mathbf{t}\mid\mathbf{X},\mathbf{w},\sigma^2) \\
-        = -\frac{N}{2}\log(2\pi\sigma^2) \\
-        -\frac{1}{2\sigma^2}\sum_{n=1}^{N}(t_n-\hat{t}_n)^2
-        \end{gathered}
+        \begin{aligned}
+        \log p(\mathbf{t}\mid\mathbf{X},\mathbf{w},\sigma^2)
+        &= -\frac{N}{2}\log(2\pi\sigma^2) \\
+        &\quad -\frac{1}{2\sigma^2}\sum_{n=1}^{N}(t_n-\hat{t}_n)^2
+        \end{aligned}
         $$</p>
-        <p>Finally, split $\log(2\pi\sigma^2)$ using $\log(ab)=\log a+\log b$:</p>
+        <p>Finally, use $\log(ab)=\log a+\log b$ to split $\log(2\pi\sigma^2)$ into $\log(2\pi)+\log\sigma^2$:</p>
         <p>$$
-        \begin{gathered}
-        \log p(\mathbf{t}\mid\mathbf{X},\mathbf{w},\sigma^2) \\
-        = -\frac{1}{2\sigma^2}\sum_{n=1}^{N}(t_n-\hat{t}_n)^2 \\
-        -\frac{N}{2}\log\sigma^2-\frac{N}{2}\log(2\pi).
-        \end{gathered}
+        \begin{aligned}
+        \log p(\mathbf{t}\mid\mathbf{X},\mathbf{w},\sigma^2)
+        &= -\frac{1}{2\sigma^2}\sum_{n=1}^{N}(t_n-\hat{t}_n)^2 \\
+        &\quad -\frac{N}{2}\log\sigma^2-\frac{N}{2}\log(2\pi).
+        \end{aligned}
         $$</p>
         <p>To find the maximum-likelihood parameters $\mathbf{w}_{\mathrm{ML}}$, maximize this log likelihood. With $\sigma^2$ fixed, the last two terms are constants with respect to $\mathbf{w}$, so they cannot change which weights give the maximum. The remaining term is the negative of the sum of squared residuals multiplied by the positive constant $1/(2\sigma^2)$. Multiplying an objective by a positive constant does not change its minimizer, and maximizing log likelihood is equivalent to minimizing negative log likelihood. Therefore:</p>
         <p>$$ \mathbf{w}_{\mathrm{ML}} = \arg\min_{\mathbf{w}}\;\frac{1}{2}\sum_{n=1}^{N}\left(y(\mathbf{x}_n,\mathbf{w})-t_n\right)^2. $$</p>
