@@ -1,5 +1,7 @@
 import numpy as np
 
+# DO NOT CHANGE THE NAME OF THE CLASS IF YOU WANT TO SUBMIT 
+# TO THE BENCHMARK ONLINE.
 class Regression:
     def __init__(self):
         self.theta = None # The parameters (weights) of the model
