@@ -2,7 +2,7 @@ import numpy as np
 
 class Regression:
     def __init__(self):
-        self.theta = None
+        self.theta = None # The parameters (weights) of the model
     
     def fit(self, X, y):
         """
