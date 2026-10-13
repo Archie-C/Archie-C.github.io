@@ -548,17 +548,17 @@
 
         <h2>Adding noise to the prediction</h2>
         <p>Think back to the <a href="../linear-regression/">height and age example</a>. Students of the same age do not all have the same height. A regression line gives a useful prediction, but it cannot describe that variation on its own.</p>
-        <p>Write the prediction for an input $\mathbf{x}$ as $y(\mathbf{x},\mathbf{w})$, where $\mathbf{w}$ contains the model parameters. For a single continuous target $t$, suppose the observation is this prediction plus some noise:</p>
+        <p>We can write the prediction for an input $\mathbf{x}$ as $y(\mathbf{x},\mathbf{w})$, where $\mathbf{w}$ contains the model parameters. For a single continuous target $t$, suppose the observation is this prediction plus some noise:</p>
         <p>$$ t = y(\mathbf{x},\mathbf{w}) + \epsilon,
         \qquad \epsilon \sim \mathcal{N}(0,\sigma^2). $$</p>
         <p>The noise has mean zero and variance $\sigma^2$. Adding it to the prediction gives a Gaussian distribution centred on that prediction:</p>
         <p>$$ p(t\mid\mathbf{x},\mathbf{w},\sigma^2)
         = \mathcal{N}\!\left(t\mid y(\mathbf{x},\mathbf{w}),\sigma^2\right). $$</p>
-        <p>So $y(\mathbf{x},\mathbf{w})$ is the <strong>conditional mean</strong>: the average target value at this input under the model. The standard deviation $\sigma$ describes how widely observations vary around it. This works for a linear regression function, a polynomial, or a neural network.</p>
+        <p>So $y(\mathbf{x},\mathbf{w})$ is the <strong>conditional mean</strong>: which is the average value the model predicts for this input. The standard deviation $\sigma$ describes how widely observations vary around it. This works for a linear regression function, a polynomial, or a neural network.</p>
 
         <figure class="chart-card">
           <div class="eyebrow">the observation model</div>
-          <h3>Same prediction, different noise</h3>
+          <h3>Same prediction, varying noise</h3>
           <div class="chart-legend">
             <span class="item"><span class="swatch" style="background:var(--c-cat-1)"></span>Gaussian density</span>
             <span class="item"><span class="swatch swatch--dash"></span>mean = 2</span>
@@ -580,22 +580,22 @@
         <p>Now suppose there are $N$ observed input–target pairs, $\mathcal{D}=\{(\mathbf{x}_n,t_n)\}_{n=1}^{N}$. Assume the targets are conditionally independent given their inputs and the model parameters. The joint density is then the product of their individual densities:</p>
         <p>$$ p(\mathbf{t}\mid\mathbf{X},\mathbf{w},\sigma^2)
         = \prod_{n=1}^{N}\mathcal{N}\!\left(t_n\mid y(\mathbf{x}_n,\mathbf{w}),\sigma^2\right). $$</p>
-        <p>Once the data are observed, hold them fixed and treat this expression as a function of $\mathbf{w}$. This is the <strong>likelihood</strong>. Maximum likelihood chooses the weights that give the observed targets the largest joint density. For now, keep $\sigma^2$ fixed too.</p>
+        <p>Once the data are observed, hold them fixed and treat this expression as a function of $\mathbf{w}$. This is the <strong>likelihood</strong> of the targets given the data and the model parameters. Maximum likelihood chooses the weights that maximise this likelihood. For now, we will keep $\sigma^2$ fixed too.</p>
         <div class="note">
           <span class="tag">density and likelihood</span>
-          <p>The same expression has two uses. With the parameters fixed, it describes the density of possible targets. With the data fixed, it compares parameter choices. A likelihood is not a probability distribution over the weights.</p>
+          <p>The same expression has two uses. With the parameters fixed, it describes the density of possible targets for different inputs. With the data fixed, it compares parameter choices. A likelihood is not a probability distribution over the weights.</p>
         </div>
 
         <h2>From likelihood to squared error</h2>
-        <p>Write $\hat{t}_n=y(\mathbf{x}_n,\mathbf{w})$ for the prediction of target $t_n$. The Gaussian density for one observation is:</p>
+        <p>If we write $\hat{t}_n=y(\mathbf{x}_n,\mathbf{w})$ as the prediction of target $t_n$. The Gaussian density for one observation is:</p>
         <p>$$ p(t_n\mid\mathbf{x}_n,\mathbf{w},\sigma^2)
         = \frac{1}{\sqrt{2\pi\sigma^2}}
         \exp\!\left(-\frac{(t_n-\hat{t}_n)^2}{2\sigma^2}\right). $$</p>
-        <p>The squared residual is already there, inside the exponent. Taking the logarithm brings it out:</p>
+        <p>If we take the logarithm of this expression, we get:</p>
         <p>$$ \log p(t_n\mid\mathbf{x}_n,\mathbf{w},\sigma^2)
         = -\frac{1}{2}\log(2\pi\sigma^2)
         -\frac{(t_n-\hat{t}_n)^2}{2\sigma^2}. $$</p>
-        <p>Taking the logarithm preserves the maximum and turns the product for the whole dataset into a sum. Negating it gives the <strong>negative log likelihood</strong>, an objective to minimise:</p>
+        <p>A nice property of the logarithm is that it turns the product for the whole dataset into a sum. Also, negating it gives the <strong>negative log likelihood</strong>, which we can use as an objective function to minimise:</p>
         <p>$$
         \begin{aligned}
         -\log p(\mathbf{t}\mid\mathbf{X},\mathbf{w},\sigma^2)
@@ -604,10 +604,10 @@
         &\quad + \frac{N}{2}\log(2\pi\sigma^2).
         \end{aligned}
         $$</p>
-        <p>With $\sigma^2$ fixed, the last term is constant with respect to the weights. The factor $1/(2\sigma^2)$ is positive, so it changes the scale of the objective without changing its minimum. This leaves the same squared-error problem as before:</p>
+        <p>With $\sigma^2$ fixed, the last term is constant with respect to the weights. The factor $1/(2\sigma^2)$ is positive, so it changes the scale of the objective without changing its minimum. We can remove the constant term and the factor $1/(2\sigma^2)$, and still get the same optimum. So, this leaves the same squared-error problem as before:</p>
         <p>$$ \mathbf{w}_{\mathrm{ML}} = \arg\min_{\mathbf{w}}\;
-        \frac{1}{2}\sum_{n=1}^{N}\left(y(\mathbf{x}_n,\mathbf{w})-t_n\right)^2. $$</p>
-        <p>The factor $1/2$ is convenient when taking derivatives. Dividing the sum by $N$ to use mean squared error also gives the same optimum.</p>
+        \frac{1}{2}\sum_{n=1}^{N}\left(\hat{t}_n-t_n\right)^2. $$</p>
+        <p>We leave the factor $1/2$ in the objective function for convenience when taking derivatives. Dividing the sum by $N$ to use mean squared error also gives the same optimum.</p>
 
         <h2>A small example</h2>
         <p>Suppose the observed targets are $1$, $2$, and $3$, and the model predicts the same value $\mu$ for all three. Keep $\sigma=1$. Moving $\mu$ changes both the likelihood and the squared error:</p>
