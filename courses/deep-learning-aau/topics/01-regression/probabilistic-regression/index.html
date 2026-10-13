@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <title>Regression as Probabilistic Modelling | Deep Learning</title>
-  <meta name="description" content="An optional note deriving squared error from a Gaussian observation model and maximum likelihood."/>
+  <meta name="description" content="An extra note deriving squared error from a Gaussian observation model and maximum likelihood."/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <link rel="icon" href="../../../../../design_system/assets/favicon.svg"/>
 <link rel="stylesheet" href="../../../../../design_system/colors_and_type.css"/>
@@ -477,8 +477,8 @@
         <a href="../multiple-output-dimensions/">1.3 &middot; multiple output dimensions</a>
         <a href="../non-linear-regression/">1.4 &middot; non-linear regression</a>
         <a href="../regularisation/">1.5 &middot; regularisation</a>
-        <a href="../exercises/">1.6 &middot; exercises</a>
-        <a class="current" href="./" aria-current="page">optional &middot; probabilistic regression</a>
+        <a class="current" href="./" aria-current="page">1.6 &middot; extra &middot; probabilistic regression</a>
+        <a href="../exercises/">1.7 &middot; exercises</a>
       </div>
     </aside>
 
@@ -486,21 +486,22 @@
       <div class="crumb">
         <a href="../../../">syllabus</a><span class="sep">&rsaquo;</span>
         <a href="../">topic 01</a><span class="sep">&rsaquo;</span>
-        optional note
+        extra note
       </div>
       <h1>Regression as Probabilistic Modelling.</h1>
-      <p class="standfirst">Squared error can be understood as a likelihood objective: it follows from a model that treats each target as a noisy observation around the regression prediction.</p>
+      <p class="standfirst">Squared error can be understood as a likelihood objective.</p>
 
       <div class="body">
         <h2>From a prediction to a distribution</h2>
-        <p>A regression function gives a point prediction for an input. For an input vector $\mathbf{x}$ and parameters $\mathbf{w}$, write this prediction as $y(\mathbf{x},\mathbf{w})$. An observed target $t$ will rarely equal it exactly, so model the difference as observation noise:</p>
+        <p>A regression function gives a point prediction for an input. For an input vector $\mathbf{x}$ and parameters $\mathbf{w}$, we write this prediction as $y(\mathbf{x},\mathbf{w})$. 
+          As an observed target $t$ will rarely equal it exactly, we model the difference as observation noise:</p>
         <p>$$ t = y(\mathbf{x},\mathbf{w}) + \epsilon, \qquad \epsilon \sim \mathcal{N}(0,\sigma^2). $$</p>
-        <p>Adding Gaussian noise to a fixed prediction means that the target has a Gaussian conditional distribution:</p>
+        <p>Where the noise is normally distributed. By adding Gaussian noise to a fixed prediction, we obtain a model where the target also has a Gaussian conditional distribution:</p>
         <p>$$ p(t\mid\mathbf{x},\mathbf{w},\sigma^2) = \mathcal{N}\!\left(t\mid y(\mathbf{x},\mathbf{w}),\sigma^2\right). $$</p>
-        <p>Here $y(\mathbf{x},\mathbf{w})$ is the conditional mean: the average target predicted for inputs like $\mathbf{x}$ under this model. The variance $\sigma^2$ describes the assumed spread of observations around that mean. The model therefore predicts a distribution of possible target values, even when we report only its mean.</p>
+        <p>Here $y(\mathbf{x},\mathbf{w})$ is the conditional mean. Which is essentially just the average predicted target value for inputs like $\mathbf{x}$ with this model. The variance $\sigma^2$ describes the assumed spread of observations around that mean. The model therefore predicts a distribution of possible target values, even when we report only its mean.</p>
 
         <h2>The likelihood of a dataset</h2>
-        <p>Now consider $N$ observed input-target pairs, $\mathcal{D}=\{(\mathbf{x}_n,t_n)\}_{n=1}^{N}$. Assume targets are conditionally independent given their inputs and the model parameters. The joint density of the observed target vector $\mathbf{t}$ is then the product of the individual Gaussian densities:</p>
+        <p>Now consider $N$ observed input-target pairs, $\mathcal{D}=\{(\mathbf{x}_n,t_n)\}_{n=1}^{N}$ and assume targets are conditionally independent given their inputs and the model parameters. We can then write the joint density of the observed target vector $\mathbf{t}$ as the product of the individual Gaussian densities:</p>
         <p>$$ p(\mathbf{t}\mid\mathbf{X},\mathbf{w},\sigma^2) = \prod_{n=1}^{N} \mathcal{N}\!\left(t_n\mid y(\mathbf{x}_n,\mathbf{w}),\sigma^2\right). $$</p>
         <p>As a probability density, this expression describes how density is distributed over possible datasets when $\mathbf{X}$, $\mathbf{w}$, and $\sigma^2$ are fixed. Once the dataset has been observed, we can instead regard the same expression as a <strong>likelihood function</strong>: the data are held fixed, and we ask which values of $\mathbf{w}$ make those observations most plausible under the model. We may also vary $\sigma^2$, though for now we keep it fixed.</p>
 
@@ -590,7 +591,7 @@
 
       <div class="endbar">
         <span><a href="../">back to regression</a></span>
-        <span><a href="../linear-regression/">linear regression &rarr;</a></span>
+        <span><a href="../exercises/">1.7 &middot; exercises &rarr;</a></span>
       </div>
     </article>
   </div>
