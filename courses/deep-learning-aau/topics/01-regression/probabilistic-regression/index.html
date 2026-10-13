@@ -2,8 +2,8 @@
 <html lang="en" data-palette="paper">
 <head>
 <meta charset="utf-8"/>
-<title>Regression as Probabilistic Modelling | Deep Learning</title>
-  <meta name="description" content="An extra note deriving squared error from a Gaussian observation model and maximum likelihood."/>
+<title>Regression as probabilistic modelling | Deep Learning</title>
+<meta name="description" content="Why Gaussian observation noise leads to squared error, with interactive examples of predictive densities and maximum likelihood."/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <link rel="icon" href="../../../../../design_system/assets/favicon.svg"/>
 <link rel="stylesheet" href="../../../../../design_system/colors_and_type.css"/>
@@ -145,7 +145,9 @@
 
   .lecture aside .nav-list a.done { color: var(--fg-4); }
 
-  .lecture article { max-width: 62ch; }
+  .lecture article { max-width: 62ch; min-width: 0; }
+
+  .body .katex-display { overflow-x: auto; overflow-y: hidden; padding: 4px 0; }
 
   .lecture article p,
   .lecture article ul,
@@ -244,6 +246,49 @@
     width: 100%;
     height: 100%;
   }
+
+  .chart-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 16px;
+    margin: 14px 0 10px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--fg-2);
+  }
+
+  .chart-controls input[type="range"] {
+    flex: 1 1 140px;
+    min-width: 0;
+    accent-color: var(--accent);
+  }
+
+  .chart-controls[hidden] { display: none; }
+
+  .chart-controls input:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 4px;
+  }
+
+  .chart-readout {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--fg-2);
+  }
+
+  .chart-pair {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    margin: 1.4em 0;
+  }
+
+  .chart-pair .chart-card { margin: 0; min-width: 0; padding: 14px; }
+  .chart-pair .chart-frame { height: 230px; }
+  .chart-legend .swatch--dash { background: none; border-top: 1px dashed var(--fg-3); height: 0; }
 
   .body ul,
   .body ol {
@@ -427,6 +472,7 @@
   @media (max-width: 640px) {
     .topbar { padding: 18px 20px; }
     .lecture article h1 { font-size: 27px; }
+    .chart-pair { grid-template-columns: 1fr; }
     .endbar { flex-direction: column; }
   }
 
@@ -488,105 +534,133 @@
         <a href="../">topic 01</a><span class="sep">&rsaquo;</span>
         extra note
       </div>
-      <h1>Regression as Probabilistic Modelling.</h1>
-      <p class="standfirst">Squared error can be understood as a likelihood objective.</p>
+      <h1>Regression as probabilistic modelling.</h1>
+      <p class="standfirst">Why does squared error make sense as a loss function?</p>
 
       <div class="body">
-        <h2>From a prediction to a distribution</h2>
-        <p>A regression function gives a point prediction for an input. For an input vector $\mathbf{x}$ and parameters $\mathbf{w}$, we write this prediction as $y(\mathbf{x},\mathbf{w})$. 
-          As an observed target $t$ will rarely equal it exactly, we model the difference as observation noise:</p>
-        <p>$$ t = y(\mathbf{x},\mathbf{w}) + \epsilon, \qquad \epsilon \sim \mathcal{N}(0,\sigma^2). $$</p>
-        <p>Where the noise is normally distributed. By adding Gaussian noise to a fixed prediction, we obtain a model where the target also has a Gaussian conditional distribution:</p>
-        <p>$$ p(t\mid\mathbf{x},\mathbf{w},\sigma^2) = \mathcal{N}\!\left(t\mid y(\mathbf{x},\mathbf{w}),\sigma^2\right). $$</p>
-        <p>Here $y(\mathbf{x},\mathbf{w})$ is the conditional mean. Which is essentially just the average predicted target value for inputs like $\mathbf{x}$ with this model. The variance $\sigma^2$ describes the assumed spread of observations around that mean. The model therefore predicts a distribution of possible target values, even when we report only its mean.</p>
+        <h2>What this note covers</h2>
+        <ul>
+          <li>Adding observation noise to a regression model</li>
+          <li>Fitting the model with maximum likelihood</li>
+          <li>How Gaussian noise leads to squared error</li>
+        </ul>
+        <p>In the earlier notes, squared error measured how far a prediction was from its target. This extra note gives it a probabilistic interpretation: fitting a regression function can also mean fitting a distribution of possible target values.</p>
 
-        <h2>The likelihood of a dataset</h2>
-        <p>Now consider $N$ observed input-target pairs, $\mathcal{D}=\{(\mathbf{x}_n,t_n)\}_{n=1}^{N}$ and assume targets are conditionally independent given their inputs and the model parameters. We can then write the joint density of the observed target vector $\mathbf{t}$ as the product of the individual Gaussian densities:</p>
-        <p>$$ p(\mathbf{t}\mid\mathbf{X},\mathbf{w},\sigma^2) = \prod_{n=1}^{N} \mathcal{N}\!\left(t_n\mid y(\mathbf{x}_n,\mathbf{w}),\sigma^2\right). $$</p>
-        <p>As a probability density, this expression describes how density is distributed over possible datasets when $\mathbf{X}$, $\mathbf{w}$, and $\sigma^2$ are fixed. Once the dataset has been observed, we can instead regard the same expression as a <strong>likelihood function</strong>: the data are held fixed, and we ask which values of $\mathbf{w}$ make those observations most plausible under the model. We may also vary $\sigma^2$, though for now we keep it fixed.</p>
+        <h2>Adding noise to the prediction</h2>
+        <p>Think back to the <a href="../linear-regression/">height and age example</a>. Students of the same age do not all have the same height. A regression line gives a useful prediction, but it cannot describe that variation on its own.</p>
+        <p>Write the prediction for an input $\mathbf{x}$ as $y(\mathbf{x},\mathbf{w})$, where $\mathbf{w}$ contains the model parameters. For a single continuous target $t$, suppose the observation is this prediction plus some noise:</p>
+        <p>$$ t = y(\mathbf{x},\mathbf{w}) + \epsilon,
+        \qquad \epsilon \sim \mathcal{N}(0,\sigma^2). $$</p>
+        <p>The noise has mean zero and variance $\sigma^2$. Adding it to the prediction gives a Gaussian distribution centred on that prediction:</p>
+        <p>$$ p(t\mid\mathbf{x},\mathbf{w},\sigma^2)
+        = \mathcal{N}\!\left(t\mid y(\mathbf{x},\mathbf{w}),\sigma^2\right). $$</p>
+        <p>So $y(\mathbf{x},\mathbf{w})$ is the <strong>conditional mean</strong>: the average target value at this input under the model. The standard deviation $\sigma$ describes how widely observations vary around it. This works for a linear regression function, a polynomial, or a neural network.</p>
+
+        <figure class="chart-card">
+          <div class="eyebrow">the observation model</div>
+          <h3>Same prediction, different noise</h3>
+          <div class="chart-legend">
+            <span class="item"><span class="swatch" style="background:var(--c-cat-1)"></span>Gaussian density</span>
+            <span class="item"><span class="swatch swatch--dash"></span>mean = 2</span>
+            <span class="item"><span class="swatch swatch--dot" style="background:var(--c-cat-2)"></span>density at t = 3.5</span>
+          </div>
+          <div class="chart-frame">
+            <canvas id="gaussianPredictionChart" role="img" aria-label="Gaussian target density centred at 2. Increasing the noise standard deviation makes the curve wider and lower." aria-describedby="gaussianCaption gaussianReadout">A Gaussian density has its peak at the predicted mean. More noise spreads the density over a wider range of targets.</canvas>
+          </div>
+          <div class="chart-controls" id="noiseControls" hidden>
+            <label for="noiseSigma">Noise standard deviation σ</label>
+            <input id="noiseSigma" type="range" min="0.5" max="2" step="0.1" value="1" aria-describedby="gaussianCaption"/>
+            <output id="noiseSigmaValue" for="noiseSigma">1.0</output>
+          </div>
+          <output class="chart-readout" id="gaussianReadout" for="noiseSigma">Variance σ² = 1.00 · density at t = 3.5: 0.130</output>
+          <figcaption class="chart-caption" id="gaussianCaption"><span class="label">fig 1</span> An illustrative prediction with mean 2. Adjust σ to change the spread while keeping the mean fixed. The vertical axis is a density; probabilities come from areas under the curve.</figcaption>
+        </figure>
+
+        <h2>The likelihood of the data</h2>
+        <p>Now suppose there are $N$ observed input–target pairs, $\mathcal{D}=\{(\mathbf{x}_n,t_n)\}_{n=1}^{N}$. Assume the targets are conditionally independent given their inputs and the model parameters. The joint density is then the product of their individual densities:</p>
+        <p>$$ p(\mathbf{t}\mid\mathbf{X},\mathbf{w},\sigma^2)
+        = \prod_{n=1}^{N}\mathcal{N}\!\left(t_n\mid y(\mathbf{x}_n,\mathbf{w}),\sigma^2\right). $$</p>
+        <p>Once the data are observed, hold them fixed and treat this expression as a function of $\mathbf{w}$. This is the <strong>likelihood</strong>. Maximum likelihood chooses the weights that give the observed targets the largest joint density. For now, keep $\sigma^2$ fixed too.</p>
+        <div class="note">
+          <span class="tag">density and likelihood</span>
+          <p>The same expression has two uses. With the parameters fixed, it describes the density of possible targets. With the data fixed, it compares parameter choices. A likelihood is not a probability distribution over the weights.</p>
+        </div>
 
         <h2>From likelihood to squared error</h2>
-        <p>Write $\hat{t}_n = y(\mathbf{x}_n,\mathbf{w})$ for the prediction of the $n$th target, and let $p_n=\mathcal{N}(t_n\mid\hat{t}_n,\sigma^2)$ denote its density. Taking the logarithm turns the product of densities into a sum:</p>
+        <p>Write $\hat{t}_n=y(\mathbf{x}_n,\mathbf{w})$ for the prediction of target $t_n$. The Gaussian density for one observation is:</p>
+        <p>$$ p(t_n\mid\mathbf{x}_n,\mathbf{w},\sigma^2)
+        = \frac{1}{\sqrt{2\pi\sigma^2}}
+        \exp\!\left(-\frac{(t_n-\hat{t}_n)^2}{2\sigma^2}\right). $$</p>
+        <p>The squared residual is already there, inside the exponent. Taking the logarithm brings it out:</p>
+        <p>$$ \log p(t_n\mid\mathbf{x}_n,\mathbf{w},\sigma^2)
+        = -\frac{1}{2}\log(2\pi\sigma^2)
+        -\frac{(t_n-\hat{t}_n)^2}{2\sigma^2}. $$</p>
+        <p>Taking the logarithm preserves the maximum and turns the product for the whole dataset into a sum. Negating it gives the <strong>negative log likelihood</strong>, an objective to minimise:</p>
         <p>$$
         \begin{aligned}
-        \log p(\mathbf{t}\mid\mathbf{X},\mathbf{w},\sigma^2)
-        &= \log\prod_{n=1}^{N}p_n \\
-        &= \sum_{n=1}^{N}\log p_n
+        -\log p(\mathbf{t}\mid\mathbf{X},\mathbf{w},\sigma^2)
+        &= -\sum_{n=1}^{N}\log p(t_n\mid\mathbf{x}_n,\mathbf{w},\sigma^2) \\
+        &= \frac{1}{2\sigma^2}\sum_{n=1}^{N}(t_n-\hat{t}_n)^2 \\
+        &\quad + \frac{N}{2}\log(2\pi\sigma^2).
         \end{aligned}
         $$</p>
-        <p>For one observation, the Gaussian density is a normalising factor multiplied by an exponential that penalises its squared residual:</p>
-        <p>$$
-        \begin{aligned}
-        p_n &= \frac{1}{\sqrt{2\pi\sigma^2}} \\
-        &\quad\cdot\exp\!\left(-\frac{(t_n-\hat{t}_n)^2}{2\sigma^2}\right).
-        \end{aligned}
-        $$</p>
-        <p>Taking its logarithm turns the multiplication into addition. Since $\log\exp(a)=a$, the exponential contributes its exponent. The normalising factor contributes $-\frac{1}{2}\log(2\pi\sigma^2)$:</p>
-        <p>$$
-        \begin{aligned}
-        \log p_n &= \log\!\left(\frac{1}{\sqrt{2\pi\sigma^2}}\right) \\
-        &\quad + \log\!\left[\exp\!\left(-\frac{(t_n-\hat{t}_n)^2}{2\sigma^2}\right)\right] \\
-        &= -\frac{1}{2}\log(2\pi\sigma^2)
-           -\frac{(t_n-\hat{t}_n)^2}{2\sigma^2}.
-        \end{aligned}
-        $$</p>
-        <p>Substitute this single-observation log density into the sum. Distributing the sum over its two terms gives:</p>
-        <p>$$
-        \begin{aligned}
-        \log p(\mathbf{t}\mid\mathbf{X},\mathbf{w},\sigma^2)
-        &= -\sum_{n=1}^{N}\frac{1}{2}\log(2\pi\sigma^2) \\
-        &\quad -\frac{1}{2\sigma^2}\sum_{n=1}^{N}(t_n-\hat{t}_n)^2
-        \end{aligned}
-        $$</p>
-        <p>The normalising term is identical for every observation, so its sum is $-\frac{N}{2}\log(2\pi\sigma^2)$. The residual terms share the factor $1/(2\sigma^2)$, which can be taken outside their sum:</p>
-        <p>$$
-        \begin{aligned}
-        \log p(\mathbf{t}\mid\mathbf{X},\mathbf{w},\sigma^2)
-        &= -\frac{N}{2}\log(2\pi\sigma^2) \\
-        &\quad -\frac{1}{2\sigma^2}\sum_{n=1}^{N}(t_n-\hat{t}_n)^2
-        \end{aligned}
-        $$</p>
-        <p>Finally, use $\log(ab)=\log a+\log b$ to split $\log(2\pi\sigma^2)$ into $\log(2\pi)+\log\sigma^2$:</p>
-        <p>$$
-        \begin{aligned}
-        \log p(\mathbf{t}\mid\mathbf{X},\mathbf{w},\sigma^2)
-        &= -\frac{1}{2\sigma^2}\sum_{n=1}^{N}(t_n-\hat{t}_n)^2 \\
-        &\quad -\frac{N}{2}\log\sigma^2-\frac{N}{2}\log(2\pi).
-        \end{aligned}
-        $$</p>
-        <p>To find the maximum-likelihood parameters $\mathbf{w}_{\mathrm{ML}}$, maximize this log likelihood. With $\sigma^2$ fixed, the last two terms are constants with respect to $\mathbf{w}$, so they cannot change which weights give the maximum. The remaining term is the negative of the sum of squared residuals multiplied by the positive constant $1/(2\sigma^2)$. Multiplying an objective by a positive constant does not change its minimizer, and maximizing log likelihood is equivalent to minimizing negative log likelihood. Therefore:</p>
-        <p>$$ \mathbf{w}_{\mathrm{ML}} = \arg\min_{\mathbf{w}}\;\frac{1}{2}\sum_{n=1}^{N}\left(y(\mathbf{x}_n,\mathbf{w})-t_n\right)^2. $$</p>
-        <p>The factor $1/2$ is also a positive constant, often included because it simplifies derivatives. Using the mean squared error instead of the sum only divides by the fixed number of observations $N$, so it has the same optimum.</p>
+        <p>With $\sigma^2$ fixed, the last term is constant with respect to the weights. The factor $1/(2\sigma^2)$ is positive, so it changes the scale of the objective without changing its minimum. This leaves the same squared-error problem as before:</p>
+        <p>$$ \mathbf{w}_{\mathrm{ML}} = \arg\min_{\mathbf{w}}\;
+        \frac{1}{2}\sum_{n=1}^{N}\left(y(\mathbf{x}_n,\mathbf{w})-t_n\right)^2. $$</p>
+        <p>The factor $1/2$ is convenient when taking derivatives. Dividing the sum by $N$ to use mean squared error also gives the same optimum.</p>
 
-        <h2>What assumptions did we make?</h2>
-        <p>This result follows from a specific observation model. It assumes:</p>
+        <h2>A small example</h2>
+        <p>Suppose the observed targets are $1$, $2$, and $3$, and the model predicts the same value $\mu$ for all three. Keep $\sigma=1$. Moving $\mu$ changes both the likelihood and the squared error:</p>
+        <div class="chart-pair">
+          <figure class="chart-card">
+            <div class="eyebrow">maximise</div>
+            <h3>Likelihood</h3>
+            <div class="chart-frame">
+              <canvas id="regressionLikelihoodChart" role="img" aria-label="For targets 1, 2, and 3 with sigma 1, the likelihood reaches its maximum at the constant prediction mu = 2." aria-describedby="objectiveCaption">The likelihood peaks at μ = 2, the mean of the three targets.</canvas>
+            </div>
+          </figure>
+          <figure class="chart-card">
+            <div class="eyebrow">minimise</div>
+            <h3>Squared error</h3>
+            <div class="chart-frame">
+              <canvas id="regressionErrorChart" role="img" aria-label="For targets 1, 2, and 3, half the sum of squared residuals reaches its minimum of 1 at the constant prediction mu = 2." aria-describedby="objectiveCaption">Half the sum of squared residuals is minimised at μ = 2, where its value is 1.</canvas>
+            </div>
+          </figure>
+        </div>
+        <p class="chart-caption" id="objectiveCaption"><span class="label">fig 2–3</span> The likelihood peaks and squared error reaches its minimum at $\mu=2$, the mean of the targets. Each dot marks this same fit. The curves use different vertical scales.</p>
+        <p>For this example, the negative log likelihood is $\frac{1}{2}\sum_n(t_n-\mu)^2+\frac{3}{2}\log(2\pi)$. It is the squared-error curve shifted upwards by a constant, so its minimum stays at $\mu=2$.</p>
+
+        <h2>The assumptions behind the loss</h2>
+        <p>The derivation depends on the observation model:</p>
         <ol>
-          <li>The target is continuous, so a Gaussian density is a suitable model for its values.</li>
-          <li>Errors are Gaussian around the model prediction.</li>
-          <li>Errors have mean zero, so the prediction is the conditional mean.</li>
-          <li>The variance $\sigma^2$ is the same for every input, an assumption called homoscedastic noise.</li>
-          <li>Observations are conditionally independent given their inputs and the model.</li>
+          <li><span><strong>Gaussian noise.</strong> Each target has a Gaussian distribution around the prediction, making the prediction its conditional mean.</span></li>
+          <li><span><strong>Constant variance.</strong> The same $\sigma^2$ applies at every input. This is called homoscedastic noise.</span></li>
+          <li><span><strong>Conditional independence.</strong> Given the inputs and parameters, the target densities multiply.</span></li>
         </ol>
-        <p>Change the assumed noise distribution and the likelihood, and therefore the loss, changes too. For example, Laplace-distributed errors lead to an absolute-error objective. The squared-error result is not universal: it is the consequence of the Gaussian, constant-variance assumptions above.</p>
+        <p>A continuous target lets you use a density, but it does not guarantee Gaussian noise is a good assumption. If the spread changes with the input, a single fixed variance will miss that pattern.</p>
+        <p>A different noise model can also give a different loss. For example, Laplace noise with fixed scale leads to absolute error rather than squared error.</p>
+        <div class="note">
+          <span class="tag">what if the variance is learned?</span>
+          <p>If $\sigma^2$ is also a parameter to fit, the normalising term depends on it and must stay in the objective. With a separate variance at each input, the residuals receive different weights too.</p>
+        </div>
 
-        <h2>What does the model predict?</h2>
-        <p>The value $y(\mathbf{x},\mathbf{w})$ is the predicted conditional mean. The distribution $p(t\mid\mathbf{x},\mathbf{w},\sigma^2)$ describes possible target values around that mean under the assumed noise model. Ordinary least-squares regression often reports only the mean prediction, while its usual squared-error objective can be understood as fitting the mean by maximum likelihood under Gaussian observation noise.</p>
-
+        <h2>What does a prediction tell you?</h2>
+        <p>A point prediction reports the conditional mean. The Gaussian observation model also describes the spread of possible targets around it. With fitted weights and a known noise standard deviation, about 95% of that distribution lies within $y(\mathbf{x},\mathbf{w})\pm1.96\sigma$.</p>
+        <p>This spread describes observation noise with the weights held fixed. It does not account for uncertainty about the fitted weights themselves.</p>
         <div class="note important">
           <span class="tag">key takeaway</span>
-          <p>Squared error is the negative log-likelihood, up to constants and a positive scale, for independent Gaussian observation noise with fixed variance. A different noise model can imply a different loss.</p>
+          <p>Minimising squared error is equivalent to maximum likelihood under independent Gaussian observation noise with fixed variance. The regression function predicts the mean; the noise model describes the variation around it.</p>
         </div>
 
         <div class="exercise">
           <span class="tag">check your understanding</span>
           <ol>
-            <li>Why can the final two terms in the log likelihood be ignored when optimizing $\mathbf{w}$ with $\sigma^2$ fixed?</li>
-            <li>If the observation noise were Laplace-distributed instead, why might squared error no longer be the corresponding likelihood objective?</li>
-            <li>What does $y(\mathbf{x},\mathbf{w})$ tell you, and what additional information does the full conditional distribution provide?</li>
+            <li><span>In fig 1, what changes when you increase $\sigma$, and what stays fixed?</span></li>
+            <li><span>Why can you drop the normalising term when fitting the weights, but not when fitting $\sigma^2$?</span></li>
+            <li><span>In the three-target example, why do the likelihood and squared error choose the same prediction?</span></li>
           </ol>
         </div>
-
-        <p>Further reading: Bishop and Bishop, <a href="https://link.springer.com/book/10.1007/978-3-031-45468-4">Deep Learning: Foundations and Concepts</a>, especially “Standard Distributions” and “Single-layer Networks: Regression.”</p>
+        <p>For more detail, see Bishop and Bishop, <a href="https://link.springer.com/book/10.1007/978-3-031-45468-4">Deep Learning: Foundations and Concepts</a>, especially “Standard distributions” and “Single-layer networks: Regression.”</p>
       </div>
 
       <div class="endbar">
@@ -596,6 +670,7 @@
     </article>
   </div>
 </div>
+<script src="./chart.js"></script>
 <script>hljs.highlightAll();</script>
 </body>
 </html>
