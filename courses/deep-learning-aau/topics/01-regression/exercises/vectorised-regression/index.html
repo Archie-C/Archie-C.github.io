@@ -542,6 +542,8 @@
     background: var(--bg-sunk);
   }
 
+  .upload-meta[hidden] { display: none; }
+
   .upload-filename {
     font-family: var(--font-mono);
     font-size: 12px;
@@ -851,6 +853,7 @@
   clearBtn.addEventListener("click", () => {
     selectedFile = null;
     input.value = "";
+    fname.textContent = "";
     zone.hidden = false;
     meta.hidden = true;
   });
