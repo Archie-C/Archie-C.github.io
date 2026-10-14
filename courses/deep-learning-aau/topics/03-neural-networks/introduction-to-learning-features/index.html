@@ -63,23 +63,172 @@
       <div class="body">
         <div class="exercise">
           <span class="tag">in preparation</span>
-          <p>These notes are in preparation. The planned sections are listed below.</p>
+          <p>These notes are in preparation.</p>
         </div>
         <h2>What this note covers</h2>
         <ul>
-          <li>From fixed basis functions to learned features</li>
-          <li>Learning features from data</li>
-          <li>Connecting features to predictions</li>
+          <li>The motivation behind learning features</li>
+          <li>The curse of dimensionality</li>
+          <li>High level overview of learning features</li>
         </ul>
 
-        <h2>From fixed basis functions to learned features</h2>
-        <!-- TODO: Add the explanation, equations, and examples for this section. -->
+        <h2>Recap</h2>
+        <p>
+          In the previous two topics, we used basis functions to allow linear models to learn nonlinear relationships.
+          For example, we used polynomial basis functions such as:
+        </p>
+        <p>$$ \phi_1(x) = x, \quad \phi_2(x) = x^2, \quad \phi_3(x) = x^3 $$</p>
+        <p>Which resulted in this model:</p>
+        <p>$$ y(x, \mathbf{w}) = w_0 + w_1 \phi_1(x) + w_2 \phi_2(x) + w_3 \phi_3(x) $$</p>
+        <p>
+          Similarly, for classification we can, using logistic regression, write:
+        </p>
+        <p>$$ p(C_1 | x) = \sigma(w_0 + w_1 \phi_1(x) + w_2 \phi_2(x) + w_3 \phi_3(x)) $$</p>
+        <p>
+          However, in both of these examples, the basis functions were chosen by us before we fitted the model.
+          Which raises an interesting question: <strong>Why do we have to decide in advance which features are useful?</strong>
+        </p>
 
-        <h2>Learning features from data</h2>
-        <!-- TODO: Add the explanation, equations, and examples for this section. -->
+        <h2>The problem with fixed features</h2>
+        <p>
+          Suppose we have two inputs,
+        </p>
+        <p>$$ \mathbf{x} = \begin{bmatrix} x_1 \\ x_2 \end{bmatrix} $$</p>
+        <p>A second-order polynomial transformation might include:</p>
+        <p>$$ x_1, \quad x_2,\quad x_1^2,\quad x_2^2, \quad x_1x_2 $$</p>
+        <p>
+          Which we can easily use to fit a linear model using these transformed features.
+          But what happens if we have more than 2 inputs? 
+        </p>
+        <p>
+          Let's generalise to $D$ inputs. 
+          A second-order polynomial transformation would include $O(D^2)$ features.
+          And in fact that relationship holds for higher-order polynomials too. In general,
+          for a polynomial of degree $M$, the number of features (basis functions) is:
+        </p>
+        <p>$$ O(D^M) $$</p>
+        <p>Consider a model where we have 30 input features and a degree 5 polynomial. 
+          This produces $\binom{30+5}{5} = 324,632$ polynomial terms including the constant term.
+          Although the model can learn a coefficient for each of these terms, many of these
+          features may contribute very little to the prediction.
+        </p>
+        <p>The difficulty is therefore not simply that we need more features. 
+          It is that we do not know which of these 324,632 features are actually useful.
+        </p>
 
-        <h2>Connecting features to predictions</h2>
-        <!-- TODO: Add the explanation, equations, and examples for this section. -->
+        <h2>The curse of dimensionality</h2>
+        <p>
+          The problem of having to construct large numbers of basis functions is not limited to polynomials. 
+          Let's consider another way of constructing basis functions.
+        </p>
+        <p>
+Suppose that, 
+instead of polynomial functions, we divide the input space into a grid of regions. We then define one basis function for each region:
+
+$$
+\phi_j(\mathbf{x}) =
+\begin{cases}
+1 & \text{if } \mathbf{x} \text{ is in region }j\
+0 & \text{otherwise}.
+\end{cases}
+$$
+
+We can use these basis functions in exactly the same linear model as before:
+
+$$
+y(\mathbf{x},\mathbf{w}) =
+w_0+\sum_{j=1}^{M}w_j\phi_j(\mathbf{x}).
+$$
+
+Since each observation belongs to exactly one region, the model can learn a different prediction for each region.
+        </p>
+        <p>
+          For example, suppose we are predicting a person's spending habits using two input features: age and height. If we divide each input into 10 intervals, we obtain
+
+$$
+10 \times 10 = 100
+$$
+
+regions, and therefore 100 basis functions.
+        </p>
+        <p>
+          And this continues to grow polynomially as we add more input features. More generally,
+          if we have $D$ input features, each of which is divided into $R$ regions,
+          then the total number of regions in the input space is:
+        </p>
+        <p>$$ R^D $$</p>
+        <p>Unlike the polynomial example, this grows exponentially with the number of input features.</p>
+        <h2>Why is this a problem?</h2>
+        <p>
+          Each basis function is only active for observations in its corresponding region.
+          Therefore, to learn a separate prediction for every region, we need training examples from every region.
+        </p>
+        <p>
+          Even observing a single example from each region would require at least $R^D$ examples, and typically many more
+          because observations are not distributed perfectly evenly. Furthermore, a single observation in a region would
+          provide little evidence about the correct prediction.
+        </p>
+        <p>This illustrates one aspect of the <strong>curse of dimensionality</strong>: as the number of
+          dimensions increases, certain approaches to representing or learning functions require exponentially more data.</p>
+        <h2>Real data is usually structured</h2>
+        <p>So far, all of our approaches have attempted to represent relationships across the entire input space,
+          either by constructing combinations of inputs or by dividing the input space.
+          However, real world data is rarely distributed uniformly across the input space.
+        </p>
+        <p>Consider a 28x28 grayscale image of a handwritten digit.
+          We can represent this image as a vector of 784 pixel values where each pixel value is between 0 and 255.
+          The number of possible images is therefore $256^{784}$, which is an astronomically large number.
+          However, the number of images that are actually valid handwritten digits is much smaller, and most
+          of the possible images are not valid digits.
+          Instead, realistic images tend to have structure: neighbouring pixels are related and digits are made up of
+          recognisable strokes and shapes.
+        </p>
+        <p>If we take one of these images and shift it horizontally, the resulting image has different pixel values
+          but the overall change can be represented by one quantity: the horizontal shift.
+          Similarly, if we rotate the image, it can be represented by two quantities: the angle and centre of rotation.
+        </p>
+        <p>
+          This is an example of how a high-dimensional input space can be represented by a smaller number of underlying factors.
+          E.g. projecting a higher dimensional input space onto a low-dimensional manifold.
+        </p>
+        <p>
+          Rather than the model focusing on every input feature, we want it to exploit the structure in the data and focus on features
+          that are actually informative for the prediction task.
+        </p>
+        <h2>Learning the basis functions</h2>
+        <p>In order to target the underlying structure in the data, we need to allow the model to learn the functions themselves. Instead of having:</p>
+        <p>$$ \phi_j(x)$$</p>
+        where the basis function is fixed, we can define a basis function with learnable parameters $\theta$:
+        <p>$$ \phi_j(x, \theta_j)$$</p>
+        <p>
+          For example, consider a Gaussian basis function:
+        </p>
+        <p>
+          $$
+          \phi_j(x; \mu_j, s_j) =
+          \exp\left(
+            -\frac{(x-\mu_j)^2}{2s_j^2}
+          \right)
+          $$
+        </p>
+        <p>Here, both the parameters $\mu_j$ and $s_j$ are learnable. 
+          Where $\mu_j$ controls where the basis function is centered, and $s_j$ controls its width.
+        </p>
+        <p>
+          Returning to our original regression model, we can now write:
+        </p>
+        <p>$$ y(x, \mathbf{w}, \theta) = w_0 + \sum_{j=1}^{M} w_j \phi_j(x, \theta_j) $$</p>
+        <p>
+          where the output $y$ is now a function of both the weights of the functions 
+          $\mathbf{w}$ and the learnable parameters $\theta$ that control the behaviour of the functions themselves .
+        </p>
+        <p>
+          This is the central idea behind neural networks: rather than relying on hand-crafted features,
+          we can learn useful representations of the input space directly from the data.
+        </p>
+        <p>
+          In the next note, we will dive into the mathematics of single and multilayer neural networks.
+        </p>
       </div>
 
       <div class="endbar">
