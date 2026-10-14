@@ -1,0 +1,85 @@
+/* Local additions to the shared course figure styles. */
+.lecture article { min-width: 0; }
+.series-one { color: var(--c-cat-1); }
+.series-two { color: var(--c-cat-2); }
+.series-reference { color: var(--fg-3); }
+.chart-legend .swatch-dashed {
+  height: 0;
+  background: none;
+  border-top: 2px dashed currentColor;
+}
+.visual-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+  margin: 12px 0 20px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--fg-2);
+}
+.visual-controls label {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.visual-controls output {
+  margin-left: auto;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.visual-controls input[type="range"] {
+  width: 100%;
+  margin: 0 0 8px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+.visual-controls input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+.visual-panels {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 20px;
+}
+.visual-panels h4 {
+  margin: 0 0 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--fg-2);
+}
+.grid-frame { height: auto; aspect-ratio: 1; position: relative; }
+.chart-frame { position: relative; }
+.body .visual-readout,
+.body .visual-fallback {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--fg-2);
+  margin: 14px 0 0;
+}
+.image-slot {
+  border: 1px solid var(--rule);
+  background: var(--bg-2);
+}
+.image-slot img { display: block; width: 100%; height: auto; }
+.image-placeholder {
+  min-height: 160px;
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.placeholder-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--fg-3);
+}
+.image-placeholder p { font-size: 15px; color: var(--fg-2); margin: 8px 0 0; }
+/* Explicit overrides keep images and fallback content hidden after loading. */
+.image-slot [hidden], .visual-fallback[hidden] { display: none; }
+@media (max-width: 640px) {
+  .visual-panels { grid-template-columns: minmax(0, 1fr); }
+  .chart-card { padding: 16px 12px; }
+}

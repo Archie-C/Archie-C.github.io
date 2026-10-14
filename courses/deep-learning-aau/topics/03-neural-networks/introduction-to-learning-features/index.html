@@ -14,6 +14,9 @@
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
   onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
 <link rel="stylesheet" href="../../../styles/notes.css"/>
+<link rel="stylesheet" href="./visuals.css"/>
+<script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+<script defer src="./visuals.js"></script>
   <!-- Cloudflare Web Analytics -->
   <script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "f63b2ef074b74a5e8e78014b83a4071d"}'></script>
   <!-- End Cloudflare Web Analytics -->
@@ -61,10 +64,6 @@
       <p class="standfirst">Move from fixed basis functions to functions learned from data.</p>
 
       <div class="body">
-        <div class="exercise">
-          <span class="tag">in preparation</span>
-          <p>These notes are in preparation.</p>
-        </div>
         <h2>What this note covers</h2>
         <ul>
           <li>The motivation behind learning features</li>
@@ -102,11 +101,11 @@
         </p>
         <p>
           Let's generalise to $D$ inputs. 
-          A second-order polynomial transformation would include $O(D^2)$ features.
+          A second-order polynomial transformation would include $\binom{D+2}{2}$ features.
           And in fact that relationship holds for higher-order polynomials too. In general,
           for a polynomial of degree $M$, the number of features (basis functions) is:
         </p>
-        <p>$$ O(D^M) $$</p>
+        <p>$$ \binom{D+M}{M} $$</p>
         <p>Consider a model where we have 30 input features and a degree 5 polynomial. 
           This produces $\binom{30+5}{5} = 324,632$ polynomial terms including the constant term.
           Although the model can learn a coefficient for each of these terms, many of these
@@ -115,6 +114,20 @@
         <p>The difficulty is therefore not simply that we need more features. 
           It is that we do not know which of these 324,632 features are actually useful.
         </p>
+
+        <figure class="chart-card" id="polynomial-features">
+          <div class="eyebrow">Fixed features</div>
+          <h3>How many polynomial terms?</h3>
+          <div class="chart-legend" aria-label="Plot legend">
+            <span class="item series-one"><span class="swatch"></span>Degree 2</span>
+            <span class="item series-two"><span class="swatch swatch-dashed"></span>Degree 5</span>
+          </div>
+          <div class="chart-frame">
+            <canvas id="polynomialCountChart" role="img" aria-label="Polynomial term counts increase with the number of inputs. At 30 inputs there are 496 terms for degree 2 and 324,632 for degree 5." aria-describedby="polynomial-caption"></canvas>
+          </div>
+          <p class="visual-fallback" data-chart-fallback="polynomialCountChart">The interactive plot requires JavaScript and Chart.js. The counts are described below.</p>
+          <figcaption class="chart-caption" id="polynomial-caption"><span class="label">fig 1</span> The exact number of monomials up to degree $M$, including the constant, is $\binom{D+M}{M}$. At $D=30$, degree 2 gives 496 terms; degree 5 gives 324,632. The vertical axis is logarithmic: equal steps represent multiplication by 10.</figcaption>
+        </figure>
 
         <h2>The curse of dimensionality</h2>
         <p>
@@ -170,6 +183,32 @@ regions, and therefore 100 basis functions.
         </p>
         <p>This illustrates one aspect of the <strong>curse of dimensionality</strong>: as the number of
           dimensions increases, certain approaches to representing or learning functions require exponentially more data.</p>
+
+        <figure class="chart-card" id="grid-sparsity">
+          <div class="eyebrow">The curse of dimensionality</div>
+          <h3>Number of regions vs number of occupied regions</h3>
+          <div class="visual-controls">
+            <label for="gridResolution">Intervals per input, $R$ <output id="gridResolutionValue" for="gridResolution">10</output></label>
+            <input id="gridResolution" type="range" min="2" max="10" step="1" value="10" disabled/>
+          </div>
+          <div class="visual-panels">
+            <div>
+              <h4>Two input dimensions</h4>
+              <div class="chart-frame grid-frame">
+                <canvas id="regionGridChart" role="img" aria-label="24 fixed synthetic observations in a two-dimensional unit square divided into 100 regions. Shaded cells contain observations." aria-describedby="grid-caption gridOccupancy"></canvas>
+              </div>
+            </div>
+            <div>
+              <h4>Adding input dimensions</h4>
+              <div class="chart-frame">
+                <canvas id="regionGrowthChart" role="img" aria-label="With 10 intervals per input, the number of regions grows from 10 in one dimension to 100 million in eight dimensions." aria-describedby="grid-caption"></canvas>
+              </div>
+            </div>
+          </div>
+          <p class="visual-readout" id="gridOccupancy" aria-live="polite">24 observations · 100 regions in two dimensions</p>
+          <p class="visual-fallback" data-chart-fallback="regionGridChart">The interactive plots require JavaScript and Chart.js. With $R=10$, there are 100 regions in two dimensions and $10^8$ in eight.</p>
+          <figcaption class="chart-caption" id="grid-caption"><span class="label">fig 2</span> Each shaded cell contains at least one of the 24 synthetic observations; unshaded cells contain none. Increase $R$ to divide the same space more finely without adding observations. The second plot shows $R^D$ on a logarithmic axis. The square is a normalised input space, rather than measured age and height data.</figcaption>
+        </figure>
         <h2>Real data is usually structured</h2>
         <p>So far, all of our approaches have attempted to represent relationships across the entire input space,
           either by constructing combinations of inputs or by dividing the input space.
@@ -183,6 +222,20 @@ regions, and therefore 100 basis functions.
           Instead, realistic images tend to have structure: neighbouring pixels are related and digits are made up of
           recognisable strokes and shapes.
         </p>
+
+        <!-- Drop the image described in images/README.md into images/digits-vs-random-pixels.png. -->
+        <figure class="chart-card image-card" id="digit-structure">
+          <div class="eyebrow">Structure in image space</div>
+          <h3>Random pixels and handwritten digits</h3>
+          <div class="image-slot">
+            <img src="./images/digits-vs-random-pixels.png" width="1200" height="480" alt="Two panels of 28 by 28 grayscale images: random pixel noise on the left and handwritten digits with coherent strokes on the right." data-recommended-image hidden/>
+            <div class="image-placeholder">
+              <span class="placeholder-label">Suggested illustration</span>
+              <p>Compare random pixel grids with handwritten digits to make the structure in real images visible.</p>
+            </div>
+          </div>
+          <figcaption class="chart-caption"><span class="label">fig 3</span> Both panels use the same 784 pixel coordinates. Handwritten digits have coherent strokes and shapes; independently random pixels usually do not. This comparison illustrates structure, rather than enumerating all possible images.</figcaption>
+        </figure>
         <p>If we take one of these images and shift it horizontally, the resulting image has different pixel values
           but the overall change can be represented by one quantity: the horizontal shift.
           Similarly, if we rotate the image, it can be represented by two quantities: the angle and centre of rotation.
@@ -191,6 +244,20 @@ regions, and therefore 100 basis functions.
           This is an example of how a high-dimensional input space can be represented by a smaller number of underlying factors.
           E.g. projecting a higher dimensional input space onto a low-dimensional manifold.
         </p>
+
+        <!-- Drop the image described in images/README.md into images/digit-transformations.png. -->
+        <figure class="chart-card image-card" id="digit-transformations">
+          <div class="eyebrow">Underlying factors</div>
+          <h3>Transforming digits</h3>
+          <div class="image-slot">
+            <img src="./images/digit-transformations.png" width="1200" height="600" alt="The same handwritten digit on fixed 28 by 28 grids: the top row varies horizontal shift, and the bottom row varies rotation angle about a marked fixed centre." data-recommended-image hidden/>
+            <div class="image-placeholder">
+              <span class="placeholder-label">Suggested illustration</span>
+              <p>Show one digit shifted and rotated on fixed grids, with the shift and angle labelled.</p>
+            </div>
+          </div>
+          <figcaption class="chart-caption"><span class="label">fig 4</span> Translating or rotating a digit changes many pixel values together. Each row varies one factor while keeping the others fixed; the rotation centre stays fixed in the bottom row. These transformations illustrate a small family of structured images inside the much larger pixel space.</figcaption>
+        </figure>
         <p>
           Rather than the model focusing on every input feature, we want it to exploit the structure in the data and focus on features
           that are actually informative for the prediction task.
@@ -214,6 +281,26 @@ regions, and therefore 100 basis functions.
         <p>Here, both the parameters $\mu_j$ and $s_j$ are learnable. 
           Where $\mu_j$ controls where the basis function is centered, and $s_j$ controls its width.
         </p>
+
+        <figure class="chart-card" id="gaussian-basis">
+          <div class="eyebrow">Learnable features</div>
+          <h3>Move and reshape a Gaussian basis function</h3>
+          <div class="chart-legend" aria-label="Plot legend">
+            <span class="item series-one"><span class="swatch"></span>Adjustable basis</span>
+            <span class="item series-reference"><span class="swatch swatch-dashed"></span>Reference: μ = 0, s = 1</span>
+          </div>
+          <div class="visual-controls">
+            <label for="gaussianCentre">Centre, $\mu_j$ <output id="gaussianCentreValue" for="gaussianCentre">1.0</output></label>
+            <input id="gaussianCentre" type="range" min="-3" max="3" step="0.1" value="1" disabled/>
+            <label for="gaussianWidth">Width, $s_j$ <output id="gaussianWidthValue" for="gaussianWidth">0.6</output></label>
+            <input id="gaussianWidth" type="range" min="0.2" max="2" step="0.1" value="0.6" disabled/>
+          </div>
+          <div class="chart-frame">
+            <canvas id="gaussianBasisChart" role="img" aria-label="Gaussian basis function centred at 1 with width 0.6, compared with a fixed reference centred at 0 with width 1. Both peak at 1." aria-describedby="gaussian-caption"></canvas>
+          </div>
+          <p class="visual-fallback" data-chart-fallback="gaussianBasisChart">The interactive plot requires JavaScript and Chart.js. Changing μ moves the peak; increasing s broadens the curve.</p>
+          <figcaption class="chart-caption" id="gaussian-caption"><span class="label">fig 5</span> Adjust $\mu_j$ to move the feature along the input axis and $s_j$ to change its width. The peak remains 1 because this basis function has no density-normalisation factor. The sliders illustrate the effects of parameters; during learning, these parameters are fitted from data.</figcaption>
+        </figure>
         <p>
           Returning to our original regression model, we can now write:
         </p>
