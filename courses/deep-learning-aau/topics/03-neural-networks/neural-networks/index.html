@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <title>Neural networks | Deep Learning</title>
-<meta name="description" content="Notes in preparation. Compose layers to map input features to predictions."/>
+<meta name="description" content="Build neural networks from neurons and layers, calculate a forward pass, count parameters, and understand why nonlinear activations are needed."/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <link rel="icon" href="../../../../../design_system/assets/favicon.svg"/>
 <link rel="stylesheet" href="../../../../../design_system/colors_and_type.css"/>
@@ -14,6 +14,13 @@
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
   onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
 <link rel="stylesheet" href="../../../styles/notes.css"/>
+<style>
+  .body > h3 {
+    font-size: 15px;
+    margin: 1.5em 0 0.5em;
+  }
+  .body .katex-display { overflow-x: auto; }
+</style>
   <!-- Cloudflare Web Analytics -->
   <script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "f63b2ef074b74a5e8e78014b83a4071d"}'></script>
   <!-- End Cloudflare Web Analytics -->
@@ -43,8 +50,8 @@
         <a href="../introduction-to-learning-features/">3.1 &middot; introduction to learning features</a>
         <a class="current" href="./" aria-current="page">3.2 &middot; neural networks</a>
         <a href="../activation-functions/">3.3 &middot; activation functions</a>
-        <a href="../output-layers-and-loss-functions/">3.4 &middot; output layers and loss functions</a>
-        <a href="../why-we-use-deep-networks/">3.5 &middot; why we use deep networks</a>
+        <a href="../why-we-use-deep-networks/">3.4 &middot; why deep networks?</a>
+        <a href="../output-layers-and-loss-functions/">3.5 &middot; outputs and loss functions</a>
         <a href="../learning-representations/">3.6 &middot; learning representations</a>
         <a href="../implementing-neural-networks/">3.7 &middot; how do i implement them?</a>
         <a href="../exercises/">3.8 &middot; exercises</a>
@@ -61,25 +68,771 @@
       <p class="standfirst">Compose layers to map input features to predictions.</p>
 
       <div class="body">
-        <div class="exercise">
-          <span class="tag">in preparation</span>
-          <p>These notes are in preparation. The planned sections are listed below.</p>
-        </div>
         <h2>What this note covers</h2>
         <ul>
           <li>Neurons, weights, and biases</li>
           <li>Layers and network architecture</li>
           <li>The forward pass</li>
+          <li>Counting weights and biases</li>
+          <li>Deeper networks</li>
+          <li>Why nonlinear activation functions are needed</li>
         </ul>
 
         <h2>Neurons, weights, and biases</h2>
-        <!-- TODO: Add the explanation, equations, and examples for this section. -->
+        <p>We ended the previous note by introducing parameters to the basis functions
+          such that our regression model now looks like this:
+        </p>
+        <p>$$y(\mathbf{x}, \mathbf{w}, \boldsymbol{\theta}) = w_0 + \sum_{j=1}^M w_j \phi_j(\mathbf{x}; \theta_j)$$</p>
+        <p>Now we need a way to express this parameterisation. A common
+          way to do this is to use an artificial neuron.
+          The neuron takes a vector of inputs, multiplies each input by a weight,
+          adds a bias term and then applies an activation function.
+          Mathematically, we can express this as:
+        </p>
+        <p>$$\phi_j(\mathbf{x}; \theta_j) = h(\mathbf{a}_j^{\top} \mathbf{x} + b_j) $$</p>
+        <p>Here $\mathbf{a}_j$ is the vector of weights applied to the inputs, $b_j$ is the bias term,
+          and $h$ is the activation function. Together, $\mathbf{a}_j$ and $b_j$ make up the neuron's parameters $\theta_j$.
+          I will call the weighted input, including the bias, $s_j = \mathbf{a}_j^\top\mathbf{x} + b_j$.
+        </p>
+
+        <figure class="chart-card">
+          <div class="eyebrow">01 &middot; architecture</div>
+          <h3>Anatomy of an artificial neuron</h3>
+          <svg class="chart" viewBox="0 0 680 270" width="100%" height="auto" role="img" aria-label="Diagram of a single artificial neuron j computing a weighted combination of inputs x scaled by weights a_j, adding bias b_j, and applying activation function h to produce output phi_j">
+            <defs>
+              <marker id="nn-arrow" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 1 2 L 7 5 L 1 8 z" fill="var(--fg-3)" />
+              </marker>
+              <marker id="nn-arrow-accent" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 1 2 L 7 5 L 1 8 z" fill="var(--accent)" />
+              </marker>
+            </defs>
+
+            <!-- Column headers -->
+            <text class="caps" text-anchor="middle" x="65" y="24">inputs</text>
+            <text class="caps" text-anchor="middle" x="175" y="24">weights</text>
+            <text class="caps" text-anchor="middle" x="376" y="24">artificial neuron</text>
+            <text class="caps" text-anchor="middle" x="598" y="24">output</text>
+
+            <!-- Neuron boundary container -->
+            <rect x="238" y="38" width="276" height="216" rx="10" fill="var(--bg-sunk)" fill-opacity="0.35" stroke="var(--rule)" stroke-width="1" stroke-dasharray="4 3" />
+            <text font-family="var(--font-mono)" font-size="10" letter-spacing="0.08em" text-transform="uppercase" fill="var(--fg-4)" x="250" y="54">neuron <tspan font-family="var(--font-serif)" font-style="italic" text-transform="none">j</tspan></text>
+
+            <!-- Bias component (enters the sum from above) -->
+            <g>
+              <circle cx="310" cy="74" r="14" fill="var(--bg)" stroke="var(--accent)" stroke-width="1.5" />
+              <text font-family="var(--font-serif)" font-style="italic" font-weight="600" font-size="12" fill="var(--accent)" text-anchor="middle" x="310" y="78">b<tspan font-size="9" dy="2">j</tspan></text>
+              <text font-family="var(--font-mono)" font-size="9" letter-spacing="0.06em" text-transform="uppercase" fill="var(--fg-3)" x="330" y="77">bias</text>
+              <line x1="310" y1="88" x2="310" y2="120" stroke="var(--accent)" stroke-width="1.5" marker-end="url(#nn-arrow-accent)" />
+            </g>
+
+            <!-- Summation unit -->
+            <g>
+              <circle cx="310" cy="155" r="32" fill="var(--bg)" stroke="var(--fg-2)" stroke-width="1.5" />
+              <text font-family="var(--font-serif)" font-size="22" text-anchor="middle" fill="var(--fg)" x="310" y="163">&Sigma;</text>
+              <text font-family="var(--font-mono)" font-size="9.5" text-anchor="middle" fill="var(--fg-3)" x="310" y="202">weighted sum</text>
+              <text font-family="var(--font-serif)" font-style="italic" font-size="10.5" text-anchor="middle" fill="var(--fg-2)" x="310" y="217">a<tspan font-size="8" dy="2">j</tspan><tspan dy="-5" font-size="8">&#x22A4;</tspan><tspan dy="3">&thinsp;x</tspan><tspan font-style="normal"> + </tspan>b<tspan font-size="8" dy="2">j</tspan></text>
+            </g>
+
+            <!-- Intermediate connection (weighted input s_j) -->
+            <g>
+              <line x1="342" y1="155" x2="408" y2="155" stroke="var(--fg-2)" stroke-width="1.5" marker-end="url(#nn-arrow)" />
+              <text font-family="var(--font-serif)" font-style="italic" font-size="12" text-anchor="middle" fill="var(--fg)" x="375" y="146">s<tspan font-size="9" dy="2">j</tspan></text>
+            </g>
+
+            <!-- Activation unit (ReLU) -->
+            <g>
+              <circle cx="442" cy="155" r="32" fill="var(--bg)" stroke="var(--accent)" stroke-width="1.5" />
+              <!-- Mini coordinate axes -->
+              <line x1="428" y1="162" x2="456" y2="162" stroke="var(--rule-strong)" stroke-width="1" />
+              <line x1="442" y1="142" x2="442" y2="167" stroke="var(--rule-strong)" stroke-width="1" />
+              <!-- ReLU activation curve: flat at 0 for x<=0, ramp with slope 1 for x>0 -->
+              <path d="M 430 162 L 442 162 L 455 149" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" />
+              <!-- Label above & below -->
+              <text font-family="var(--font-serif)" font-style="italic" font-weight="600" font-size="13" text-anchor="middle" fill="var(--accent)" x="442" y="108">h(&middot;)</text>
+              <text font-family="var(--font-mono)" font-size="9.5" text-anchor="middle" fill="var(--fg-3)" x="442" y="202">activation</text>
+              <text font-family="var(--font-mono)" font-size="9.5" font-weight="600" text-anchor="middle" fill="var(--accent)" x="442" y="217">ReLU</text>
+            </g>
+
+            <!-- Output connection & node -->
+            <g>
+              <line x1="474" y1="155" x2="572" y2="155" stroke="var(--accent)" stroke-width="1.5" marker-end="url(#nn-arrow-accent)" />
+              <circle cx="598" cy="155" r="22" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5" />
+              <text font-family="var(--font-serif)" font-style="italic" font-weight="600" font-size="14" fill="var(--accent)" text-anchor="middle" x="598" y="160">&phi;<tspan font-size="10" dy="2">j</tspan></text>
+              <text font-family="var(--font-serif)" font-style="italic" font-size="11" text-anchor="middle" fill="var(--fg-2)" x="598" y="194">&phi;<tspan font-size="8" dy="2">j</tspan><tspan dy="-2">(x; &theta;</tspan><tspan font-size="8" dy="2">j</tspan><tspan dy="-2">)</tspan></text>
+            </g>
+
+            <!-- Input nodes and weighted connections -->
+            <!-- Connection 1 -->
+            <line x1="82" y1="75" x2="279" y2="144" stroke="var(--fg-3)" stroke-width="1.5" marker-end="url(#nn-arrow)" />
+            <!-- Connection 2 -->
+            <line x1="82" y1="125" x2="278" y2="151" stroke="var(--fg-3)" stroke-width="1.5" marker-end="url(#nn-arrow)" />
+            <!-- Ellipsis connection -->
+            <line x1="82" y1="175" x2="278" y2="159" stroke="var(--rule-strong)" stroke-width="1.2" stroke-dasharray="3 3" />
+            <!-- Connection D -->
+            <line x1="82" y1="230" x2="279" y2="166" stroke="var(--fg-3)" stroke-width="1.5" marker-end="url(#nn-arrow)" />
+
+            <!-- Weight labels with background halo for crisp legibility -->
+            <text font-family="var(--font-serif)" font-style="italic" font-size="12" font-weight="600" fill="var(--fg)" text-anchor="middle" x="175" y="96" style="paint-order: stroke fill; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round;">a<tspan font-size="9" dy="2">j1</tspan></text>
+            <text font-family="var(--font-serif)" font-style="italic" font-size="12" font-weight="600" fill="var(--fg)" text-anchor="middle" x="175" y="129" style="paint-order: stroke fill; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round;">a<tspan font-size="9" dy="2">j2</tspan></text>
+            <text font-family="var(--font-serif)" font-size="13" fill="var(--fg-3)" text-anchor="middle" x="175" y="172" style="paint-order: stroke fill; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round;">&vellip;</text>
+            <text font-family="var(--font-serif)" font-style="italic" font-size="12" font-weight="600" fill="var(--fg)" text-anchor="middle" x="175" y="217" style="paint-order: stroke fill; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round;">a<tspan font-size="9" dy="2">jD</tspan></text>
+
+            <!-- Input circles -->
+            <!-- Input 1 -->
+            <g>
+              <circle cx="65" cy="75" r="17" fill="var(--bg-2)" stroke="var(--rule-strong)" stroke-width="1.5" />
+              <text font-family="var(--font-serif)" font-style="italic" font-size="13" text-anchor="middle" fill="var(--fg)" x="65" y="80">x<tspan font-size="9" dy="2">1</tspan></text>
+            </g>
+            <!-- Input 2 -->
+            <g>
+              <circle cx="65" cy="125" r="17" fill="var(--bg-2)" stroke="var(--rule-strong)" stroke-width="1.5" />
+              <text font-family="var(--font-serif)" font-style="italic" font-size="13" text-anchor="middle" fill="var(--fg)" x="65" y="130">x<tspan font-size="9" dy="2">2</tspan></text>
+            </g>
+            <!-- Vertical ellipsis -->
+            <g>
+              <circle cx="65" cy="168" r="1.5" fill="var(--fg-3)" />
+              <circle cx="65" cy="175" r="1.5" fill="var(--fg-3)" />
+              <circle cx="65" cy="182" r="1.5" fill="var(--fg-3)" />
+            </g>
+            <!-- Input D -->
+            <g>
+              <circle cx="65" cy="230" r="17" fill="var(--bg-2)" stroke="var(--rule-strong)" stroke-width="1.5" />
+              <text font-family="var(--font-serif)" font-style="italic" font-size="13" text-anchor="middle" fill="var(--fg)" x="65" y="235">x<tspan font-size="9" dy="2">D</tspan></text>
+            </g>
+          </svg>
+          <figcaption class="chart-caption"><span class="label">fig 1</span> A single artificial neuron computes a linear combination of its inputs $x_1, \dots, x_D$ weighted by $\mathbf{a}_j$, adds bias $b_j$, and applies an activation function $h$ (such as $\text{ReLU}$) to produce the feature $\phi_j(\mathbf{x}; \theta_j) = h(\mathbf{a}_j^\top \mathbf{x} + b_j)$.</figcaption>
+        </figure>
+
+        <p>We will explore different types of activation functions and their applications in the next note.
+          For now, we will use the <strong>rectified linear unit (ReLU)</strong> as the activation function.
+        </p>
+        <p>The ReLU function is defined as:</p>
+        <p>$$h(a) = \max(0, a) = \begin{cases} a & \text{if } a \geq 0 \\ 0 & \text{if } a < 0 \end{cases}$$</p>
+        <p>Here $a$ is a scalar argument to the function, such as the weighted input $s_j$.
+          ReLU keeps positive values and replaces negative values with zero.
+        </p>
 
         <h2>Layers and network architecture</h2>
-        <!-- TODO: Add the explanation, equations, and examples for this section. -->
+        <p>
+          A single neuron gives us one single learnable feature.
+          However, just as we used multiple basis functions in regression, we can construct multiple neurons to learn different features from the same input.
+        </p>
+        <p>Suppose we construct $M$ neurons, each with its own weights and bias. The output of neuron $j$ is:</p>
 
-        <h2>The forward pass</h2>
-        <!-- TODO: Add the explanation, equations, and examples for this section. -->
+        <p>
+          $$
+          \phi_j(\mathbf{x}; \theta_j)
+          = h(\mathbf{a}_j^\top \mathbf{x} + b_j)
+          $$
+        </p>
+        <p>
+          When multiple neurons are arranged in parallel, we call the collection a <strong>layer</strong>.
+          More specifically, a layer that lies between the input and final prediction is called a <strong>hidden layer</strong>.
+        </p>
+
+        <p>
+          The output of the layer is a vector of features, which we can express as:
+        </p>
+
+        <p>
+          $$
+          \boldsymbol{\phi}(\mathbf{x}) =
+          \begin{bmatrix}
+          \phi_1(\mathbf{x}) \\
+          \phi_2(\mathbf{x}) \\
+          \vdots \\
+          \phi_M(\mathbf{x})
+          \end{bmatrix}
+          $$
+        </p>
+
+        <figure class="chart-card">
+          <div class="eyebrow">02 &middot; architecture</div>
+          <h3>Anatomy of a hidden layer</h3>
+          <svg class="chart" viewBox="0 0 680 430" width="100%" height="auto" role="img" aria-labelledby="nn-layer-title nn-layer-desc">
+            <title id="nn-layer-title">A fully connected hidden layer</title>
+            <desc id="nn-layer-desc">Each of the M neurons receives all D inputs, computes its own weighted sum and bias, and applies ReLU. The resulting outputs phi_1 through phi_M form the vector phi. Ellipses indicate omitted inputs and neurons.</desc>
+            <defs>
+              <marker id="nn-layer-arrow" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 1 2 L 7 5 L 1 8 z" fill="var(--fg-3)" />
+              </marker>
+              <marker id="nn-layer-arrow-accent" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 1 2 L 7 5 L 1 8 z" fill="var(--accent)" />
+              </marker>
+              <!-- Repeat the same sum, bias, and activation for each neuron. -->
+              <g id="nn-layer-unit">
+                <circle cx="330" cy="-46" r="12" fill="var(--bg)" stroke="var(--accent)" stroke-width="1.5" />
+                <line x1="330" y1="-34" x2="330" y2="-25" stroke="var(--accent)" stroke-width="1.5" marker-end="url(#nn-layer-arrow-accent)" />
+                <circle cx="330" cy="0" r="24" fill="var(--bg)" stroke="var(--fg-2)" stroke-width="1.5" />
+                <text font-family="var(--font-serif)" font-size="21" text-anchor="middle" x="330" y="7">&Sigma;</text>
+                <line x1="354" y1="0" x2="421" y2="0" stroke="var(--fg-2)" stroke-width="1.5" marker-end="url(#nn-layer-arrow)" />
+                <circle cx="448" cy="0" r="25" fill="var(--bg)" stroke="var(--accent)" stroke-width="1.5" />
+                <line x1="434" y1="7" x2="462" y2="7" stroke="var(--rule-strong)" stroke-width="1" />
+                <line x1="448" y1="-13" x2="448" y2="12" stroke="var(--rule-strong)" stroke-width="1" />
+                <path d="M 436 7 L 448 7 L 461 -6" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" />
+                <text font-family="var(--font-serif)" font-style="italic" font-size="13" text-anchor="middle" style="fill: var(--accent);" x="448" y="-37">h(&middot;)</text>
+                <text font-family="var(--font-mono)" font-size="9.5" text-anchor="middle" style="fill: var(--accent);" x="448" y="43">ReLU</text>
+                <line x1="473" y1="0" x2="574" y2="0" stroke="var(--accent)" stroke-width="1.5" marker-end="url(#nn-layer-arrow-accent)" />
+              </g>
+            </defs>
+
+            <text class="caps" text-anchor="middle" x="65" y="24">inputs</text>
+            <text class="caps" text-anchor="middle" x="175" y="24">weights</text>
+            <text class="caps" text-anchor="middle" x="389" y="24">hidden layer</text>
+            <text class="caps" text-anchor="middle" x="598" y="24">outputs</text>
+            <rect x="274" y="42" width="240" height="364" rx="10" fill="var(--bg-sunk)" fill-opacity="0.35" stroke="var(--rule)" stroke-width="1" stroke-dasharray="4 3" />
+
+            <!-- Every displayed input connects to every displayed neuron. -->
+            <g fill="none" stroke="var(--fg-3)" stroke-width="1.2" marker-end="url(#nn-layer-arrow)">
+              <line x1="82" y1="110" x2="307" y2="102" />
+              <line x1="82" y1="220" x2="306" y2="110" />
+              <line x1="82" y1="360" x2="307" y2="118" />
+              <line x1="82" y1="110" x2="307" y2="212" />
+              <line x1="82" y1="220" x2="306" y2="220" />
+              <line x1="82" y1="360" x2="307" y2="228" />
+              <line x1="82" y1="110" x2="307" y2="352" />
+              <line x1="82" y1="220" x2="306" y2="360" />
+              <line x1="82" y1="360" x2="307" y2="368" />
+            </g>
+
+            <!-- Weight labels identify the independent parameters of each neuron. -->
+            <g font-family="var(--font-serif)" font-style="italic" font-size="12" font-weight="600" text-anchor="middle" style="paint-order: stroke fill; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round;">
+              <text x="175" y="99">a<tspan font-size="9" dy="2">11</tspan></text>
+              <text x="175" y="212">a<tspan font-size="9" dy="2">22</tspan></text>
+              <text x="175" y="356">a<tspan font-size="9" dy="2">MD</tspan></text>
+            </g>
+
+            <g fill="var(--bg-2)" stroke="var(--rule-strong)" stroke-width="1.5">
+              <circle cx="65" cy="110" r="17" />
+              <circle cx="65" cy="220" r="17" />
+              <circle cx="65" cy="360" r="17" />
+            </g>
+            <g font-family="var(--font-serif)" font-style="italic" font-size="13" text-anchor="middle">
+              <text x="65" y="115">x<tspan font-size="9" dy="2">1</tspan></text>
+              <text x="65" y="225">x<tspan font-size="9" dy="2">2</tspan></text>
+              <text x="65" y="365">x<tspan font-size="9" dy="2">D</tspan></text>
+            </g>
+
+            <use href="#nn-layer-unit" transform="translate(0 110)" />
+            <use href="#nn-layer-unit" transform="translate(0 220)" />
+            <use href="#nn-layer-unit" transform="translate(0 360)" />
+            <g font-family="var(--font-serif)" font-style="italic" font-size="12" text-anchor="middle">
+              <text x="330" y="68" style="fill: var(--accent);">b<tspan font-size="9" dy="2">1</tspan></text>
+              <text x="330" y="178" style="fill: var(--accent);">b<tspan font-size="9" dy="2">2</tspan></text>
+              <text x="330" y="318" style="fill: var(--accent);">b<tspan font-size="9" dy="2">M</tspan></text>
+              <text x="330" y="153">a<tspan font-size="9" dy="2">1</tspan><tspan font-size="9" dy="-6">&#x22A4;</tspan><tspan dy="4">x + b</tspan><tspan font-size="9" dy="2">1</tspan></text>
+              <text x="330" y="263">a<tspan font-size="9" dy="2">2</tspan><tspan font-size="9" dy="-6">&#x22A4;</tspan><tspan dy="4">x + b</tspan><tspan font-size="9" dy="2">2</tspan></text>
+              <text x="330" y="403">a<tspan font-size="9" dy="2">M</tspan><tspan font-size="9" dy="-6">&#x22A4;</tspan><tspan dy="4">x + b</tspan><tspan font-size="9" dy="2">M</tspan></text>
+            </g>
+
+            <!-- Brackets collect the individual outputs into a single vector. -->
+            <path d="M 571 82 H 563 V 388 H 571 M 625 82 H 633 V 388 H 625" fill="none" stroke="var(--rule-strong)" stroke-width="1.5" />
+            <g fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5">
+              <circle cx="598" cy="110" r="22" />
+              <circle cx="598" cy="220" r="22" />
+              <circle cx="598" cy="360" r="22" />
+            </g>
+            <g font-family="var(--font-serif)" font-style="italic" font-weight="600" font-size="14" text-anchor="middle">
+              <text x="598" y="115" style="fill: var(--accent);">&phi;<tspan font-size="10" dy="2">1</tspan></text>
+              <text x="598" y="225" style="fill: var(--accent);">&phi;<tspan font-size="10" dy="2">2</tspan></text>
+              <text x="598" y="365" style="fill: var(--accent);">&phi;<tspan font-size="10" dy="2">M</tspan></text>
+              <text x="598" y="416" style="fill: var(--accent);">&phi;</text>
+            </g>
+            <g font-family="var(--font-serif)" font-size="20" text-anchor="middle">
+              <text x="65" y="294">&vellip;</text>
+              <text x="389" y="294">&vellip;</text>
+              <text x="598" y="294">&vellip;</text>
+            </g>
+          </svg>
+          <figcaption class="chart-caption"><span class="label">fig 2</span> A fully connected hidden layer applies $M$ neurons to the same input vector $\mathbf{x}$. Each neuron has its own weights $\mathbf{a}_j$ and bias $b_j$, producing $\phi_j(\mathbf{x}) = h(\mathbf{a}_j^\top \mathbf{x} + b_j)$. These outputs form $\boldsymbol{\phi}(\mathbf{x})$. Ellipses indicate omitted inputs and neurons.</figcaption>
+        </figure>
+
+
+        <h3>Building a complete network</h3>
+        <p>
+          Now we have $M$ learned features. But we still need to combine these to produce a prediction.
+        </p>
+        <p>
+          Fortunately, it turns out it's the same as before: we can use a linear combination of these features to produce a prediction:
+        </p>
+        <p>
+          $$
+          y(\mathbf{x}) =
+          w_0 + \sum_{j=1}^{M}
+          w_j \phi_j(\mathbf{x})
+          $$
+        </p>
+        <p>Note, for brevity I omit the $\theta$.</p>
+        <p>
+          The difference now is that the features $\phi_j$ are learned from the data, rather than being fixed basis functions.
+          And substituting their definition gives:
+        </p>
+        <p>
+          $$
+          y(\mathbf{x}) =
+          w_0 +
+          \sum_{j=1}^{M}
+          w_j h(\mathbf{a}_j^\top \mathbf{x} + b_j)
+          $$
+        </p>
+        <p>
+          We can use this construction for different tasks.
+          For regression, the final output is a real number.
+          For binary classification, we can apply a sigmoid function to the final linear combinations:
+        </p>
+        <p>
+          $$
+          p(C_1 \mid \mathbf{x}) =
+          \sigma\left(
+            w_0 +
+            \sum_{j=1}^{M}
+            w_j h(\mathbf{a}_j^\top \mathbf{x} + b_j)
+          \right)
+          $$
+        </p>
+        <h3>Matrix representation</h3>
+        <p>
+          When we have lots of neurons and layers, writing out each neuron becomes cumbersome.
+          Instead, we can express an entire layer using matrix multiplication.
+        </p>
+        <p>
+          Suppose our input has $D$ features and we have $M$ neurons in the layer.
+          We can represent the weights of the layer as a matrix $\mathbf{A} \in \mathbb{R}^{M \times D}$ :
+        </p>
+        <p>
+          $$
+          \mathbf{A} =
+          \begin{bmatrix}
+          \mathbf{a}_1^\top \\
+          \mathbf{a}_2^\top \\
+          \vdots \\
+          \mathbf{a}_M^\top
+          \end{bmatrix}
+          $$
+        </p>
+        <p>
+          where each row corresponds to the weights of a neuron.
+          Similarly, we can collect their biases into a vector:
+        </p>
+        <p>
+          $$
+          \mathbf{b} =
+          \begin{bmatrix}
+          b_1 \\ b_2 \\ \vdots \\ b_M
+          \end{bmatrix}
+          $$
+        </p>
+        <p>
+          And now the output of the layer is simply:
+        </p>
+        <p>
+          $$
+
+          \boldsymbol{\phi}(\mathbf{x})
+          = h(\mathbf{A}\mathbf{x} + \mathbf{b})
+
+          $$
+        </p>
+        <p>Where the activation function $h$ is applied separately to each element of the vector.</p>
+        <p>In vector form the final prediction can be written as:</p>
+        <p>
+          $$
+          y(\mathbf{x})
+          = w_0 + \mathbf{w}^\top
+          \boldsymbol{\phi}(\mathbf{x})
+          $$
+        </p>
+        <p>And if we combine these expressions, we get the full neural network model for a network with
+          $D$ inputs, $M$ hidden neurons, and a single output:
+        </p>
+        <p>
+          $$
+          \boxed{
+          y(\mathbf{x})
+          = w_0 + \mathbf{w}^\top
+          h(\mathbf{A}\mathbf{x} + \mathbf{b})
+          }
+          $$
+        </p>
+        <h2>Worked example: forward propagation</h2>
+        <p>
+          Calculating a prediction by passing an input through the network, layer by layer,
+          is called a <strong>forward pass</strong>, or <strong>forward propagation</strong>.
+          At each neuron, you multiply the inputs by their weights, sum the results with the bias,
+          and apply the activation function.
+          The resulting values become the inputs to the next layer.
+        </p>
+        <p>
+          Consider a regression network with two input features, two hidden neurons using ReLU,
+          and one output neuron. The output neuron takes a weighted sum of the hidden features
+          and adds a bias, just as in the model above. Its activation is the identity function,
+          which simply returns its input.
+          For this example, the weights and biases are already given.
+        </p>
+        <p>Take the input and hidden-layer parameters to be:</p>
+        <p>
+          $$
+          \mathbf{x} = \begin{bmatrix}2\\1\end{bmatrix},\qquad
+          \mathbf{A} = \begin{bmatrix}1 &amp; 1\\-1 &amp; 1\end{bmatrix},\qquad
+          \mathbf{b} = \begin{bmatrix}-1\\0\end{bmatrix}.
+          $$
+        </p>
+        <p>
+          The first row of $\mathbf{A}$ gives $\mathbf{a}_1^\top = [1,1]$,
+          and the second gives $\mathbf{a}_2^\top = [-1,1]$.
+          The weights that combine the hidden features are
+          $\mathbf{w} = [2,-1]^\top$, with output bias $w_0 = 1$.
+          These output weights play a different role from the weights inside $\mathbf{A}$.
+        </p>
+
+        <figure class="chart-card">
+          <div class="eyebrow">03 &middot; forward pass</div>
+          <h3>From two inputs to one prediction</h3>
+          <svg class="chart" viewBox="0 0 680 320" width="100%" height="auto" role="img" aria-labelledby="nn-forward-title nn-forward-desc">
+            <title id="nn-forward-title">A forward pass through a two-input, two-hidden-neuron network</title>
+            <desc id="nn-forward-desc">Inputs x_1 = 2 and x_2 = 1 connect to both hidden neurons. The first has weights 1 and 1, bias minus 1, and ReLU output 2. The second has weights minus 1 and 1, bias 0, and ReLU output 0. Output weights 2 and minus 1 and output bias 1 give y = 5.</desc>
+            <defs>
+              <marker id="nn-forward-arrow" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                <path d="M 1 2 L 7 5 L 1 8 z" fill="var(--fg-3)" />
+              </marker>
+              <marker id="nn-forward-accent" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                <path d="M 1 2 L 7 5 L 1 8 z" fill="var(--accent)" />
+              </marker>
+            </defs>
+            <text class="caps" text-anchor="middle" x="80" y="24">inputs</text>
+            <text class="caps" text-anchor="middle" x="340" y="24">hidden layer · ReLU</text>
+            <text class="caps" text-anchor="middle" x="590" y="24">output · identity</text>
+            <g fill="none" stroke="var(--fg-3)" stroke-width="1.5" marker-end="url(#nn-forward-arrow)">
+              <path d="M 111 100 L 305 100" />
+              <path d="M 109 110 L 309 220" />
+              <path d="M 109 230 L 309 120" />
+              <path d="M 111 240 L 305 240" />
+            </g>
+            <g fill="none" stroke="var(--accent)" stroke-width="1.5" marker-end="url(#nn-forward-accent)">
+              <path d="M 373 110 L 554 160" />
+              <path d="M 373 230 L 554 180" />
+            </g>
+            <g font-family="var(--font-serif)" font-size="15" text-anchor="middle" style="paint-order: stroke fill; stroke: var(--bg); stroke-width: 5px; stroke-linejoin: round;">
+              <text x="205" y="91">a₁₁ = 1</text>
+              <text x="170" y="153">a₂₁ = −1</text>
+              <text x="170" y="201">a₁₂ = 1</text>
+              <text x="205" y="263">a₂₂ = 1</text>
+              <text x="465" y="126">w₁ = 2</text>
+              <text x="465" y="227">w₂ = −1</text>
+            </g>
+            <g fill="var(--bg-2)" stroke="var(--rule-strong)" stroke-width="1.5">
+              <circle cx="80" cy="100" r="31" />
+              <circle cx="80" cy="240" r="31" />
+            </g>
+            <g fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5">
+              <circle cx="340" cy="100" r="34" />
+              <circle cx="340" cy="240" r="34" />
+              <circle cx="590" cy="170" r="36" />
+            </g>
+            <g font-family="var(--font-serif)" font-size="17" text-anchor="middle">
+              <text x="80" y="106">x₁ = 2</text>
+              <text x="80" y="246">x₂ = 1</text>
+              <text x="340" y="106">φ₁ = 2</text>
+              <text x="340" y="246">φ₂ = 0</text>
+              <text x="590" y="176">y = 5</text>
+            </g>
+            <g font-family="var(--font-serif)" font-size="14" text-anchor="middle">
+              <text x="340" y="156">b₁ = −1</text>
+              <text x="340" y="296">b₂ = 0</text>
+              <text x="590" y="228">w₀ = 1</text>
+            </g>
+          </svg>
+          <figcaption class="chart-caption"><span class="label">fig 3</span>
+            Each edge carries a weight. Each hidden neuron applies ReLU after adding its bias;
+            the output neuron combines the resulting features and adds $w_0$.
+            Biases are shown below their neurons.
+          </figcaption>
+        </figure>
+
+        <h3>Step 1: calculate the hidden weighted inputs</h3>
+        <p>
+          For the first neuron, multiply each input by its corresponding weight and add $b_1$:
+        </p>
+        <p>$$s_1 = \mathbf{a}_1^\top\mathbf{x} + b_1 = 1\cdot 2 + 1\cdot 1 - 1 = 2.$$</p>
+        <p>The second neuron uses the same inputs but its own weights and bias:</p>
+        <p>$$s_2 = \mathbf{a}_2^\top\mathbf{x} + b_2 = (-1)\cdot 2 + 1\cdot 1 + 0 = -1.$$</p>
+        <p>These are the values before applying the activation function. In matrix form, the same calculation is:</p>
+        <p>
+          $$
+          \mathbf{A}\mathbf{x} + \mathbf{b}
+          = \begin{bmatrix}1 &amp; 1\\-1 &amp; 1\end{bmatrix}
+            \begin{bmatrix}2\\1\end{bmatrix}
+            + \begin{bmatrix}-1\\0\end{bmatrix}
+          = \begin{bmatrix}3\\-1\end{bmatrix}
+            + \begin{bmatrix}-1\\0\end{bmatrix}
+          = \begin{bmatrix}2\\-1\end{bmatrix}.
+          $$
+        </p>
+        <h3>Step 2: apply ReLU</h3>
+        <p>Apply $h(a) = \max(0,a)$ separately to each weighted input:</p>
+        <p>
+          $$\phi_1(\mathbf{x}) = \max(0,2) = 2,\qquad
+          \phi_2(\mathbf{x}) = \max(0,-1) = 0.$$
+        </p>
+        <p>
+          The first neuron's positive value passes through unchanged. The second neuron's
+          negative value becomes zero. The hidden layer has therefore turned the input
+          into the feature vector $\boldsymbol{\phi}(\mathbf{x}) = [2,0]^\top$.
+        </p>
+        <h3>Step 3: calculate the output</h3>
+        <p>Finally, combine these two features using the output weights and bias:</p>
+        <p>
+          $$
+          \begin{aligned}
+          y(\mathbf{x}) &amp;= w_0 + w_1\phi_1(\mathbf{x}) + w_2\phi_2(\mathbf{x})\\
+          &amp;= 1 + 2\cdot 2 + (-1)\cdot 0\\
+          &amp;= 1 + 4 + 0 = 5.
+          \end{aligned}
+          $$
+        </p>
+        <p>
+          The second hidden neuron contributes zero for this input, even though its output weight is $-1$.
+          The output activation is the identity, so the final prediction is $5$.
+          This completes one forward pass.
+        </p>
+
+        <h2>Number of parameters</h2>
+        <p>
+          Increasing the number of neurons increases the number of parameters in the model.
+          This can increase the model's capacity to learn complex functions, but also
+          increases the risk of overfitting and the computational cost of training.
+          How many parameters does a particular architecture have?
+        </p>
+        <p>
+          In a <strong>fully connected layer</strong>, every neuron receives every output of the
+          previous layer. If there are $n_{\mathrm{in}}$ inputs and $n_{\mathrm{out}}$ neurons,
+          each neuron has $n_{\mathrm{in}}$ weights and one bias. The layer therefore has:
+        </p>
+        <p>
+          $$P_{\mathrm{layer}} = \underbrace{n_{\mathrm{out}}n_{\mathrm{in}}}_{\text{weights}}
+          + \underbrace{n_{\mathrm{out}}}_{\text{biases}}
+          = n_{\mathrm{out}}(n_{\mathrm{in}}+1).$$
+        </p>
+        <p>
+          For a network with $D$ inputs, one hidden layer of $M$ neurons, and $K$ output neurons,
+          apply this count to each layer. The hidden layer contains $MD$ weights in $\mathbf{A}$
+          and $M$ biases in $\mathbf{b}$. Each output neuron receives all $M$ hidden features,
+          so the output layer contains $KM$ weights and $K$ biases. Adding the two counts gives:
+        </p>
+        <p>
+          $$\boxed{P = MD + M + KM + K = M(D+1) + K(M+1).}$$
+        </p>
+        <p>
+          With a single output, the output-layer parameters are precisely $w_1,\ldots,w_M$
+          and $w_0$ from the earlier equations. For multiple outputs, each output neuron
+          has its own set of these parameters. The input values and intermediate neuron outputs
+          are calculated values, so they do not add any parameters. ReLU itself has no parameters.
+        </p>
+        <p>
+          In the worked example, $D=2$, $M=2$, and $K=1$. The hidden layer has
+          $2\cdot 2=4$ weights and $2$ biases. The output layer has $1\cdot 2=2$ weights
+          and $1$ bias. Therefore:
+        </p>
+        <p>$$P = 2(2+1) + 1(2+1) = 6 + 3 = 9.$$</p>
+        <p>
+          The zero bias $b_2$ still counts: it is a parameter whose current value happens to be zero.
+          Similarly, a hidden neuron producing zero for one input does not remove any parameters.
+        </p>
+        <div class="exercise">
+          <span class="tag">exercise &middot; 3.2.1 <b>Counting parameters</b></span>
+          <p>
+            A fully connected network has $3$ input features, $4$ hidden neurons, and $2$ output neurons.
+            Each neuron has a bias. How many parameters are there? Count the weights and biases
+            in each layer separately before adding them together.
+          </p>
+        </div>
+
+        <h2>Deeper networks</h2>
+        <p>
+          So far, the hidden layer has taken the original input features and produced a new
+          feature vector. There is no reason to stop there: the outputs of one hidden layer
+          can become the inputs of another hidden layer. Each neuron in the next layer
+          applies its own weights, bias, and activation to those values.
+        </p>
+        <p>
+          The <strong>width</strong> of a layer is its number of neurons.
+          Different hidden layers can have different widths, so it is often useful to state
+          the width of each one. The <strong>depth</strong> describes how many layers are composed
+          in sequence. Here I count layers with weights and biases, including the output layer
+          but excluding the input. Under this convention, the network in the worked example
+          has depth $2$: one hidden layer and one output layer.
+        </p>
+
+        <figure class="chart-card">
+          <div class="eyebrow">04 &middot; architecture</div>
+          <h3>One hidden layer and two hidden layers</h3>
+          <svg class="chart" viewBox="0 0 680 470" width="100%" height="auto" role="img" aria-labelledby="nn-depth-title nn-depth-desc">
+            <title id="nn-depth-title">Comparing networks with one and two hidden layers</title>
+            <desc id="nn-depth-desc">Both networks have two inputs and one output. The upper network has one hidden layer of width three, giving depth two when the output layer is counted. The lower network has two hidden layers, each of width three, giving depth three. All adjacent layers are fully connected. Biases and activations are omitted for clarity.</desc>
+            <defs>
+              <marker id="nn-depth-arrow" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+                <path d="M 1 2 L 7 5 L 1 8 z" fill="var(--fg-3)" />
+              </marker>
+            </defs>
+            <text class="title" x="20" y="24">One hidden layer · depth 2</text>
+            <text class="caps" text-anchor="middle" x="80" y="54">inputs</text>
+            <text class="caps" text-anchor="middle" x="340" y="54">hidden · width 3</text>
+            <text class="caps" text-anchor="middle" x="600" y="54">output</text>
+            <g fill="none" stroke="var(--fg-3)" stroke-width="1.2" marker-end="url(#nn-depth-arrow)">
+              <path d="M 98 105 L 322 90 M 98 105 L 322 135 M 98 105 L 322 180
+                       M 98 165 L 322 90 M 98 165 L 322 135 M 98 165 L 322 180
+                       M 358 90 L 582 135 M 358 135 L 582 135 M 358 180 L 582 135" />
+            </g>
+            <g fill="var(--bg-2)" stroke="var(--rule-strong)" stroke-width="1.5">
+              <circle cx="80" cy="105" r="18" />
+              <circle cx="80" cy="165" r="18" />
+            </g>
+            <g fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5">
+              <circle cx="340" cy="90" r="18" />
+              <circle cx="340" cy="135" r="18" />
+              <circle cx="340" cy="180" r="18" />
+              <circle cx="600" cy="135" r="18" />
+            </g>
+            <line class="grid" x1="20" y1="225" x2="660" y2="225" />
+            <text class="title" x="20" y="264">Two hidden layers · depth 3</text>
+            <text class="caps" text-anchor="middle" x="80" y="294">inputs</text>
+            <text class="caps" text-anchor="middle" x="250" y="294">hidden 1 · width 3</text>
+            <text class="caps" text-anchor="middle" x="425" y="294">hidden 2 · width 3</text>
+            <text class="caps" text-anchor="middle" x="600" y="294">output</text>
+            <g fill="none" stroke="var(--fg-3)" stroke-width="1.2" marker-end="url(#nn-depth-arrow)">
+              <path d="M 98 345 L 232 330 M 98 345 L 232 375 M 98 345 L 232 420
+                       M 98 405 L 232 330 M 98 405 L 232 375 M 98 405 L 232 420
+                       M 268 330 L 407 330 M 268 330 L 407 375 M 268 330 L 407 420
+                       M 268 375 L 407 330 M 268 375 L 407 375 M 268 375 L 407 420
+                       M 268 420 L 407 330 M 268 420 L 407 375 M 268 420 L 407 420
+                       M 443 330 L 582 375 M 443 375 L 582 375 M 443 420 L 582 375" />
+            </g>
+            <g fill="var(--bg-2)" stroke="var(--rule-strong)" stroke-width="1.5">
+              <circle cx="80" cy="345" r="18" />
+              <circle cx="80" cy="405" r="18" />
+            </g>
+            <g fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5">
+              <circle cx="250" cy="330" r="18" />
+              <circle cx="250" cy="375" r="18" />
+              <circle cx="250" cy="420" r="18" />
+              <circle cx="425" cy="330" r="18" />
+              <circle cx="425" cy="375" r="18" />
+              <circle cx="425" cy="420" r="18" />
+              <circle cx="600" cy="375" r="18" />
+            </g>
+          </svg>
+          <figcaption class="chart-caption"><span class="label">fig 4</span>
+            Each hidden layer has width $3$. Adding another hidden layer increases the depth.
+            Each circle represents a neuron; biases and activation functions are omitted for clarity.
+          </figcaption>
+        </figure>
+
+        <p>
+          To describe this for any number of layers, let $\mathbf{z}^{(\ell)}$ be the
+          vector of outputs from layer $\ell$. Define $\mathbf{z}^{(0)} = \mathbf{x}$,
+          so the original input is the starting point. Then each layer can be written as:
+        </p>
+        <p>
+          $$\boxed{
+          \mathbf{z}^{(\ell)} = h^{(\ell)}\left(
+          \mathbf{W}^{(\ell)}\mathbf{z}^{(\ell-1)} + \mathbf{b}^{(\ell)}
+          \right).
+          }$$
+        </p>
+        <p>
+          Here the superscript $(\ell)$ labels a layer; it is not a power.
+          The vector $\mathbf{z}^{(\ell-1)}$ contains the outputs of the preceding layer.
+          The matrix $\mathbf{W}^{(\ell)}$ contains the current layer's weights, with one row
+          per neuron, and $\mathbf{b}^{(\ell)}$ contains its biases.
+          The activation $h^{(\ell)}$ is then applied to each element to produce $\mathbf{z}^{(\ell)}$.
+          Different layers may use different activation functions.
+        </p>
+        <p>
+          If the preceding layer has $n_{\ell-1}$ outputs and the current layer has $n_\ell$ neurons,
+          then $\mathbf{W}^{(\ell)}\in\mathbb{R}^{n_\ell\times n_{\ell-1}}$
+          and $\mathbf{b}^{(\ell)}\in\mathbb{R}^{n_\ell}$.
+          The resulting $\mathbf{z}^{(\ell)}$ has $n_\ell$ components, ready to serve as the
+          inputs to the next layer. For the last layer $L$, $\mathbf{z}^{(L)}$ is the network's prediction.
+        </p>
+        <p>
+          This is the same construction as before, with notation that labels each layer.
+          In the worked example, $\mathbf{W}^{(1)}=\mathbf{A}$,
+          $\mathbf{b}^{(1)}=\mathbf{b}$, and $\mathbf{z}^{(1)}=\boldsymbol{\phi}(\mathbf{x})$.
+          The second layer has $\mathbf{W}^{(2)}=\mathbf{w}^\top$ and a single bias $w_0$.
+          Using the identity activation at this output layer recovers
+          $y(\mathbf{x})=w_0+\mathbf{w}^\top\boldsymbol{\phi}(\mathbf{x})$.
+        </p>
+        <p>
+          A deeper network repeats this calculation through more hidden layers.
+          The reasons for choosing greater depth will be covered in a later note.
+          First, there is a more basic question: why apply a nonlinear activation between layers at all?
+        </p>
+
+        <h2>Why do we need nonlinear activation functions?</h2>
+        <p>
+          Consider removing the nonlinear activations, so every layer simply returns its weighted
+          input plus bias. A map of the form $\mathbf{W}\mathbf{x}+\mathbf{b}$ is called an
+          <strong>affine transformation</strong>: a linear transformation followed by a translation.
+          If the bias is zero, it is a linear transformation.
+        </p>
+        <p>For two layers without nonlinear activations, the equations become:</p>
+        <p>
+          $$
+          \begin{aligned}
+          \mathbf{z}^{(1)} &amp;= \mathbf{W}^{(1)}\mathbf{x} + \mathbf{b}^{(1)},\\
+          \mathbf{z}^{(2)} &amp;= \mathbf{W}^{(2)}\mathbf{z}^{(1)} + \mathbf{b}^{(2)}.
+          \end{aligned}
+          $$
+        </p>
+        <p>Substitute the first expression into the second and expand:</p>
+        <p>
+          $$
+          \begin{aligned}
+          \mathbf{z}^{(2)}
+          &amp;= \mathbf{W}^{(2)}\left(\mathbf{W}^{(1)}\mathbf{x}+\mathbf{b}^{(1)}\right)
+              +\mathbf{b}^{(2)}\\
+          &amp;= \mathbf{W}^{(2)}\mathbf{W}^{(1)}\mathbf{x}
+              +\mathbf{W}^{(2)}\mathbf{b}^{(1)}+\mathbf{b}^{(2)}\\
+          &amp;= \widetilde{\mathbf{W}}\mathbf{x}+\widetilde{\mathbf{b}},
+          \end{aligned}
+          $$
+        </p>
+        <p>where:</p>
+        <p>
+          $$\widetilde{\mathbf{W}}=\mathbf{W}^{(2)}\mathbf{W}^{(1)},\qquad
+          \widetilde{\mathbf{b}}=\mathbf{W}^{(2)}\mathbf{b}^{(1)}+\mathbf{b}^{(2)}.$$
+        </p>
+        <p>
+          These two layers are therefore equivalent to a single affine transformation.
+          Adding a third affine layer gives another affine transformation by exactly the same
+          calculation, and this argument can be repeated for any number of layers.
+          More affine layers alone cannot make the network represent a nonlinear relationship.
+          With one input and one output, its prediction is still a straight line, so it cannot,
+          for example, equal $y=x^2$ for every real $x$.
+        </p>
+        <p>
+          A nonlinear activation changes this. With ReLU, whether a neuron's weighted input
+          passes through or becomes zero depends on the input itself. In general, you can no
+          longer combine the whole network into one fixed weight matrix and bias vector.
+          This allows the network to represent nonlinear relationships, even when its final
+          output layer is affine, as in the worked example.
+        </p>
+
+        <div class="exercise">
+          <span class="tag">check your understanding</span>
+          <ol>
+            <li>In the worked example, why does the second hidden neuron contribute nothing to the prediction? Could it contribute for a different input?</li>
+            <li>How does adding neurons to an existing hidden layer differ from adding another hidden layer in terms of width and depth?</li>
+            <li>If every activation in a deep network were replaced by the identity function, what kind of relationship could the network represent? Why do the biases not change that conclusion?</li>
+          </ol>
+        </div>
+        <p>
+          Nonlinear activations are therefore an essential part of this construction.
+          ReLU has given a concrete example; the
+          <a href="../activation-functions/">next note on activation functions</a>
+          looks more closely at the functions used for this step and how their behaviour differs.
+        </p>
       </div>
 
       <div class="endbar">

@@ -1,0 +1,73 @@
+/* Note-specific diagrams; typography and colours come from the course tokens. */
+.lecture article { min-width: 0; }
+.body .katex-display { overflow-x: auto; }
+.chart-card { min-width: 0; }
+.chart-card svg { width: 100%; height: auto; }
+.architecture-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.architecture-pair h4 {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  text-align: center;
+  margin: 8px 0 0;
+}
+.chart-card .diagram-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-align: center;
+  color: var(--fg-2);
+  margin: 0 0 8px;
+}
+.connection { stroke: var(--rule-strong); stroke-width: 1; }
+.hidden-node { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.5; }
+.outer-node { fill: var(--bg); stroke: var(--fg-3); stroke-width: 1.5; }
+.feature-box rect { fill: var(--bg-sunk); stroke: var(--rule-strong); stroke-width: 1; }
+.flow { stroke: var(--accent); stroke-width: 1.5; fill: none; marker-end: url(#composition-arrow); }
+.hierarchy-flow { stroke: var(--accent); stroke-width: 1.5; fill: none; marker-end: url(#hierarchy-arrow); }
+.feature-stroke { fill: none; stroke: var(--accent); stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
+svg.chart .digit-evidence { font-family: var(--font-serif); font-size: 36px; fill: var(--accent); }
+.diagram-scroll { overflow-x: auto; }
+.chart-card .hierarchy { min-width: 600px; }
+.target-curve { fill: none; stroke: var(--fg-2); stroke-width: 2; stroke-dasharray: 5 4; }
+.network-curve { fill: none; stroke: var(--accent); stroke-width: 2.5; stroke-linejoin: round; }
+.knot { fill: var(--accent); stroke: var(--bg); stroke-width: 1; }
+.target-swatch { color: var(--fg-2); background: none !important; border-top: 2px dashed currentColor; }
+.network-swatch { color: var(--accent); }
+.approximation-controls {
+  display: grid;
+  grid-template-columns: 170px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  border-top: 1px solid var(--rule);
+  padding: 12px 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--fg-2);
+}
+.approximation-controls[hidden] { display: none; }
+.approximation-controls output { color: var(--accent); font-variant-numeric: tabular-nums; }
+.approximation-controls input { width: 100%; min-width: 0; accent-color: var(--accent); }
+.approximation-readout {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.7;
+  color: var(--fg-2);
+  font-variant-numeric: tabular-nums;
+}
+.depth-table-wrap { overflow-x: auto; margin: 1.4em 0; }
+.depth-table { width: 100%; min-width: 420px; border-collapse: collapse; font-family: var(--font-sans); font-size: 13px; line-height: 1.5; color: var(--fg-2); }
+.depth-table caption { text-align: left; font-family: var(--font-serif); font-size: 14px; padding-bottom: 10px; }
+.depth-table th, .depth-table td { padding: 10px 12px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--rule); }
+.depth-table thead th { background: var(--bg-sunk); border-top: 1px solid var(--rule); }
+.depth-table th { color: var(--fg); font-weight: 600; }
+.optional-math { margin: 1.4em 0; padding: 12px 16px; border: 1px solid var(--rule); border-radius: 4px; background: var(--bg-sunk); }
+.optional-math summary { cursor: pointer; font-family: var(--font-mono); font-size: 12px; color: var(--accent); }
+.optional-math[open] summary { margin-bottom: 14px; }
+.optional-math p:last-child { margin-bottom: 0; }
+.diagram-scroll:focus-visible, .depth-table-wrap:focus-visible, .approximation-controls input:focus-visible, .optional-math summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+@media (max-width: 640px) {
+  .architecture-pair { grid-template-columns: 1fr; gap: 20px; }
+  .approximation-controls { grid-template-columns: 1fr; gap: 6px; }
+  .chart-card .composition, .chart-card .approximation { min-width: 440px; }
+}

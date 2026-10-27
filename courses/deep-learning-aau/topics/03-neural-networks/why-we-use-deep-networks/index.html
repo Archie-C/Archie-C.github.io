@@ -2,18 +2,19 @@
 <html lang="en" data-palette="paper">
 <head>
 <meta charset="utf-8"/>
-<title>Why we use deep networks | Deep Learning</title>
-<meta name="description" content="Notes in preparation. The reasoning behind using deep architectures vs just a single layer."/>
+<title>Why deep networks? | Deep Learning</title>
+<meta name="description" content="Why depth can help: function composition, universal approximation, hierarchical and distributed representations, and the limits of deeper networks."/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <link rel="icon" href="../../../../../design_system/assets/favicon.svg"/>
 <link rel="stylesheet" href="../../../../../design_system/colors_and_type.css"/>
 <link rel="stylesheet" href="../../../../../design_system/charts.css"/>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"/>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
   onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
 <link rel="stylesheet" href="../../../styles/notes.css"/>
+<link rel="stylesheet" href="visuals.css"/>
+<script defer src="visuals.js"></script>
   <!-- Cloudflare Web Analytics -->
   <script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "f63b2ef074b74a5e8e78014b83a4071d"}'></script>
   <!-- End Cloudflare Web Analytics -->
@@ -25,7 +26,7 @@
     <span class="crumb">
       <a href="../../../">Deep Learning</a><span class="sep">&rsaquo;</span>
       <a href="../">03 neural networks</a><span class="sep">&rsaquo;</span>
-      why we use deep networks
+      why deep networks?
     </span>
     <nav aria-label="Course navigation">
       <a href="../../../" class="active">syllabus</a>
@@ -43,8 +44,8 @@
         <a href="../introduction-to-learning-features/">3.1 &middot; introduction to learning features</a>
         <a href="../neural-networks/">3.2 &middot; neural networks</a>
         <a href="../activation-functions/">3.3 &middot; activation functions</a>
-        <a href="../output-layers-and-loss-functions/">3.4 &middot; output layers and loss functions</a>
-        <a class="current" href="./" aria-current="page">3.5 &middot; why we use deep networks</a>
+        <a class="current" href="./" aria-current="page">3.4 &middot; why deep networks?</a>
+        <a href="../output-layers-and-loss-functions/">3.5 &middot; outputs and loss functions</a>
         <a href="../learning-representations/">3.6 &middot; learning representations</a>
         <a href="../implementing-neural-networks/">3.7 &middot; how do i implement them?</a>
         <a href="../exercises/">3.8 &middot; exercises</a>
@@ -55,40 +56,480 @@
       <div class="crumb">
         <a href="../../../">syllabus</a><span class="sep">&rsaquo;</span>
         <a href="../">topic 03</a><span class="sep">&rsaquo;</span>
-        subtopic 3.5
+        subtopic 3.4
       </div>
-      <h1>Why we use deep networks.</h1>
-      <p class="standfirst">The reasoning behind using deep architectures vs just a single layer.</p>
+      <h1>Why deep networks?</h1>
+      <p class="standfirst">We can make a neural network wider by adding neurons, or deeper by adding hidden layers. Here we look at why adding layers can be useful and what the trade-offs are.</p>
+
 
       <div class="body">
-        <div class="exercise">
-          <span class="tag">in preparation</span>
-          <p>These notes are in preparation. The planned sections are listed below.</p>
-        </div>
         <h2>What this note covers</h2>
         <ul>
-          <li>Shallow and deep architectures</li>
-          <li>Composing functions across layers</li>
-          <li>Why depth can help</li>
+          <li><span>Width and depth</span></li>
+          <li><span>Universal approximation</span></li>
+          <li><span>Learning and reusing features</span></li>
+          <li><span>The benefits and costs of adding layers</span></li>
         </ul>
 
-        <h2>Shallow and deep architectures</h2>
-        <!-- TODO: Add the explanation, equations, and examples for this section. -->
+        <h2>Shallow and deep networks</h2>
+        <p>
+          In the <a href="../neural-networks/">neural networks note</a>, we introduced a hidden
+          layer whose neurons each calculate a weighted sum of the inputs and apply an activation
+          function. We then combine their outputs to make a prediction. This gave us a way to learn
+          the basis functions instead of choosing them ourselves.
+        </p>
+        <p>
+          Now suppose this network is not powerful enough for our problem. We could add more
+          neurons to the hidden layer, or we could add another hidden layer. Adding neurons
+          increases the <strong>width</strong>; adding layers increases the <strong>depth</strong>.
+          We call a network with one hidden layer shallow, and one with several hidden layers deep.
+        </p>
+        <figure class="chart-card">
+          <div class="eyebrow">architecture</div>
+          <h3>Width and depth</h3>
+          <div class="architecture-pair"><div><h4>Shallow and wide</h4><svg class="chart architecture" viewBox="0 0 320 278" role="img" aria-labelledby="shallow-title"><title id="shallow-title">Three inputs, one hidden layer with six neurons, and one output.</title>
+<line class="connection" x1="36.0" y1="102.0" x2="160.0" y2="54.0"/>
+<line class="connection" x1="36.0" y1="102.0" x2="160.0" y2="86.0"/>
+<line class="connection" x1="36.0" y1="102.0" x2="160.0" y2="118.0"/>
+<line class="connection" x1="36.0" y1="102.0" x2="160.0" y2="150.0"/>
+<line class="connection" x1="36.0" y1="102.0" x2="160.0" y2="182.0"/>
+<line class="connection" x1="36.0" y1="102.0" x2="160.0" y2="214.0"/>
+<line class="connection" x1="36.0" y1="134.0" x2="160.0" y2="54.0"/>
+<line class="connection" x1="36.0" y1="134.0" x2="160.0" y2="86.0"/>
+<line class="connection" x1="36.0" y1="134.0" x2="160.0" y2="118.0"/>
+<line class="connection" x1="36.0" y1="134.0" x2="160.0" y2="150.0"/>
+<line class="connection" x1="36.0" y1="134.0" x2="160.0" y2="182.0"/>
+<line class="connection" x1="36.0" y1="134.0" x2="160.0" y2="214.0"/>
+<line class="connection" x1="36.0" y1="166.0" x2="160.0" y2="54.0"/>
+<line class="connection" x1="36.0" y1="166.0" x2="160.0" y2="86.0"/>
+<line class="connection" x1="36.0" y1="166.0" x2="160.0" y2="118.0"/>
+<line class="connection" x1="36.0" y1="166.0" x2="160.0" y2="150.0"/>
+<line class="connection" x1="36.0" y1="166.0" x2="160.0" y2="182.0"/>
+<line class="connection" x1="36.0" y1="166.0" x2="160.0" y2="214.0"/>
+<line class="connection" x1="160.0" y1="54.0" x2="284.0" y2="134.0"/>
+<line class="connection" x1="160.0" y1="86.0" x2="284.0" y2="134.0"/>
+<line class="connection" x1="160.0" y1="118.0" x2="284.0" y2="134.0"/>
+<line class="connection" x1="160.0" y1="150.0" x2="284.0" y2="134.0"/>
+<line class="connection" x1="160.0" y1="182.0" x2="284.0" y2="134.0"/>
+<line class="connection" x1="160.0" y1="214.0" x2="284.0" y2="134.0"/>
+<circle class="outer-node" cx="36.0" cy="102.0" r="9"/>
+<circle class="outer-node" cx="36.0" cy="134.0" r="9"/>
+<circle class="outer-node" cx="36.0" cy="166.0" r="9"/>
+<circle class="hidden-node" cx="160.0" cy="54.0" r="9"/>
+<circle class="hidden-node" cx="160.0" cy="86.0" r="9"/>
+<circle class="hidden-node" cx="160.0" cy="118.0" r="9"/>
+<circle class="hidden-node" cx="160.0" cy="150.0" r="9"/>
+<circle class="hidden-node" cx="160.0" cy="182.0" r="9"/>
+<circle class="hidden-node" cx="160.0" cy="214.0" r="9"/>
+<circle class="outer-node" cx="284.0" cy="134.0" r="9"/>
+<text x="36.0" y="250" text-anchor="middle">input</text>
+<text x="160.0" y="250" text-anchor="middle">hidden</text>
+<text x="284.0" y="250" text-anchor="middle">output</text>
+</svg><p class="diagram-label">1 hidden layer · width 6</p></div><div><h4>Deeper and narrower</h4><svg class="chart architecture" viewBox="0 0 320 278" role="img" aria-labelledby="deep-title"><title id="deep-title">Three inputs, three hidden layers with three neurons each, and one output.</title>
+<line class="connection" x1="36.0" y1="102.0" x2="98.0" y2="102.0"/>
+<line class="connection" x1="36.0" y1="102.0" x2="98.0" y2="134.0"/>
+<line class="connection" x1="36.0" y1="102.0" x2="98.0" y2="166.0"/>
+<line class="connection" x1="36.0" y1="134.0" x2="98.0" y2="102.0"/>
+<line class="connection" x1="36.0" y1="134.0" x2="98.0" y2="134.0"/>
+<line class="connection" x1="36.0" y1="134.0" x2="98.0" y2="166.0"/>
+<line class="connection" x1="36.0" y1="166.0" x2="98.0" y2="102.0"/>
+<line class="connection" x1="36.0" y1="166.0" x2="98.0" y2="134.0"/>
+<line class="connection" x1="36.0" y1="166.0" x2="98.0" y2="166.0"/>
+<line class="connection" x1="98.0" y1="102.0" x2="160.0" y2="102.0"/>
+<line class="connection" x1="98.0" y1="102.0" x2="160.0" y2="134.0"/>
+<line class="connection" x1="98.0" y1="102.0" x2="160.0" y2="166.0"/>
+<line class="connection" x1="98.0" y1="134.0" x2="160.0" y2="102.0"/>
+<line class="connection" x1="98.0" y1="134.0" x2="160.0" y2="134.0"/>
+<line class="connection" x1="98.0" y1="134.0" x2="160.0" y2="166.0"/>
+<line class="connection" x1="98.0" y1="166.0" x2="160.0" y2="102.0"/>
+<line class="connection" x1="98.0" y1="166.0" x2="160.0" y2="134.0"/>
+<line class="connection" x1="98.0" y1="166.0" x2="160.0" y2="166.0"/>
+<line class="connection" x1="160.0" y1="102.0" x2="222.0" y2="102.0"/>
+<line class="connection" x1="160.0" y1="102.0" x2="222.0" y2="134.0"/>
+<line class="connection" x1="160.0" y1="102.0" x2="222.0" y2="166.0"/>
+<line class="connection" x1="160.0" y1="134.0" x2="222.0" y2="102.0"/>
+<line class="connection" x1="160.0" y1="134.0" x2="222.0" y2="134.0"/>
+<line class="connection" x1="160.0" y1="134.0" x2="222.0" y2="166.0"/>
+<line class="connection" x1="160.0" y1="166.0" x2="222.0" y2="102.0"/>
+<line class="connection" x1="160.0" y1="166.0" x2="222.0" y2="134.0"/>
+<line class="connection" x1="160.0" y1="166.0" x2="222.0" y2="166.0"/>
+<line class="connection" x1="222.0" y1="102.0" x2="284.0" y2="134.0"/>
+<line class="connection" x1="222.0" y1="134.0" x2="284.0" y2="134.0"/>
+<line class="connection" x1="222.0" y1="166.0" x2="284.0" y2="134.0"/>
+<circle class="outer-node" cx="36.0" cy="102.0" r="9"/>
+<circle class="outer-node" cx="36.0" cy="134.0" r="9"/>
+<circle class="outer-node" cx="36.0" cy="166.0" r="9"/>
+<circle class="hidden-node" cx="98.0" cy="102.0" r="9"/>
+<circle class="hidden-node" cx="98.0" cy="134.0" r="9"/>
+<circle class="hidden-node" cx="98.0" cy="166.0" r="9"/>
+<circle class="hidden-node" cx="160.0" cy="102.0" r="9"/>
+<circle class="hidden-node" cx="160.0" cy="134.0" r="9"/>
+<circle class="hidden-node" cx="160.0" cy="166.0" r="9"/>
+<circle class="hidden-node" cx="222.0" cy="102.0" r="9"/>
+<circle class="hidden-node" cx="222.0" cy="134.0" r="9"/>
+<circle class="hidden-node" cx="222.0" cy="166.0" r="9"/>
+<circle class="outer-node" cx="284.0" cy="134.0" r="9"/>
+<text x="36.0" y="250" text-anchor="middle">input</text>
+<text x="98.0" y="250" text-anchor="middle">hidden</text>
+<text x="160.0" y="250" text-anchor="middle">hidden</text>
+<text x="222.0" y="250" text-anchor="middle">hidden</text>
+<text x="284.0" y="250" text-anchor="middle">output</text>
+</svg><p class="diagram-label">3 hidden layers · width 3</p></div></div>
+          <figcaption class="chart-caption"><span class="label">fig 1</span>
+            On the left we have one hidden layer with six neurons. On the right we have three
+            hidden layers with three neurons each. The lines are weights; I have left out the biases.
+          </figcaption>
+        </figure>
+        <p>
+          With more layers, the calculation in each layer is the same as before:
+        </p>
+        <p>$$\mathbf{z}^{(\ell)}=h^{(\ell)}\!\left(\mathbf{W}^{(\ell)}\mathbf{z}^{(\ell-1)}+\mathbf{b}^{(\ell)}\right),
+          \qquad \mathbf{z}^{(0)}=\mathbf{x}.$$</p>
+        <p>
+          Here $\mathbf{W}^{(\ell)}$ and $\mathbf{b}^{(\ell)}$ are the weights and biases for layer
+          $\ell$, and $h^{(\ell)}$ is its activation function. The difference is that the inputs
+          are now the outputs of the previous layer, rather than the original input features.
+        </p>
+        <p>
+          So we apply one function, then apply another function to its result, and so on.
+          This is called <strong>function composition</strong>. If we write each layer as
+          $f_\ell$, the complete network is:
+        </p>
+        <p>$$f(\mathbf{x})=f_L\bigl(f_{L-1}(\cdots f_1(\mathbf{x}))\bigr).$$</p>
+        <p>
+          Here $L$ includes the output layer. As we saw in the
+          <a href="../activation-functions/">activation functions note</a>, we need nonlinear
+          activations for this to give us more than an affine transformation. Each new layer
+          can then learn combinations of the features calculated by the previous layer.
+        </p>
 
-        <h2>Composing functions across layers</h2>
-        <!-- TODO: Add the explanation, equations, and examples for this section. -->
+        <h2>Universal approximation</h2>
+        <p>
+          Before we look at why extra layers help, it is useful to know what we can do with just
+          one hidden layer. It turns out that, if we make it wide enough, we can approximate any
+          continuous function on a compact domain using a suitable activation function and a linear
+          output. This is the <strong>universal approximation theorem</strong>. Sigmoid and ReLU
+          are suitable choices, although not every nonlinear activation has this property.
+        </p>
+        <p>
+          There are a couple of terms to unpack here. A continuous function has no jumps. In the
+          input spaces we use here, a compact domain is a closed and bounded set, such as the
+          interval $[0,1]$, including its endpoints.
+        </p>
+        <p>
+          By approximate, we mean that we can make the network output as close to the function
+          as we like. For example, suppose we want the error to be less than $0.01$ everywhere on
+          $[0,1]$. The theorem tells us that a sufficiently wide network with suitable weights
+          exists. We can ask for a smaller error too, but we may need more neurons and different weights.
+        </p>
+        <div class="note important">
+          <span class="tag">important</span>
+          <p>This tells us that suitable weights exist. It does not tell us how to find them,
+            how many neurons we need, or how well a network fitted to a dataset will predict
+            on unseen data. It also does not say that one hidden layer uses the fewest parameters.</p>
+        </div>
+        <p>
+          Below we have a simple example. We use a shallow ReLU network to approximate a smooth
+          function. The network output is made up of straight sections joined together. Try
+          increasing the number of neurons and notice how the approximation changes.
+        </p>
+        <figure class="chart-card">
+          <div class="eyebrow">interactive approximation</div>
+          <h3>Shallow network approximation</h3>
+          <div class="chart-legend">
+            <span class="item"><span class="swatch target-swatch"></span>smooth target</span>
+            <span class="item"><span class="swatch network-swatch"></span>ReLU network</span>
+          </div>
+          <div id="approximation-controls" class="approximation-controls" hidden>
+            <label for="hidden-width">Hidden neurons <output id="width-value" for="hidden-width">8</output></label>
+            <input id="hidden-width" type="range" min="1" max="32" step="1" value="8" aria-describedby="approximation-help"/>
+          </div>
+          <div class="diagram-scroll" role="region" aria-label="Function approximation plot" tabindex="0">
+          <svg id="approximation-chart" class="chart approximation" viewBox="0 0 680 300" role="img" aria-labelledby="approx-title approx-desc">
+<title id="approx-title">A shallow ReLU network approximating a curved function</title>
+<desc id="approx-desc">The smooth target is compared with the piecewise linear output of eight ReLU neurons on the interval zero to one.</desc>
+<path class="grid" d="M54 56.29H646 M54 120.86H646 M54 185.43H646"/>
+<path class="axis" d="M54 24V250H646"/>
+<g text-anchor="end"><text x="44" y="60">0.6</text><text x="44" y="125">0.2</text><text x="44" y="190">−0.2</text><text x="44" y="254">−0.6</text></g>
+<g text-anchor="middle"><text x="54" y="270">0</text><text x="202" y="270">0.25</text><text x="350" y="270">0.5</text><text x="498" y="270">0.75</text><text x="646" y="270">1</text></g>
+<text x="54" y="15">output</text><text x="646" y="291" text-anchor="end">input x</text>
+<path d="M 54.00 153.14 L 56.47 150.62 L 58.93 148.09 L 61.40 145.57 L 63.87 143.06 L 66.33 140.55 L 68.80 138.04 L 71.27 135.55 L 73.73 133.07 L 76.20 130.60 L 78.67 128.15 L 81.13 125.71 L 83.60 123.29 L 86.07 120.88 L 88.53 118.50 L 91.00 116.14 L 93.47 113.80 L 95.93 111.49 L 98.40 109.20 L 100.87 106.94 L 103.33 104.71 L 105.80 102.51 L 108.27 100.35 L 110.73 98.21 L 113.20 96.11 L 115.67 94.05 L 118.13 92.02 L 120.60 90.03 L 123.07 88.08 L 125.53 86.18 L 128.00 84.31 L 130.47 82.48 L 132.93 80.71 L 135.40 78.97 L 137.87 77.28 L 140.33 75.64 L 142.80 74.05 L 145.27 72.51 L 147.73 71.01 L 150.20 69.57 L 152.67 68.18 L 155.13 66.84 L 157.60 65.56 L 160.07 64.33 L 162.53 63.15 L 165.00 62.04 L 167.47 60.97 L 169.93 59.97 L 172.40 59.02 L 174.87 58.13 L 177.33 57.29 L 179.80 56.52 L 182.27 55.80 L 184.73 55.15 L 187.20 54.55 L 189.67 54.02 L 192.13 53.54 L 194.60 53.13 L 197.07 52.78 L 199.53 52.48 L 202.00 52.25 L 204.47 52.08 L 206.93 51.97 L 209.40 51.92 L 211.87 51.93 L 214.33 52.00 L 216.80 52.13 L 219.27 52.32 L 221.73 52.58 L 224.20 52.89 L 226.67 53.26 L 229.13 53.69 L 231.60 54.17 L 234.07 54.72 L 236.53 55.32 L 239.00 55.98 L 241.47 56.70 L 243.93 57.47 L 246.40 58.29 L 248.87 59.18 L 251.33 60.11 L 253.80 61.10 L 256.27 62.13 L 258.73 63.22 L 261.20 64.36 L 263.67 65.55 L 266.13 66.79 L 268.60 68.07 L 271.07 69.41 L 273.53 70.78 L 276.00 72.20 L 278.47 73.66 L 280.93 75.17 L 283.40 76.72 L 285.87 78.30 L 288.33 79.92 L 290.80 81.58 L 293.27 83.28 L 295.73 85.01 L 298.20 86.78 L 300.67 88.57 L 303.13 90.40 L 305.60 92.25 L 308.07 94.14 L 310.53 96.04 L 313.00 97.98 L 315.47 99.94 L 317.93 101.91 L 320.40 103.91 L 322.87 105.93 L 325.33 107.97 L 327.80 110.02 L 330.27 112.08 L 332.73 114.16 L 335.20 116.25 L 337.67 118.35 L 340.13 120.46 L 342.60 122.57 L 345.07 124.69 L 347.53 126.81 L 350.00 128.93 L 352.47 131.05 L 354.93 133.17 L 357.40 135.29 L 359.87 137.40 L 362.33 139.51 L 364.80 141.61 L 367.27 143.70 L 369.73 145.77 L 372.20 147.84 L 374.67 149.89 L 377.13 151.93 L 379.60 153.94 L 382.07 155.94 L 384.53 157.92 L 387.00 159.88 L 389.47 161.81 L 391.93 163.72 L 394.40 165.60 L 396.87 167.46 L 399.33 169.29 L 401.80 171.08 L 404.27 172.85 L 406.73 174.58 L 409.20 176.27 L 411.67 177.93 L 414.13 179.56 L 416.60 181.14 L 419.07 182.69 L 421.53 184.19 L 424.00 185.66 L 426.47 187.08 L 428.93 188.45 L 431.40 189.78 L 433.87 191.07 L 436.33 192.30 L 438.80 193.49 L 441.27 194.63 L 443.73 195.72 L 446.20 196.76 L 448.67 197.75 L 451.13 198.68 L 453.60 199.56 L 456.07 200.39 L 458.53 201.16 L 461.00 201.88 L 463.47 202.54 L 465.93 203.14 L 468.40 203.68 L 470.87 204.17 L 473.33 204.60 L 475.80 204.97 L 478.27 205.28 L 480.73 205.53 L 483.20 205.72 L 485.67 205.86 L 488.13 205.93 L 490.60 205.94 L 493.07 205.89 L 495.53 205.78 L 498.00 205.61 L 500.47 205.37 L 502.93 205.08 L 505.40 204.73 L 507.87 204.31 L 510.33 203.84 L 512.80 203.30 L 515.27 202.71 L 517.73 202.05 L 520.20 201.34 L 522.67 200.56 L 525.13 199.73 L 527.60 198.84 L 530.07 197.89 L 532.53 196.89 L 535.00 195.82 L 537.47 194.70 L 539.93 193.53 L 542.40 192.30 L 544.87 191.01 L 547.33 189.68 L 549.80 188.29 L 552.27 186.84 L 554.73 185.35 L 557.20 183.81 L 559.67 182.22 L 562.13 180.57 L 564.60 178.89 L 567.07 177.15 L 569.53 175.37 L 572.00 173.55 L 574.47 171.68 L 576.93 169.77 L 579.40 167.82 L 581.87 165.84 L 584.33 163.81 L 586.80 161.74 L 589.27 159.64 L 591.73 157.51 L 594.20 155.34 L 596.67 153.14 L 599.13 150.91 L 601.60 148.65 L 604.07 146.37 L 606.53 144.06 L 609.00 141.72 L 611.47 139.36 L 613.93 136.97 L 616.40 134.57 L 618.87 132.15 L 621.33 129.71 L 623.80 127.26 L 626.27 124.79 L 628.73 122.31 L 631.20 119.81 L 633.67 117.31 L 636.13 114.80 L 638.60 112.29 L 641.07 109.76 L 643.53 107.24 L 646.00 104.71" class="target-curve"/>
+<path id="network-curve" d="M 54.00 153.14 L 128.00 84.31 L 202.00 52.25 L 276.00 72.20 L 350.00 128.93 L 424.00 185.66 L 498.00 205.61 L 572.00 173.55 L 646.00 104.71" class="network-curve"/>
+<g id="interpolation-knots" class="knot"><circle cx="54.00" cy="153.14" r="3"/><circle cx="128.00" cy="84.31" r="3"/><circle cx="202.00" cy="52.25" r="3"/><circle cx="276.00" cy="72.20" r="3"/><circle cx="350.00" cy="128.93" r="3"/><circle cx="424.00" cy="185.66" r="3"/><circle cx="498.00" cy="205.61" r="3"/><circle cx="572.00" cy="173.55" r="3"/><circle cx="646.00" cy="104.71" r="3"/></g>
+</svg>
+          </div>
+          <output id="approximation-error" class="approximation-readout" for="hidden-width" aria-live="polite"></output>
+          <figcaption id="approximation-help" class="chart-caption"><span class="label">fig 2</span>
+            The purple line is the network output and the dashed line is the function we want to
+            approximate. Use the slider or arrow keys to change the number of neurons. The error
+            is measured at 1,001 input values, so it is an estimate of the maximum error over the interval.
+          </figcaption>
+          <noscript><p class="chart-caption">The static figure shows width 8. Enable JavaScript to explore other widths.</p></noscript>
+        </figure>
+        <p>
+          For this figure I calculate the weights using the known function. We are looking at
+          what the network can represent, rather than training it on data. For more detail on
+          the theorem, see <a href="https://doi.org/10.1016/S0893-6080(05)80131-5">Leshno and colleagues (1993)</a>.
+        </p>
+        <details class="optional-math">
+          <summary>Optional: calculating the weights for the figure</summary>
+          <p>
+            The function we want to approximate is $g(x)=0.55\sin(2\pi x)+0.3x$.
+            With $M$ neurons, first choose evenly spaced input values $t_j=j/M$, for
+            $j=0,\ldots,M$. The slope between each pair of neighbouring points is:
+          </p>
+          <p>$$s_j=\frac{g(t_{j+1})-g(t_j)}{t_{j+1}-t_j},\qquad j=0,\ldots,M-1.$$</p>
+          <p>
+            Now we use one ReLU to give us the first slope, and another at each interior point
+            to change the slope. This gives:
+          </p>
+          <p>$$y_M(x)=g(0)+s_0\operatorname{ReLU}(x)
+            +\sum_{j=1}^{M-1}(s_j-s_{j-1})\operatorname{ReLU}(x-t_j).$$</p>
+          <p>
+            So we have $M$ hidden neurons with input weights $1$ and biases $0$ or $-t_j$.
+            Their output weights are the changes in slope. On $[0,1]$, this joins the chosen
+            points with straight lines.
+          </p>
+        </details>
 
-        <h2>Why depth can help</h2>
-        <!-- TODO: Add the explanation, equations, and examples for this section. -->
+        <h2>Why add more layers?</h2>
+        <p>
+          If one hidden layer can approximate the function, why bother adding more? The issue is
+          how many neurons and parameters we need to do it. Being able to represent a function
+          does not mean we have found an efficient way to represent it.
+        </p>
+        <p>
+          For example, suppose we have four inputs. One neuron compares $x_1$ and $x_2$, while
+          another checks whether $x_3+x_4$ exceeds $1$. We can pass both results to the next
+          layer and combine them in different ways:
+        </p>
+        <figure class="chart-card">
+          <div class="eyebrow">function composition</div>
+          <h3>Feature reuse across layers</h3>
+          <div class="diagram-scroll" role="region" aria-label="Function composition diagram" tabindex="0">
+          <svg class="chart composition" viewBox="0 0 640 260" role="img" aria-labelledby="composition-title composition-desc">
+            <title id="composition-title">Two intermediate calculations feed two later combinations</title>
+            <desc id="composition-desc">The first pair of inputs produces u. The second pair produces v. Both u and v feed two later ReLU neurons, q and r, so each intermediate feature is reused.</desc>
+            <defs><marker id="composition-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="var(--accent)"/></marker></defs>
+            <g class="flow"><path d="M120 80H201 M120 180H201 M386 80H465 M386 180H465 M386 80L465 180 M386 180L465 80"/></g>
+            <g class="feature-box"><rect x="18" y="54" width="102" height="52" rx="5"/><rect x="18" y="154" width="102" height="52" rx="5"/><rect x="210" y="54" width="176" height="52" rx="5"/><rect x="210" y="154" width="176" height="52" rx="5"/><rect x="474" y="54" width="145" height="52" rx="5"/><rect x="474" y="154" width="145" height="52" rx="5"/></g>
+            <g text-anchor="middle"><text x="69" y="85">x₁, x₂</text><text x="69" y="185">x₃, x₄</text><text x="298" y="85">u = h(x₁ − x₂)</text><text x="298" y="185">v = h(x₃ + x₄ − 1)</text><text x="547" y="85">q = h(u + v − 1)</text><text x="547" y="185">r = h(u − v)</text><text class="mu" x="69" y="28">inputs</text><text class="mu" x="298" y="28">intermediate features</text><text class="mu" x="547" y="28">combinations</text></g>
+          </svg>
+          </div>
+          <figcaption class="chart-caption"><span class="label">fig 3</span>
+            Both $u$ and $v$ are passed to two neurons in the next layer, so we use each feature
+            twice. Here $h(a)=\operatorname{ReLU}(a)$. We will work through the numbers later in the note.
+          </figcaption>
+        </figure>
+        <p>
+          We calculate $u$ and $v$ once, then use them in both of the later calculations.
+          A function built using smaller functions like this has a <strong>compositional
+          structure</strong>. A deep network can follow that structure, with each layer doing
+          part of the calculation.
+        </p>
+        <p>
+          For some functions, doing this needs substantially fewer neurons than a shallow network
+          would need for the same accuracy. If it also needs fewer weights and biases, we have
+          better <strong>parameter efficiency</strong>. This is one reason depth can be useful.
+          <a href="https://arxiv.org/abs/1603.00988">Mhaskar, Liao and Poggio (2016)</a>
+          give results for particular classes of compositional functions.
+        </p>
+        <p>
+          The small example above shows how we can reuse a calculation; it does not establish
+          a parameter saving. Adding layers is not always more efficient. That depends on the
+          function we are trying to learn and the widths and connections we choose.
+        </p>
+
+        <h2>Hierarchical representations</h2>
+        <p>
+          Let's consider a more familiar example: recognising handwritten digits. The input is
+          just a collection of pixel values, but the useful information is in the shapes those
+          pixels make. A loop, for example, could help us recognise a zero, a six, or an eight.
+        </p>
+        <p>
+          An early layer could learn to respond to edges and curves. A later layer could combine
+          those into a loop, and another could combine two loops into part of an eight.
+          We call this a <strong>hierarchical representation</strong>: later layers combine
+          simpler features into features that describe larger parts or patterns in the image.
+        </p>
+        <figure class="chart-card">
+          <div class="eyebrow">hierarchical feature learning</div>
+          <h3>Features for digit recognition</h3>
+          <div class="diagram-scroll" role="region" aria-label="Hierarchical feature extraction diagram" tabindex="0">
+            <svg class="chart hierarchy" viewBox="0 0 700 245" role="img" aria-labelledby="hierarchy-title hierarchy-desc">
+              <title id="hierarchy-title">An illustrative hierarchy for recognising a handwritten eight</title>
+              <desc id="hierarchy-desc">Pixel intensities become edge and curve features, which combine into a loop, then two stacked loops, and finally evidence for a digit category. These are possible interpretations of learned features, not prescribed stages.</desc>
+              <defs>
+                <marker id="hierarchy-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10Z" fill="var(--accent)"/></marker>
+                <pattern id="pixel-grid" width="9" height="9" patternUnits="userSpaceOnUse"><rect width="9" height="9" fill="var(--bg-sunk)"/><path d="M9 0H0V9" fill="none" stroke="var(--rule)" stroke-width="1"/></pattern>
+              </defs>
+              <g class="feature-box"><rect x="8" y="48" width="112" height="118" rx="5"/><rect x="150" y="48" width="112" height="118" rx="5"/><rect x="292" y="48" width="112" height="118" rx="5"/><rect x="434" y="48" width="112" height="118" rx="5"/><rect x="576" y="48" width="112" height="118" rx="5"/></g>
+              <g class="hierarchy-flow"><path d="M124 107H145 M266 107H287 M408 107H429 M550 107H571"/></g>
+              <rect x="19" y="61" width="90" height="90" fill="url(#pixel-grid)"/>
+              <rect x="46" y="70" width="8" height="8" fill="var(--fg)"/><rect x="55" y="70" width="8" height="8" fill="var(--fg)"/><rect x="64" y="70" width="8" height="8" fill="var(--fg)"/><rect x="37" y="79" width="8" height="8" fill="var(--fg)"/><rect x="46" y="79" width="8" height="8" fill="var(--fg)"/><rect x="64" y="79" width="8" height="8" fill="var(--fg)"/><rect x="73" y="79" width="8" height="8" fill="var(--fg)"/><rect x="37" y="88" width="8" height="8" fill="var(--fg)"/><rect x="73" y="88" width="8" height="8" fill="var(--fg)"/><rect x="46" y="97" width="8" height="8" fill="var(--fg)"/><rect x="55" y="97" width="8" height="8" fill="var(--fg)"/><rect x="64" y="97" width="8" height="8" fill="var(--fg)"/><rect x="37" y="106" width="8" height="8" fill="var(--fg)"/><rect x="46" y="106" width="8" height="8" fill="var(--fg)"/><rect x="64" y="106" width="8" height="8" fill="var(--fg)"/><rect x="73" y="106" width="8" height="8" fill="var(--fg)"/><rect x="28" y="115" width="8" height="8" fill="var(--fg)"/><rect x="37" y="115" width="8" height="8" fill="var(--fg)"/><rect x="73" y="115" width="8" height="8" fill="var(--fg)"/><rect x="82" y="115" width="8" height="8" fill="var(--fg)"/><rect x="28" y="124" width="8" height="8" fill="var(--fg)"/><rect x="37" y="124" width="8" height="8" fill="var(--fg)"/><rect x="73" y="124" width="8" height="8" fill="var(--fg)"/><rect x="82" y="124" width="8" height="8" fill="var(--fg)"/><rect x="37" y="133" width="8" height="8" fill="var(--fg)"/><rect x="46" y="133" width="8" height="8" fill="var(--fg)"/><rect x="55" y="133" width="8" height="8" fill="var(--fg)"/><rect x="64" y="133" width="8" height="8" fill="var(--fg)"/><rect x="73" y="133" width="8" height="8" fill="var(--fg)"/>
+              <g class="feature-stroke"><path d="M168 82L187 65 M202 68Q243 68 239 102 M172 127H204 M231 124V145"/><path d="M324 79C348 62 382 81 373 106C366 124 326 120 323 102C321 94 323 85 324 79Z"/><path d="M477 69C507 60 527 91 504 104C480 118 452 102 465 80C476 62 513 73 508 93C503 116 456 112 463 141C470 163 517 153 514 129C512 114 485 107 477 109"/></g>
+              <text class="digit-evidence" x="632" y="116" text-anchor="middle">8?</text>
+              <g text-anchor="middle"><text x="64" y="30">input</text><text x="206" y="30">patterns</text><text x="348" y="30">combinations</text><text x="490" y="30">parts</text><text x="632" y="30">task features</text><text class="mu" x="64" y="193">pixel values</text><text class="mu" x="206" y="193">edges, curves</text><text class="mu" x="348" y="193">a loop</text><text class="mu" x="490" y="193">stacked loops</text><text class="mu" x="632" y="193">digit evidence</text></g>
+            </svg>
+          </div>
+          <figcaption class="chart-caption"><span class="label">fig 4</span>
+            For a digit, edges and curves can be combined into loops, then into a pattern of
+            two loops. This is an example of how we might interpret the learned features; a network
+            is not guaranteed to learn exactly these features or assign each one to a single neuron.
+          </figcaption>
+        </figure>
+        <p>
+          This builds on the basis functions we used in
+          <a href="../../01-regression/non-linear-regression/">nonlinear regression</a>.
+          There we chose the transformation ourselves, for example by adding $x^2$ as a feature.
+          With a neural network, we learn the transformation. With several layers, we can also
+          learn new features using the features we have already learned.
+        </p>
+        <p>
+          The vector $\mathbf{z}^{(\ell)}(\mathbf{x})$ is therefore a
+          <strong>learned representation</strong> of the input. It contains the outputs of the
+          neurons in layer $\ell$. The next layer works with these values instead of the original
+          pixels, so the representation needs to keep the information useful for the task.
+        </p>
+
+        <h2>Distributed representations and feature reuse</h2>
+        <p>
+          So far we have talked about features such as edges and loops, but this does not mean
+          that each one must correspond to a single neuron. Information can be spread across
+          the values of several neurons. This is called a <strong>distributed representation</strong>.
+        </p>
+        <p>
+          We can also use the same feature for several different digits. A curved edge could help
+          identify a zero, a three, or an eight. Straight edges and intersections are useful for
+          other digits, depending on where they occur:
+        </p>
+        <div class="depth-table-wrap" role="region" aria-label="Illustrative shared features in handwritten digits" tabindex="0">
+          <table class="depth-table">
+            <caption>Some features that can be useful for more than one digit</caption>
+            <thead><tr><th scope="col">Feature response</th><th scope="col">Can contribute to</th><th scope="col">What else matters?</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">Curved edges</th><td>0, 3, 8</td><td>Whether curves close into loops, and where they occur</td></tr>
+              <tr><th scope="row">Straight edges</th><td>1, 4, 7</td><td>Stroke direction, position, and combination</td></tr>
+              <tr><th scope="row">Intersections</th><td>4, crossed 7</td><td>Which strokes meet and how they are arranged</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          This means we do not need to learn every possible digit pattern independently.
+          We can learn some useful features and combine them in different ways. A neuron in
+          a later layer might use an earlier feature with one weight, while another neuron
+          uses the same feature with a different weight.
+        </p>
+        <p>
+          These are examples of how we might interpret the learned features. A curve may be
+          represented by several neurons, and any one of those neurons may also contribute
+          to other features. We will look at learned representations in more detail in the
+          <a href="../learning-representations/">Representation Learning</a> note.
+        </p>
+
+        <h2>Does deeper always mean better?</h2>
+        <p>
+          As with adding more basis functions in regression, we should not assume that a more
+          complex model will give better predictions. There are some costs to adding layers:
+        </p>
+        <ul>
+          <li><span>We have more calculations to perform, with each layer waiting for the outputs of the previous one.</span></li>
+          <li><span>We may have more weights and biases to store, as well as the intermediate neuron outputs. Using narrower layers can reduce some of this cost.</span></li>
+          <li><span>Finding suitable weights can be harder because changing one layer affects the calculations in later layers.</span></li>
+          <li><span>The choice of widths, activations, initial weights, and training settings can affect whether the extra layers help.</span></li>
+        </ul>
+        <p>
+          During training, information about the error must pass through the layers to adjust
+          the earlier weights. The gradients involved can become very small or very large.
+          These are called <strong>vanishing</strong> and <strong>exploding gradients</strong>,
+          and we will cover them later.
+        </p>
+        <p>
+          There are four separate things to consider when comparing two networks:
+        </p>
+        <div class="depth-table-wrap" role="region" aria-label="Four different questions about a network" tabindex="0">
+          <table class="depth-table">
+            <caption>Four things to consider when comparing networks</caption>
+            <thead><tr><th scope="col">Concept</th><th scope="col">Question</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">Representational capacity</th><td>Which functions can the network express or approximate?</td></tr>
+              <tr><th scope="row">Parameter efficiency</th><td>How many weights and biases are needed for a given accuracy?</td></tr>
+              <tr><th scope="row">Optimisation</th><td>Can training find useful values for those parameters?</td></tr>
+              <tr><th scope="row">Generalisation</th><td>How well does the fitted model predict on unseen examples?</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          In the <a href="../../01-regression/regularisation/">regularisation note</a>, we saw
+          that fitting the training data well does not guarantee good predictions on unseen data.
+          The same applies here. We need to choose a depth that suits the problem, the amount
+          of data we have, and the time and memory available, then check the model on held-out data.
+        </p>
+
+        <h2>Worked example</h2>
+        <p>
+          Now let's work through the small network shown earlier. We have four inputs
+          $x_1,x_2,x_3,x_4$ and use ReLU, $h(a)=\max(0,a)$, in both hidden layers.
+          First, we calculate two features:
+        </p>
+        <p>$$u=h(x_1-x_2),\qquad v=h(x_3+x_4-1).$$</p>
+        <p>
+          For $u$, the weights are $1$ and $-1$, with no bias. For $v$, both weights are $1$
+          and the bias is $-1$. So $u$ is positive when $x_1&gt;x_2$, and $v$ is positive when
+          $x_3+x_4&gt;1$.
+        </p>
+        <p>Next, we use these two values as the inputs to another layer:</p>
+        <p>$$q=h(u+v-1),\qquad r=h(u-v).$$</p>
+        <p>
+          Here $q$ adds the two features and subtracts $1$, while $r$ takes their difference.
+          Both then apply ReLU. Finally, we combine them with a linear output:
+        </p>
+        <p>$$y=q+2r.$$</p>
+        <p>Let's use the input $\mathbf{x}=(2,0,2,1)^\top$. The first layer gives:</p>
+        <p>$$u=\max(0,2-0)=2,\qquad v=\max(0,2+1-1)=2.$$</p>
+        <p>Substituting these into the second layer:</p>
+        <p>$$q=\max(0,2+2-1)=3,\qquad r=\max(0,2-2)=0.$$</p>
+        <p>And the prediction is:</p>
+        <p>$$y=3+2(0)=3.$$</p>
+        <p>
+          So the first layer gives us $(u,v)=(2,2)$, and the second gives $(q,r)=(3,0)$.
+          We used both $u$ and $v$ twice without calculating them again. This is function
+          composition and feature reuse. A shallow network could also approximate the same
+          function; the example shows how the deeper calculation is organised.
+        </p>
+
+        <h2>Check your understanding</h2>
+        <div class="exercise">
+          <span class="tag">questions</span>
+          <ol>
+            <li><span>Suppose a network has one hidden layer with 100 neurons. What would you change to make it wider? What would you change to make it deeper?</span></li>
+            <li><span>What does the universal approximation theorem tell us? Does it tell us how to find the weights or how well the model will predict on new data?</span></li>
+            <li><span>Why might we need fewer parameters if we build a function using several layers? How could reusing a feature help?</span></li>
+            <li><span>How is learning features in several layers different from choosing polynomial basis functions ourselves?</span></li>
+            <li><span>Suppose we add another hidden layer and the training error decreases. Is that enough to say the model is better? What else should we check?</span></li>
+          </ol>
+        </div>
+
+        <h2>Summary</h2>
+        <p>
+          Adding layers allows us to learn new features using the outputs of earlier layers.
+          For some problems, this uses fewer parameters than one very wide layer. But we still
+          need to find suitable weights and check that the model generalises; depth alone does
+          not guarantee either. How we construct and train the network matters.
+        </p>
+        <p>
+          In the next note, <a href="../output-layers-and-loss-functions/">Outputs and Loss Functions</a>,
+          we will look at how to turn the final layer's values into predictions and choose a loss
+          function for the task.
+        </p>
       </div>
 
       <div class="endbar">
-        <a href="../">&larr; neural networks topic guide</a>
-        <a href="../learning-representations/">3.6 &middot; learning representations &rarr;</a>
+        <a href="../activation-functions/">&larr; 3.3 &middot; activation functions</a>
+        <a href="../output-layers-and-loss-functions/">3.5 &middot; outputs and loss functions &rarr;</a>
       </div>
     </article>
   </div>
 </div>
-<script>if (window.hljs) hljs.highlightAll();</script>
 </body>
 </html>

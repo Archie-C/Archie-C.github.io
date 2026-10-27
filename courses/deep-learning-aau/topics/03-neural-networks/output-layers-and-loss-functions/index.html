@@ -2,18 +2,19 @@
 <html lang="en" data-palette="paper">
 <head>
 <meta charset="utf-8"/>
-<title>Output layers and loss functions | Deep Learning</title>
-<meta name="description" content="Notes in preparation. Connect network outputs to regression and classification objectives."/>
+<title>Outputs and loss functions | Deep Learning</title>
+<meta name="description" content="Match neural-network output layers and loss functions to regression, binary, multiclass, and multilabel prediction tasks, with stable calculations from logits."/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <link rel="icon" href="../../../../../design_system/assets/favicon.svg"/>
 <link rel="stylesheet" href="../../../../../design_system/colors_and_type.css"/>
 <link rel="stylesheet" href="../../../../../design_system/charts.css"/>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"/>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
   onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
 <link rel="stylesheet" href="../../../styles/notes.css"/>
+<link rel="stylesheet" href="visuals.css"/>
+<script defer src="visuals.js"></script>
   <!-- Cloudflare Web Analytics -->
   <script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "f63b2ef074b74a5e8e78014b83a4071d"}'></script>
   <!-- End Cloudflare Web Analytics -->
@@ -25,7 +26,7 @@
     <span class="crumb">
       <a href="../../../">Deep Learning</a><span class="sep">&rsaquo;</span>
       <a href="../">03 neural networks</a><span class="sep">&rsaquo;</span>
-      output layers and loss functions
+      outputs and loss functions
     </span>
     <nav aria-label="Course navigation">
       <a href="../../../" class="active">syllabus</a>
@@ -43,8 +44,8 @@
         <a href="../introduction-to-learning-features/">3.1 &middot; introduction to learning features</a>
         <a href="../neural-networks/">3.2 &middot; neural networks</a>
         <a href="../activation-functions/">3.3 &middot; activation functions</a>
-        <a class="current" href="./" aria-current="page">3.4 &middot; output layers and loss functions</a>
-        <a href="../why-we-use-deep-networks/">3.5 &middot; why we use deep networks</a>
+        <a href="../why-we-use-deep-networks/">3.4 &middot; why deep networks?</a>
+        <a class="current" href="./" aria-current="page">3.5 &middot; outputs and loss functions</a>
         <a href="../learning-representations/">3.6 &middot; learning representations</a>
         <a href="../implementing-neural-networks/">3.7 &middot; how do i implement them?</a>
         <a href="../exercises/">3.8 &middot; exercises</a>
@@ -55,40 +56,430 @@
       <div class="crumb">
         <a href="../../../">syllabus</a><span class="sep">&rsaquo;</span>
         <a href="../">topic 03</a><span class="sep">&rsaquo;</span>
-        subtopic 3.4
+        subtopic 3.5
       </div>
-      <h1>Output layers and loss functions.</h1>
-      <p class="standfirst">Connect network outputs to regression and classification objectives.</p>
+      <h1>Outputs and loss functions.</h1>
+      <p class="standfirst">The output of a neural network needs to suit the task. Here we look at how to make predictions and measure their errors using the regression and classification losses we already know.</p>
 
       <div class="body">
-        <div class="exercise">
-          <span class="tag">in preparation</span>
-          <p>These notes are in preparation. The planned sections are listed below.</p>
-        </div>
         <h2>What this note covers</h2>
         <ul>
-          <li>Regression outputs and squared error</li>
-          <li>Binary classification and cross-entropy</li>
-          <li>Multiclass classification and softmax</li>
+          <li><span>Output layers for regression and classification</span></li>
+          <li><span>Squared error and cross-entropy losses</span></li>
+          <li><span>Multiclass and multilabel targets</span></li>
+          <li><span>Calculating losses using logits</span></li>
         </ul>
 
-        <h2>Regression outputs and squared error</h2>
-        <!-- TODO: Add the explanation, equations, and examples for this section. -->
+        <h2>The output layer</h2>
+        <p>
+          In the previous notes we looked at how the hidden layers calculate features of the input.
+          Now we need to combine those features to make a prediction and decide how to measure
+          the error. This depends on the task. Predicting a house price needs a different kind
+          of output from predicting whether an email is spam.
+        </p>
+        <p>
+          First, we calculate a weighted sum of the last hidden layer's outputs and add a bias,
+          just as we did in the other layers:
+        </p>
+        <p>$$\mathbf{a}^{(L)}=\mathbf{W}^{(L)}\mathbf{z}^{(L-1)}+\mathbf{b}^{(L)}.$$</p>
+        <p>
+          Here $\mathbf{z}^{(L-1)}$ contains the hidden features, and $\mathbf{W}^{(L)}$ and
+          $\mathbf{b}^{(L)}$ are the final weights and biases. We call the resulting values
+          <strong>output pre-activations</strong>, or usually <strong>logits</strong> when we are
+          doing classification. Importantly, here we have not yet applied an output activation.
+        </p>
+        <p>
+          We can keep the same hidden architecture for regression or classification. Much of
+          the difference is in what we do with these final values and which loss function we use:
+        </p>
+        <figure class="chart-card">
+          <div class="eyebrow">one representation, different outputs</div>
+          <h3>Output heads for different tasks</h3>
+          <div class="diagram-scroll" role="region" aria-label="Shared hidden network with three possible output heads" tabindex="0">
+            <svg class="chart output-heads" viewBox="0 0 680 330" role="img" aria-labelledby="heads-title heads-desc">
+              <title id="heads-title">A shared hidden representation connects to alternative output heads</title>
+              <desc id="heads-desc">Inputs pass through hidden layers to a learned feature vector. Alternative heads use a single identity output and MSE for regression, a single sigmoid output and BCE for binary classification, or K softmax outputs and categorical cross-entropy for multiclass classification.</desc>
+              <defs><marker id="head-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10Z" fill="var(--accent)"/></marker></defs>
+              <g class="head-connection"><path d="M71 115L149 107 M71 115L149 165 M71 165L149 107 M71 165L149 165 M71 165L149 223 M71 215L149 165 M71 215L149 223 M167 107L249 115 M167 107L249 165 M167 165L249 115 M167 165L249 165 M167 165L249 215 M167 223L249 165 M167 223L249 215"/></g>
+              <g class="head-node"><circle cx="62" cy="115" r="9"/><circle cx="62" cy="165" r="9"/><circle cx="62" cy="215" r="9"/><circle cx="158" cy="107" r="9"/><circle cx="158" cy="165" r="9"/><circle cx="158" cy="223" r="9"/><circle cx="258" cy="115" r="9"/><circle cx="258" cy="165" r="9"/><circle cx="258" cy="215" r="9"/></g>
+              <path class="head-bracket" d="M276 96H284V234H276"/>
+              <g class="head-flow"><path d="M285 165H324V64H365 M324 165H365 M324 165V266H365"/></g>
+              <g class="head-box"><rect x="374" y="24" width="282" height="80" rx="5"/><rect x="374" y="125" width="282" height="80" rx="5"/><rect x="374" y="226" width="282" height="80" rx="5"/></g>
+              <g text-anchor="middle"><text class="title" x="515" y="48">Regression</text><text x="515" y="70">1 score → identity → value</text><text class="mu" x="515" y="89">MSE loss</text><text class="title" x="515" y="149">Binary classification</text><text x="515" y="171">1 score → sigmoid → probability</text><text class="mu" x="515" y="190">Binary cross-entropy</text><text class="title" x="515" y="250">Multiclass classification</text><text x="515" y="272">K scores → softmax → distribution</text><text class="mu" x="515" y="291">Categorical cross-entropy</text><text x="62" y="275">inputs</text><text x="158" y="275">hidden</text><text x="258" y="275">features</text></g>
+            </svg>
+          </div>
+          <figcaption class="chart-caption"><span class="label">fig 1</span>
+            Here we keep the same hidden architecture and change the final layer for each task.
+            Each option has its own output weights and biases. I have left out the biases and
+            some hidden connections to keep the diagram readable.
+          </figcaption>
+        </figure>
+        <p>
+          I use $y_n$ for the true target, $\hat{y}_n$ for a regression prediction, and $p_n$ for
+          a predicted probability. In the earlier classification notes these were written as
+          $t_n$ for the target and $y_n$ for the probability. Here $N$ is the number of data points,
+          and $\log$ means the natural logarithm.
+        </p>
 
-        <h2>Binary classification and cross-entropy</h2>
-        <!-- TODO: Add the explanation, equations, and examples for this section. -->
+        <h2>Regression</h2>
+        <p>
+          Suppose we want to predict a house price using the property's features. We need one
+          number as the prediction, so we use one output neuron. Here $\mathbf{a}^{(L)}$ has just
+          one component, $a_1^{(L)}$: the weighted sum of the last hidden layer's outputs plus
+          the output bias. For an unrestricted real-valued output, we can return this value unchanged:
+        </p>
+        <p>$$\hat{y}=a_1^{(L)}=\sum_j W_{1j}^{(L)}z_j^{(L-1)}+b_1^{(L)}.$$</p>
+        <p>
+          This is called an <strong>identity activation</strong>. It puts no restriction on the
+          output, so it can also return a negative number. For house prices this is a limitation
+          of the unconstrained model.
+        </p>
+        <p>
+          To measure the error, we can use the same squared error as in
+          <a href="../../01-regression/linear-regression/">linear regression</a>.
+          Taking the mean over our data points gives mean squared error:
+        </p>
+        <p>$$\mathcal{L}_{\mathrm{MSE}}=\frac{1}{N}\sum_{n=1}^{N}(y_n-\hat{y}_n)^2.$$</p>
+        <p>
+          Squaring means that larger errors receive a larger penalty. If we double an error,
+          its contribution to the loss becomes four times as large.
+        </p>
+        <p>
+          As we saw in <a href="../../01-regression/probabilistic-regression/">probabilistic regression</a>,
+          minimising this loss gives the maximum likelihood prediction parameters if we assume
+          independent Gaussian noise with constant variance. Using MSE does not itself make that
+          assumption true. Mean absolute error, $\frac{1}{N}\sum_n|y_n-\hat{y}_n|$, is another option.
+        </p>
+        <p>
+          So adding hidden layers changes how we construct the prediction, but we can still use
+          the regression losses we already know.
+        </p>
 
-        <h2>Multiclass classification and softmax</h2>
-        <!-- TODO: Add the explanation, equations, and examples for this section. -->
+        <h2>Binary classification</h2>
+        <p>
+          Now suppose we want to classify an email as spam or not spam. We write the target as
+          $y=1$ for spam and $y=0$ for not spam. Again we need just one output neuron, but this
+          time we want a probability. Like before in logistic regression, we apply sigmoid:
+        </p>
+        <p>$$p(C_1\mid\mathbf{x})=\sigma(a_1^{(L)}).$$</p>
+        <p>
+          This gives a value between zero and one, which we interpret as the probability of spam.
+          If we write $p_n=p(C_1\mid\mathbf{x}_n)$, the mean binary cross-entropy loss is:
+        </p>
+        <p>$$\mathcal{L}_{\mathrm{BCE}}=-\frac{1}{N}\sum_{n=1}^{N}
+          \left[y_n\log p_n+(1-y_n)\log(1-p_n)\right].$$</p>
+        <p>
+          This is the negative log-likelihood of a Bernoulli model, averaged over the data points.
+          We derived it in the <a href="../../02-classification/maximum-likelihood-and-binary-cross-entropy/">classification notes</a>.
+          The calculation is the same here; we are just using learned hidden features to calculate
+          the score instead of using the original inputs directly.
+        </p>
+        <p>
+          Let's take one email that is actually spam, so $y=1$. The second term disappears and
+          the loss is $-\log p$. Substituting three different probabilities gives:
+        </p>
+        <div class="output-table-wrap" role="region" aria-label="Binary cross-entropy numerical comparison" tabindex="0">
+          <table class="output-table">
+            <caption>Loss for one positive target</caption>
+            <thead><tr><th scope="col">Predicted p</th><th scope="col">Interpretation</th><th scope="col">Loss</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">$0.90$</th><td>Confident and correct</td><td>$-\log(0.90)\approx0.105$</td></tr>
+              <tr><th scope="row">$0.50$</th><td>Uncertain</td><td>$-\log(0.50)\approx0.693$</td></tr>
+              <tr><th scope="row">$0.01$</th><td>Confidently incorrect</td><td>$-\log(0.01)\approx4.605$</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          The confident but wrong prediction gets a much larger penalty than the uncertain one.
+          For a target of $y=0$, the same happens when we assign a probability close to one:
+        </p>
+        <figure class="chart-card">
+          <div class="eyebrow">binary cross-entropy</div>
+          <h3>Binary cross-entropy loss</h3>
+          <div class="chart-legend">
+            <span class="item"><span class="swatch positive-swatch"></span>positive target, y = 1</span>
+            <span class="item"><span class="swatch negative-swatch"></span>negative target, y = 0</span>
+          </div>
+          <div class="diagram-scroll" role="region" aria-label="Binary cross-entropy plot" tabindex="0">
+            <svg class="chart bce-plot" viewBox="0 0 680 304" role="img" aria-labelledby="bce-title bce-desc">
+              <title id="bce-title">Binary cross-entropy versus predicted class-one probability</title>
+              <desc id="bce-desc">For a positive target, loss is minus log p and decreases towards zero as p approaches one. For a negative target, loss is minus log one minus p and increases as p approaches one. Both have loss about 0.693 at p equal to one half. Confidently wrong predictions have unbounded loss.</desc>
+              <path class="grid" d="M54 212H636 M54 170H636 M54 128H636 M54 86H636 M54 44H636"/>
+              <path class="axis" d="M54 34V254H636"/>
+              <g text-anchor="end"><text x="44" y="258">0</text><text x="44" y="216">1</text><text x="44" y="174">2</text><text x="44" y="132">3</text><text x="44" y="90">4</text><text x="44" y="48">5</text></g>
+              <g text-anchor="middle"><text x="54" y="275">0</text><text x="199.5" y="275">0.25</text><text x="345" y="275">0.5</text><text x="490.5" y="275">0.75</text><text x="636" y="275">1</text></g>
+              <text x="54" y="20">loss per observation</text><text x="636" y="297" text-anchor="end">predicted probability p</text>
+              <path class="positive-curve" d="M 59.82 60.58 L 62.20 74.96 L 64.57 85.66 L 66.95 94.17 L 69.33 101.25 L 71.70 107.30 L 74.08 112.59 L 76.46 117.29 L 78.83 121.52 L 81.21 125.36 L 83.59 128.87 L 85.96 132.12 L 88.34 135.13 L 90.71 137.94 L 93.09 140.58 L 95.47 143.05 L 97.84 145.40 L 100.22 147.61 L 102.60 149.72 L 104.97 151.72 L 107.35 153.64 L 109.73 155.47 L 112.10 157.22 L 114.48 158.91 L 116.86 160.52 L 119.23 162.08 L 121.61 163.59 L 123.99 165.04 L 126.36 166.44 L 128.74 167.80 L 131.12 169.11 L 133.49 170.39 L 135.87 171.62 L 138.24 172.82 L 140.62 173.99 L 143.00 175.13 L 145.37 176.24 L 147.75 177.31 L 150.13 178.37 L 152.50 179.39 L 154.88 180.39 L 157.26 181.37 L 159.63 182.33 L 162.01 183.26 L 164.39 184.18 L 166.76 185.07 L 169.14 185.95 L 171.52 186.80 L 173.89 187.65 L 176.27 188.47 L 178.64 189.28 L 181.02 190.07 L 183.40 190.85 L 185.77 191.61 L 188.15 192.36 L 190.53 193.10 L 192.90 193.83 L 195.28 194.54 L 197.66 195.24 L 200.03 195.93 L 202.41 196.61 L 204.79 197.27 L 207.16 197.93 L 209.54 198.58 L 211.92 199.21 L 214.29 199.84 L 216.67 200.46 L 219.05 201.07 L 221.42 201.67 L 223.80 202.26 L 226.18 202.85 L 228.55 203.42 L 230.93 203.99 L 233.30 204.55 L 235.68 205.10 L 238.06 205.65 L 240.43 206.19 L 242.81 206.72 L 245.19 207.24 L 247.56 207.76 L 249.94 208.28 L 252.32 208.78 L 254.69 209.28 L 257.07 209.78 L 259.45 210.27 L 261.82 210.75 L 264.20 211.23 L 266.58 211.70 L 268.95 212.17 L 271.33 212.63 L 273.71 213.08 L 276.08 213.54 L 278.46 213.98 L 280.83 214.43 L 283.21 214.86 L 285.59 215.30 L 287.96 215.73 L 290.34 216.15 L 292.72 216.57 L 295.09 216.99 L 297.47 217.40 L 299.85 217.81 L 302.22 218.21 L 304.60 218.61 L 306.98 219.01 L 309.35 219.40 L 311.73 219.79 L 314.11 220.17 L 316.48 220.56 L 318.86 220.93 L 321.24 221.31 L 323.61 221.68 L 325.99 222.05 L 328.36 222.42 L 330.74 222.78 L 333.12 223.14 L 335.49 223.49 L 337.87 223.85 L 340.25 224.20 L 342.62 224.54 L 345.00 224.89 L 347.38 225.23 L 349.75 225.57 L 352.13 225.90 L 354.51 226.24 L 356.88 226.57 L 359.26 226.90 L 361.64 227.22 L 364.01 227.55 L 366.39 227.87 L 368.76 228.18 L 371.14 228.50 L 373.52 228.81 L 375.89 229.13 L 378.27 229.43 L 380.65 229.74 L 383.02 230.05 L 385.40 230.35 L 387.78 230.65 L 390.15 230.95 L 392.53 231.24 L 394.91 231.54 L 397.28 231.83 L 399.66 232.12 L 402.04 232.41 L 404.41 232.69 L 406.79 232.97 L 409.17 233.26 L 411.54 233.54 L 413.92 233.82 L 416.30 234.09 L 418.67 234.37 L 421.05 234.64 L 423.42 234.91 L 425.80 235.18 L 428.18 235.45 L 430.55 235.71 L 432.93 235.98 L 435.31 236.24 L 437.68 236.50 L 440.06 236.76 L 442.44 237.02 L 444.81 237.27 L 447.19 237.53 L 449.57 237.78 L 451.94 238.03 L 454.32 238.28 L 456.70 238.53 L 459.07 238.78 L 461.45 239.02 L 463.82 239.27 L 466.20 239.51 L 468.58 239.75 L 470.95 239.99 L 473.33 240.23 L 475.71 240.47 L 478.08 240.71 L 480.46 240.94 L 482.84 241.17 L 485.21 241.41 L 487.59 241.64 L 489.97 241.87 L 492.34 242.09 L 494.72 242.32 L 497.10 242.55 L 499.47 242.77 L 501.85 243.00 L 504.23 243.22 L 506.60 243.44 L 508.98 243.66 L 511.35 243.88 L 513.73 244.10 L 516.11 244.31 L 518.48 244.53 L 520.86 244.74 L 523.24 244.95 L 525.61 245.17 L 527.99 245.38 L 530.37 245.59 L 532.74 245.80 L 535.12 246.01 L 537.50 246.21 L 539.87 246.42 L 542.25 246.62 L 544.63 246.83 L 547.00 247.03 L 549.38 247.23 L 551.76 247.43 L 554.13 247.63 L 556.51 247.83 L 558.88 248.03 L 561.26 248.23 L 563.64 248.42 L 566.01 248.62 L 568.39 248.81 L 570.77 249.01 L 573.14 249.20 L 575.52 249.39 L 577.90 249.58 L 580.27 249.77 L 582.65 249.96 L 585.03 250.15 L 587.40 250.34 L 589.78 250.52 L 592.16 250.71 L 594.53 250.90 L 596.91 251.08 L 599.29 251.26 L 601.66 251.45 L 604.04 251.63 L 606.42 251.81 L 608.79 251.99 L 611.17 252.17 L 613.54 252.35 L 615.92 252.53 L 618.30 252.70 L 620.67 252.88 L 623.05 253.05 L 625.43 253.23 L 627.80 253.40 L 630.18 253.58"/>
+              <path class="negative-curve" d="M 59.82 253.58 L 62.20 253.40 L 64.57 253.23 L 66.95 253.05 L 69.33 252.88 L 71.70 252.70 L 74.08 252.53 L 76.46 252.35 L 78.83 252.17 L 81.21 251.99 L 83.59 251.81 L 85.96 251.63 L 88.34 251.45 L 90.71 251.26 L 93.09 251.08 L 95.47 250.90 L 97.84 250.71 L 100.22 250.52 L 102.60 250.34 L 104.97 250.15 L 107.35 249.96 L 109.73 249.77 L 112.10 249.58 L 114.48 249.39 L 116.86 249.20 L 119.23 249.01 L 121.61 248.81 L 123.99 248.62 L 126.36 248.42 L 128.74 248.23 L 131.12 248.03 L 133.49 247.83 L 135.87 247.63 L 138.24 247.43 L 140.62 247.23 L 143.00 247.03 L 145.37 246.83 L 147.75 246.62 L 150.13 246.42 L 152.50 246.21 L 154.88 246.01 L 157.26 245.80 L 159.63 245.59 L 162.01 245.38 L 164.39 245.17 L 166.76 244.95 L 169.14 244.74 L 171.52 244.53 L 173.89 244.31 L 176.27 244.10 L 178.64 243.88 L 181.02 243.66 L 183.40 243.44 L 185.77 243.22 L 188.15 243.00 L 190.53 242.77 L 192.90 242.55 L 195.28 242.32 L 197.66 242.09 L 200.03 241.87 L 202.41 241.64 L 204.79 241.41 L 207.16 241.17 L 209.54 240.94 L 211.92 240.71 L 214.29 240.47 L 216.67 240.23 L 219.05 239.99 L 221.42 239.75 L 223.80 239.51 L 226.18 239.27 L 228.55 239.02 L 230.93 238.78 L 233.30 238.53 L 235.68 238.28 L 238.06 238.03 L 240.43 237.78 L 242.81 237.53 L 245.19 237.27 L 247.56 237.02 L 249.94 236.76 L 252.32 236.50 L 254.69 236.24 L 257.07 235.98 L 259.45 235.71 L 261.82 235.45 L 264.20 235.18 L 266.58 234.91 L 268.95 234.64 L 271.33 234.37 L 273.71 234.09 L 276.08 233.82 L 278.46 233.54 L 280.83 233.26 L 283.21 232.97 L 285.59 232.69 L 287.96 232.41 L 290.34 232.12 L 292.72 231.83 L 295.09 231.54 L 297.47 231.24 L 299.85 230.95 L 302.22 230.65 L 304.60 230.35 L 306.98 230.05 L 309.35 229.74 L 311.73 229.43 L 314.11 229.13 L 316.48 228.81 L 318.86 228.50 L 321.24 228.18 L 323.61 227.87 L 325.99 227.55 L 328.36 227.22 L 330.74 226.90 L 333.12 226.57 L 335.49 226.24 L 337.87 225.90 L 340.25 225.57 L 342.62 225.23 L 345.00 224.89 L 347.38 224.54 L 349.75 224.20 L 352.13 223.85 L 354.51 223.49 L 356.88 223.14 L 359.26 222.78 L 361.64 222.42 L 364.01 222.05 L 366.39 221.68 L 368.76 221.31 L 371.14 220.93 L 373.52 220.56 L 375.89 220.17 L 378.27 219.79 L 380.65 219.40 L 383.02 219.01 L 385.40 218.61 L 387.78 218.21 L 390.15 217.81 L 392.53 217.40 L 394.91 216.99 L 397.28 216.57 L 399.66 216.15 L 402.04 215.73 L 404.41 215.30 L 406.79 214.86 L 409.17 214.43 L 411.54 213.98 L 413.92 213.54 L 416.30 213.08 L 418.67 212.63 L 421.05 212.17 L 423.42 211.70 L 425.80 211.23 L 428.18 210.75 L 430.55 210.27 L 432.93 209.78 L 435.31 209.28 L 437.68 208.78 L 440.06 208.28 L 442.44 207.76 L 444.81 207.24 L 447.19 206.72 L 449.57 206.19 L 451.94 205.65 L 454.32 205.10 L 456.70 204.55 L 459.07 203.99 L 461.45 203.42 L 463.82 202.85 L 466.20 202.26 L 468.58 201.67 L 470.95 201.07 L 473.33 200.46 L 475.71 199.84 L 478.08 199.21 L 480.46 198.58 L 482.84 197.93 L 485.21 197.27 L 487.59 196.61 L 489.97 195.93 L 492.34 195.24 L 494.72 194.54 L 497.10 193.83 L 499.47 193.10 L 501.85 192.36 L 504.23 191.61 L 506.60 190.85 L 508.98 190.07 L 511.35 189.28 L 513.73 188.47 L 516.11 187.65 L 518.48 186.80 L 520.86 185.95 L 523.24 185.07 L 525.61 184.18 L 527.99 183.26 L 530.37 182.33 L 532.74 181.37 L 535.12 180.39 L 537.50 179.39 L 539.87 178.37 L 542.25 177.31 L 544.63 176.24 L 547.00 175.13 L 549.38 173.99 L 551.76 172.82 L 554.13 171.62 L 556.51 170.39 L 558.88 169.11 L 561.26 167.80 L 563.64 166.44 L 566.01 165.04 L 568.39 163.59 L 570.77 162.08 L 573.14 160.52 L 575.52 158.91 L 577.90 157.22 L 580.27 155.47 L 582.65 153.64 L 585.03 151.72 L 587.40 149.72 L 589.78 147.61 L 592.16 145.40 L 594.53 143.05 L 596.91 140.58 L 599.29 137.94 L 601.66 135.13 L 604.04 132.12 L 606.42 128.87 L 608.79 125.36 L 611.17 121.52 L 613.54 117.29 L 615.92 112.59 L 618.30 107.30 L 620.67 101.25 L 623.05 94.17 L 625.43 85.66 L 627.80 74.96 L 630.18 60.58"/>
+              <circle cx="345" cy="224.89" r="4" fill="var(--fg)"/>
+              <text x="359" y="217">both: 0.693</text>
+            </svg>
+          </div>
+          <figcaption class="chart-caption"><span class="label">fig 2</span>
+            For $y=1$, the loss is $-\log p$; for $y=0$, it is $-\log(1-p)$. The curves
+            are drawn over $0.01\leq p\leq0.99$. As we approach a confidently wrong prediction,
+            the loss keeps increasing without a finite limit.
+          </figcaption>
+        </figure>
+        <p>
+          To make a class decision, we can choose spam when $p\geq0.5$. But we do not apply this
+          threshold before calculating the loss. For example, $p=0.4$ and $p=0.01$ both give the
+          decision not spam, but BCE tells us that the second is a much worse prediction for a spam email.
+        </p>
+
+        <h2>Multiclass classification</h2>
+        <p>
+          For handwritten digit recognition, there are ten possible classes and exactly one is
+          correct. This is <strong>multiclass classification</strong>. As with binary
+          classification, the classes are mutually exclusive, but now there are more than two.
+        </p>
+        <p>
+          We use one output neuron for each class. For $K$ classes, this gives a vector of scores:
+        </p>
+        <p>$$\mathbf{a}^{(L)}\in\mathbb{R}^{K}.$$</p>
+        <p>
+          We could apply sigmoid to each score, but then several outputs could be close to one.
+          They would not necessarily add up to one, which we need for a distribution over mutually
+          exclusive classes. Instead, we use <strong>softmax</strong>. Dropping the layer
+          superscript for brevity:
+        </p>
+        <p>$$p_k=\frac{\exp(a_k)}{\sum_{j=1}^{K}\exp(a_j)}.$$</p>
+        <p>
+          First we exponentiate each score, making it positive, then divide by the total.
+          So every probability is positive and their sum is one:
+        </p>
+        <p>$$p_k&gt;0,\qquad \sum_{k=1}^{K}p_k=
+          \frac{\sum_{k=1}^{K}\exp(a_k)}{\sum_{j=1}^{K}\exp(a_j)}=1.$$</p>
+        <p>
+          For a small example, suppose the scores for three classes are $(2,1,0)$.
+          Their exponentials are approximately $(7.389,2.718,1)$. Adding these gives $11.107$,
+          so the probabilities are:
+        </p>
+        <p>$$\mathbf{p}\approx\left(\frac{7.389}{11.107},\frac{2.718}{11.107},
+          \frac{1}{11.107}\right)=(0.665,0.245,0.090).$$</p>
+        <p>
+          We normally choose the class with the highest probability, which here is class 1.
+          This is also the class with the highest original score.
+          Below we can compare what sigmoid and softmax do to the same scores:
+        </p>
+        <figure class="chart-card">
+          <div class="eyebrow">interactive output transformations</div>
+          <h3>Sigmoid and softmax outputs</h3>
+          <div id="logit-controls" class="logit-controls" hidden>
+            <div class="logit-control"><label for="logit-0">Score 1 <output id="logit-value-0" for="logit-0">2.0</output></label><input id="logit-0" type="range" min="-8" max="8" step="0.1" value="2" aria-describedby="softmax-help"/></div>
+            <div class="logit-control"><label for="logit-1">Score 2 <output id="logit-value-1" for="logit-1">1.0</output></label><input id="logit-1" type="range" min="-8" max="8" step="0.1" value="1" aria-describedby="softmax-help"/></div>
+            <div class="logit-control"><label for="logit-2">Score 3 <output id="logit-value-2" for="logit-2">0.0</output></label><input id="logit-2" type="range" min="-8" max="8" step="0.1" value="0" aria-describedby="softmax-help"/></div>
+          </div>
+          <div class="probability-pair">
+            <div><h4>Sigmoid: each output separately</h4><svg class="chart probability-chart" viewBox="0 0 320 202" role="img" aria-labelledby="sigmoid-title sigmoid-desc"><title id="sigmoid-title">Sigmoid probabilities for scores 2, 1, 0</title><desc id="sigmoid-desc">Three independently transformed scores can all have high probabilities, without summing to one.</desc>
+<text x="8" y="49">output 1</text><rect class="probability-track" x="80" y="35" width="210" height="18" rx="2"/><rect id="sigmoid-bar-0" class="sigmoid-bar" x="80" y="35" width="184.967" height="18" rx="2"/><text id="sigmoid-value-0" x="290" y="28" text-anchor="end">0.881</text>
+<text x="8" y="97">output 2</text><rect class="probability-track" x="80" y="83" width="210" height="18" rx="2"/><rect id="sigmoid-bar-1" class="sigmoid-bar" x="80" y="83" width="153.522" height="18" rx="2"/><text id="sigmoid-value-1" x="290" y="76" text-anchor="end">0.731</text>
+<text x="8" y="145">output 3</text><rect class="probability-track" x="80" y="131" width="210" height="18" rx="2"/><rect id="sigmoid-bar-2" class="sigmoid-bar" x="80" y="131" width="105.000" height="18" rx="2"/><text id="sigmoid-value-2" x="290" y="124" text-anchor="end">0.500</text>
+<path class="axis" d="M80 165H290"/><g text-anchor="middle"><text x="80" y="185">0</text><text x="185" y="185">0.5</text><text x="290" y="185">1</text></g></svg><p id="sigmoid-total" class="probability-total">Probability total: 2.112</p></div>
+            <div><h4>Softmax: all outputs together</h4><svg class="chart probability-chart" viewBox="0 0 320 202" role="img" aria-labelledby="softmax-title softmax-desc"><title id="softmax-title">Softmax probabilities for scores 2, 1, 0</title><desc id="softmax-desc">Three jointly normalised scores form a probability distribution that sums to one.</desc>
+<text x="8" y="49">output 1</text><rect class="probability-track" x="80" y="35" width="210" height="18" rx="2"/><rect id="softmax-bar-0" class="softmax-bar" x="80" y="35" width="139.701" height="18" rx="2"/><text id="softmax-value-0" x="290" y="28" text-anchor="end">0.665</text>
+<text x="8" y="97">output 2</text><rect class="probability-track" x="80" y="83" width="210" height="18" rx="2"/><rect id="softmax-bar-1" class="softmax-bar" x="80" y="83" width="51.393" height="18" rx="2"/><text id="softmax-value-1" x="290" y="76" text-anchor="end">0.245</text>
+<text x="8" y="145">output 3</text><rect class="probability-track" x="80" y="131" width="210" height="18" rx="2"/><rect id="softmax-bar-2" class="softmax-bar" x="80" y="131" width="18.906" height="18" rx="2"/><text id="softmax-value-2" x="290" y="124" text-anchor="end">0.090</text>
+<path class="axis" d="M80 165H290"/><g text-anchor="middle"><text x="80" y="185">0</text><text x="185" y="185">0.5</text><text x="290" y="185">1</text></g></svg><p id="softmax-total" class="probability-total">Probability total: 1.000</p></div>
+          </div>
+          <output id="softmax-readout" class="softmax-readout" for="logit-0 logit-1 logit-2" aria-live="polite">Softmax predicts class 1. If class 2 is correct, its loss is 1.4076.</output>
+          <figcaption id="softmax-help" class="chart-caption"><span class="label">fig 3</span>
+            Try changing one of the scores using the sliders or arrow keys. With sigmoid, only
+            that output changes. With softmax, all three probabilities change because they share
+            the same denominator, and their total stays at one. The displayed values are rounded;
+            if the largest scores are equal, the example reports a tie.
+          </figcaption>
+          <noscript><p class="chart-caption">The static figure uses scores $(2,1,0)$. Enable JavaScript to adjust them.</p></noscript>
+        </figure>
+        <p>
+          Now we need to write the targets in a form that matches these outputs. We use a vector
+          with a one for the correct class and zeros for the others. For example, if class 2 is
+          correct, $\mathbf{y}=(0,1,0)$. This is called <strong>one-hot encoding</strong>.
+        </p>
+        <p>The corresponding loss is categorical cross-entropy, averaged over the data points:</p>
+        <p>$$\mathcal{L}_{\mathrm{CE}}=-\frac{1}{N}\sum_{n=1}^{N}
+          \sum_{k=1}^{K}y_{nk}\log p_{nk}.$$</p>
+        <p>
+          For each data point, all the target values except one are zero. So only the probability
+          of the correct class contributes to the loss. If the correct class is $c_n$, this is
+          just $-\log p_{n,c_n}$. Like the binary case, we get this loss by taking the negative
+          log-likelihood, this time using a categorical distribution.
+        </p>
+
+        <h2>Multilabel classification</h2>
+        <p>
+          Suppose instead we want to identify what is present in a photograph. It could contain
+          a dog, a person, and a bicycle at the same time. We cannot treat these as mutually
+          exclusive classes. This is <strong>multilabel classification</strong>, where several
+          labels can be correct for the same input.
+        </p>
+        <p>
+          Softmax would force the probabilities to share a total of one. Here we want to allow
+          high probabilities for several labels, so we apply sigmoid separately to each score:
+        </p>
+        <p>$$p_k=\sigma(a_k).$$</p>
+        <p>
+          With scores $(2,1,0)$ we get approximately $(0.881,0.731,0.500)$, which does not sum
+          to one. The target could be $(1,1,0)$ if the photograph contains a dog and a person,
+          but no bicycle. Unlike the one-hot target, it can contain more than one one.
+        </p>
+        <p>
+          We calculate BCE for each label. With $K$ labels and $N$ data points, we can average
+          over both:
+        </p>
+        <p>$$\mathcal{L}_{\mathrm{ML}}=-\frac{1}{NK}\sum_{n=1}^{N}\sum_{k=1}^{K}
+          \left[y_{nk}\log p_{nk}+(1-y_{nk})\log(1-p_{nk})\right].$$</p>
+        <p>
+          This models the labels as conditionally independent Bernoulli variables given the
+          input. They still use the same hidden features, so their predicted probabilities can
+          change together across photographs. For example, a feature could raise both the dog
+          and person probabilities. We are not modelling any dependence left between the label
+          outcomes once the input is fixed.
+        </p>
+
+        <h2>Logits, probabilities and numerical stability</h2>
+        <p>
+          So far we have written the output activation and loss as separate steps. In practice,
+          libraries often combine them. The reason is that calculating the probabilities first
+          can cause numerical problems.
+        </p>
+        <p>
+          For example, exponentiating a large score can produce a number too large for the
+          computer to store. A calculated probability can also round to exactly zero or one,
+          leaving us trying to take the logarithm of zero in the loss.
+        </p>
+        <p>
+          Instead, we can calculate the loss using the original logits:
+        </p>
+        <ul>
+          <li><span><strong>BCE with logits</strong> combines sigmoid and BCE in one calculation.</span></li>
+          <li><span><strong>Softmax cross-entropy using logits</strong> calculates the categorical loss without first storing the probabilities and then taking their logarithms.</span></li>
+        </ul>
+        <p>
+          The mathematical losses are the same. We have just rearranged the calculations to
+          avoid numerical problems. You can see examples in the documentation for
+          <a href="https://docs.pytorch.org/docs/stable/generated/torch.nn.BCEWithLogitsLoss.html">BCE with logits</a>
+          and <a href="https://docs.pytorch.org/docs/stable/generated/torch.nn.CrossEntropyLoss.html">multiclass cross-entropy</a>.
+        </p>
+        <p>
+          One useful rearrangement is the <strong>log-sum-exp trick</strong>. First, subtract
+          the largest score, $m=\max_j a_j$, before exponentiating. Then all the exponentials
+          are at most one. We account for the subtraction outside the logarithm:
+        </p>
+        <p>$$\log\sum_j e^{a_j}=m+\log\sum_j e^{a_j-m}.$$</p>
+        <p>
+          This is why a model may return raw scores during training even when we interpret its
+          predictions as probabilities. If the loss expects logits, pass it the logits directly.
+          We can apply sigmoid or softmax separately when we want to inspect the probabilities.
+        </p>
+
+        <h2>Choosing the output and loss</h2>
+        <p>
+          We can now put the common choices together. The first thing to decide is what the
+          target represents, then choose an output and loss that suit it:
+        </p>
+        <div class="output-table-wrap" role="region" aria-label="Output layers and loss functions by task" tabindex="0">
+          <table class="output-table task-table">
+            <caption>Common output layers and losses</caption>
+            <thead><tr><th scope="col">Task and target</th><th scope="col">Output neurons</th><th scope="col">Activation</th><th scope="col">Typical loss</th><th scope="col">Output interpretation</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">Regression: real value</th><td>1 for a scalar target</td><td>Identity</td><td>MSE</td><td>Predicted value</td></tr>
+              <tr><th scope="row">Binary: one of two classes</th><td>1</td><td>Sigmoid</td><td>BCE</td><td>Probability of class 1</td></tr>
+              <tr><th scope="row">Multiclass: one of K classes</th><td>$K$</td><td>Softmax</td><td>Categorical CE</td><td>Class probabilities summing to 1</td></tr>
+              <tr><th scope="row">Multilabel: K binary labels</th><td>$K$</td><td>Separate sigmoids</td><td>BCE per label</td><td>Probability of each label being present</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          These are common choices, rather than rules for every possible model. The activation
+          may also be included in the loss calculation, as we just discussed.
+        </p>
+        <p>
+          A <strong>loss function</strong> is the objective we use to fit the model.
+          An <strong>evaluation metric</strong> tells us how it performs. For example, accuracy
+          counts correct class decisions, but ignores how confident the model was. It also does
+          not give us a useful differentiable objective for learning the weights. So we can
+          report accuracy while still using cross-entropy as the training loss.
+        </p>
+
+        <h2>Worked example</h2>
+        <p>
+          Let's take a network whose last hidden layer has eight neurons, so
+          $\mathbf{z}^{(L-1)}\in\mathbb{R}^{8}$. We can use the same hidden architecture for
+          three different tasks by changing the output layer and loss.
+        </p>
+        <p>
+          Each output neuron needs eight weights, one for each hidden value, and a bias.
+          So the final weight matrix has eight columns and one row for each output:
+        </p>
+        <div class="output-table-wrap" role="region" aria-label="Output head dimensions and values for an eight-dimensional representation" tabindex="0">
+          <table class="output-table example-table">
+            <caption>Example scores and predictions for one input</caption>
+            <thead><tr><th scope="col">Task</th><th scope="col">Final weights and bias</th><th scope="col">Raw scores</th><th scope="col">Prediction</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">One continuous value</th><td>$\mathbf{W}^{(L)}\in\mathbb{R}^{1\times8}$, $\mathbf{b}^{(L)}\in\mathbb{R}^{1}$</td><td>$2.5$</td><td>$\hat{y}=2.5$</td></tr>
+              <tr><th scope="row">One of three classes</th><td>$\mathbf{W}^{(L)}\in\mathbb{R}^{3\times8}$, $\mathbf{b}^{(L)}\in\mathbb{R}^{3}$</td><td>$(2,1,0)$</td><td>$(0.665,0.245,0.090)$; choose class 1</td></tr>
+              <tr><th scope="row">Three binary labels</th><td>$\mathbf{W}^{(L)}\in\mathbb{R}^{3\times8}$, $\mathbf{b}^{(L)}\in\mathbb{R}^{3}$</td><td>$(2,1,0)$</td><td>$(0.881,0.731,0.500)$; interpret each label separately</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          First, suppose we are predicting one continuous value and the output is $2.5$.
+          If the true target is $y=3$, we subtract the prediction and square the error:
+        </p>
+        <p>$$\mathcal{L}_{\mathrm{MSE}}=(3-2.5)^2=0.25.$$</p>
+        <p>
+          Now suppose we are choosing one of three classes. The scores $(2,1,0)$ give us the
+          softmax probabilities calculated earlier. If class 2 is correct, we take the negative
+          logarithm of its probability. Using the unrounded value:
+        </p>
+        <p>$$\mathcal{L}_{\mathrm{CE}}=-\log\left(\frac{e^1}{e^2+e^1+e^0}\right)\approx1.408.$$</p>
+        <p>
+          Finally, suppose the three outputs are separate binary labels and the target is
+          $(1,1,0)$. We use sigmoid and take a binary loss for each label, then average them:
+        </p>
+        <p>$$\begin{aligned}
+          \mathcal{L}_{\mathrm{ML}}&amp;=-\frac{1}{3}
+          \left[\log\sigma(2)+\log\sigma(1)+\log(1-\sigma(0))\right]\\
+          &amp;\approx\frac{0.127+0.313+0.693}{3}\approx0.378.
+          \end{aligned}$$</p>
+        <p>
+          The last two output layers have the same shape, but their probabilities mean different
+          things and we use different losses. We can keep the hidden architecture the same;
+          training it on different tasks will generally change the hidden weights too.
+        </p>
+
+        <h2>Check your understanding</h2>
+        <div class="exercise">
+          <span class="tag">questions</span>
+          <ol>
+            <li><span>Why is an identity output useful for unrestricted regression, while sigmoid is useful for a binary target?</span></li>
+            <li><span>How does a Bernoulli likelihood lead to BCE? Why does a confidently wrong prediction receive more loss than an uncertain one?</span></li>
+            <li><span>A scanner must assign each image to one of five mutually exclusive categories. Choose the output size, transformation, and loss. Why use softmax?</span></li>
+            <li><span>A document can have any combination of six topic labels. How should its target vector, output layer, and loss differ from the scanner's?</span></li>
+            <li><span>Why do libraries often calculate cross-entropy directly from logits? What goes wrong if you pass already transformed probabilities to a loss expecting logits?</span></li>
+          </ol>
+        </div>
+        <h2>Summary</h2>
+        <p>
+          The hidden layers calculate features, and the output layer uses them to make a
+          prediction. We choose its activation according to what we want to predict, and use
+          a loss function to measure how good the predictions are. For classification, it is
+          often better to calculate that loss directly using logits for numerical stability.
+        </p>
+        <p>
+          In the next note, <a href="../learning-representations/">Representation Learning</a>,
+          we will look more closely at what the hidden layers learn and how we can reuse those
+          representations for different tasks.
+        </p>
       </div>
 
       <div class="endbar">
-        <a href="../">&larr; neural networks topic guide</a>
-        <a href="../why-we-use-deep-networks/">3.5 &middot; why we use deep networks &rarr;</a>
+        <a href="../why-we-use-deep-networks/">&larr; 3.4 &middot; why deep networks?</a>
+        <a href="../learning-representations/">3.6 &middot; learning representations &rarr;</a>
       </div>
     </article>
   </div>
 </div>
-<script>if (window.hljs) hljs.highlightAll();</script>
 </body>
 </html>

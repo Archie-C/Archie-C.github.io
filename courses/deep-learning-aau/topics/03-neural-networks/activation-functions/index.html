@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <title>Activation functions | Deep Learning</title>
-<meta name="description" content="Notes in preparation. Introduce nonlinearity with sigmoid, tanh, and ReLU activations."/>
+<meta name="description" content="Understand sigmoid, tanh, ReLU, and leaky ReLU, their derivatives, saturation, and their roles in hidden and output layers."/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <link rel="icon" href="../../../../../design_system/assets/favicon.svg"/>
 <link rel="stylesheet" href="../../../../../design_system/colors_and_type.css"/>
@@ -14,6 +14,93 @@
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
   onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
 <link rel="stylesheet" href="../../../styles/notes.css"/>
+<style>
+  /* Figures and controls specific to this note. */
+  .lecture article { min-width: 0; }
+  .body .katex-display { overflow-x: auto; }
+  .activation-plots {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+  .activation-table-wrap { overflow-x: auto; margin: 1.4em 0; }
+  .activation-table {
+    width: 100%;
+    min-width: 620px;
+    border-collapse: collapse;
+    font-family: var(--font-sans);
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--fg-2);
+  }
+  .activation-table caption {
+    text-align: left;
+    font-family: var(--font-serif);
+    font-size: 14px;
+    padding-bottom: 10px;
+    color: var(--fg-2);
+  }
+  .activation-table th, .activation-table td {
+    padding: 10px 12px;
+    text-align: left;
+    vertical-align: top;
+    border-bottom: 1px solid var(--rule);
+  }
+  .activation-table thead th {
+    background: var(--bg-sunk);
+    color: var(--fg);
+    font-weight: 600;
+    border-top: 1px solid var(--rule);
+  }
+  .activation-table tbody th { white-space: nowrap; color: var(--fg); }
+  .activation-values { min-width: 420px; }
+  .activation-controls {
+    display: grid;
+    gap: 12px;
+    padding: 12px 0;
+    border-top: 1px solid var(--rule);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--fg-2);
+  }
+  .activation-controls[hidden] { display: none; }
+  .activation-control {
+    display: grid;
+    grid-template-columns: 145px minmax(0, 1fr);
+    align-items: center;
+    gap: 12px;
+  }
+  .activation-control select {
+    width: 100%;
+    min-width: 0;
+    padding: 7px 8px;
+    border: 1px solid var(--rule-strong);
+    border-radius: 4px;
+    font: inherit;
+    color: var(--fg);
+    background: var(--bg);
+  }
+  .activation-control input[type="range"] { width: 100%; accent-color: var(--accent); }
+  .activation-readout {
+    display: block;
+    margin-top: 8px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    line-height: 1.7;
+    color: var(--fg-2);
+    font-variant-numeric: tabular-nums;
+  }
+  .activation-table-wrap:focus-visible,
+  .activation-controls select:focus-visible,
+  .activation-controls input:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+  @media (max-width: 640px) {
+    .activation-plots { grid-template-columns: 1fr; gap: 20px; }
+    .activation-control { grid-template-columns: 1fr; gap: 6px; }
+  }
+</style>
   <!-- Cloudflare Web Analytics -->
   <script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "f63b2ef074b74a5e8e78014b83a4071d"}'></script>
   <!-- End Cloudflare Web Analytics -->
@@ -43,8 +130,8 @@
         <a href="../introduction-to-learning-features/">3.1 &middot; introduction to learning features</a>
         <a href="../neural-networks/">3.2 &middot; neural networks</a>
         <a class="current" href="./" aria-current="page">3.3 &middot; activation functions</a>
-        <a href="../output-layers-and-loss-functions/">3.4 &middot; output layers and loss functions</a>
-        <a href="../why-we-use-deep-networks/">3.5 &middot; why we use deep networks</a>
+        <a href="../why-we-use-deep-networks/">3.4 &middot; why deep networks?</a>
+        <a href="../output-layers-and-loss-functions/">3.5 &middot; outputs and loss functions</a>
         <a href="../learning-representations/">3.6 &middot; learning representations</a>
         <a href="../implementing-neural-networks/">3.7 &middot; how do i implement them?</a>
         <a href="../exercises/">3.8 &middot; exercises</a>
@@ -58,37 +145,741 @@
         subtopic 3.3
       </div>
       <h1>Activation functions.</h1>
-      <p class="standfirst">Introduce nonlinearity with sigmoid, tanh, and ReLU activations.</p>
+      <p class="standfirst">The functions that turn weighted inputs into features, and why their shapes matter.</p>
 
       <div class="body">
-        <div class="exercise">
-          <span class="tag">in preparation</span>
-          <p>These notes are in preparation. The planned sections are listed below.</p>
-        </div>
         <h2>What this note covers</h2>
         <ul>
-          <li>Why nonlinearity is needed</li>
-          <li>Common activation functions</li>
-          <li>Activation derivatives</li>
+          <li>Pre-activations, activations, and their slopes</li>
+          <li>Sigmoid, tanh, ReLU, and leaky ReLU</li>
+          <li>Saturation and zero derivatives</li>
+          <li>Choosing hidden-layer and output-layer activations</li>
+          <li>Comparing the same inputs across activation functions</li>
         </ul>
 
-        <h2>Why nonlinearity is needed</h2>
-        <!-- TODO: Add the explanation, equations, and examples for this section. -->
+        <h2>Why activation functions matter</h2>
+        <p>
+          In the <a href="../neural-networks/">previous note</a>, a neuron took a weighted sum
+          of its inputs, added a bias, and applied an activation function:
+        </p>
+        <p>$$\phi_j(\mathbf{x};\theta_j)=h(\mathbf{a}_j^\top\mathbf{x}+b_j).$$</p>
+        <p>
+          Here $\mathbf{a}_j$ contains the neuron's input weights and $b_j$ is its bias.
+          As before, $\mathbf{w}$ contains the separate weights that combine these learned features
+          into a prediction.
+        </p>
+        <p>
+          The weighted input, including the bias, is $s_j=\mathbf{a}_j^\top\mathbf{x}+b_j$.
+          This is called the <strong>pre-activation</strong>.
+          The value after applying $h$ is the <strong>activation</strong>, or neuron output.
+          For example, ReLU turns a pre-activation of $-2$ into an activation of $0$.
+        </p>
+        <p>
+          Below, $a$ stands for a single pre-activation, such as $s_j$.
+          The function $h(a)$ tells you what the neuron passes to the next layer.
+        </p>
+        <p>
+          The previous note showed that stacking affine layers, each of the form
+          $\mathbf{W}\mathbf{x}+\mathbf{b}$, still gives an affine transformation.
+          Nonlinear activation functions allow the network to model nonlinear relationships.
+        </p>
+        <p>
+          The choice of activation matters. Some functions keep their outputs within a fixed range.
+          Others allow any positive value, or return zero for every negative input.
+          These differences affect both the features a network produces and how it learns.
+        </p>
+        <p>
+          To compare them, it helps to look at their slopes as well as their outputs.
+          The derivative $h'(a)$ gives the slope at $a$: how much the output changes for a small
+          change in the pre-activation. A slope close to zero means the output barely changes.
+        </p>
 
-        <h2>Common activation functions</h2>
-        <!-- TODO: Add the explanation, equations, and examples for this section. -->
+        <h2>The sigmoid activation function</h2>
+        <p>
+          The <strong>logistic sigmoid</strong> is already familiar from
+          <a href="../../02-classification/logistic-regression/">logistic regression</a>:
+        </p>
+        <p>$$\sigma(a)=\frac{1}{1+e^{-a}}.$$</p>
+        <p>
+          Sigmoid maps any real input into $(0,1)$.
+          Very negative inputs give outputs close to $0$, and very positive inputs give outputs
+          close to $1$. At zero, the output is halfway between them:
+        </p>
+        <p>$$\sigma(0)=\frac{1}{1+1}=\frac{1}{2}.$$</p>
+        <p>
+          This is how sigmoid turned a score into a class probability in logistic regression.
+          It was also widely used in hidden layers, where its output serves as a learned feature.
+        </p>
+        <p>
+          Its derivative has a useful form:
+        </p>
+        <p>$$\sigma'(a)=\sigma(a)\bigl(1-\sigma(a)\bigr).$$</p>
+        <p>
+          At $a=0$, the slope is $\tfrac12(1-\tfrac12)=\tfrac14$, its largest value.
+          As the output approaches $0$ or $1$, the derivative approaches zero and the curve flattens.
+        </p>
+        <figure class="chart-card">
+          <div class="eyebrow">01 &middot; activation and derivative</div>
+          <h3>Sigmoid: output and local slope</h3>
+          <div class="activation-plots">
+            <svg class="chart" viewBox="0 0 330 300" width="100%" height="auto" role="img" aria-labelledby="activation-sigmoid-function-title activation-sigmoid-function-desc">
+              <title id="activation-sigmoid-function-title">Sigmoid: activation h(a)</title>
+              <desc id="activation-sigmoid-function-desc">Sigmoid rises smoothly from near zero to near one, with output 0.5 at zero. Input axis: minus four to four.</desc>
+              <text class="title" x="43" y="18">Activation h(a)</text>
+              <line class="grid" x1="43" y1="236.00" x2="312" y2="236.00" />
+              <text text-anchor="end" x="35" y="240.00">−1</text>
+              <line class="grid" x1="43" y1="192.00" x2="312" y2="192.00" />
+              <text text-anchor="end" x="35" y="196.00">−0.5</text>
+              <line class="grid" x1="43" y1="148.00" x2="312" y2="148.00" />
+              <text text-anchor="end" x="35" y="152.00">0</text>
+              <line class="grid" x1="43" y1="104.00" x2="312" y2="104.00" />
+              <text text-anchor="end" x="35" y="108.00">0.5</text>
+              <line class="grid" x1="43" y1="60.00" x2="312" y2="60.00" />
+              <text text-anchor="end" x="35" y="64.00">1</text>
+              <line class="grid grid--soft" x1="43.00" y1="38" x2="43.00" y2="258" />
+              <text text-anchor="middle" x="43.00" y="277">−4</text>
+              <line class="grid grid--soft" x1="110.25" y1="38" x2="110.25" y2="258" />
+              <text text-anchor="middle" x="110.25" y="277">−2</text>
+              <line class="grid grid--soft" x1="177.50" y1="38" x2="177.50" y2="258" />
+              <text text-anchor="middle" x="177.50" y="277">0</text>
+              <line class="grid grid--soft" x1="244.75" y1="38" x2="244.75" y2="258" />
+              <text text-anchor="middle" x="244.75" y="277">2</text>
+              <line class="grid grid--soft" x1="312.00" y1="38" x2="312.00" y2="258" />
+              <text text-anchor="middle" x="312.00" y="277">4</text>
+              <line class="axis" x1="43" y1="148.00" x2="312" y2="148.00" />
+              <line class="axis" x1="177.50" y1="38" x2="177.50" y2="258" />
+              <text text-anchor="end" x="312" y="294">pre-activation a</text>
+              <line class="ref" x1="43" y1="148.00" x2="312" y2="148.00" />
+              <line class="ref" x1="43" y1="60.00" x2="312" y2="60.00" />
+              <path d="M 43.00 146.42 L 45.10 146.32 L 47.20 146.21 L 49.30 146.10 L 51.41 145.98 L 53.51 145.85 L 55.61 145.72 L 57.71 145.57 L 59.81 145.42 L 61.91 145.26 L 64.02 145.09 L 66.12 144.91 L 68.22 144.72 L 70.32 144.51 L 72.42 144.30 L 74.52 144.07 L 76.62 143.83 L 78.73 143.57 L 80.83 143.30 L 82.93 143.01 L 85.03 142.71 L 87.13 142.39 L 89.23 142.06 L 91.34 141.70 L 93.44 141.32 L 95.54 140.93 L 97.64 140.51 L 99.74 140.07 L 101.84 139.61 L 103.95 139.12 L 106.05 138.61 L 108.15 138.07 L 110.25 137.51 L 112.35 136.92 L 114.45 136.30 L 116.55 135.65 L 118.66 134.97 L 120.76 134.26 L 122.86 133.52 L 124.96 132.75 L 127.06 131.95 L 129.16 131.11 L 131.27 130.24 L 133.37 129.34 L 135.47 128.40 L 137.57 127.43 L 139.67 126.43 L 141.77 125.40 L 143.88 124.33 L 145.98 123.24 L 148.08 122.11 L 150.18 120.95 L 152.28 119.77 L 154.38 118.56 L 156.48 117.32 L 158.59 116.06 L 160.69 114.78 L 162.79 113.47 L 164.89 112.15 L 166.99 110.82 L 169.09 109.47 L 171.20 108.11 L 173.30 106.75 L 175.40 105.37 L 177.50 104.00 L 179.60 102.63 L 181.70 101.25 L 183.80 99.89 L 185.91 98.53 L 188.01 97.18 L 190.11 95.85 L 192.21 94.53 L 194.31 93.22 L 196.41 91.94 L 198.52 90.68 L 200.62 89.44 L 202.72 88.23 L 204.82 87.05 L 206.92 85.89 L 209.02 84.76 L 211.12 83.67 L 213.23 82.60 L 215.33 81.57 L 217.43 80.57 L 219.53 79.60 L 221.63 78.66 L 223.73 77.76 L 225.84 76.89 L 227.94 76.05 L 230.04 75.25 L 232.14 74.48 L 234.24 73.74 L 236.34 73.03 L 238.45 72.35 L 240.55 71.70 L 242.65 71.08 L 244.75 70.49 L 246.85 69.93 L 248.95 69.39 L 251.05 68.88 L 253.16 68.39 L 255.26 67.93 L 257.36 67.49 L 259.46 67.07 L 261.56 66.68 L 263.66 66.30 L 265.77 65.94 L 267.87 65.61 L 269.97 65.29 L 272.07 64.99 L 274.17 64.70 L 276.27 64.43 L 278.38 64.17 L 280.48 63.93 L 282.58 63.70 L 284.68 63.49 L 286.78 63.28 L 288.88 63.09 L 290.98 62.91 L 293.09 62.74 L 295.19 62.58 L 297.29 62.43 L 299.39 62.28 L 301.49 62.15 L 303.59 62.02 L 305.70 61.90 L 307.80 61.79 L 309.90 61.68 L 312.00 61.58" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round" />
+            </svg>
+            <svg class="chart" viewBox="0 0 330 300" width="100%" height="auto" role="img" aria-labelledby="activation-sigmoid-slope-title activation-sigmoid-slope-desc">
+              <title id="activation-sigmoid-slope-title">Sigmoid: local slope h′(a)</title>
+              <desc id="activation-sigmoid-slope-desc">The sigmoid derivative peaks at 0.25 at zero and approaches zero in both tails. Input axis: minus four to four.</desc>
+              <text class="title" x="43" y="18">Local slope h′(a)</text>
+              <line class="grid" x1="43" y1="239.67" x2="312" y2="239.67" />
+              <text text-anchor="end" x="35" y="243.67">0</text>
+              <line class="grid" x1="43" y1="193.83" x2="312" y2="193.83" />
+              <text text-anchor="end" x="35" y="197.83">0.25</text>
+              <line class="grid" x1="43" y1="148.00" x2="312" y2="148.00" />
+              <text text-anchor="end" x="35" y="152.00">0.5</text>
+              <line class="grid" x1="43" y1="56.33" x2="312" y2="56.33" />
+              <text text-anchor="end" x="35" y="60.33">1</text>
+              <line class="grid grid--soft" x1="43.00" y1="38" x2="43.00" y2="258" />
+              <text text-anchor="middle" x="43.00" y="277">−4</text>
+              <line class="grid grid--soft" x1="110.25" y1="38" x2="110.25" y2="258" />
+              <text text-anchor="middle" x="110.25" y="277">−2</text>
+              <line class="grid grid--soft" x1="177.50" y1="38" x2="177.50" y2="258" />
+              <text text-anchor="middle" x="177.50" y="277">0</text>
+              <line class="grid grid--soft" x1="244.75" y1="38" x2="244.75" y2="258" />
+              <text text-anchor="middle" x="244.75" y="277">2</text>
+              <line class="grid grid--soft" x1="312.00" y1="38" x2="312.00" y2="258" />
+              <text text-anchor="middle" x="312.00" y="277">4</text>
+              <line class="axis" x1="43" y1="239.67" x2="312" y2="239.67" />
+              <line class="axis" x1="177.50" y1="38" x2="177.50" y2="258" />
+              <text text-anchor="end" x="312" y="294">pre-activation a</text>
+              <path d="M 43.00 236.43 L 45.10 236.23 L 47.20 236.01 L 49.30 235.79 L 51.41 235.55 L 53.51 235.30 L 55.61 235.03 L 57.71 234.75 L 59.81 234.45 L 61.91 234.13 L 64.02 233.80 L 66.12 233.45 L 68.22 233.08 L 70.32 232.69 L 72.42 232.28 L 74.52 231.84 L 76.62 231.38 L 78.73 230.90 L 80.83 230.40 L 82.93 229.87 L 85.03 229.31 L 87.13 228.73 L 89.23 228.12 L 91.34 227.48 L 93.44 226.81 L 95.54 226.12 L 97.64 225.39 L 99.74 224.64 L 101.84 223.85 L 103.95 223.04 L 106.05 222.19 L 108.15 221.32 L 110.25 220.42 L 112.35 219.49 L 114.45 218.53 L 116.55 217.55 L 118.66 216.54 L 120.76 215.52 L 122.86 214.47 L 124.96 213.40 L 127.06 212.32 L 129.16 211.23 L 131.27 210.13 L 133.37 209.03 L 135.47 207.93 L 137.57 206.83 L 139.67 205.75 L 141.77 204.67 L 143.88 203.62 L 145.98 202.59 L 148.08 201.60 L 150.18 200.64 L 152.28 199.72 L 154.38 198.85 L 156.48 198.03 L 158.59 197.28 L 160.69 196.58 L 162.79 195.96 L 164.89 195.41 L 166.99 194.93 L 169.09 194.54 L 171.20 194.23 L 173.30 194.01 L 175.40 193.88 L 177.50 193.83 L 179.60 193.88 L 181.70 194.01 L 183.80 194.23 L 185.91 194.54 L 188.01 194.93 L 190.11 195.41 L 192.21 195.96 L 194.31 196.58 L 196.41 197.28 L 198.52 198.03 L 200.62 198.85 L 202.72 199.72 L 204.82 200.64 L 206.92 201.60 L 209.02 202.59 L 211.12 203.62 L 213.23 204.67 L 215.33 205.75 L 217.43 206.83 L 219.53 207.93 L 221.63 209.03 L 223.73 210.13 L 225.84 211.23 L 227.94 212.32 L 230.04 213.40 L 232.14 214.47 L 234.24 215.52 L 236.34 216.54 L 238.45 217.55 L 240.55 218.53 L 242.65 219.49 L 244.75 220.42 L 246.85 221.32 L 248.95 222.19 L 251.05 223.04 L 253.16 223.85 L 255.26 224.64 L 257.36 225.39 L 259.46 226.12 L 261.56 226.81 L 263.66 227.48 L 265.77 228.12 L 267.87 228.73 L 269.97 229.31 L 272.07 229.87 L 274.17 230.40 L 276.27 230.90 L 278.38 231.38 L 280.48 231.84 L 282.58 232.28 L 284.68 232.69 L 286.78 233.08 L 288.88 233.45 L 290.98 233.80 L 293.09 234.13 L 295.19 234.45 L 297.29 234.75 L 299.39 235.03 L 301.49 235.30 L 303.59 235.55 L 305.70 235.79 L 307.80 236.01 L 309.90 236.23 L 312.00 236.43" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round" />
+            </svg>
+          </div>
+          <figcaption class="chart-caption"><span class="label">fig 1</span> Sigmoid flattens near $0$ and $1$, where its slope approaches zero. Dashed lines mark these limits. Input and slope axes match across the figures; output scales match within the sigmoid/tanh and ReLU/leaky ReLU pairs.</figcaption>
+        </figure>
+        <p>
+          This flattening is called <strong>saturation</strong>.
+          Once a neuron is in this region, changing its pre-activation makes very little difference
+          to its output. That can make learning difficult.
+        </p>
+        <p>
+          A gradient describes how the loss changes when a model parameter changes.
+          Small activation slopes across several layers can lead to very small gradients in earlier
+          layers. This <strong>vanishing gradient</strong> problem can slow learning.
+          The details come later; for now, notice the nearly flat ends of the sigmoid curve.
+        </p>
 
-        <h2>Activation derivatives</h2>
-        <!-- TODO: Add the explanation, equations, and examples for this section. -->
+        <h2>The hyperbolic tangent (tanh)</h2>
+        <p>
+          The <strong>hyperbolic tangent</strong>, or $\tanh$, has a similar shape to sigmoid,
+          but its outputs can be negative as well as positive:
+        </p>
+        <p>$$\tanh(a)=\frac{e^a-e^{-a}}{e^a+e^{-a}}.$$</p>
+        <p>
+          Its output range is $(-1,1)$.
+          Very negative inputs give outputs close to $-1$, and very positive inputs give outputs
+          close to $1$. At zero:
+        </p>
+        <p>$$\tanh(0)=\frac{1-1}{1+1}=0.$$</p>
+        <p>
+          Tanh is <strong>centred around zero</strong>: $\tanh(-a)=-\tanh(a)$.
+          Negative inputs give negative outputs, and positive inputs give positive outputs.
+          You can also express it in terms of sigmoid:
+        </p>
+        <p>$$\tanh(a)=2\sigma(2a)-1.$$</p>
+        <p>The derivative is:</p>
+        <p>$$\frac{d}{da}\tanh(a)=1-\tanh^2(a).$$</p>
+        <p>
+          At zero, the slope is $1$, compared with $\tfrac14$ for sigmoid.
+          But as the output approaches $-1$ or $1$, its square approaches $1$ and the derivative
+          approaches zero. Tanh also saturates at both ends.
+        </p>
+        <figure class="chart-card">
+          <div class="eyebrow">02 &middot; activation and derivative</div>
+          <h3>Tanh: output and local slope</h3>
+          <div class="activation-plots">
+            <svg class="chart" viewBox="0 0 330 300" width="100%" height="auto" role="img" aria-labelledby="activation-tanh-function-title activation-tanh-function-desc">
+              <title id="activation-tanh-function-title">Tanh: activation h(a)</title>
+              <desc id="activation-tanh-function-desc">Tanh rises smoothly from near minus one to near one and passes through the origin. Input axis: minus four to four.</desc>
+              <text class="title" x="43" y="18">Activation h(a)</text>
+              <line class="grid" x1="43" y1="236.00" x2="312" y2="236.00" />
+              <text text-anchor="end" x="35" y="240.00">−1</text>
+              <line class="grid" x1="43" y1="192.00" x2="312" y2="192.00" />
+              <text text-anchor="end" x="35" y="196.00">−0.5</text>
+              <line class="grid" x1="43" y1="148.00" x2="312" y2="148.00" />
+              <text text-anchor="end" x="35" y="152.00">0</text>
+              <line class="grid" x1="43" y1="104.00" x2="312" y2="104.00" />
+              <text text-anchor="end" x="35" y="108.00">0.5</text>
+              <line class="grid" x1="43" y1="60.00" x2="312" y2="60.00" />
+              <text text-anchor="end" x="35" y="64.00">1</text>
+              <line class="grid grid--soft" x1="43.00" y1="38" x2="43.00" y2="258" />
+              <text text-anchor="middle" x="43.00" y="277">−4</text>
+              <line class="grid grid--soft" x1="110.25" y1="38" x2="110.25" y2="258" />
+              <text text-anchor="middle" x="110.25" y="277">−2</text>
+              <line class="grid grid--soft" x1="177.50" y1="38" x2="177.50" y2="258" />
+              <text text-anchor="middle" x="177.50" y="277">0</text>
+              <line class="grid grid--soft" x1="244.75" y1="38" x2="244.75" y2="258" />
+              <text text-anchor="middle" x="244.75" y="277">2</text>
+              <line class="grid grid--soft" x1="312.00" y1="38" x2="312.00" y2="258" />
+              <text text-anchor="middle" x="312.00" y="277">4</text>
+              <line class="axis" x1="43" y1="148.00" x2="312" y2="148.00" />
+              <line class="axis" x1="177.50" y1="38" x2="177.50" y2="258" />
+              <text text-anchor="end" x="312" y="294">pre-activation a</text>
+              <line class="ref" x1="43" y1="236.00" x2="312" y2="236.00" />
+              <line class="ref" x1="43" y1="60.00" x2="312" y2="60.00" />
+              <path d="M 43.00 235.94 L 45.10 235.93 L 47.20 235.92 L 49.30 235.91 L 51.41 235.90 L 53.51 235.89 L 55.61 235.88 L 57.71 235.86 L 59.81 235.84 L 61.91 235.82 L 64.02 235.79 L 66.12 235.77 L 68.22 235.74 L 70.32 235.70 L 72.42 235.66 L 74.52 235.62 L 76.62 235.56 L 78.73 235.51 L 80.83 235.44 L 82.93 235.37 L 85.03 235.28 L 87.13 235.19 L 89.23 235.08 L 91.34 234.96 L 93.44 234.82 L 95.54 234.67 L 97.64 234.49 L 99.74 234.29 L 101.84 234.07 L 103.95 233.81 L 106.05 233.52 L 108.15 233.20 L 110.25 232.83 L 112.35 232.42 L 114.45 231.96 L 116.55 231.43 L 118.66 230.84 L 120.76 230.18 L 122.86 229.43 L 124.96 228.59 L 127.06 227.65 L 129.16 226.60 L 131.27 225.42 L 133.37 224.11 L 135.47 222.65 L 137.57 221.02 L 139.67 219.22 L 141.77 217.22 L 143.88 215.02 L 145.98 212.60 L 148.08 209.94 L 150.18 207.05 L 152.28 203.89 L 154.38 200.48 L 156.48 196.80 L 158.59 192.87 L 160.69 188.67 L 162.79 184.22 L 164.89 179.54 L 166.99 174.64 L 169.09 169.55 L 171.20 164.31 L 173.30 158.94 L 175.40 153.49 L 177.50 148.00 L 179.60 142.51 L 181.70 137.06 L 183.80 131.69 L 185.91 126.45 L 188.01 121.36 L 190.11 116.46 L 192.21 111.78 L 194.31 107.33 L 196.41 103.13 L 198.52 99.20 L 200.62 95.52 L 202.72 92.11 L 204.82 88.95 L 206.92 86.06 L 209.02 83.40 L 211.12 80.98 L 213.23 78.78 L 215.33 76.78 L 217.43 74.98 L 219.53 73.35 L 221.63 71.89 L 223.73 70.58 L 225.84 69.40 L 227.94 68.35 L 230.04 67.41 L 232.14 66.57 L 234.24 65.82 L 236.34 65.16 L 238.45 64.57 L 240.55 64.04 L 242.65 63.58 L 244.75 63.17 L 246.85 62.80 L 248.95 62.48 L 251.05 62.19 L 253.16 61.93 L 255.26 61.71 L 257.36 61.51 L 259.46 61.33 L 261.56 61.18 L 263.66 61.04 L 265.77 60.92 L 267.87 60.81 L 269.97 60.72 L 272.07 60.63 L 274.17 60.56 L 276.27 60.49 L 278.38 60.44 L 280.48 60.38 L 282.58 60.34 L 284.68 60.30 L 286.78 60.26 L 288.88 60.23 L 290.98 60.21 L 293.09 60.18 L 295.19 60.16 L 297.29 60.14 L 299.39 60.12 L 301.49 60.11 L 303.59 60.10 L 305.70 60.09 L 307.80 60.08 L 309.90 60.07 L 312.00 60.06" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round" />
+            </svg>
+            <svg class="chart" viewBox="0 0 330 300" width="100%" height="auto" role="img" aria-labelledby="activation-tanh-slope-title activation-tanh-slope-desc">
+              <title id="activation-tanh-slope-title">Tanh: local slope h′(a)</title>
+              <desc id="activation-tanh-slope-desc">The tanh derivative peaks at one at zero and approaches zero in both tails. Input axis: minus four to four.</desc>
+              <text class="title" x="43" y="18">Local slope h′(a)</text>
+              <line class="grid" x1="43" y1="239.67" x2="312" y2="239.67" />
+              <text text-anchor="end" x="35" y="243.67">0</text>
+              <line class="grid" x1="43" y1="193.83" x2="312" y2="193.83" />
+              <text text-anchor="end" x="35" y="197.83">0.25</text>
+              <line class="grid" x1="43" y1="148.00" x2="312" y2="148.00" />
+              <text text-anchor="end" x="35" y="152.00">0.5</text>
+              <line class="grid" x1="43" y1="56.33" x2="312" y2="56.33" />
+              <text text-anchor="end" x="35" y="60.33">1</text>
+              <line class="grid grid--soft" x1="43.00" y1="38" x2="43.00" y2="258" />
+              <text text-anchor="middle" x="43.00" y="277">−4</text>
+              <line class="grid grid--soft" x1="110.25" y1="38" x2="110.25" y2="258" />
+              <text text-anchor="middle" x="110.25" y="277">−2</text>
+              <line class="grid grid--soft" x1="177.50" y1="38" x2="177.50" y2="258" />
+              <text text-anchor="middle" x="177.50" y="277">0</text>
+              <line class="grid grid--soft" x1="244.75" y1="38" x2="244.75" y2="258" />
+              <text text-anchor="middle" x="244.75" y="277">2</text>
+              <line class="grid grid--soft" x1="312.00" y1="38" x2="312.00" y2="258" />
+              <text text-anchor="middle" x="312.00" y="277">4</text>
+              <line class="axis" x1="43" y1="239.67" x2="312" y2="239.67" />
+              <line class="axis" x1="177.50" y1="38" x2="177.50" y2="258" />
+              <text text-anchor="end" x="312" y="294">pre-activation a</text>
+              <path d="M 43.00 239.42 L 45.10 239.39 L 47.20 239.35 L 49.30 239.31 L 51.41 239.26 L 53.51 239.21 L 55.61 239.15 L 57.71 239.08 L 59.81 239.00 L 61.91 238.91 L 64.02 238.81 L 66.12 238.70 L 68.22 238.57 L 70.32 238.42 L 72.42 238.26 L 74.52 238.07 L 76.62 237.86 L 78.73 237.62 L 80.83 237.35 L 82.93 237.04 L 85.03 236.69 L 87.13 236.30 L 89.23 235.86 L 91.34 235.36 L 93.44 234.79 L 95.54 234.15 L 97.64 233.43 L 99.74 232.62 L 101.84 231.70 L 103.95 230.66 L 106.05 229.50 L 108.15 228.19 L 110.25 226.71 L 112.35 225.06 L 114.45 223.20 L 116.55 221.13 L 118.66 218.80 L 120.76 216.21 L 122.86 213.32 L 124.96 210.10 L 127.06 206.54 L 129.16 202.60 L 131.27 198.25 L 133.37 193.48 L 135.47 188.26 L 137.57 182.57 L 139.67 176.41 L 141.77 169.77 L 143.88 162.67 L 145.98 155.12 L 148.08 147.17 L 150.18 138.87 L 152.28 130.29 L 154.38 121.54 L 156.48 112.72 L 158.59 103.99 L 160.69 95.48 L 162.79 87.39 L 164.89 79.88 L 166.99 73.13 L 169.09 67.33 L 171.20 62.63 L 173.30 59.17 L 175.40 57.05 L 177.50 56.33 L 179.60 57.05 L 181.70 59.17 L 183.80 62.63 L 185.91 67.33 L 188.01 73.13 L 190.11 79.88 L 192.21 87.39 L 194.31 95.48 L 196.41 103.99 L 198.52 112.72 L 200.62 121.54 L 202.72 130.29 L 204.82 138.87 L 206.92 147.17 L 209.02 155.12 L 211.12 162.67 L 213.23 169.77 L 215.33 176.41 L 217.43 182.57 L 219.53 188.26 L 221.63 193.48 L 223.73 198.25 L 225.84 202.60 L 227.94 206.54 L 230.04 210.10 L 232.14 213.32 L 234.24 216.21 L 236.34 218.80 L 238.45 221.13 L 240.55 223.20 L 242.65 225.06 L 244.75 226.71 L 246.85 228.19 L 248.95 229.50 L 251.05 230.66 L 253.16 231.70 L 255.26 232.62 L 257.36 233.43 L 259.46 234.15 L 261.56 234.79 L 263.66 235.36 L 265.77 235.86 L 267.87 236.30 L 269.97 236.69 L 272.07 237.04 L 274.17 237.35 L 276.27 237.62 L 278.38 237.86 L 280.48 238.07 L 282.58 238.26 L 284.68 238.42 L 286.78 238.57 L 288.88 238.70 L 290.98 238.81 L 293.09 238.91 L 295.19 239.00 L 297.29 239.08 L 299.39 239.15 L 301.49 239.21 L 303.59 239.26 L 305.70 239.31 L 307.80 239.35 L 309.90 239.39 L 312.00 239.42" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round" />
+            </svg>
+          </div>
+          <figcaption class="chart-caption"><span class="label">fig 2</span> Tanh passes through zero and flattens near $-1$ and $1$. Its slope approaches zero at both ends.</figcaption>
+        </figure>
+        <p>
+          Tanh was often preferred over sigmoid in hidden layers because it produces both negative
+          and positive features. This can make optimisation easier.
+          It still has the same difficulty with saturation.
+        </p>
+
+        <h2>Rectified linear unit (ReLU)</h2>
+        <p>
+          The <strong>rectified linear unit</strong> from the previous note uses a much simpler rule:
+        </p>
+        <p>$$h(a)=\operatorname{ReLU}(a)=\max(0,a).$$</p>
+        <p>
+          Negative inputs become zero, and positive inputs pass through unchanged.
+          The output at zero is zero. Its range is $[0,\infty)$, with no upper limit.
+          Away from zero, the derivative is:
+        </p>
+        <p>$$h'(a)=\begin{cases}0 &amp; a&lt;0,\\1 &amp; a&gt;0.\end{cases}$$</p>
+        <p>
+          At zero, the left-hand slope is $0$ and the right-hand slope is $1$.
+          The derivative is therefore undefined there. Implementations choose a value, usually $0$,
+          for gradient calculations.
+        </p>
+        <figure class="chart-card">
+          <div class="eyebrow">03 &middot; activation and derivative</div>
+          <h3>ReLU: output and local slope</h3>
+          <div class="activation-plots">
+            <svg class="chart" viewBox="0 0 330 300" width="100%" height="auto" role="img" aria-labelledby="activation-relu-function-title activation-relu-function-desc">
+              <title id="activation-relu-function-title">ReLU: activation h(a)</title>
+              <desc id="activation-relu-function-desc">ReLU is zero for negative inputs and equals the input for positive inputs. Input axis: minus four to four.</desc>
+              <text class="title" x="43" y="18">Activation h(a)</text>
+              <line class="grid" x1="43" y1="248.00" x2="312" y2="248.00" />
+              <text text-anchor="end" x="35" y="252.00">−1</text>
+              <line class="grid" x1="43" y1="208.00" x2="312" y2="208.00" />
+              <text text-anchor="end" x="35" y="212.00">0</text>
+              <line class="grid" x1="43" y1="168.00" x2="312" y2="168.00" />
+              <text text-anchor="end" x="35" y="172.00">1</text>
+              <line class="grid" x1="43" y1="128.00" x2="312" y2="128.00" />
+              <text text-anchor="end" x="35" y="132.00">2</text>
+              <line class="grid" x1="43" y1="88.00" x2="312" y2="88.00" />
+              <text text-anchor="end" x="35" y="92.00">3</text>
+              <line class="grid" x1="43" y1="48.00" x2="312" y2="48.00" />
+              <text text-anchor="end" x="35" y="52.00">4</text>
+              <line class="grid grid--soft" x1="43.00" y1="38" x2="43.00" y2="258" />
+              <text text-anchor="middle" x="43.00" y="277">−4</text>
+              <line class="grid grid--soft" x1="110.25" y1="38" x2="110.25" y2="258" />
+              <text text-anchor="middle" x="110.25" y="277">−2</text>
+              <line class="grid grid--soft" x1="177.50" y1="38" x2="177.50" y2="258" />
+              <text text-anchor="middle" x="177.50" y="277">0</text>
+              <line class="grid grid--soft" x1="244.75" y1="38" x2="244.75" y2="258" />
+              <text text-anchor="middle" x="244.75" y="277">2</text>
+              <line class="grid grid--soft" x1="312.00" y1="38" x2="312.00" y2="258" />
+              <text text-anchor="middle" x="312.00" y="277">4</text>
+              <line class="axis" x1="43" y1="208.00" x2="312" y2="208.00" />
+              <line class="axis" x1="177.50" y1="38" x2="177.50" y2="258" />
+              <text text-anchor="end" x="312" y="294">pre-activation a</text>
+              <path d="M 43.00 208.00 L 45.10 208.00 L 47.20 208.00 L 49.30 208.00 L 51.41 208.00 L 53.51 208.00 L 55.61 208.00 L 57.71 208.00 L 59.81 208.00 L 61.91 208.00 L 64.02 208.00 L 66.12 208.00 L 68.22 208.00 L 70.32 208.00 L 72.42 208.00 L 74.52 208.00 L 76.62 208.00 L 78.73 208.00 L 80.83 208.00 L 82.93 208.00 L 85.03 208.00 L 87.13 208.00 L 89.23 208.00 L 91.34 208.00 L 93.44 208.00 L 95.54 208.00 L 97.64 208.00 L 99.74 208.00 L 101.84 208.00 L 103.95 208.00 L 106.05 208.00 L 108.15 208.00 L 110.25 208.00 L 112.35 208.00 L 114.45 208.00 L 116.55 208.00 L 118.66 208.00 L 120.76 208.00 L 122.86 208.00 L 124.96 208.00 L 127.06 208.00 L 129.16 208.00 L 131.27 208.00 L 133.37 208.00 L 135.47 208.00 L 137.57 208.00 L 139.67 208.00 L 141.77 208.00 L 143.88 208.00 L 145.98 208.00 L 148.08 208.00 L 150.18 208.00 L 152.28 208.00 L 154.38 208.00 L 156.48 208.00 L 158.59 208.00 L 160.69 208.00 L 162.79 208.00 L 164.89 208.00 L 166.99 208.00 L 169.09 208.00 L 171.20 208.00 L 173.30 208.00 L 175.40 208.00 L 177.50 208.00 L 179.60 205.50 L 181.70 203.00 L 183.80 200.50 L 185.91 198.00 L 188.01 195.50 L 190.11 193.00 L 192.21 190.50 L 194.31 188.00 L 196.41 185.50 L 198.52 183.00 L 200.62 180.50 L 202.72 178.00 L 204.82 175.50 L 206.92 173.00 L 209.02 170.50 L 211.12 168.00 L 213.23 165.50 L 215.33 163.00 L 217.43 160.50 L 219.53 158.00 L 221.63 155.50 L 223.73 153.00 L 225.84 150.50 L 227.94 148.00 L 230.04 145.50 L 232.14 143.00 L 234.24 140.50 L 236.34 138.00 L 238.45 135.50 L 240.55 133.00 L 242.65 130.50 L 244.75 128.00 L 246.85 125.50 L 248.95 123.00 L 251.05 120.50 L 253.16 118.00 L 255.26 115.50 L 257.36 113.00 L 259.46 110.50 L 261.56 108.00 L 263.66 105.50 L 265.77 103.00 L 267.87 100.50 L 269.97 98.00 L 272.07 95.50 L 274.17 93.00 L 276.27 90.50 L 278.38 88.00 L 280.48 85.50 L 282.58 83.00 L 284.68 80.50 L 286.78 78.00 L 288.88 75.50 L 290.98 73.00 L 293.09 70.50 L 295.19 68.00 L 297.29 65.50 L 299.39 63.00 L 301.49 60.50 L 303.59 58.00 L 305.70 55.50 L 307.80 53.00 L 309.90 50.50 L 312.00 48.00" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round" />
+            </svg>
+            <svg class="chart" viewBox="0 0 330 300" width="100%" height="auto" role="img" aria-labelledby="activation-relu-slope-title activation-relu-slope-desc">
+              <title id="activation-relu-slope-title">ReLU: local slope h′(a)</title>
+              <desc id="activation-relu-slope-desc">The ReLU derivative is zero for negative inputs and one for positive inputs. Open circles at zero indicate an undefined derivative. Input axis: minus four to four.</desc>
+              <text class="title" x="43" y="18">Local slope h′(a)</text>
+              <line class="grid" x1="43" y1="239.67" x2="312" y2="239.67" />
+              <text text-anchor="end" x="35" y="243.67">0</text>
+              <line class="grid" x1="43" y1="193.83" x2="312" y2="193.83" />
+              <text text-anchor="end" x="35" y="197.83">0.25</text>
+              <line class="grid" x1="43" y1="148.00" x2="312" y2="148.00" />
+              <text text-anchor="end" x="35" y="152.00">0.5</text>
+              <line class="grid" x1="43" y1="56.33" x2="312" y2="56.33" />
+              <text text-anchor="end" x="35" y="60.33">1</text>
+              <line class="grid grid--soft" x1="43.00" y1="38" x2="43.00" y2="258" />
+              <text text-anchor="middle" x="43.00" y="277">−4</text>
+              <line class="grid grid--soft" x1="110.25" y1="38" x2="110.25" y2="258" />
+              <text text-anchor="middle" x="110.25" y="277">−2</text>
+              <line class="grid grid--soft" x1="177.50" y1="38" x2="177.50" y2="258" />
+              <text text-anchor="middle" x="177.50" y="277">0</text>
+              <line class="grid grid--soft" x1="244.75" y1="38" x2="244.75" y2="258" />
+              <text text-anchor="middle" x="244.75" y="277">2</text>
+              <line class="grid grid--soft" x1="312.00" y1="38" x2="312.00" y2="258" />
+              <text text-anchor="middle" x="312.00" y="277">4</text>
+              <line class="axis" x1="43" y1="239.67" x2="312" y2="239.67" />
+              <line class="axis" x1="177.50" y1="38" x2="177.50" y2="258" />
+              <text text-anchor="end" x="312" y="294">pre-activation a</text>
+              <path d="M 43 239.67 H 177.50 M 177.50 56.33 H 312" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round" />
+              <circle cx="177.50" cy="239.67" r="4" fill="var(--bg)" stroke="var(--accent)" stroke-width="2" />
+              <circle cx="177.50" cy="56.33" r="4" fill="var(--bg)" stroke="var(--accent)" stroke-width="2" />
+            </svg>
+          </div>
+          <figcaption class="chart-caption"><span class="label">fig 3</span> ReLU has slope $0$ for negative inputs and $1$ for positive inputs. Open circles mark the undefined derivative at zero.</figcaption>
+        </figure>
+        <p>
+          ReLU is simple to compute, and its positive side never flattens: the slope stays at $1$.
+          This helps gradients pass through active neurons, even for large positive inputs.
+          Sigmoid and tanh have very small slopes in that region.
+        </p>
+        <p>
+          The flat negative side causes a different problem.
+          If a neuron has negative pre-activations for every example it sees, its output and
+          activation derivative are always zero. It then receives no gradient through the activation
+          to change its incoming weights or bias. A neuron that stays in this state is called a
+          <strong>dead neuron</strong>.
+        </p>
+        <p>
+          Returning zero for one input is normal, as in the previous note's worked example.
+          Other inputs may still give that neuron a positive pre-activation.
+        </p>
+
+        <h2>Leaky ReLU</h2>
+        <p>
+          <strong>Leaky ReLU</strong> gives the negative side of ReLU a small slope:
+        </p>
+        <p>$$h(a)=\begin{cases}a &amp; a\geq0,\\\alpha a &amp; a&lt;0,\end{cases}\qquad 0&lt;\alpha&lt;1.$$</p>
+        <p>
+          Here $\alpha$ sets the slope for negative inputs.
+          With $\alpha=0.1$, an input of $-2$ produces $-0.2$ instead of zero.
+          Positive inputs pass through unchanged.
+        </p>
+        <p>
+          The output can now be any real number, so its range is $\mathbb{R}$.
+          Away from zero, its derivative is:
+        </p>
+        <p>$$h'(a)=\begin{cases}\alpha &amp; a&lt;0,\\1 &amp; a&gt;0.\end{cases}$$</p>
+        <p>
+          The derivative is now nonzero on the negative side, so a negative pre-activation
+          still allows a gradient through. The derivative is undefined at zero, where the slope
+          changes; implementations choose a value there, as with ReLU.
+        </p>
+        <figure class="chart-card">
+          <div class="eyebrow">04 &middot; activation and derivative</div>
+          <h3>Leaky ReLU: output and local slope</h3>
+          <div class="activation-plots">
+            <svg class="chart" viewBox="0 0 330 300" width="100%" height="auto" role="img" aria-labelledby="activation-leaky-function-title activation-leaky-function-desc">
+              <title id="activation-leaky-function-title">Leaky ReLU: activation h(a)</title>
+              <desc id="activation-leaky-function-desc">Leaky ReLU has slope 0.1 for negative inputs and slope one for positive inputs. Input axis: minus four to four.</desc>
+              <text class="title" x="43" y="18">Activation h(a)</text>
+              <line class="grid" x1="43" y1="248.00" x2="312" y2="248.00" />
+              <text text-anchor="end" x="35" y="252.00">−1</text>
+              <line class="grid" x1="43" y1="208.00" x2="312" y2="208.00" />
+              <text text-anchor="end" x="35" y="212.00">0</text>
+              <line class="grid" x1="43" y1="168.00" x2="312" y2="168.00" />
+              <text text-anchor="end" x="35" y="172.00">1</text>
+              <line class="grid" x1="43" y1="128.00" x2="312" y2="128.00" />
+              <text text-anchor="end" x="35" y="132.00">2</text>
+              <line class="grid" x1="43" y1="88.00" x2="312" y2="88.00" />
+              <text text-anchor="end" x="35" y="92.00">3</text>
+              <line class="grid" x1="43" y1="48.00" x2="312" y2="48.00" />
+              <text text-anchor="end" x="35" y="52.00">4</text>
+              <line class="grid grid--soft" x1="43.00" y1="38" x2="43.00" y2="258" />
+              <text text-anchor="middle" x="43.00" y="277">−4</text>
+              <line class="grid grid--soft" x1="110.25" y1="38" x2="110.25" y2="258" />
+              <text text-anchor="middle" x="110.25" y="277">−2</text>
+              <line class="grid grid--soft" x1="177.50" y1="38" x2="177.50" y2="258" />
+              <text text-anchor="middle" x="177.50" y="277">0</text>
+              <line class="grid grid--soft" x1="244.75" y1="38" x2="244.75" y2="258" />
+              <text text-anchor="middle" x="244.75" y="277">2</text>
+              <line class="grid grid--soft" x1="312.00" y1="38" x2="312.00" y2="258" />
+              <text text-anchor="middle" x="312.00" y="277">4</text>
+              <line class="axis" x1="43" y1="208.00" x2="312" y2="208.00" />
+              <line class="axis" x1="177.50" y1="38" x2="177.50" y2="258" />
+              <text text-anchor="end" x="312" y="294">pre-activation a</text>
+              <path d="M 43.00 224.00 L 45.10 223.75 L 47.20 223.50 L 49.30 223.25 L 51.41 223.00 L 53.51 222.75 L 55.61 222.50 L 57.71 222.25 L 59.81 222.00 L 61.91 221.75 L 64.02 221.50 L 66.12 221.25 L 68.22 221.00 L 70.32 220.75 L 72.42 220.50 L 74.52 220.25 L 76.62 220.00 L 78.73 219.75 L 80.83 219.50 L 82.93 219.25 L 85.03 219.00 L 87.13 218.75 L 89.23 218.50 L 91.34 218.25 L 93.44 218.00 L 95.54 217.75 L 97.64 217.50 L 99.74 217.25 L 101.84 217.00 L 103.95 216.75 L 106.05 216.50 L 108.15 216.25 L 110.25 216.00 L 112.35 215.75 L 114.45 215.50 L 116.55 215.25 L 118.66 215.00 L 120.76 214.75 L 122.86 214.50 L 124.96 214.25 L 127.06 214.00 L 129.16 213.75 L 131.27 213.50 L 133.37 213.25 L 135.47 213.00 L 137.57 212.75 L 139.67 212.50 L 141.77 212.25 L 143.88 212.00 L 145.98 211.75 L 148.08 211.50 L 150.18 211.25 L 152.28 211.00 L 154.38 210.75 L 156.48 210.50 L 158.59 210.25 L 160.69 210.00 L 162.79 209.75 L 164.89 209.50 L 166.99 209.25 L 169.09 209.00 L 171.20 208.75 L 173.30 208.50 L 175.40 208.25 L 177.50 208.00 L 179.60 205.50 L 181.70 203.00 L 183.80 200.50 L 185.91 198.00 L 188.01 195.50 L 190.11 193.00 L 192.21 190.50 L 194.31 188.00 L 196.41 185.50 L 198.52 183.00 L 200.62 180.50 L 202.72 178.00 L 204.82 175.50 L 206.92 173.00 L 209.02 170.50 L 211.12 168.00 L 213.23 165.50 L 215.33 163.00 L 217.43 160.50 L 219.53 158.00 L 221.63 155.50 L 223.73 153.00 L 225.84 150.50 L 227.94 148.00 L 230.04 145.50 L 232.14 143.00 L 234.24 140.50 L 236.34 138.00 L 238.45 135.50 L 240.55 133.00 L 242.65 130.50 L 244.75 128.00 L 246.85 125.50 L 248.95 123.00 L 251.05 120.50 L 253.16 118.00 L 255.26 115.50 L 257.36 113.00 L 259.46 110.50 L 261.56 108.00 L 263.66 105.50 L 265.77 103.00 L 267.87 100.50 L 269.97 98.00 L 272.07 95.50 L 274.17 93.00 L 276.27 90.50 L 278.38 88.00 L 280.48 85.50 L 282.58 83.00 L 284.68 80.50 L 286.78 78.00 L 288.88 75.50 L 290.98 73.00 L 293.09 70.50 L 295.19 68.00 L 297.29 65.50 L 299.39 63.00 L 301.49 60.50 L 303.59 58.00 L 305.70 55.50 L 307.80 53.00 L 309.90 50.50 L 312.00 48.00" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round" />
+            </svg>
+            <svg class="chart" viewBox="0 0 330 300" width="100%" height="auto" role="img" aria-labelledby="activation-leaky-slope-title activation-leaky-slope-desc">
+              <title id="activation-leaky-slope-title">Leaky ReLU: local slope h′(a)</title>
+              <desc id="activation-leaky-slope-desc">The leaky ReLU derivative is 0.1 for negative inputs and one for positive inputs. Open circles at zero indicate an undefined derivative. Input axis: minus four to four.</desc>
+              <text class="title" x="43" y="18">Local slope h′(a)</text>
+              <line class="grid" x1="43" y1="239.67" x2="312" y2="239.67" />
+              <text text-anchor="end" x="35" y="243.67">0</text>
+              <line class="grid" x1="43" y1="193.83" x2="312" y2="193.83" />
+              <text text-anchor="end" x="35" y="197.83">0.25</text>
+              <line class="grid" x1="43" y1="148.00" x2="312" y2="148.00" />
+              <text text-anchor="end" x="35" y="152.00">0.5</text>
+              <line class="grid" x1="43" y1="56.33" x2="312" y2="56.33" />
+              <text text-anchor="end" x="35" y="60.33">1</text>
+              <line class="grid grid--soft" x1="43.00" y1="38" x2="43.00" y2="258" />
+              <text text-anchor="middle" x="43.00" y="277">−4</text>
+              <line class="grid grid--soft" x1="110.25" y1="38" x2="110.25" y2="258" />
+              <text text-anchor="middle" x="110.25" y="277">−2</text>
+              <line class="grid grid--soft" x1="177.50" y1="38" x2="177.50" y2="258" />
+              <text text-anchor="middle" x="177.50" y="277">0</text>
+              <line class="grid grid--soft" x1="244.75" y1="38" x2="244.75" y2="258" />
+              <text text-anchor="middle" x="244.75" y="277">2</text>
+              <line class="grid grid--soft" x1="312.00" y1="38" x2="312.00" y2="258" />
+              <text text-anchor="middle" x="312.00" y="277">4</text>
+              <line class="axis" x1="43" y1="239.67" x2="312" y2="239.67" />
+              <line class="axis" x1="177.50" y1="38" x2="177.50" y2="258" />
+              <text text-anchor="end" x="312" y="294">pre-activation a</text>
+              <path d="M 43 221.33 H 177.50 M 177.50 56.33 H 312" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round" />
+              <circle cx="177.50" cy="221.33" r="4" fill="var(--bg)" stroke="var(--accent)" stroke-width="2" />
+              <circle cx="177.50" cy="56.33" r="4" fill="var(--bg)" stroke="var(--accent)" stroke-width="2" />
+            </svg>
+          </div>
+          <figcaption class="chart-caption"><span class="label">fig 4</span> With $\alpha=0.1$, the negative side has a small slope. The positive side matches ReLU. Open circles mark the undefined derivative at zero.</figcaption>
+        </figure>
+        <p>
+          The slope $\alpha$ is a <strong>hyperparameter</strong>: a setting you choose before learning.
+          A smaller value makes the negative side flatter. The plots use $\alpha=0.1$
+          to make this slope easy to see. Some related functions allow the slope to be learned.
+        </p>
+
+        <h2>Hidden layers and output layers</h2>
+        <p>
+          Hidden layers produce features for the layers that follow them.
+          Their activations make those features nonlinear.
+          At the output layer, the choice depends on what you want to predict.
+        </p>
+        <p>
+          For <strong>regression</strong> with unrestricted real-valued targets, an
+          <strong>identity</strong> output, $h(a)=a$, allows predictions of any size and either sign.
+          It is often called a linear output layer; with a bias, the layer is affine.
+          The hidden layers can still make the overall prediction nonlinear.
+        </p>
+        <p>
+          For <strong>binary classification</strong>, sigmoid turns one output score into
+          $p(C_1\mid\mathbf{x})=\sigma(a)$. The other class has probability $1-\sigma(a)$,
+          just as in logistic regression.
+        </p>
+        <p>
+          For <strong>multiclass classification</strong>, suppose each example belongs to exactly
+          one of $K$ classes. Let $\mathbf{a}=[a_1,\ldots,a_K]^\top$ contain the output scores,
+          one per class. <strong>Softmax</strong> turns these scores into class probabilities:
+        </p>
+        <p>$$\operatorname{softmax}(\mathbf{a})_k=\frac{e^{a_k}}{\sum_{j=1}^{K}e^{a_j}},\qquad k=1,\ldots,K.$$</p>
+        <p>
+          Each exponential is positive. Dividing by their sum makes the outputs add up to one,
+          so output $k$ can represent $p(C_k\mid\mathbf{x})$.
+          Softmax uses all the scores together: changing one score also changes the other probabilities.
+        </p>
+        <p>
+          Independent sigmoids answer separate yes/no questions, so several labels can be true at once
+          and the probabilities need not add up to one. Softmax is for classes that compete:
+          each example belongs to just one class. This is the distinction from the earlier
+          <a href="../../02-classification/multiclass-classification-and-softmax/">multiclass classification note</a>.
+        </p>
+        <p>
+          These choices match the losses from earlier in the course: squared error for regression,
+          <a href="../../02-classification/maximum-likelihood-and-binary-cross-entropy/">binary cross-entropy</a>
+          for binary classification, and multiclass cross-entropy for mutually exclusive classes.
+          Choose the output activation to suit the task; sigmoid and softmax are useful when the
+          prediction should be a probability.
+        </p>
+
+        <h2>Comparing activation functions</h2>
+        <p>
+          Here are the main differences. For leaky ReLU, $0&lt;\alpha&lt;1$.
+        </p>
+        <div class="activation-table-wrap" role="region" aria-label="Activation function comparison" tabindex="0">
+          <table class="activation-table">
+            <caption>Four hidden-layer activation functions</caption>
+            <thead>
+              <tr>
+                <th scope="col">Function</th>
+                <th scope="col">Output range</th>
+                <th scope="col">Negative / positive inputs</th>
+                <th scope="col">Saturation</th>
+                <th scope="col">Main tradeoff</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">Sigmoid</th>
+                <td>$(0,1)$</td>
+                <td>Below / above $0.5$</td>
+                <td>Both ends</td>
+                <td>Smooth, bounded outputs; small slopes near the limits.</td>
+              </tr>
+              <tr>
+                <th scope="row">Tanh</th>
+                <td>$(-1,1)$</td>
+                <td>Negative / positive</td>
+                <td>Both ends</td>
+                <td>Centred around zero; small slopes near the limits.</td>
+              </tr>
+              <tr>
+                <th scope="row">ReLU</th>
+                <td>$[0,\infty)$</td>
+                <td>Zero / unchanged</td>
+                <td>Flat for negative inputs only</td>
+                <td>Slope $1$ for positive inputs; risk of dead neurons.</td>
+              </tr>
+              <tr>
+                <th scope="row">Leaky ReLU</th>
+                <td>$\mathbb{R}$</td>
+                <td>Scaled by $\alpha$ / unchanged</td>
+                <td>Neither end</td>
+                <td>Nonzero slope for negative inputs; choose $\alpha$.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          ReLU is a common starting point for hidden layers: it is simple and does not saturate
+          for positive inputs. The best choice still depends on the architecture and task.
+        </p>
+        <p>
+          Select a function below, then move the slider.
+          Notice how the same pre-activation can give a different output and slope.
+        </p>
+        <figure class="chart-card">
+          <div class="eyebrow">05 &middot; interactive comparison</div>
+          <h3>The four possible functions</h3>
+          <div id="activation-controls" class="activation-controls" hidden>
+            <div class="activation-control">
+              <label for="activation-kind">Activation function</label>
+              <select id="activation-kind">
+                <option value="sigmoid">Sigmoid</option>
+                <option value="tanh">Tanh</option>
+                <option value="relu">ReLU</option>
+                <option value="leaky">Leaky ReLU (α = 0.1)</option>
+              </select>
+            </div>
+            <div class="activation-control">
+              <label for="activation-input">Pre-activation a</label>
+              <input id="activation-input" type="range" min="-4" max="4" step="0.1" value="0" aria-describedby="activation-readout" />
+            </div>
+          </div>
+          <svg class="chart" viewBox="0 0 680 340" width="100%" height="auto" role="img" aria-labelledby="activation-interactive-title activation-interactive-desc">
+            <title id="activation-interactive-title">Sigmoid: activation h(a)</title>
+            <desc id="activation-interactive-desc">Sigmoid rises smoothly from near zero to near one, with output 0.5 at zero. Input axis: minus four to four.</desc>
+            <line class="grid" x1="60" y1="282.09" x2="650" y2="282.09" />
+            <text text-anchor="end" x="52" y="286.09">−1</text>
+            <line class="grid" x1="60" y1="234.45" x2="650" y2="234.45" />
+            <text text-anchor="end" x="52" y="238.45">0</text>
+            <line class="grid" x1="60" y1="186.82" x2="650" y2="186.82" />
+            <text text-anchor="end" x="52" y="190.82">1</text>
+            <line class="grid" x1="60" y1="139.18" x2="650" y2="139.18" />
+            <text text-anchor="end" x="52" y="143.18">2</text>
+            <line class="grid" x1="60" y1="91.55" x2="650" y2="91.55" />
+            <text text-anchor="end" x="52" y="95.55">3</text>
+            <line class="grid" x1="60" y1="43.91" x2="650" y2="43.91" />
+            <text text-anchor="end" x="52" y="47.91">4</text>
+            <line class="grid grid--soft" x1="60.00" y1="32" x2="60.00" y2="294" />
+            <text text-anchor="middle" x="60.00" y="313">−4</text>
+            <line class="grid grid--soft" x1="207.50" y1="32" x2="207.50" y2="294" />
+            <text text-anchor="middle" x="207.50" y="313">−2</text>
+            <line class="grid grid--soft" x1="355.00" y1="32" x2="355.00" y2="294" />
+            <text text-anchor="middle" x="355.00" y="313">0</text>
+            <line class="grid grid--soft" x1="502.50" y1="32" x2="502.50" y2="294" />
+            <text text-anchor="middle" x="502.50" y="313">2</text>
+            <line class="grid grid--soft" x1="650.00" y1="32" x2="650.00" y2="294" />
+            <text text-anchor="middle" x="650.00" y="313">4</text>
+            <line class="axis" x1="60" y1="234.45" x2="650" y2="234.45" />
+            <line class="axis" x1="355.00" y1="32" x2="355.00" y2="294" />
+            <text text-anchor="end" x="650" y="334">pre-activation a</text>
+            <path id="activation-curve" d="M 60.00 233.60 L 64.61 233.54 L 69.22 233.49 L 73.83 233.42 L 78.44 233.36 L 83.05 233.29 L 87.66 233.22 L 92.27 233.14 L 96.88 233.06 L 101.48 232.97 L 106.09 232.88 L 110.70 232.78 L 115.31 232.68 L 119.92 232.57 L 124.53 232.45 L 129.14 232.33 L 133.75 232.20 L 138.36 232.06 L 142.97 231.91 L 147.58 231.76 L 152.19 231.59 L 156.80 231.42 L 161.41 231.24 L 166.02 231.04 L 170.62 230.84 L 175.23 230.63 L 179.84 230.40 L 184.45 230.16 L 189.06 229.91 L 193.67 229.65 L 198.28 229.37 L 202.89 229.08 L 207.50 228.78 L 212.11 228.46 L 216.72 228.12 L 221.33 227.77 L 225.94 227.40 L 230.55 227.02 L 235.16 226.62 L 239.77 226.20 L 244.38 225.76 L 248.98 225.31 L 253.59 224.84 L 258.20 224.35 L 262.81 223.85 L 267.42 223.32 L 272.03 222.78 L 276.64 222.22 L 281.25 221.64 L 285.86 221.05 L 290.47 220.44 L 295.08 219.81 L 299.69 219.17 L 304.30 218.52 L 308.91 217.85 L 313.52 217.16 L 318.12 216.47 L 322.73 215.77 L 327.34 215.05 L 331.95 214.33 L 336.56 213.60 L 341.17 212.86 L 345.78 212.12 L 350.39 211.38 L 355.00 210.64 L 359.61 209.89 L 364.22 209.15 L 368.83 208.41 L 373.44 207.67 L 378.05 206.94 L 382.66 206.22 L 387.27 205.51 L 391.88 204.80 L 396.48 204.11 L 401.09 203.43 L 405.70 202.76 L 410.31 202.10 L 414.92 201.46 L 419.53 200.83 L 424.14 200.22 L 428.75 199.63 L 433.36 199.05 L 437.97 198.49 L 442.58 197.95 L 447.19 197.43 L 451.80 196.92 L 456.41 196.43 L 461.02 195.96 L 465.62 195.51 L 470.23 195.07 L 474.84 194.66 L 479.45 194.25 L 484.06 193.87 L 488.67 193.50 L 493.28 193.15 L 497.89 192.82 L 502.50 192.50 L 507.11 192.19 L 511.72 191.90 L 516.33 191.62 L 520.94 191.36 L 525.55 191.11 L 530.16 190.87 L 534.77 190.65 L 539.38 190.43 L 543.98 190.23 L 548.59 190.04 L 553.20 189.85 L 557.81 189.68 L 562.42 189.52 L 567.03 189.36 L 571.64 189.22 L 576.25 189.08 L 580.86 188.95 L 585.47 188.82 L 590.08 188.71 L 594.69 188.60 L 599.30 188.49 L 603.91 188.39 L 608.52 188.30 L 613.12 188.21 L 617.73 188.13 L 622.34 188.05 L 626.95 187.98 L 631.56 187.91 L 636.17 187.85 L 640.78 187.79 L 645.39 187.73 L 650.00 187.67" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round" />
+            <path id="activation-guide" class="ref" d="M 355.00 234.45 V 210.64 H 60" />
+            <circle id="activation-point" cx="355.00" cy="210.64" r="5" fill="var(--accent)" stroke="var(--bg)" stroke-width="2" />
+          </svg>
+          <output id="activation-readout" class="activation-readout" for="activation-kind activation-input" aria-live="polite">Sigmoid · a = 0.0 · h(a) = 0.5000 · slope = 0.2500</output>
+          <figcaption class="chart-caption"><span class="label">fig 5</span>
+            The point marks the input and output. The readout shows the slope there,
+            or reports it as undefined at zero for ReLU and leaky ReLU.
+            All four choices use the same axes; leaky ReLU uses $\alpha=0.1$.
+          </figcaption>
+        </figure>
+
+        <h2>Worked example</h2>
+        <p>
+          Suppose three neurons have pre-activations $-2$, $0$, and $2$.
+          What does each activation function pass to the next layer?
+          For the calculations, use $e^2\approx7.389$ and $e^{-2}\approx0.1353$.
+          For sigmoid:
+        </p>
+        <p>
+          $$\begin{aligned}
+          \sigma(-2)&amp;=\frac{1}{1+e^2}\approx0.119,\\
+          \sigma(0)&amp;=\frac{1}{2}=0.500,\\
+          \sigma(2)&amp;=\frac{1}{1+e^{-2}}\approx0.881.
+          \end{aligned}$$
+        </p>
+        <p>
+          Substituting the same values into tanh gives:
+        </p>
+        <p>
+          $$\begin{aligned}
+          \tanh(-2)&amp;=\frac{0.1353-7.389}{0.1353+7.389}\approx-0.964,\\
+          \tanh(0)&amp;=\frac{1-1}{1+1}=0,\\
+          \tanh(2)&amp;=\frac{7.389-0.1353}{7.389+0.1353}\approx0.964.
+          \end{aligned}$$
+        </p>
+        <p>
+          ReLU keeps the positive value and replaces the negative value with zero:
+        </p>
+        <p>$$h(-2)=\max(0,-2)=0,\quad h(0)=0,\quad h(2)=2.$$</p>
+        <div class="activation-table-wrap" role="region" aria-label="Worked example outputs" tabindex="0">
+          <table class="activation-table activation-values">
+            <caption>The same pre-activations in the three different representations</caption>
+            <thead>
+              <tr>
+                <th scope="col">Pre-activation</th>
+                <th scope="col">Sigmoid</th>
+                <th scope="col">Tanh</th>
+                <th scope="col">ReLU</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><th scope="row">$-2$</th><td>$0.119$</td><td>$-0.964$</td><td>$0$</td></tr>
+              <tr><th scope="row">$0$</th><td>$0.500$</td><td>$0$</td><td>$0$</td></tr>
+              <tr><th scope="row">$2$</th><td>$0.881$</td><td>$0.964$</td><td>$2$</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          Sigmoid gives three positive values between $0$ and $1$.
+          Tanh keeps the signs, with magnitudes below $1$. ReLU keeps $2$ but turns $-2$ into zero.
+          The next layer receives different features even though the pre-activations were the same.
+        </p>
+
+        <h2>Check your understanding</h2>
+        <div class="exercise">
+          <span class="tag">conceptual questions</span>
+          <ol>
+            <li>Why does a network need nonlinear activation functions, even if it has many layers?</li>
+            <li>How do sigmoid and tanh differ in output range and value at zero? What happens to both functions for very large positive or negative inputs?</li>
+            <li>What makes ReLU useful in hidden layers, and what causes a dead neuron?</li>
+            <li>Which output activation would you choose for regression, binary classification, and mutually exclusive multiclass classification? Explain each choice.</li>
+          </ol>
+        </div>
+        <p>
+          Nonlinear activations let a network learn more than an affine transformation.
+          The next note, <a href="../why-we-use-deep-networks/">Why deep networks?</a>,
+          looks at what adding more layers allows it to represent.
+        </p>
       </div>
 
       <div class="endbar">
         <a href="../">&larr; neural networks topic guide</a>
-        <a href="../output-layers-and-loss-functions/">3.4 &middot; output layers and loss functions &rarr;</a>
+        <a href="../why-we-use-deep-networks/">3.4 &middot; why deep networks? &rarr;</a>
       </div>
     </article>
   </div>
 </div>
+<script>
+(() => {
+  const select = document.getElementById('activation-kind');
+  const input = document.getElementById('activation-input');
+  const curve = document.getElementById('activation-curve');
+  const point = document.getElementById('activation-point');
+  const guide = document.getElementById('activation-guide');
+  const readout = document.getElementById('activation-readout');
+  const title = document.getElementById('activation-interactive-title');
+  const description = document.getElementById('activation-interactive-desc');
+  const sigmoid = a => 1 / (1 + Math.exp(-a));
+  const activations = {
+    sigmoid: {
+      name: 'Sigmoid',
+      value: sigmoid,
+      slope: a => sigmoid(a) * (1 - sigmoid(a))
+    },
+    tanh: {
+      name: 'Tanh',
+      value: Math.tanh,
+      slope: a => 1 - Math.tanh(a) ** 2
+    },
+    relu: {
+      name: 'ReLU',
+      value: a => Math.max(0, a),
+      slope: a => a === 0 ? null : (a < 0 ? 0 : 1)
+    },
+    leaky: {
+      name: 'Leaky ReLU (α = 0.1)',
+      value: a => a >= 0 ? a : 0.1 * a,
+      slope: a => a === 0 ? null : (a < 0 ? 0.1 : 1)
+    }
+  };
+  // Keep the same axes when switching between all four functions.
+  const xPosition = a => 60 + (a + 4) / 8 * 590;
+  const yPosition = value => 294 - (value + 1.25) / 5.5 * 262;
+  const format = (value, places) => value.toFixed(places).replace(/^-0\.0+$/, (0).toFixed(places));
+
+  function update() {
+    const activation = activations[select.value];
+    const a = Number(input.value);
+    const value = activation.value(a);
+    const slope = activation.slope(a);
+    const points = Array.from({length: 129}, (_, i) => {
+      const x = -4 + i / 16;
+      return `${i === 0 ? 'M' : 'L'} ${xPosition(x).toFixed(2)} ${yPosition(activation.value(x)).toFixed(2)}`;
+    });
+    curve.setAttribute('d', points.join(' '));
+    point.setAttribute('cx', xPosition(a));
+    point.setAttribute('cy', yPosition(value));
+    guide.setAttribute('d', `M ${xPosition(a)} ${yPosition(0)} V ${yPosition(value)} H 60`);
+    const slopeText = slope === null ? 'undefined at zero' : format(slope, 4);
+    readout.textContent = `${activation.name} · a = ${format(a, 1)} · h(a) = ${format(value, 4)} · slope = ${slopeText}`;
+    title.textContent = `${activation.name}: activation h(a)`;
+    description.textContent = `${activation.name} on input axis minus four to four. Selected pre-activation ${format(a, 1)}, output ${format(value, 4)}, derivative ${slopeText}.`;
+    input.setAttribute('aria-valuetext', `${format(a, 1)}; output ${format(value, 4)}`);
+  }
+
+  select.addEventListener('change', update);
+  input.addEventListener('input', update);
+  update();
+  document.getElementById('activation-controls').hidden = false;
+})();
+</script>
 <script>if (window.hljs) hljs.highlightAll();</script>
 </body>
 </html>
