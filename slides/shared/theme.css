@@ -1,0 +1,200 @@
+/* Shared reveal.js theme. Brand values stay in the website's design system. */
+@import url("../../design_system/colors_and_type.css");
+
+:root {
+  --r-background-color: var(--bg);
+  --r-main-font: var(--font-sans);
+  --r-main-font-size: 28px;
+  --r-main-color: var(--fg);
+  --r-heading-font: var(--font-mono);
+  --r-heading-color: var(--fg);
+  --r-link-color: var(--accent);
+  --r-link-color-hover: var(--accent-hover);
+  --r-selection-background-color: var(--accent-soft);
+  --r-selection-color: var(--fg);
+  --slide-padding: 80px;
+}
+
+.reveal-viewport {
+  background: var(--bg);
+}
+
+.reveal {
+  font-family: var(--font-sans);
+  font-size: var(--r-main-font-size);
+  line-height: var(--leading-normal);
+  color: var(--fg);
+}
+
+.reveal .slides {
+  text-align: left;
+}
+
+/* Fade/none need no 3D perspective. In Chromium it can rasterise text before
+   the deck is scaled, leaving otherwise static slides visibly blurred. */
+.reveal.fade .slides,
+.reveal.fade .slides > section,
+.reveal.none .slides,
+.reveal.none .slides > section {
+  perspective: none;
+}
+
+.reveal .slides > section,
+.reveal .slides > section > section {
+  box-sizing: border-box;
+  height: 100%;
+  padding: var(--slide-padding);
+}
+
+/* Vertical stacks are containers; their child sections provide the padding. */
+.reveal .slides > section.stack {
+  padding: 0;
+}
+
+.reveal h1,
+.reveal h2,
+.reveal h3,
+.reveal h4 {
+  margin: 0 0 var(--space-6);
+  font-family: var(--font-mono);
+  font-weight: 600;
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-snug);
+  color: var(--fg);
+  text-transform: none;
+}
+
+.reveal h1 {
+  font-size: var(--text-5xl);
+  font-weight: 700;
+  letter-spacing: var(--tracking-tight);
+}
+
+.reveal h2 { font-size: var(--text-4xl); }
+.reveal h3 { font-size: var(--text-3xl); }
+.reveal h4 { font-size: var(--text-2xl); }
+
+.reveal p,
+.reveal ul,
+.reveal ol {
+  margin: 0 0 var(--space-5);
+  max-width: 58ch;
+}
+
+.reveal ul,
+.reveal ol {
+  padding-left: 1.25em;
+}
+
+.reveal li + li { margin-top: var(--space-4); }
+.reveal li::marker { color: var(--accent); }
+.reveal a { color: var(--accent); }
+.reveal a:hover { color: var(--accent-hover); }
+
+.reveal a:focus-visible,
+.reveal button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+
+.reveal pre {
+  font-size: 22px;
+  line-height: var(--leading-normal);
+}
+
+.reveal blockquote {
+  margin: var(--space-6) 0;
+  padding-left: var(--space-6);
+  border-left: 1px solid var(--rule);
+  font-family: var(--font-serif);
+  font-style: italic;
+  color: var(--fg-2);
+}
+
+.reveal figure { margin: var(--space-6) 0; }
+.reveal figure img { border: 1px solid var(--rule); }
+.reveal figcaption { font-size: 18px; color: var(--fg-3); }
+.reveal .katex { color: var(--fg); }
+.reveal .katex-display { font-size: 1.15em; }
+
+/* Intro layout, adapted from design_system/slides/index.html. */
+.reveal .slide-kicker {
+  position: absolute;
+  top: var(--space-7);
+  left: var(--slide-padding);
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 18px;
+  color: var(--fg-3);
+}
+
+.reveal .title-content {
+  position: absolute;
+  inset: 150px var(--slide-padding) 130px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.reveal .title-content h1 { max-width: 20ch; }
+
+.reveal .slide-subtitle {
+  max-width: 48ch;
+  font-size: 28px;
+  color: var(--fg-2);
+}
+
+.reveal .slide-presenter {
+  margin: var(--space-5) 0 0;
+  font-size: 22px;
+  color: var(--fg-3);
+}
+
+.reveal .slide-footer {
+  position: absolute;
+  right: var(--slide-padding);
+  bottom: var(--space-6);
+  left: var(--slide-padding);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--rule);
+}
+
+.reveal .wordmark {
+  font-family: var(--font-mono);
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: var(--tracking-tight);
+}
+
+.reveal .wordmark-dot { color: var(--accent); }
+.reveal .controls { color: var(--accent); }
+.reveal .progress { height: 2px; color: var(--accent); background: var(--rule); }
+
+.reveal .slide-number {
+  padding: var(--space-4);
+  background: transparent;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  color: var(--fg-3);
+}
+
+.reveal .slide-number a { color: inherit; text-decoration: none; }
+
+@media print {
+  .reveal-viewport,
+  .reveal .slides section {
+    background: var(--bg);
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal *,
+  .reveal *::before,
+  .reveal *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

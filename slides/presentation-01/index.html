@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en" data-palette="paper">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Presentation 01 — Archie Carpenter</title>
+  <link rel="icon" href="../../design_system/assets/favicon.svg"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.2.1/dist/reset.css"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.2.1/dist/reveal.css"/>
+  <link rel="stylesheet" href="../shared/theme.css"/>
+  <link rel="stylesheet" href="../../design_system/charts.css"/>
+  <!-- Optional layouts for this deck only; all colours come from the theme. -->
+  <style>
+    .reveal .example-label {
+      margin-bottom: var(--space-4);
+      font-family: var(--font-mono);
+      font-size: 18px;
+      color: var(--fg-3);
+    }
+    .reveal .example-columns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-7);
+      align-items: start;
+    }
+    .reveal .example-panel {
+      padding: var(--space-6);
+      border: 1px solid var(--rule);
+      border-radius: var(--radius-md);
+      background: var(--bg-2);
+    }
+    .reveal .example-panel h3 { font-size: 32px; }
+    .reveal .example-panel p:last-child { margin-bottom: 0; }
+    .reveal .example-columns > figure { margin: 0; }
+    .reveal .example-plot {
+      display: block;
+      width: 100%;
+      max-height: 310px;
+      border: 1px solid var(--rule);
+      background: var(--bg-2);
+    }
+    .reveal .example-plot text {
+      font-family: var(--font-sans);
+      font-size: 18px;
+      fill: var(--fg-2);
+    }
+    .reveal .example-caption { margin-top: var(--space-4); }
+    .reveal .exercise-figure { margin: 0; }
+    .reveal .exercise-chart {
+      position: relative;
+      width: 1120px;
+      height: 360px;
+    }
+    .reveal .exercise-figure figcaption { margin-top: var(--space-4); }
+    .reveal .chart-equation {
+      position: absolute;
+      top: var(--space-4);
+      right: var(--space-6);
+      padding: var(--space-2) var(--space-4);
+      border: 1px solid var(--rule);
+      border-radius: var(--radius-sm);
+      background: var(--bg);
+      font-size: 24px;
+      pointer-events: none;
+    }
+    .reveal .ols-slide .katex-display {
+      margin: var(--space-4) 0 !important;
+    }
+    .reveal .matrix-slide .katex-display { font-size: 0.9em; }
+    .reveal .cross-term-slide .katex .fbox {
+      border-color: var(--accent);
+    }
+    .reveal .scalar-transpose-slide .katex-display { font-size: 1em; }
+    .reveal .ridge-example {
+      width: 100%;
+      margin: var(--space-5) 0;
+      border-collapse: collapse;
+      font-size: 26px;
+    }
+    .reveal .ridge-example th,
+    .reveal .ridge-example td {
+      padding: var(--space-3) var(--space-5);
+      border-bottom: 1px solid var(--rule);
+      text-align: left;
+    }
+    .reveal .ridge-example th { font-family: var(--font-mono); font-size: 22px; }
+    .reveal .ridge-example .smaller-penalty { background: var(--accent-soft); }
+  </style>
+  <script defer src="https://cdn.jsdelivr.net/npm/reveal.js@5.2.1/dist/reveal.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/reveal.js@5.2.1/plugin/notes/notes.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/reveal.js@5.2.1/plugin/math/math.js"></script>
+  <script defer src="../shared/presentation.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
+  <script defer src="./charts.js"></script>
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+      <!-- Each sibling section is a slide. Keep heading IDs unique when copying. -->
+      <section class="title-slide" aria-labelledby="presentation-title">
+        <p class="slide-kicker">Introduction</p>
+        <div class="title-content">
+          <h1 id="presentation-title">Regression Exercises</h1>
+          <p class="slide-subtitle">Machine Learning and Deep Learning</p>
+          <p class="slide-presenter">Archie Carpenter</p>
+        </div>
+        <footer class="slide-footer">
+          <span class="wordmark" aria-label="Archie Carpenter">a<span class="wordmark-dot">.</span>c</span>
+        </footer>
+        <aside class="notes">Add your opening speaker notes here.</aside>
+      </section>
+
+      <!-- Text + incremental bullets: each fragment appears on the next click. -->
+      <section aria-labelledby="exercise-intro">
+        <p class="example-label">Introduction · Exercises</p>
+        <h2 id="exercise-intro">Exercise Format</h2>
+        <p>The exercises each week will follow a similar format:</p>
+        <ol>
+          <li class="fragment">Worded questions (either maths or fundamentals)</li>
+          <li class="fragment">An open-ended programming task</li>
+        </ol>
+      </section>
+
+      <!-- Text + incremental bullets: each fragment appears on the next click. -->
+      <section aria-labelledby="exam-intro">
+        <p class="example-label">Introduction · Exam</p>
+        <h2 id="exam-intro">Exam Format</h2>
+        <ul>
+          <li class="fragment">1.5 hours</li>
+          <li class="fragment">Closed book</li>
+          <li class="fragment">4 questions</li>
+          <li class="fragment">Long-form questions with multiple parts.</li>
+        </ul>
+      </section>
+
+      <!-- Two columns: copy the wrapper and replace the content in each panel. -->
+      <section aria-labelledby="question-one-title">
+        <p class="example-label">Answers · Question 1</p>
+        <h2 id="question-one-title">Question 1</h2>
+        <p><strong>What tasks would you solve with linear regression? When would it not be suitable?</strong></p>
+      </section>
+
+      <section aria-labelledby="comparison-title">
+        <p class="example-label">Answers · Question 1</p>
+        <h2 id="comparison-title">What tasks would you solve with linear regression?</h2>
+        <ul>
+          <li class="fragment">Predicting a continuous value (e.g., house price, temperature)</li>
+          <li class="fragment">Understanding relationships between variables (e.g., effect of study time on exam score)</li>
+          <li class="fragment">Identifying trends in data over time</li>
+        </ul>
+      </section>
+
+      <section aria-labelledby="comparison-title">
+        <p class="example-label">Answers · Question 1</p>
+        <h2 id="comparison-title">When would linear regression not be suitable?</h2>
+        <ul>
+          <li class="fragment">When the relationship between variables is non-linear</li>
+          <li class="fragment">Predicting categories</li>
+        </ul>
+        <aside class="notes">
+          A few of you also put when the data is noisy or has outliers.
+          But this is true for modelling in general, not just linear regression.
+        </aside>
+      </section>
+
+      <!-- Maths: $...$ is inline; $$...$$ creates a display equation. -->
+
+      <section aria-labelledby="question-two-plot-title">
+        <p class="example-label">Answers · Question 2</p>
+        <h2 id="question-two-plot-title">Question 2</h2>
+        <figure class="exercise-figure">
+          <div class="exercise-chart">
+            <canvas id="age-exercise-chart" width="1120" height="360" role="img"
+                    aria-label="Scatter plot of age in years against hours of exercise per week for ten observations."
+                    aria-describedby="age-exercise-caption"></canvas>
+          </div>
+
+        </figure>
+      </section>
+
+
+      <section aria-labelledby="loss-title">
+        <p class="example-label">Answers · Question 2</p>
+        <h2 id="loss-title">Question 2</h2>
+        <ol>
+          <li class="fragment">Fit a linear regression model to the data on paper.</li>
+          <li class="fragment">Predict the number of hours a week for an 80 year old. Why is this not a reasonable prediction to make?</li>
+          <li class="fragment">Why may this model not hold up in practice?</li>
+        </ol>
+        <aside class="notes">
+        </aside>
+
+      </section>
+            <section aria-labelledby="loss-title">
+        <p class="example-label">Answers · Question 2</p>
+        <h2 id="loss-title">1. Fitting the linear model</h2>
+        <p>
+          $$ \hat{y} = mx + c $$
+        </p>
+        <p>$$ m = \frac{\sum (x_i - \bar{x})(y_i - \bar{y})}{\sum (x_i - \bar{x})^2} = \frac{\text{Cov}(x, y)}{\text{Var}(x)} $$</p>
+        <p>$$ c = \bar{y} - m\bar{x} $$</p>
+        <aside class="notes">
+          Covariance is how much y changes with x. Variance is how much x changes with itself.
+          The slope is how much y changes for a unit change in x.
+          If you are not familiar with the derivation. I will release the full solutions later today.
+        </aside>
+      </section>
+
+            
+
+
+      <section aria-labelledby="question-two-fit-title">
+        <p class="example-label">Answers · Question 2</p>
+        <h2 id="question-two-fit-title">1. Fitting the linear model</h2>
+        <figure class="exercise-figure">
+          <div class="exercise-chart">
+            <canvas id="age-exercise-fit-chart" width="1120" height="360" role="img"
+                    aria-label="Age against weekly exercise, with the least-squares regression line."
+                    aria-describedby="age-exercise-fit-equation age-exercise-fit-caption"></canvas>
+            <div class="chart-equation" id="age-exercise-fit-equation">$\hat{y} = -0.1192x + 10.2463$</div>
+          </div>
+          <figcaption id="age-exercise-fit-caption">Least-squares fit to the 10 observations.</figcaption>
+        </figure>
+        <aside class="notes">
+        </aside>
+      </section>
+
+      <section aria-labelledby="loss-title">
+        <p class="example-label">Answers · Question 2</p>
+        <h2 id="loss-title">2. Predict the number of hours a week for an 80 year old</h2>
+        <p>
+          $$ \hat{y} = -0.1192x + 10.2463 $$
+        </p>
+        <p>
+          $$ \hat{y} = -0.1192 \times 80 + 10.2463 = 0.7103 \text{ hours/week} $$
+        </p>
+        <p>$$  42.618 \text{ minutes/week} $$</p>
+        <aside class="notes">
+        </aside>
+      </section>
+
+      <section aria-labelledby="loss-title">
+        <p class="example-label">Answers · Question 2</p>
+        <h2 id="loss-title">2. Why is this not a reasonable prediction to make?</h2>
+        <p>
+          The domain of x is $x \in [22, 68]$.
+        </p>
+        <p>
+          Which makes $80$ out of domain and extrapolation.
+        </p>
+        <aside class="notes">
+        </aside>
+      </section>
+
+      <section aria-labelledby="loss-title">
+        <p class="example-label">Answers · Question 2</p>
+        <h2 id="loss-title">3. Why may this model not hold up in practice?</h2>
+        <ol>
+          <li class="fragment">The model is based on a small sample size of 10 observations.</li>
+          <li class="fragment">The survey took place at a park which may be biased and not likely a good representation of the general population.</li>
+          <li class="fragment">The model predicts negative values for people over 86 years old.</li>
+        </ol>
+        <aside class="notes">
+        </aside>
+      </section>
+
+      <section aria-labelledby="loss-title">
+        <p class="example-label">Answers · Question 2</p>
+        <h2 id="loss-title">2. Why is this not a reasonable prediction to make?</h2>
+        <p>
+          The domain of x is $x \in [22, 68]$.
+        </p>
+        <p>
+          Which makes $80$ out of domain and extrapolation.
+        </p>
+        <aside class="notes">
+        </aside>
+      </section>
+
+      <section class="ols-slide" aria-labelledby="question-three-title">
+        <p class="example-label">Answers · Question 3</p>
+        <h2 id="question-three-title">Question 3</h2>
+        <p>$X \in \mathbb{R}^{n \times (d+1)}$: $n$ samples, $d$ features and a bias column.</p>
+        <p>$y \in \mathbb{R}^{n}$ is the output vector; $\theta \in \mathbb{R}^{d+1}$ is the weight vector.</p>
+        <ol>
+          <li>Derive the OLS solution that minimises $\lVert y-X\theta \rVert_2^2$.</li>
+          <li>Under what conditions does the inverse formula fail?</li>
+          <li>Name one practical fix and explain why it works.</li>
+        </ol>
+        <aside class="notes">
+        </aside>
+      </section>
+
+      <section class="ols-slide matrix-slide" aria-labelledby="ols-matrices-title">
+        <p class="example-label">Answers · Question 3</p>
+        <h2 id="ols-matrices-title">1. Derive the OLS solution</h2>
+        <p>The matrices:</p>
+        $$
+          X=\begin{bmatrix}
+            1 &amp; x_{11} &amp; \cdots &amp; x_{1d} \\
+            1 &amp; x_{21} &amp; \cdots &amp; x_{2d} \\
+            \vdots &amp; \vdots &amp; \ddots &amp; \vdots \\
+            1 &amp; x_{n1} &amp; \cdots &amp; x_{nd}
+          \end{bmatrix},
+          \qquad
+          \theta=\begin{bmatrix}
+            \theta_0 \\ \theta_1 \\ \vdots \\ \theta_d
+          \end{bmatrix},
+          \qquad
+          y=\begin{bmatrix}
+            y_1 \\ y_2 \\ \vdots \\ y_n
+          \end{bmatrix}.
+        $$
+        <p>The objective function:</p>
+        $$
+        J(\theta) = \lVert y-X\theta \rVert_2^2
+        $$
+        <aside class="notes">
+        </aside>
+      </section>
+
+      <section class="ols-slide cross-term-slide" aria-labelledby="ols-expansion-title">
+        <p class="example-label">Answers · Question 3</p>
+        <h2 id="ols-expansion-title">1. Derive the OLS solution</h2>
+        <p>Write the residual sum of squares as a quadratic in $\theta$.</p>
+        $$
+          \begin{aligned}
+            J(\theta)
+              &= \lVert y-X\theta \rVert_2^2 \\
+              &= (y-X\theta)^\top(y-X\theta) \\
+              &= y^\top y\boxed{-y^\top X\theta-\theta^\top X^\top y}
+                 +\theta^\top X^\top X\theta \\
+              &= y^\top y\boxed{-2\theta^\top X^\top y}
+                 +\theta^\top X^\top X\theta.
+          \end{aligned}
+        $$
+        <aside class="notes">
+
+        </aside>
+      </section>
+
+      <section class="ols-slide cross-term-slide scalar-transpose-slide" aria-labelledby="ols-scalar-transpose-title">
+        <p class="example-label">Answers · Question 3</p>
+        <h2 id="ols-scalar-transpose-title">1. Derive the OLS solution</h2>
+        <p>The highlighted cross-terms contain $y^\top X\theta$, a $1\times1$ scalar:</p>
+        $$
+          \begin{aligned}
+            y^\top X\theta
+              &= (y^\top X\theta)^\top \\
+              &= \theta^\top X^\top(y^\top)^\top \\
+              &= \theta^\top X^\top y.
+          \end{aligned}
+        $$
+        <p>Taking a transpose reverses the order: $(ABC)^\top=C^\top B^\top A^\top$.</p>
+        $$ \boxed{-y^\top X\theta-\theta^\top X^\top y}=\boxed{-2\theta^\top X^\top y}. $$
+        <aside class="notes">
+        </aside>
+      </section>
+
+      <section class="ols-slide" aria-labelledby="ols-solution-title">
+        <p class="example-label">Answers · Question 3</p>
+        <h2 id="ols-solution-title">1. Derive the OLS solution</h2>
+        <p>Differentiate and set the gradient to zero:</p>
+        $$
+          \begin{aligned}
+            \nabla_\theta J
+              &= -2X^\top y+2X^\top X\theta = 0, \\
+            X^\top X\hat{\theta} &= X^\top y.
+          \end{aligned}
+        $$
+        <p>These are the <strong>normal equations</strong>. If $X^\top X$ is invertible:</p>
+        $$ \boxed{\hat{\theta}=(X^\top X)^{-1}X^\top y} $$
+        <aside class="notes">
+        </aside>
+      </section>
+
+      <section class="ols-slide" aria-labelledby="ols-rank-title">
+        <p class="example-label">Answers · Question 3</p>
+        <h2 id="ols-rank-title">2. When does the inverse fail?</h2>
+        <p>The formula needs <strong>full column rank</strong>: $\operatorname{rank}(X)=d+1$.</p>
+        $$
+          \operatorname{rank}(X)&lt;d+1
+          \quad\Longrightarrow\quad X^\top X \text{ is singular}.
+        $$
+        <ul>
+          <li>One feature is an exact linear combination of others.</li>
+          <li>There are more parameters than samples: $n&lt;d+1$.</li>
+        </ul>
+        <p><strong>This means there are multiple solutions if the inverse doesn't exist.</strong></p>
+        <aside class="notes">
+        </aside>
+      </section>
+
+      <section class="ols-slide" aria-labelledby="ols-ridge-title">
+        <p class="example-label">Answers · Question 3</p>
+        <h2 id="ols-ridge-title">3. Regularisation</h2>
+        <p>Add a penalty (regularisation) on the weights, with $\lambda&gt;0$:</p>
+        $$
+          J_\lambda(\theta)
+          =\lVert y-X\theta\rVert_2^2+\lambda\lVert\theta\rVert_2^2.
+        $$
+        <p>Setting the gradient to zero gives:</p>
+        $$
+          \boxed{\hat{\theta}_\lambda
+          =(X^\top X+\lambda I)^{-1}X^\top y}
+        $$
+        <aside class="notes">
+        </aside>
+      </section>
+
+      <section class="ols-slide" aria-labelledby="ols-identical-features-title">
+        <p class="example-label">Answers · Question 3</p>
+        <h2 id="ols-identical-features-title">3. Regularisation</h2>
+        <p>The reason it works is that the regularisation term penalises large weights which in turn gives a unique solution. Consider a 2D example:</p>
+        $$ \hat{y}=\theta_0+\theta_1x_1+\theta_2x_2. $$
+        <p>If the two features have identical values, $x_1=x_2=x$:</p>
+        $$
+          \begin{aligned}
+            \hat{y}&=\theta_0+\theta_1x+\theta_2x \\
+                   &=\theta_0+(\theta_1+\theta_2)x.
+          \end{aligned}
+        $$
+        <p><strong>Which means that only the sum $\theta_1+\theta_2$ affects their contribution not the individual weights.</strong></p>
+        <aside class="notes">
+        </aside>
+      </section>
+
+      <section class="ols-slide" aria-labelledby="ols-ridge-proof-title">
+        <p class="example-label">Answers · Question 3</p>
+        <h2 id="ols-ridge-proof-title">3. Regularisation</h2>
+        <p>With $\theta_0=0$, the prediction is $(\theta_1+\theta_2)x$.</p>
+        <table class="ridge-example" aria-label="Different weights with the same predictions but different ridge penalties">
+          <thead>
+            <tr>
+              <th scope="col">$\theta_1$</th>
+              <th scope="col">$\theta_2$</th>
+              <th scope="col">Prediction</th>
+              <th scope="col">Ridge penalty</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>$1$</td><td>$3$</td><td>$4x$</td><td>$\lambda(1^2+3^2)=10\lambda$</td></tr>
+            <tr class="smaller-penalty"><td>$2$</td><td>$2$</td><td>$4x$</td><td>$\lambda(2^2+2^2)=8\lambda$</td></tr>
+            <tr><td>$3$</td><td>$1$</td><td>$4x$</td><td>$\lambda(3^2+1^2)=10\lambda$</td></tr>
+          </tbody>
+        </table>
+        <p><strong>Because the ridge penalty is smaller, it prefers $(2,2)$.</strong></p>
+        <aside class="notes">
+        </aside>
+      </section>
+      <!-- Figure + explanation. An external image can replace the inline SVG:
+           <img src="assets/my-plot.svg" alt="Describe the result the plot shows"/> -->
+      <section aria-labelledby="figure-slide-title">
+        <p class="example-label">Example · figure and caption</p>
+        <h2 id="figure-slide-title">Fit a line to the data.</h2>
+        <div class="example-columns">
+          <figure>
+            <svg class="example-plot" viewBox="0 0 560 310" role="img"
+                 aria-labelledby="plot-title plot-description">
+              <title id="plot-title">Illustrative linear regression fit</title>
+              <desc id="plot-description">Four observations sit close to an upward-sloping line. The line predicts y equals two x plus one.</desc>
+              <path d="M50 20 V260 H520" fill="none" stroke="var(--fg-3)"/>
+              <path d="M50 240 L500 40" fill="none" stroke="var(--accent)" stroke-width="3"/>
+              <g fill="var(--fg)">
+                <circle cx="140" cy="196" r="6"/>
+                <circle cx="230" cy="164" r="6"/>
+                <circle cx="320" cy="116" r="6"/>
+                <circle cx="410" cy="84" r="6"/>
+              </g>
+              <text x="510" y="290">x</text>
+              <text x="20" y="30">y</text>
+              <text x="33" y="283">0</text>
+            </svg>
+            <figcaption class="example-caption">Illustration — synthetic observations and the line $\hat{y} = 2x + 1$.</figcaption>
+          </figure>
+          <div>
+            <p>The dots are observations. The purple line is the model.</p>
+            <p>The vertical distance from a dot to the line is its residual.</p>
+            <p class="fragment">A useful model captures the trend without needing to pass through every dot.</p>
+          </div>
+        </div>
+        <aside class="notes">
+          The figure is an inline SVG, so its colours follow the shared theme.
+          These are illustrative points, not experimental results.
+        </aside>
+      </section>
+
+      <!-- Code: escape < as &lt; and & as &amp; inside HTML code blocks. -->
+      <section aria-labelledby="code-title">
+        <p class="example-label">Example · code</p>
+        <h2 id="code-title">Calculate the loss in Python.</h2>
+        <pre><code class="language-python">targets = [3.0, 5.0, 7.0]
+predictions = [2.5, 5.5, 6.0]
+
+squared_errors = [
+    (target - prediction) ** 2
+    for target, prediction in zip(targets, predictions)
+]
+mse = sum(squared_errors) / len(targets)
+print(mse)  # 0.5</code></pre>
+        <p>This is a displayed code sample; it does not run in the slide.</p>
+        <aside class="notes">
+          The squared errors are 0.25, 0.25, and 1.0. Their average is 0.5.
+          Use a pre/code pair to preserve indentation and line breaks.
+        </aside>
+      </section>
+
+      <!-- Exercise + answer reveal. PDF export shows the revealed answer too. -->
+      <section aria-labelledby="exercise-title">
+        <p class="example-label">Example · audience question</p>
+        <h2 id="exercise-title">Your turn.</h2>
+        <p>A model predicts $\hat{y} = 2x + 1$.</p>
+        <p>For $x = 3$, the observed value is $y = 8$.</p>
+        <ol>
+          <li>What does the model predict?</li>
+          <li>What is the squared error for this example?</li>
+        </ol>
+        <div class="fragment example-panel">
+          <p><strong>Answer:</strong> $\hat{y} = 7$, so $(8 - 7)^2 = 1$.</p>
+        </div>
+        <aside class="notes">
+          Pause for the audience to calculate, then advance once to reveal the
+          answer. Duplicate this section for another question.
+        </aside>
+      </section>
+    </div>
+  </div>
+</body>
+</html>
