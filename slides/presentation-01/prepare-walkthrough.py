@@ -49,58 +49,134 @@ def main():
             raise ValueError("Chart data must contain only finite values.")
         return np.round(array, 6).tolist()
 
-    data = get("data")
-    sample = data.sample(n=2500, random_state=42)
+    data, train = get("data"), get("train")
     train_rows = get("train_rows")
-    train_sample = np.linspace(0, len(train_rows) - 1, 2000, dtype=int)
-    d12_train = get("d12_train")
-    x7_train = data["x_7"].to_numpy()[train_rows]
-    lag_residual = get("train_residual")
-    groups = []
-    for positive in [False, True]:
-        mask = (d12_train > 0) == positive
-        slope, intercept = np.polyfit(x7_train[mask], lag_residual[mask], 1)
-        groups.append({
-            "positive": positive,
-            "slope": float(slope),
-            "line": values([[x, slope * x + intercept] for x in [x7_train[mask].min(), x7_train[mask].max()]]),
-            "points": values(np.column_stack((x7_train, lag_residual))[train_sample][mask[train_sample]]),
-        })
+    sample = train.sample(n=min(2500, len(train)), random_state=42)
+    train_sample = np.linspace(0, len(train_rows) - 1, min(2000, len(train_rows)), dtype=int)
+    sample_rows = sample.index.to_numpy()
+    positions = np.searchsorted(train_rows, sample_rows)
+    results = get("results")
+    by_name = {row["Model"]: row for row in results}
 
+    def comparisons(names):
+        return [{**by_name[name], "label": label} for name, label in names]
+
+    def bins(x, y, n=20):
+        centres, means, _ = get("binned_means")(x, y, n_bins=n)
+        return values(np.column_stack((centres, means)))
+
+    initial12, initial35 = get("initial_ratio_12"), get("initial_ratio_35")
+    diff12 = (train["x_1"] - initial12 * train["x_2"]).to_numpy()
+    diff35 = (train["x_3"] - initial35 * train["x_5"]).to_numpy()
+    residual_all = get("training_residuals")(get("model_all"), get("X_raw"))
+    residual_two = get("training_residuals")(get("model_two"), get("X_two"))
+    lag_residual = get("train_residual")
+
+    def residual_panel(x, residual, label):
+        return {"label": label, "points": values(np.column_stack((x, residual))[train_sample]),
+                "means": bins(x, residual, 30)}
+
+    pairs = []
+    for a, b in get("correlated_pairs"):
+        scale = get("difference_scales")[(a, b)]
+        difference = (train[a] - scale * train[b]).to_numpy()
+        pairs.append({"a": a, "b": b, "scale": scale,
+                      "correlation": float(get("corr").loc[a, b]),
+                      "points": values(np.column_stack((difference, train["y"]))[positions]),
+                      "means": bins(difference, train["y"], 25)})
+
+    interaction_trends = []
+    for feature in ["x_4", "x_6"]:
+        quartiles = get("pd").qcut(train[feature], 4, labels=False).to_numpy()
+        interaction_trends.append({"feature": feature, "groups": [
+            bins(diff35[quartiles == group], residual_all[quartiles == group], 10)
+            for group in range(4)]})
+
+    regions = []
+    for feature in get("features"):
+        groups = []
+        for positive in [False, True]:
+            mask = (diff12 > 0) == positive
+            x = train[feature].to_numpy()
+            groups.append({"positive": positive,
+                           "points": values(np.column_stack((x, lag_residual))[train_sample][mask[train_sample]]),
+                           "means": bins(x[mask], lag_residual[mask], 12)})
+        regions.append({"feature": feature, "groups": groups})
+
+    winner = get("chosen")
+    surface = get("scale_search")
+    surface = surface[(surface["Square"] == get("chosen_square")) &
+                      (surface["Region"] == get("chosen_region"))]
+    branch_winners = get("branch_winners").to_dict(orient="records")
+    summary_names = [
+        ("Training mean", "Training mean"), ("Linear: x_6", "Linear x_6"),
+        ("Linear: x_4, x_6", "Linear x_4 + x_6"), ("Linear: all seven", "Linear all seven"),
+        ("Quadratic: x_4 and x_6", "Quadratic x_4 + x_6"),
+        ("RBF: x_4 and x_6", "RBF x_4 + x_6"),
+        ("All seven + square", "All seven + square"),
+        ("All seven + current products", "All seven + products"),
+        ("All seven + square + current products", "Square + products"),
+        ("All seven + earlier difference", "Earlier difference"),
+        ("Square + current and delayed products", "Delayed products"),
+        ("Delayed branch + conditional x_7", "Conditional x_7, initial scales"),
+        ("Selected tuned branch", "Selected tuned branch"),
+        ("Tuned branch + sine and cosine", "Sine + cosine"),
+    ]
     payload = {
         "source": "exercise_answers/regression_answers.ipynb",
         "sourceCodeSha256": hashlib.sha256("\n".join("".join(c["source"]) for c in notebook["cells"] if c["cell_type"] == "code").encode()).hexdigest(),
         "csvSha256": hashlib.sha256((notebook_path.parent / "data_train.csv").read_bytes()).hexdigest(),
-        "features": get("features"),
-        "rows": len(data),
-        "sample": values(sample[get("features") + ["y"]].to_numpy()),
-        "correlations": values(data[get("features") + ["y"]].corr().to_numpy()),
-        "history": values(np.column_stack((data.index, data[["x_1", "x_6", "y"]]))[::4]),
-        "split": {"start": int(train_rows[0]), "validation": int(get("valid_rows")[0]), "test": int(get("test_rows")[0])},
-        "ratio12": float(get("ratio_12")),
-        "initialRatio35": float(get("m_inter").ratio_35),
-        "ratio35": float(get("ratio_35")),
-        "differences": values(np.column_stack((get("d12").loc[sample.index], get("d35").loc[sample.index], sample["y"]))),
-        "rbfCentres": values(get("rbf_centres")),
-        "rbfWidth": float(get("m_rbf").width),
-        "results": get("results"),
-        "lagSweep": values(np.column_stack((get("lag_values"), get("lag_errors")))),
-        "bestLag": get("best_lag"),
-        "lagResiduals": values(np.column_stack((d12_train, lag_residual))[train_sample]),
-        "conditionalGroups": groups,
-        "ratioSweep": values(np.column_stack((get("ratio_candidates"), get("ratio_errors")))),
-        "tunedResiduals": values(np.column_stack((d12_train, get("residual")))[train_sample]),
+        "features": get("features"), "rows": len(data),
+        "sample": values(sample[get("features") + ["y"]]),
+        "targetRange": values([train["y"].min(), train["y"].max()]),
+        "correlations": values(get("corr")),
+        "history": values(np.column_stack((train.index, train[["x_1", "x_6", "y"]]))[::4]),
+        "split": {"start": int(train_rows[0]), "validation": int(get("valid_rows")[0]),
+                  "test": int(get("test_rows")[0]), "trainCount": len(train_rows),
+                  "validCount": len(get("valid_rows")), "testCount": len(get("test_rows"))},
+        "pairs": pairs, "scaleRows": get("scale_rows"),
+        "initialRatio12": initial12, "initialRatio35": initial35,
+        "ratio12": get("ratio_12"), "ratio35": get("ratio_35"),
+        "rbfCentres": values(get("rbf_centres")), "rbfWidth": float(get("m_rbf").width),
+        "x4Residual": residual_panel(train["x_4"].to_numpy(), residual_two, "x_4"),
+        "firstResidual": residual_panel(diff12, residual_all, f"x_1 - {initial12:.2f} x_2"),
+        "interactionTrends": interaction_trends,
+        "lagSweep": values(np.column_stack((get("lag_values"), get("linear_lag_errors"), get("lag_errors")))),
+        "bestLag": get("best_lag"), "bestLinearLag": get("best_linear_lag"),
+        "lagResiduals": [residual_panel(diff12, lag_residual, f"x_1 - {initial12:.2f} x_2"),
+                         residual_panel(diff35, lag_residual, f"x_3 - {initial35:.2f} x_5")],
+        "regions": regions, "regionRange": values([lag_residual.min(), lag_residual.max()]),
+        "scaleSurface": surface.to_dict(orient="records"), "branchWinners": branch_winners,
+        "chosenSquare": get("chosen_square"), "chosenRegion": get("chosen_region"),
+        "tunedResiduals": residual_panel(get("d12_train"), get("residual"), f"x_1 - {get('ratio_12'):.2f} x_2"),
         "binnedResiduals": values(np.column_stack((get("centres"), get("averages")))),
         "frequencySweep": values(np.column_stack((get("frequencies"), get("frequency_errors")))),
-        "bestFrequency": get("best_frequency"),
+        "bestFrequency": get("best_frequency"), "roughFrequency": get("initial_frequency"),
+        "roughPeriod": float(2 * np.pi / get("initial_frequency")),
+        "delayExample": {"inputs": values(get("delay_demo_inputs")[2:]),
+                         "design": values(get("delay_demo_Z")[2:]),
+                         "source": values(get("delay_demo")[get("features") + ["y"]])},
+        "groups": {
+            "baseline": comparisons(summary_names[:4]),
+            "nonlinear": comparisons([summary_names[2], summary_names[4], summary_names[5], summary_names[3]]),
+            "additions": comparisons([summary_names[3], summary_names[6], summary_names[7], summary_names[8]]),
+            "regions": comparisons([(summary_names[10][0], "No region term"),
+                                     ("Delayed branch + indicator", "Indicator only")] +
+                                    [(f"Delayed branch + conditional {f}", f"Indicator + slope for {f}") for f in get("features")]),
+            "ablation": comparisons([("Tuned branch + sine and cosine", "Full selected combination")] +
+                                     [(f"Final comparison: without {row['Removed']}", f"Without {row['Removed']}")
+                                      for row in get("ablation_rows")[1:]]),
+            "summary": comparisons(summary_names),
+        },
+        "allResults": results, "selectedModel": get("selected_name"),
         "testPredictions": values(np.column_stack((get("y")[get("test_rows")], get("test_pred")))),
         "testMetrics": {"mse": float(get("final_mse")), "r2": float(get("final_r2"))},
     }
-    assert min(payload["results"], key=lambda row: row["Validation MSE"]) == payload["results"][-1]
+    assert min(results, key=lambda row: row["Validation MSE"])["Model"] == payload["selectedModel"]
+    assert len(payload["pairs"]) == 6
     output = folder / "assets/regression-walkthrough.json"
-    output.parent.mkdir(exist_ok=True)
     output.write_text(json.dumps(payload, separators=(",", ":"), allow_nan=False) + "\n", encoding="utf-8")
-    print(f"Saved {output.name}: {output.stat().st_size:,} bytes, {len(payload['results'])} model comparisons.")
+    print(f"Saved {output.name}: {output.stat().st_size:,} bytes, {len(results)} model comparisons.")
 
 
 if __name__ == "__main__":

@@ -63,17 +63,31 @@ the regularisation parameter.
 
 ## Regression walkthrough in presentation-01
 
-The 30 practical walkthrough slides follow the question answers. Jump straight
+The 31 practical walkthrough slides follow the question answers. Jump straight
 to them at
 <http://127.0.0.1:8000/slides/presentation-01/#/regression-walkthrough>.
 The notebook's fuller explanations are included as speaker notes (`S`).
 
 `presentation-01/walkthrough.js` draws the plots with Chart.js and an SVG
 correlation matrix. Hover over chart points and model bars for values.
-Scatterplots use a fixed sample of 2,500 observations; residual plots use up to
-2,000 training observations. Model errors, searches and binned residual means
-are calculated using the full notebook splits. The model comparison chart
-uses a logarithmic MSE axis so the final improvements remain visible.
+Scatterplots use a fixed sample of up to 2,500 training observations; residual
+plots use up to 2,000 training observations. Model errors, searches and binned
+means use the full notebook splits. The summary and final removal comparison
+use logarithmic MSE axes so the final improvements remain visible.
+
+Comparison figures stay together: all seven original feature plots, all six
+highly correlated pairs, all six scaled differences, the three interaction
+diagnostics, both delay-search curves, both delay residuals, and all seven
+regional feature diagnostics. Target and residual scales are shared where the
+quantities are comparable. The binned residual panel explicitly labels its
+zoomed vertical scale.
+
+The delay explanation includes an input matrix aligned with its target, a
+coloured numerical example, the 13-column design matrix and a validation-boundary
+example. These tables are native HTML; their values come from the notebook's
+worked example. The scale comparison shows both tuned scales alongside every
+matched square-and-region branch. The notebook's 44 recorded candidates remain
+in the exported data, with 14 main experiments shown on the summary slide.
 
 The CSV and downloadable notebook remain in `presentation-01/exercise_answers/`.
 After editing the notebook or CSV, regenerate the chart data with the same
@@ -88,14 +102,16 @@ This runs the notebook's code without changing the notebook and updates
 JavaScript renders the resulting data. The deck needs no Python at viewing time.
 Wait for the charts to load before printing.
 
-Plots resize to the space between their headings and captions. Feature plots
-share a slide in pairs, and each observation-order plot has its own slide.
+Plots resize to the space between their headings and captions. Six-panel and
+eight-panel grids use smaller axis labels and fixed grid tracks; the three
+observation-order plots share one slide.
 
 To check every slide's bounds in the browser, including all fragments, open
 <http://127.0.0.1:8000/slides/presentation-01/?check-layout>.
-The status banner reports any slides that overflow. Detailed measurements,
-including each chart's drawing area, are available as `window.slideLayoutReport`
-in the browser console. The regular presentation has no audit banner.
+The status banner reports slides that overflow and chart areas that need more
+space. Detailed measurements, including text overflow and every chart's drawing
+area, are available as `window.slideLayoutReport` in the browser console. The
+regular presentation has no audit banner.
 
 ## Export a PDF
 
