@@ -17,8 +17,6 @@
     const styles = getComputedStyle(document.documentElement);
     const token = (name) => styles.getPropertyValue(name).trim();
     const font = { family: token("--font-mono"), size: 18 };
-    const width = 1120;
-    const height = 360;
 
     // Ordinary least squares, calculated from the same data as the scatter plot.
     const meanX = observations.reduce((sum, point) => sum + point.x, 0) / observations.length;
@@ -30,7 +28,7 @@
     const predict = (age) => slope * age + intercept;
 
     const equation = document.getElementById("age-exercise-fit-equation");
-    const formula = `\\hat{y} = ${slope.toFixed(4)}x + ${intercept.toFixed(4)}`;
+    const formula = `\\hat{y} = ${slope.toFixed(5)}x + ${intercept.toFixed(5)}`;
     if (window.katex) {
       window.katex.render(formula, equation, { throwOnError: false });
     } else {
@@ -57,7 +55,11 @@
       },
     });
 
-    const createChart = (canvasId, showFit = false) => new Chart(document.getElementById(canvasId), {
+    const createChart = (canvasId, showFit = false) => {
+      const canvas = document.getElementById(canvasId);
+      const container = canvas.parentElement;
+      [canvas.width, canvas.height] = SlideLayout.dimensions(container, [1152, 400]);
+      const chart = new Chart(canvas, {
       type: "scatter",
       data: {
         datasets: [{
@@ -82,6 +84,7 @@
       },
       options: {
         responsive: false,
+        maintainAspectRatio: false,
         animation: false,
         devicePixelRatio: screenPixelRatio(),
         layout: { padding: { top: 8, right: 12 } },
@@ -109,23 +112,13 @@
           },
         },
       },
-    });
-
-    const charts = [
-      createChart("age-exercise-chart"),
-      createChart("age-exercise-fit-chart", true),
-    ];
-
-    const resize = (ratio) => {
-      charts.forEach((chart) => {
-        chart.options.devicePixelRatio = ratio;
-        chart.resize(width, height);
       });
+      SlideLayout.register(chart, container, [1152, 400]);
+      return chart;
     };
 
-    Reveal.on("resize", () => resize(screenPixelRatio()));
-    window.addEventListener("beforeprint", () => resize(3));
-    window.addEventListener("afterprint", () => resize(screenPixelRatio()));
+    createChart("age-exercise-chart");
+    createChart("age-exercise-fit-chart", true);
   };
 
   // Use the final fonts for canvas text, including direct links to other slides.

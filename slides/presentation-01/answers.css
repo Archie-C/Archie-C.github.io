@@ -1,0 +1,17 @@
+/* Written exercise answers, split into readable steps on the shared canvas. */
+.reveal .answer-slide h2 { font-size: 36px; margin-bottom: 24px; }
+.reveal .answer-slide .example-label { margin-bottom: 16px; }
+.reveal .answer-slide p { max-width: none; }
+.reveal .answer-slide .answer-small { font-size: 22px; color: var(--fg-2); }
+.reveal .answer-slide .katex-display { margin: 20px 0; font-size: 1em; }
+.reveal .answer-slide.derivation-slide .katex-display { font-size: 0.88em; }
+.reveal .answer-slide .answer-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+.reveal .answer-slide .answer-columns h3 { font-size: 27px; }
+.reveal .answer-slide .answer-columns ul { font-size: 26px; }
+.reveal .answer-slide .answer-rule { margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--rule); }
+.reveal .answer-slide .ridge-example { font-size: 25px; }
+.reveal .answer-slide .ridge-example th { font-size: 20px; }
+.reveal .answer-slide { line-height: 1.35; }
+.reveal .answer-slide p, .reveal .answer-slide ul, .reveal .answer-slide ol { margin-bottom: 16px; }
+.reveal .answer-slide .katex-display { margin-top: 16px; margin-bottom: 16px; }
+.reveal .katex-display { overflow: visible; }

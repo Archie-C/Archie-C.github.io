@@ -48,6 +48,55 @@ Use `$...$` for inline maths and `$$...$$` for display maths. Put images next
 to the deck or in a new `assets/` subfolder and reference them with relative
 paths.
 
+## Written answers in presentation-01
+
+The question section follows `presentation-01/exercise_answers/index.html`.
+It includes the scalar least-squares derivation, both matrix OLS derivations,
+the extrapolation and survey limitations, and all six practical fixes.
+Jump to the questions with `#/question-one`, `#/question-two`, or
+`#/question-three`. Additional explanation is included in speaker notes.
+
+The slides use five-decimal coefficients for the age–exercise example to
+match the written calculation. For ridge, both squared terms carry a factor
+of one-half so the gradient and inverse formula use the same definition of
+the regularisation parameter.
+
+## Regression walkthrough in presentation-01
+
+The 30 practical walkthrough slides follow the question answers. Jump straight
+to them at
+<http://127.0.0.1:8000/slides/presentation-01/#/regression-walkthrough>.
+The notebook's fuller explanations are included as speaker notes (`S`).
+
+`presentation-01/walkthrough.js` draws the plots with Chart.js and an SVG
+correlation matrix. Hover over chart points and model bars for values.
+Scatterplots use a fixed sample of 2,500 observations; residual plots use up to
+2,000 training observations. Model errors, searches and binned residual means
+are calculated using the full notebook splits. The model comparison chart
+uses a logarithmic MSE axis so the final improvements remain visible.
+
+The CSV and downloadable notebook remain in `presentation-01/exercise_answers/`.
+After editing the notebook or CSV, regenerate the chart data with the same
+Python environment used for the notebook:
+
+```bash
+python slides/presentation-01/prepare-walkthrough.py
+```
+
+This runs the notebook's code without changing the notebook and updates
+`presentation-01/assets/regression-walkthrough.json`. Python fits the models;
+JavaScript renders the resulting data. The deck needs no Python at viewing time.
+Wait for the charts to load before printing.
+
+Plots resize to the space between their headings and captions. Feature plots
+share a slide in pairs, and each observation-order plot has its own slide.
+
+To check every slide's bounds in the browser, including all fragments, open
+<http://127.0.0.1:8000/slides/presentation-01/?check-layout>.
+The status banner reports any slides that overflow. Detailed measurements,
+including each chart's drawing area, are available as `window.slideLayoutReport`
+in the browser console. The regular presentation has no audit banner.
+
 ## Export a PDF
 
 1. Open the deck in Chrome or Chromium with `?print-pdf` before any hash:
