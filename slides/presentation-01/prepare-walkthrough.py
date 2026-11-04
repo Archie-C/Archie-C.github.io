@@ -13,12 +13,46 @@ import io
 import json
 import os
 from pathlib import Path
+from random import Random
+from statistics import NormalDist
 
 import matplotlib
 import numpy as np
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+
+
+def independence_example():
+    """Illustrative errors with known coefficients, separate from the exercise data."""
+    rng = Random(42)
+    n, rho = 100, 0.8
+    independent = [rng.gauss(0, 1) for _ in range(n)]
+    correlated = [rng.gauss(0, 1)]
+    for _ in range(n - 1):
+        correlated.append(rho * correlated[-1] + (1 - rho**2)**0.5 * rng.gauss(0, 1))
+
+    # A smooth earlier input is omitted from one prediction and included in the other.
+    earlier = rng.gauss(0, 1)
+    lag_errors = []
+    for t in range(2, n + 2):
+        noise = rng.gauss(0, 0.25)
+        lag_errors.append([t, 1.2 * earlier + noise, noise])
+        earlier = 0.92 * earlier + (1 - 0.92**2)**0.5 * rng.gauss(0, 1)
+
+    # Exact finite-sample variance of a mean for stationary Gaussian AR(1) errors.
+    independent_sd = (1 / n)**0.5
+    correlated_sd = ((n + 2 * sum((n - k) * rho**k for k in range(1, n))) / n**2)**0.5
+    distributions = [NormalDist(0, sd) for sd in (independent_sd, correlated_sd)]
+    density = [[x / 100, *(distribution.pdf(x / 100) for distribution in distributions)]
+               for x in range(-100, 101)]
+    rounded = lambda rows: [[round(value, 6) for value in row] for row in rows]
+    return {
+        "errors": rounded([[t, independent[t], correlated[t]] for t in range(n)]),
+        "lagErrors": rounded(lag_errors),
+        "meanDensity": rounded(density),
+        "meanSd": [independent_sd, correlated_sd],
+    }
 
 
 def main():
@@ -141,6 +175,7 @@ def main():
         "x4Residual": residual_panel(train["x_4"].to_numpy(), residual_two, "x_4"),
         "firstResidual": residual_panel(diff12, residual_all, f"x_1 - {initial12:.2f} x_2"),
         "interactionTrends": interaction_trends,
+        "independenceExample": independence_example(),
         "lagSweep": values(np.column_stack((get("lag_values"), get("linear_lag_errors"), get("lag_errors")))),
         "bestLag": get("best_lag"), "bestLinearLag": get("best_linear_lag"),
         "lagResiduals": [residual_panel(diff12, lag_residual, f"x_1 - {initial12:.2f} x_2"),

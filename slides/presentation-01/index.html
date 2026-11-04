@@ -115,7 +115,6 @@
         <p class="example-label">Answers &middot; Question 1</p>
         <h2 id="question-one-title">Question 1</h2>
         <p><strong>What tasks would you solve with linear regression? When would it not be suitable?</strong></p>
-        <p class="answer-small answer-rule"><a href="./exercise_answers/index.html#question-1">Full written answers</a></p>
         <aside class="notes">The answer depends somewhat on the notation used. The written answer distinguishes linearity in the parameters from a linear relationship between the original inputs and outputs.</aside>
       </section>
 
@@ -131,7 +130,7 @@
 
       <section class="answer-slide" aria-labelledby="linear-suitable-title" data-answer-source="question-1">
         <p class="example-label">Answers &middot; Question 1</p>
-        <h2 id="linear-suitable-title">When would I use it?</h2>
+        <h2 id="linear-suitable-title">When would you use it?</h2>
         <p>Using the broader definition, any regression task with a linear relationship, or one we can reasonably express using basis functions, is a candidate.</p>
         <ul><li class="fragment">Predicting a continuous value, such as house price or temperature.</li><li class="fragment">Modelling relationships between variables.</li><li class="fragment">Describing trends in data.</li></ul>
         <aside class="notes">Using the first case, any task that is either a linear relationship or can be transformed reasonably into a linear relationship can be solved with linear regression. The examples illustrate this without changing the distinction in the written answer.</aside>
@@ -141,7 +140,6 @@
         <p class="example-label">Answers &middot; Question 1</p>
         <h2 id="linear-limitations-title">When would it not be suitable?</h2>
         <ul><li>When the relationship cannot reasonably be represented by a linear combination of the chosen basis functions.</li><li class="fragment">When assumptions needed for how we use the model are violated.</li><li class="fragment">In its basic form, for classification: it predicts continuous values rather than categories.</li></ul>
-        <p class="answer-small">The written answer mentions constant error variance, independent errors, and normal errors. Normality concerns classical inference, rather than being required to fit least squares.</p>
         <aside class="notes">The written answer says that inherently nonlinear tasks that cannot be transformed reasonably, violations of assumptions such as homoscedasticity, independence and normality of errors, and classification can make basic linear regression unsuitable. Which assumptions matter depends on whether we want predictions, standard errors, confidence intervals, or hypothesis tests. Noise and outliers are modelling concerns more generally.</aside>
       </section>
 
@@ -207,7 +205,6 @@
         $$ m=\frac{-245.8}{2062.4}\approx-0.11918. $$
         $$ c=5.05-m(43.6)\approx10.24631. $$
         $$ \boxed{\hat{y}\approx-0.11918x+10.24631}. $$
-        <p class="answer-small">Here $x$ is age in years and $\hat{y}$ is predicted exercise in hours per week.</p>
       </section>
 
       <section class="answer-slide" aria-labelledby="question-two-fit-title" data-answer-source="question-2">
@@ -232,7 +229,7 @@
 
       <section class="answer-slide" aria-labelledby="age-extrapolation-title" data-answer-source="question-2">
         <p class="example-label">Answers &middot; Question 2b</p>
-        <h2 id="age-extrapolation-title">Why is this extrapolation?</h2>
+        <h2 id="age-extrapolation-title">Why should we be cautious?</h2>
         <p>The observed ages are in the range $[22,68]$.</p>
         <p>Age 80 is outside that range, so we are extrapolating.</p>
         <p class="fragment">We cannot be sure that the relationship holds outside the observed range. That makes this prediction risky.</p>
@@ -248,9 +245,8 @@
 
       <section id="question-three" class="answer-slide" aria-labelledby="question-three-title" data-answer-source="question-3">
         <p class="example-label">Answers &middot; Question 3 &middot; Exam level</p>
-        <h2 id="question-three-title">Question 3*</h2>
+        <h2 id="question-three-title">Question 3</h2>
         <ol><li>Derive the OLS solution.</li><li>Discuss when the inverse formula fails.</li><li>Explain a practical fix and why it works.</li></ol>
-        <p class="answer-small">* denotes exam-level questions, not necessarily exam length.</p>
         <aside class="notes">The written answer gives two derivations and six possible practical fixes. We will look at both derivations, then explain regularisation before listing the alternatives.</aside>
       </section>
 
@@ -337,7 +333,7 @@
         <p>When $X^TX$ is <strong>singular</strong>, it has no inverse.</p>
         $$ \operatorname{rank}(X)&lt;d+1\quad\Longrightarrow\quad X^TX\text{ is singular}. $$
         <ul><li>One column is an exact linear combination of others.</li><li>There are more parameters than observations: $n&lt;d+1$.</li></ul>
-        <p class="answer-small">Least-squares solutions still exist, but the parameters are not unique. It is the inverse formula that fails.</p>
+        <p class="answer-small">Least-squares solutions still exist, but the parameters are not unique.</p>
       </section>
 
       <section class="answer-slide" aria-labelledby="ols-ridge-title" data-answer-source="question-3">
@@ -349,16 +345,6 @@
         $$ X^TX\theta+\lambda\theta=X^Ty. $$
         $$ \boxed{\hat{\theta}_\lambda=(X^TX+\lambda I)^{-1}X^Ty}. $$
         <aside class="notes">The written answer uses one-half on the residual loss but lambda times the weight norm squared, then writes a gradient with lambda theta. Strictly that penalty differentiates to 2 lambda theta. Here the penalty is lambda over two so the stated normal equations and solution are consistent. This only changes the convention for naming the tuning parameter. As in the written formula, the identity matrix here penalises every parameter, including the intercept.</aside>
-      </section>
-
-      <section class="answer-slide" aria-labelledby="ols-ridge-stability-title" data-answer-source="question-3">
-        <p class="example-label">Answers &middot; Question 3c &middot; Fix 1</p>
-        <h2 id="ols-ridge-stability-title">Why does adding to the diagonal help?</h2>
-        <p>For any nonzero vector $v$ and $\lambda&gt;0$:</p>
-        $$ v^T(X^TX+\lambda I)v=\lVert Xv\rVert_2^2+\lambda\lVert v\rVert_2^2&gt;0. $$
-        <p>The matrix is positive definite and therefore invertible, giving a unique solution.</p>
-        <p class="fragment">Increasing $\lambda$ penalises large weights more strongly. This improves stability, but can reduce how well the model fits the data.</p>
-        <aside class="notes">The written answer explains the diagonal adjustment and the tradeoff controlled by lambda. The quadratic-form identity shows why a positive lambda fixes singularity when all parameters are penalised.</aside>
       </section>
 
       <section class="answer-slide" aria-labelledby="ols-identical-features-title" data-answer-source="question-3">
@@ -383,9 +369,7 @@
         <p class="example-label">Answers &middot; Question 3c &middot; Fixes 2 and 3</p>
         <h2 id="ols-alternative-solvers-title">Other ways to fit the parameters</h2>
         <p><strong>2. Use a pseudoinverse.</strong> The Moore-Penrose pseudoinverse gives a least-squares solution even when the inverse formula is unavailable.</p>
-        <p class="answer-small">Out of the scope of this course.</p>
         <p class="fragment"><strong>3. Use a different optimisation algorithm.</strong> Gradient descent does not require the inverse of $X^TX$.</p>
-        <p class="answer-small">We will cover gradient descent later in the course.</p>
         <aside class="notes">These are fixes 02 and 03 from the written answer. An alternative solver does not make dependent columns independent or make the original least-squares parameters unique. It lets us obtain a solution without using the failing inverse formula.</aside>
       </section>
 
@@ -393,7 +377,6 @@
         <p class="example-label">Answers &middot; Question 3c &middot; Fixes 4, 5 and 6</p>
         <h2 id="ols-alternative-data-title">Changing the data or representation</h2>
         <ul><li><strong>4. Increase the number of samples.</strong> More informative observations can make full column rank possible.</li><li class="fragment"><strong>5. Use feature selection.</strong> Remove redundant columns to reduce the number of parameters.</li><li class="fragment"><strong>6. Use dimensionality reduction.</strong> For example, PCA can represent the inputs with fewer components.</li></ul>
-        <p class="answer-small">PCA is out of scope here. More samples alone cannot fix columns that are always exact copies of each other.</p>
         <aside class="notes">The written answer lists increasing the number of samples, reducing the number of features through selection, and using dimensionality reduction such as PCA. Each can help when it addresses the source of rank deficiency; none is an unconditional guarantee for arbitrary data.</aside>
       </section>
 
@@ -401,9 +384,7 @@
       <section id="regression-walkthrough" class="walkthrough title-slide" aria-labelledby="walk-title" data-notebook-cells="a2c99dad">
         <p class="slide-kicker">Practical exercise</p>
         <div class="title-content"><h1 id="walk-title">Regression practical walkthrough</h1>
-          <p class="slide-subtitle">Using observations, experiments, and validation to choose a model</p>
-          <p class="walk-small"><a href="./exercise_answers/regression_answers.ipynb" download>Notebook</a> / <a href="./exercise_answers/data_train.csv" download>Training data</a></p>
-        </div>
+         </div>
         <footer class="slide-footer"><span class="wordmark">a<span class="wordmark-dot">.</span>c</span></footer>
         <aside class="notes"><p>The aim for this exercise, and the practical exercises going forward, is not just whether you can implement a particular model or algorithm. AI today, or in 2+ years when you graduate, can already implement many of these models if you ask it to. What I want you to come away from this course with is an understanding of how to analyse a dataset, draw conclusions, implement a model based on those conclusions, and then iterate.</p><p>Here I would like to walk you through one possible way of analysing the data and making improvements to a regression model. Some of you had some very informative plots, however, either did not make conclusions from these or didn&#x27;t use those conclusions in your model.</p><p><strong>One thing to keep in mind:</strong> this is a walkthrough of *one possible* exploratory process, not the only correct model. We are going to make hypotheses based on plots, test them, and occasionally discover that they don&#x27;t help.</p></aside>
       </section>
@@ -429,8 +410,7 @@
     <div class="plot-stage walk-prose">
       <div class="walk-split"><div style="flex:65">Training<small>Rows 25–6499 · <span data-walk-value="split.trainCount"></span> observations</small></div><div style="flex:17.5">Validation<small>6500–8249</small></div><div style="flex:17.5">Final test<small>8250–9999</small></div></div>
       <p>Use training observations for exploratory plots and validation error for modelling choices.</p>
-      <p>Reserve 25 rows of history so every candidate delay uses the same evaluation rows.</p>
-      <p class="walk-small">The proportions and maximum delay are starting choices. This split evaluates a later block of rows; row order is not necessarily time.</p>
+      <p>Reserve 25 rows of history so we can maybe use delayed timesteps as features</p>
     </div>
 
         </div>
@@ -463,21 +443,32 @@
         <div class="plot-layout">
           <h2 id="walk-observation-order-title">Do neighbouring observations look related?</h2>
           <div class="plot-stage walk-grid walk-cols-1 walk-history"><div class="plot-cell"><p class="walk-chart-title">x_1</p><div class="plot-stage" data-walk-chart="history-0" data-width="580" data-height="420" aria-label="x_1" ></div></div><div class="plot-cell"><p class="walk-chart-title">x_6</p><div class="plot-stage" data-walk-chart="history-1" data-width="580" data-height="420" aria-label="x_6" ></div></div><div class="plot-cell"><p class="walk-chart-title">Target y</p><div class="plot-stage" data-walk-chart="history-2" data-width="580" data-height="420" aria-label="Target y" ></div></div></div>
-          <p class="walk-caption">Smooth neighbouring inputs motivate investigating delays, but do not establish that a delayed input predicts y.</p>
+          <p class="walk-caption">These plots look like a time series. Therefore, it may be appropriate to consider delayed inputs as features.</p>
         </div>
         <aside class="notes"><p>Given this data has no real-world labels or anything that tells us whether it follows a time series, I would also plot some of the columns against the row index. This lets us see whether neighbouring observations look related, which is something the scatterplots above do not tell us. Here I have chosen <code>x_1</code> from the correlated group, <code>x_6</code> from outside that group, and the target.</p><p>Here the features change quite smoothly over long stretches of observations. The target also has some structure. This gives us a reason to investigate earlier observations, however, smooth inputs alone do not establish that a delayed input will help predict the target.</p><p>It also gives us a reason to be cautious about a random split, which could put very similar neighbouring observations in both training and validation. We will keep the ordered split we set aside earlier. If we eventually use delayed inputs, we will be assuming that the earlier feature values are available when making a prediction. We will not use earlier target values as inputs.</p></aside>
       </section>
 
       <section id="walk-fitting" class="walkthrough " aria-labelledby="walk-fitting-title" data-notebook-cells="4d14be67">
         <div class="plot-layout">
-          <h2 id="walk-fitting-title">Construct the columns, then fit least squares</h2>
+          <h2 id="walk-fitting-title">General Steps for Implementing a Model</h2>
 
     <div class="plot-stage walk-grid walk-cols-2 walk-prose">
       <div><ol><li>Construct the basis functions.</li><li>Normalise non-intercept columns using training means and standard deviations.</li><li>Reuse those statistics for validation and prediction.</li></ol></div>
-      <div><pre><code class="language-python">Z = self._prepare(X)
+      <div><pre><code class="language-python"># 1. Construct basis columns (intercept first).
+Z = self.construct_design_matrix(X_train)
+
+# 2. Normalise only non-intercept columns.
+mean = Z[:, 1:].mean(axis=0)
+std = Z[:, 1:].std(axis=0) + 1e-6
+Z[:, 1:] = (Z[:, 1:] - mean) / std
 self.theta = np.linalg.lstsq(
-    Z, y, rcond=None
-)[0]</code></pre><p class="walk-small">Avoid explicitly inverting ZᵀZ when columns are highly correlated.</p></div>
+    Z, y_train, rcond=None
+)[0]
+
+# 3. Reuse training statistics to predict.
+Z_val = self.construct_design_matrix(X_val)
+Z_val[:, 1:] = (Z_val[:, 1:] - mean) / std
+y_pred = Z_val @ self.theta</code></pre><p class="walk-small">Avoid explicitly inverting ZᵀZ when columns are highly correlated.</p></div>
     </div>
 
         </div>
@@ -488,7 +479,6 @@ self.theta = np.linalg.lstsq(
         <div class="plot-layout">
           <h2 id="walk-baselines-title">How much do the original features add?</h2>
           <div class="plot-stage" data-walk-chart="baseline" data-width="580" data-height="420" aria-label="baseline" ></div>
-          <p class="walk-caption">All models use the same training and validation rows. Compare against the training-mean predictor too.</p>
         </div>
         <aside class="notes"><p>Here I am starting with a linear regression class similar to the one from the exercise. There are two details I would like to point out.</p><p>First, I use <code>np.linalg.lstsq</code> to fit the parameters. This solves the least-squares problem without directly inverting $Z^TZ$, which is useful given how correlated some of our features are.</p><p>Second, I construct the basis functions before normalising the columns. Later we will add squares and products of features, and each of those new columns should be normalised too. The means and standard deviations are calculated from the training data and then reused when making predictions.</p><p>I will compare a model that always predicts the training mean, a model using <code>x_6</code>, one using <code>x_4</code> and <code>x_6</code>, and one using all seven features. The plot and correlation table give us a reason to start with <code>x_6</code>. Including <code>x_4</code> gives us a small model in which to investigate the two concentrations of values we saw earlier. These are starting comparisons, rather than a claim that we have found the best subset.</p></aside>
       </section>
@@ -497,7 +487,6 @@ self.theta = np.linalg.lstsq(
         <div class="plot-layout">
           <h2 id="walk-x4-diagnostics-title">Does x_4 need a nonlinear basis?</h2>
           <div class="plot-stage walk-grid walk-cols-3 "><div class="plot-cell"><p class="walk-chart-title">Original x_4 against y</p><div class="plot-stage" data-walk-chart="raw-3" data-width="580" data-height="420" aria-label="Original x_4 against y" ></div></div><div class="plot-cell"><p class="walk-chart-title">Residuals of the x_4 + x_6 model</p><div class="plot-stage" data-walk-chart="x4-residual" data-width="580" data-height="420" aria-label="Residuals of the x_4 + x_6 model" ></div></div><div class="plot-cell"><p class="walk-chart-title">Five Gaussian basis functions</p><div class="plot-stage" data-walk-chart="rbf" data-width="580" data-height="420" aria-label="Five Gaussian basis functions" ></div></div></div>
-          <p class="walk-caption">Input clusters alone do not prove nonlinearity. RBF centres use training quantiles; their median spacing sets the width.</p>
         </div>
         <aside class="notes"><p>The two concentrations in <code>x_4</code> describe where the inputs are, however, that alone does not tell us that its relationship with the target is nonlinear. I would first look at what the small linear model has left unexplained. The line below groups similar values of <code>x_4</code> and shows the average residual in each group. This makes broad trends easier to see than the individual points, although it can hide variation within a group.</p><p>A residual trend gives us a reason to try a more flexible function, but does not identify one particular formula. I will compare a squared term with five Gaussian radial basis functions (RBFs), keeping <code>x_4</code> and <code>x_6</code> as linear inputs. These are two simple alternatives from the basis-function idea in the exercise.</p><p>Each RBF is largest near a particular value of <code>x_4</code> and gets smaller further away. I place five centres at training quantiles so that they cover the observed values. I use the median spacing between the centres as the width, so neighbouring functions overlap. Five functions is a modest initial choice, not an optimum we have established. We could compare other widths and numbers of centres if this family looked promising.</p></aside>
       </section>
@@ -506,7 +495,6 @@ self.theta = np.linalg.lstsq(
         <div class="plot-layout">
           <h2 id="walk-nonlinear-comparison-title">Compare flexibility with including more inputs</h2>
           <div class="plot-stage" data-walk-chart="nonlinear" data-width="580" data-height="420" aria-label="nonlinear" ></div>
-          <p class="walk-caption">Compare linear, quadratic and RBF models using the same two inputs, then compare all seven inputs.</p>
         </div>
         <aside class="notes"><p>A residual trend gives us a reason to try a more flexible function, but does not identify one particular formula. I will compare a squared term with five Gaussian radial basis functions (RBFs), keeping <code>x_4</code> and <code>x_6</code> as linear inputs. These are two simple alternatives from the basis-function idea in the exercise.</p><p>Each RBF is largest near a particular value of <code>x_4</code> and gets smaller further away. I place five centres at training quantiles so that they cover the observed values. I use the median spacing between the centres as the width, so neighbouring functions overlap. Five functions is a modest initial choice, not an optimum we have established. We could compare other widths and numbers of centres if this family looked promising.</p><p>Here I would compare the nonlinear models with the linear model using the same two inputs, and then with the model using all seven. The first comparison tells us whether the extra functions help this small model. The second tells us whether we are leaving useful information out by concentrating on these two inputs.</p><p>Before trying more complicated functions of <code>x_4</code>, I would go back to the correlated features and look at them together.</p></aside>
       </section>
@@ -515,15 +503,15 @@ self.theta = np.linalg.lstsq(
         <div class="plot-layout">
           <h2 id="walk-all-pairs-title">Inspect every pair in the highly correlated group</h2>
           <div class="plot-stage walk-grid walk-cols-3 walk-six"><div class="plot-cell"><p class="walk-chart-title">x_1 and x_2</p><div class="plot-stage" data-walk-chart="pair-0" data-width="580" data-height="420" aria-label="x_1 and x_2" ></div></div><div class="plot-cell"><p class="walk-chart-title">x_1 and x_3</p><div class="plot-stage" data-walk-chart="pair-1" data-width="580" data-height="420" aria-label="x_1 and x_3" ></div></div><div class="plot-cell"><p class="walk-chart-title">x_1 and x_5</p><div class="plot-stage" data-walk-chart="pair-2" data-width="580" data-height="420" aria-label="x_1 and x_5" ></div></div><div class="plot-cell"><p class="walk-chart-title">x_2 and x_3</p><div class="plot-stage" data-walk-chart="pair-3" data-width="580" data-height="420" aria-label="x_2 and x_3" ></div></div><div class="plot-cell"><p class="walk-chart-title">x_2 and x_5</p><div class="plot-stage" data-walk-chart="pair-4" data-width="580" data-height="420" aria-label="x_2 and x_5" ></div></div><div class="plot-cell"><p class="walk-chart-title">x_3 and x_5</p><div class="plot-stage" data-walk-chart="pair-5" data-width="580" data-height="420" aria-label="x_3 and x_5" ></div></div></div>
-          <div class="walk-colour-key"><span>Lower y</span><i aria-hidden="true"></i><span>Higher y</span><span>Same colour scale in all six panels</span></div>
-          <p class="walk-caption">All six pairs with |training correlation| ≥ 0.98, using training observations only.</p>
+          <div class="walk-colour-key"><span>Lower y</span><i aria-hidden="true"></i><span>Higher y</span></div>
+          <p class="walk-caption">All six pairs with |training correlation| ≥ 0.98</p>
         </div>
         <aside class="notes"><p>Before choosing particular differences, I would look at all the pairs in the highly correlated group. Here I use an absolute training correlation of at least 0.98 as a display cutoff. This picks out all six pairs between <code>x_1</code>, <code>x_2</code>, <code>x_3</code>, and <code>x_5</code>, rather than selecting just <code>x_1</code> with <code>x_2</code> and <code>x_3</code> with <code>x_5</code> in advance. The cutoff is a way of keeping this figure focused on very similar inputs, not a test of whether the other features matter.</p><p>Below I have plotted each pair of training features against each other and coloured the points by the target. I would look for whether the colour changes across the narrow band of points. If it does, the small differences between the features may deserve a closer look.</p></aside>
       </section>
 
       <section id="walk-difference-scales" class="walkthrough " aria-labelledby="walk-difference-scales-title" data-notebook-cells="86fe8f47">
         <div class="plot-layout">
-          <h2 id="walk-difference-scales-title">Use the same reference rule for every pair</h2>
+          <h2 id="walk-difference-scales-title">Constructing features from differences</h2>
 
     <div class="plot-stage walk-grid walk-cols-2 walk-prose">
       <div><div class="walk-equations">$$d_{a,b}=x_a-cx_b$$</div><p>Start with the ratio of training means, rounded to two decimal places.</p><p class="walk-small">This approximately aligns the means. A fitted slope is another reference, not necessarily the same scale.</p><p class="walk-small">These are starting coordinates. We will check scales using validation data.</p></div>
@@ -538,7 +526,7 @@ self.theta = np.linalg.lstsq(
         <div class="plot-layout">
           <h2 id="walk-all-differences-title">Compare all six scaled differences against y</h2>
           <div class="plot-stage walk-grid walk-cols-3 walk-six"><div class="plot-cell"><p class="walk-chart-title">x_1 and x_2</p><div class="plot-stage" data-walk-chart="difference-0" data-width="580" data-height="420" aria-label="x_1 and x_2" ></div></div><div class="plot-cell"><p class="walk-chart-title">x_1 and x_3</p><div class="plot-stage" data-walk-chart="difference-1" data-width="580" data-height="420" aria-label="x_1 and x_3" ></div></div><div class="plot-cell"><p class="walk-chart-title">x_1 and x_5</p><div class="plot-stage" data-walk-chart="difference-2" data-width="580" data-height="420" aria-label="x_1 and x_5" ></div></div><div class="plot-cell"><p class="walk-chart-title">x_2 and x_3</p><div class="plot-stage" data-walk-chart="difference-3" data-width="580" data-height="420" aria-label="x_2 and x_3" ></div></div><div class="plot-cell"><p class="walk-chart-title">x_2 and x_5</p><div class="plot-stage" data-walk-chart="difference-4" data-width="580" data-height="420" aria-label="x_2 and x_5" ></div></div><div class="plot-cell"><p class="walk-chart-title">x_3 and x_5</p><div class="plot-stage" data-walk-chart="difference-5" data-width="580" data-height="420" aria-label="x_3 and x_5" ></div></div></div>
-          <p class="walk-caption">Red lines show binned mean targets. The target axis is shared; horizontal units and ranges differ. No pair is uniquely established as best.</p>
+          <p class="walk-caption">Red lines show binned mean targets.</p>
         </div>
         <aside class="notes"><p>To look more closely at these differences, we can subtract a scaled version of one feature from the other:</p><p>$$d_{a,b}=x_a-cx_b.$$</p><p>We need to choose a reference scale because the features have different magnitudes. Here I use the same rule for every pair: the ratio of their training means, rounded to two decimal places. This aligns their means approximately. It is a simple proportional reference, not a fitted relationship or a claim about how the data was generated. It would be unsuitable if the denominator mean were near zero.</p><p>A line fitted between the inputs would be another reasonable reference, and would also allow an intercept. I show its slope below so we can see that the choices need not agree. I am rounding only to start with an easy-to-read reference. We will check the two scales used by our later models, rather than treating these rounded numbers as known constants.</p><p>The next figure shows all six scaled differences against the training target, with the same target axis and the same plotting choices. The red line shows the mean target in bins of the difference. The horizontal axes have different units and ranges, so I would compare the shapes rather than their apparent slopes. Each title reports the correlation between the two original inputs, not the correlation of their difference with the target. We show each unordered pair once, using the feature order in the data.</p><p>These comparisons give us several possible differences to investigate, not two uniquely correct ones. In the <code>x_1</code>/<code>x_2</code> panel, the mean target changes near zero and then rises on the positive side. In the <code>x_3</code>/<code>x_5</code> panel, we can see a target trend across a small difference between inputs that almost lie on a straight line. I will keep these as two reference coordinates for the following experiments. These observations give us reasons to investigate them, but the figure does not establish that they are the best pair of differences. The other pairs remain possible alternatives; choosing the best subset would require comparing their basis functions using validation data too.</p><p>Adding either difference on its own would not give our linear model anything new, because it already contains the original columns. We need to ask whether the differences enter in some other way.</p><p>I would first return to the residuals from the all-seven model. The first plot below shows their average against the first difference. In the next two plots, I split <code>x_4</code> and <code>x_6</code> into training quartiles and draw a separate residual trend against the second difference for each group. If those trends have different slopes, a product is one simple way to let the effect of the difference depend on another feature. The plots can suggest this experiment, however, other correlated inputs may also explain the pattern.</p></aside>
       </section>
@@ -554,13 +542,13 @@ self.theta = np.linalg.lstsq(
 
       <section id="walk-basis-functions" class="walkthrough " aria-labelledby="walk-basis-functions-title" data-notebook-cells="c22992b4">
         <div class="plot-layout">
-          <h2 id="walk-basis-functions-title">Test curvature and changing contributions</h2>
+          <h2 id="walk-basis-functions-title">Adding the differences as independent features</h2>
 
     <div class="plot-stage walk-grid walk-cols-2 walk-prose">
       <div><p>First difference</p><div class="walk-equations">$$q=x_1-a x_2,\qquad q^2$$</div><p class="walk-small">A square gives the model one simple curved relationship.</p></div>
       <div><p>Second reference difference</p><div class="walk-equations">$$d=x_3-c x_5,\qquad d x_4,\;d x_6$$</div><p class="walk-small">Products let the contribution of d depend on the other inputs.</p></div>
     </div>
-          <p class="walk-caption">A difference alone is already a linear combination of existing columns. Squaring or multiplying it changes what the model can express.</p>
+          <p class="walk-caption">A difference alone is already a linear combination of existing columns. If you square or multiply it, it adds a new independent feature.</p>
         </div>
         <aside class="notes"><p>A squared first difference is a simple way to try curvature. Products of the second difference with <code>x_4</code> and <code>x_6</code> let its contribution change with those inputs. Neither is implied uniquely by the plots, so I will compare the square alone, the products alone, and both together against the all-seven baseline.</p><p>Here I have kept the feature construction inside <code>construct_design_matrix</code>, as in the exercise. Each function in <code>terms</code> supplies extra columns. We can add a new experiment when we reach it, without including formulas for later discoveries in the class now.</p></aside>
       </section>
@@ -569,16 +557,61 @@ self.theta = np.linalg.lstsq(
         <div class="plot-layout">
           <h2 id="walk-additions-title">Compare the square, the products, and both</h2>
           <div class="plot-stage" data-walk-chart="additions" data-width="580" data-height="420" aria-label="additions" ></div>
-          <p class="walk-caption">Lower training error does not earn a place in the selected model. Keep unsuccessful branches as experiments and check them again under matched settings.</p>
+          <p class="walk-caption">Lower training error does not mean that you should necessarily keep it for the final model. Sometimes you should keep unsuccessful branches as they may interact with later features to produce a better model.</p>
         </div>
         <aside class="notes"><p>A squared first difference is a simple way to try curvature. Products of the second difference with <code>x_4</code> and <code>x_6</code> let its contribution change with those inputs. Neither is implied uniquely by the plots, so I will compare the square alone, the products alone, and both together against the all-seven baseline.</p><p>Here I have kept the feature construction inside <code>construct_design_matrix</code>, as in the exercise. Each function in <code>terms</code> supplies extra columns. We can add a new experiment when we reach it, without including formulas for later discoveries in the class now.</p><p>Here I would look at validation error, rather than the reduction in training error. If an addition makes validation error worse, we have not earned a reason to keep it in the selected model.</p><p>However, a feature that is unhelpful on its own can sometimes become useful alongside another change. I will keep the square-and-products model as an exploratory branch when we investigate delays. We will compare it with simpler branches, and check whether its individual terms are still useful later. This is a reason to continue an experiment, rather than evidence that its current validation result is better.</p></aside>
       </section>
 
+      <section id="walk-independent-errors" class="walkthrough" aria-labelledby="walk-independent-errors-title">
+        <div class="plot-layout">
+          <h2 id="walk-independent-errors-title">What do we mean by independent errors?</h2>
+          <p>We want each observation to provide new information about the relationship we are trying to learn.</p>
+          <div class="walk-equations">$$y_t=z_t^T\theta+\varepsilon_t,\qquad \varepsilon_t\perp\!\!\!\perp\varepsilon_s\mid Z\quad(t\ne s)$$</div>
+          <div class="plot-stage walk-grid walk-cols-2">
+            <div class="plot-cell"><p class="walk-chart-title">Independent errors</p><div class="plot-stage" data-walk-chart="errors-independent" data-width="580" data-height="320" aria-label="Illustrative independent errors plotted in observation order"></div></div>
+            <div class="plot-cell"><p class="walk-chart-title">Positively correlated errors</p><div class="plot-stage" data-walk-chart="errors-correlated" data-width="580" data-height="320" aria-label="Illustrative positively correlated errors with runs above and below zero"></div></div>
+          </div>
+          <p class="walk-caption">Illustrative errors, each with population variance 1, on the same axes. On the right, neighbouring errors tend to have the same sign.</p>
+        </div>
+        <aside class="notes"><p>We assume independent errors because we want each observation to provide new information about the relationship we are trying to learn. Here $z_t^T$ is one row of the design matrix and $\varepsilon_t$ is the part of the target that our model leaves unexplained. The independence symbol means that, given the design matrix $Z$, knowing one error does not tell us about another.</p><p>These are invented examples so that we can see the distinction. On the left I have drawn independent normal errors. On the right each error is 0.8 times the previous error plus fresh normal noise, with the noise scaled so that the population variance is still one. The right-hand sequence tends to stay above or below zero for several observations. Those neighbouring observations partly repeat information about the same deviation.</p><p>This assumption concerns the errors after accounting for the inputs. Smooth or correlated input features do not by themselves establish that the errors are dependent. Independence implies zero covariance, provided the variances exist, however, zero covariance alone does not generally establish independence.</p><p>In real data we do not observe the true errors. We inspect residuals $e_t=y_t-\hat y_t$ as a diagnostic. Fitting also imposes relationships between residuals, so I would look for systematic patterns rather than expect fitted residuals to be exactly independent.</p><p>Further reading: <a href="https://www.itl.nist.gov/div898/handbook/pmd/section4/pmd444.htm">NIST: checking error independence using residual plots</a>.</p></aside>
+      </section>
+
+      <section id="walk-error-uncertainty" class="walkthrough" aria-labelledby="walk-error-uncertainty-title">
+        <div class="plot-layout">
+          <h2 id="walk-error-uncertainty-title">Why does this matter for uncertainty?</h2>
+          <div class="plot-stage walk-grid walk-cols-2 walk-prose">
+            <div>
+              <p>We can still fit a regression model when the errors are correlated. However, our standard calculations of uncertainty may become incorrect.</p>
+              <p>Consider averaging $n$ errors, each with variance $\sigma^2$:</p>
+              <div class="walk-equations">$$\operatorname{Var}(\bar\varepsilon)=\frac{\sigma^2}{n}+\frac{2}{n^2}\sum_{i&lt;j}\operatorname{Cov}(\varepsilon_i,\varepsilon_j).$$</div>
+              <p class="walk-small">Independent errors make the covariance terms zero. Positive covariance increases the uncertainty of the average.</p>
+            </div>
+            <div class="plot-cell"><p class="walk-chart-title">Distribution of the average error</p><div class="plot-stage" data-walk-chart="errors-mean" data-width="580" data-height="420" aria-label="The average of 100 Gaussian errors has a wider distribution when errors are positively correlated"></div><p class="walk-small">100 observations in each case.<br>Standard deviation of the average: 0.10 vs 0.29.</p></div>
+          </div>
+          <p class="walk-caption">Illustrative Gaussian example. Positive error correlation can make confidence intervals calculated under independence too narrow.</p>
+        </div>
+        <aside class="notes"><p>If the errors are correlated, some of the information in our observations is redundant. We can still minimise the sum of squared errors, however, counting all the observations as independent can make us more certain about the fitted relationship than we should be.</p><p>To see why, consider the average error. When we expand its variance, we get the individual variances and all the pairwise covariances. If the errors are independent, the covariance terms are zero and the variance is $\sigma^2/n$. If the errors tend to move together, those extra terms can be positive. Averaging then removes less variation than the independence calculation suggests. Negative covariance can have a different effect.</p><p>The plot shows exact normal densities for the average of 100 zero-mean Gaussian errors, each with variance one. The independent case has standard deviation 0.10. In the correlated case, $\operatorname{Cov}(\varepsilon_i,\varepsilon_j)=0.8^{|i-j|}$, giving a standard deviation of approximately 0.29. This compares repeated sets of observations, rather than the spread of individual errors within one set.</p><p>The same issue appears in regression coefficient uncertainty. For a full-column-rank design matrix, writing $\Omega=\operatorname{Cov}(\varepsilon\mid Z)$, the coefficient covariance is $(Z^TZ)^{-1}Z^T\Omega Z(Z^TZ)^{-1}$. The familiar $\sigma^2(Z^TZ)^{-1}$ requires $\Omega=\sigma^2I$, which also assumes constant error variance. Independence alone does not guarantee this.</p><p>Error correlation alone does not imply biased coefficients. If the conditional error mean is zero, least squares remains unbiased; its usual uncertainty formula can still fail. Our practical focuses on validation error, but we should understand what the independence assumption is doing when we interpret a fitted model.</p><p>Further reading: <a href="https://www.nist.gov/programs-projects/uncertainty-analysis-autocorrelated-measurement-data">NIST: uncertainty with autocorrelated measurements</a>.</p></aside>
+      </section>
+
+      <section id="walk-lags-and-errors" class="walkthrough" aria-labelledby="walk-lags-and-errors-title">
+        <div class="plot-layout">
+          <h2 id="walk-lags-and-errors-title">Can earlier inputs explain what we left in the errors?</h2>
+          <p>By including lagged features, we can sometimes explain temporal dependence that was previously left in the errors.</p>
+          <div class="walk-equations">$$y_t=\underbrace{\beta_0+\beta_1x_t}_{\text{current input}}+\underbrace{\gamma x_{t-\ell}}_{\text{earlier input}}+\eta_t$$</div>
+          <div class="plot-stage walk-grid walk-cols-2">
+            <div class="plot-cell"><p class="walk-chart-title">Earlier input omitted</p><div class="plot-stage" data-walk-chart="errors-lag-omitted" data-width="580" data-height="320" aria-label="Illustrative errors contain a smooth pattern when the earlier input is omitted"></div></div>
+            <div class="plot-cell"><p class="walk-chart-title">Earlier input included</p><div class="plot-stage" data-walk-chart="errors-lag-included" data-width="580" data-height="320" aria-label="Including the earlier input leaves the independent noise in this illustrative example"></div></div>
+          </div>
+          <p class="walk-caption">Illustrative data with known coefficients. In practice, compare validation error and inspect the residuals again; adding lags does not guarantee independence.</p>
+        </div>
+        <aside class="notes"><p>Suppose the target depends on a current input and an earlier input. If we omit the earlier contribution, it is left in the prediction errors. When that earlier input changes smoothly, the errors can inherit its pattern.</p><p>Here I have constructed an example with a delay of two, $\gamma=1.2$, a smooth input, and independent normal noise $\eta_t$ with standard deviation 0.25. The left plot shows $1.2x_{t-2}+\eta_t$, which is the error when the prediction uses only the known current-input contribution. The right plot includes the known earlier-input contribution too, leaving $\eta_t$. These are errors using known coefficients, rather than residuals from fitting the exercise data.</p><p>This gives us a reason to try lagged features, however, it does not mean that adding a lag will always remove dependence. We may have omitted some other relationship, chosen an unhelpful delay, or have correlated noise that the available inputs cannot explain. I would compare validation error and then return to residuals in row order and their autocorrelation. A smaller MSE alone does not establish independent errors.</p><p>For the practical, the rows have no confirmed timestamps, so our delay is a number of rows earlier. We are assuming that those earlier feature values are available when predicting. We will keep the target aligned with the current row and leave the ordered training, validation and test split in place. The next slide shows what this changes in the input matrix.</p></aside>
+      </section>
+
       <section id="walk-delay-inputs" class="walkthrough " aria-labelledby="walk-delay-inputs-title" data-notebook-cells="delay-matrix-explanation delay-alignment-and-split">
         <div class="plot-layout">
-          <h2 id="walk-delay-inputs-title">Add earlier inputs without moving the target</h2>
+          <h2 id="walk-delay-inputs-title">Lags</h2>
 
-    <p class="walk-small">A delay of two copies x_3 and x_5 from two rows earlier. Each row still predicts its current target.</p>
+    <p class="walk-small">A delay of two copies x_3 and x_5 from two rows earlier. </p>
     <div class="plot-stage walk-grid walk-cols-2 walk-prose walk-matrix-layout">
       <div class="walk-equations">$$X^{\mathrm{input}}=\left[\begin{array}{ccc|cc}x_{1,2}&\cdots&x_{7,2}&x_{3,0}&x_{5,0}\\x_{1,3}&\cdots&x_{7,3}&x_{3,1}&x_{5,1}\\x_{1,4}&\cdots&x_{7,4}&x_{3,2}&x_{5,2}\end{array}\right]$$<p class="walk-small walk-centre">7 current columns + 2 earlier columns</p></div>
       <div class="walk-equations">$$y=\begin{bmatrix}y_2\\y_3\\y_4\end{bmatrix}$$<pre><code class="language-python">data["x_3"].shift(2)
@@ -591,54 +624,33 @@ data["x_5"].shift(2)</code></pre><p class="walk-small">A positive shift uses ear
 
       <section id="walk-delay-numbers" class="walkthrough " aria-labelledby="walk-delay-numbers-title" data-notebook-cells="delay-numerical-explanation">
         <div class="plot-layout">
-          <h2 id="walk-delay-numbers-title">Follow row 1 into the delayed columns of row 3</h2>
+          <h2 id="walk-delay-numbers-title">Transforming the data</h2>
 
     <div class="plot-stage walk-prose"><div data-walk-table="delay-inputs" class="walk-delay-table"></div>
       <div class="walk-equations">$$d_{3-2}=20-2\times2=16,\qquad y_3=130$$</div>
       <p class="walk-small">The shaded columns distinguish current inputs, earlier inputs and their difference, and the current target outside the input matrix.</p>
     </div>
-          <p class="walk-caption">Invented numbers, delay 2, scale c = 2. Highlighted source values come from row 1; the prediction target stays on row 3.</p>
         </div>
         <aside class="notes"><p>Here I have made a small example with invented numbers, so that we can follow the movement of the values. The first table shows only the current features involved in the delayed terms. Blue cells are current inputs, orange cells use earlier inputs, and green cells are the target from the current row.</p><p>For row 3 and a delay of two, we take <code>x_3 = 20</code> and <code>x_5 = 2</code> from row 1. With an example scale of $c=2$, their difference is $20-2\times2=16$. We multiply that earlier difference by the current row&#x27;s <code>x_4 = 5</code> and <code>x_6 = 4</code>, giving the two new entries $80$ and $64$. The target stays at $y_3=130$.</p><p>The lower table shows the design matrix after constructing these columns. To keep it readable, I have grouped the seven original columns into one block. Each of the other feature columns shown receives its own coefficient. The target is alongside the matrix for alignment; it is not an input column.</p></aside>
       </section>
 
       <section id="walk-delay-design" class="walkthrough " aria-labelledby="walk-delay-design-title" data-notebook-cells="delay-matrix-explanation delay-numerical-explanation">
         <div class="plot-layout">
-          <h2 id="walk-delay-design-title">The design matrix receives two delayed products</h2>
+          <h2 id="walk-delay-design-title">An example with two delayed products</h2>
 
     <div class="plot-stage walk-prose">
       <div class="walk-equations walk-full-matrix">$$Z_t=\left[\underbrace{1}_{\text{intercept}},\;\underbrace{x_{1,t},\ldots,x_{7,t}}_{7\text{ current columns}},\;\underbrace{q_t^2,d_t x_{4,t},d_t x_{6,t}}_{3\text{ current basis columns}}\;\middle|\;\underbrace{d_{t-\ell}x_{4,t},d_{t-\ell}x_{6,t}}_{2\text{ delayed columns}}\right]$$</div>
       <div data-walk-table="delay-design" class="walk-delay-table"></div>
-      <p class="walk-small">For row 3: earlier difference 16 × current x_4 = 5 gives 80; 16 × current x_6 = 4 gives 64.</p>
-      <p class="walk-small">13 columns receive coefficients. The nine-column input array supplies values for these functions. Construct columns before normalising them.</p>
     </div>
-          <p class="walk-caption">The difference is delayed; x_4 and x_6 are current. The target remains y_t.</p>
         </div>
         <aside class="notes"><p>A delay adds columns to the inputs. It does not move the target or replace the current observation with an earlier one. I will use $t$ to mean the original row index, rather than a timestamp, and $\ell$ for the number of rows earlier.</p><p>For one observation, <code>make_inputs(lag)</code> constructs this row. The first seven entries come from the current row; only the final two entries come from an earlier row:</p><p>$$ X^{\mathrm{input}}_t = \left[ \underbrace{x_{1,t},\ldots,x_{7,t}}_{\text{current row }t} \;\middle|\; \underbrace{x_{3,t-\ell},x_{5,t-\ell}}_{\text{earlier row }t-\ell} \right]. $$</p><p>For a delay of two, a few rows of that input matrix line up with the target as follows. The vertical line separates current columns from the two appended columns:</p><p>$$ X^{\mathrm{input}} = \left[\begin{array}{ccc|cc} x_{1,2} &amp; \cdots &amp; x_{7,2} &amp; x_{3,0} &amp; x_{5,0} \\ x_{1,3} &amp; \cdots &amp; x_{7,3} &amp; x_{3,1} &amp; x_{5,1} \\ x_{1,4} &amp; \cdots &amp; x_{7,4} &amp; x_{3,2} &amp; x_{5,2} \\ \vdots &amp; &amp; \vdots &amp; \vdots &amp; \vdots \end{array}\right], \qquad y = \begin{bmatrix} y_2 \\ y_3 \\ y_4 \\ \vdots \end{bmatrix}. $$</p><p>Each row still predicts its own target. For example, the second displayed row combines current inputs from row 3 with the selected inputs from row 1, and predicts $y_3$.</p><p>There is one other distinction here: this nine-column input matrix is what we pass to the model. <code>construct_design_matrix</code> then builds the columns that receive fitted coefficients. It does not automatically give the two earlier raw inputs their own coefficients.</p><p>If we write $d_t=x_{3,t}-c x_{5,t}$ and $q_t=x_{1,t}-a x_{2,t}$, the simpler delayed model adds just $d_{t-\ell}$ to its design matrix. Our product branch instead constructs this row of the design matrix:</p><p>$$ Z_t = \left[ \underbrace{1}_{\text{intercept}},\; \underbrace{x_{1,t},\ldots,x_{7,t}}_{\text{7 current inputs}},\; \underbrace{q_t^2,\;d_t x_{4,t},\;d_t x_{6,t}}_{\text{3 current basis functions}} \;\middle|\; \underbrace{d_{t-\ell}x_{4,t},\;d_{t-\ell}x_{6,t}}_{\text{2 delayed interaction columns}} \right]. $$</p><p>This gives us 13 columns: one intercept, seven original features, three current basis functions, and two delayed interactions. In the last two columns, the difference is earlier but <code>x_4</code> and <code>x_6</code> are current. We are testing whether an earlier difference changes the contribution of these current inputs.</p><p>We construct these columns first, then normalise each non-intercept column using training statistics, as before. The delay is a choice about where the values in a column come from. We still fit $\hat y=Z\theta$ using least squares.</p><p>Here I have made a small example with invented numbers, so that we can follow the movement of the values. The first table shows only the current features involved in the delayed terms. Blue cells are current inputs, orange cells use earlier inputs, and green cells are the target from the current row.</p><p>For row 3 and a delay of two, we take <code>x_3 = 20</code> and <code>x_5 = 2</code> from row 1. With an example scale of $c=2$, their difference is $20-2\times2=16$. We multiply that earlier difference by the current row&#x27;s <code>x_4 = 5</code> and <code>x_6 = 4</code>, giving the two new entries $80$ and $64$. The target stays at $y_3=130$.</p><p>The lower table shows the design matrix after constructing these columns. To keep it readable, I have grouped the seven original columns into one block. Each of the other feature columns shown receives its own coefficient. The target is alongside the matrix for alignment; it is not an input column.</p></aside>
-      </section>
-
-      <section id="walk-delay-boundaries" class="walkthrough " aria-labelledby="walk-delay-boundaries-title" data-notebook-cells="delay-alignment-and-split">
-        <div class="plot-layout">
-          <h2 id="walk-delay-boundaries-title">Keep history and evaluation rows aligned</h2>
-
-    <div class="plot-stage walk-grid walk-cols-2 walk-prose">
-      <div><p>First validation row: 6500</p><div class="walk-equations">$$\ell=11:\quad d_{6489}x_{4,6500},\;d_{6489}x_{6,6500}$$</div><p>Predict y<sub>6500</sub> using earlier feature history and current inputs.</p><p class="walk-small">Earlier feature values must be available at prediction time. No earlier targets or future rows enter these columns.</p></div>
-      <div><pre><code class="language-python"># Shift in original row order first.
-X = make_inputs(lag=11)
-# Then select the evaluation rows.
-model.fit(X[train_rows], y[train_rows])
-pred = model.predict(X[valid_rows])</code></pre><p class="walk-small">All delays up to 25 use the same reserved-history boundary.</p></div>
-    </div>
-
-        </div>
-        <aside class="notes"><p>In the code, a positive <code>shift(2)</code> puts the value from row $t-2$ alongside row $t$. It leaves the first two entries missing because those rows have no earlier observations in this dataset. We should omit those rows from fitting, rather than fill the missing history with zeros. In our full experiment we already start every comparison at row 25, so every candidate delay up to 25 has enough history on the same training and validation rows.</p><p>We construct the delayed columns in the original row order before selecting the training or validation rows. For example, if validation starts at row 6500 and the delay is 11, its first input uses <code>x_3</code> and <code>x_5</code> from row 6489, the current <code>x_4</code> and <code>x_6</code> from row 6500, and the target $y_{6500}$. This uses earlier feature history, which we assumed would be available when predicting. It does not use $y_{6489}$ or any future row.</p><p>We can now vary the delay while keeping the target alignment and evaluation rows fixed. The small example used two only so that the movement of the entries was easy to follow; it does not tell us which delay will perform best on our actual data.</p></aside>
       </section>
 
       <section id="walk-lag-comparison" class="walkthrough " aria-labelledby="walk-lag-comparison-title" data-notebook-cells="62557fc2 f6791cea">
         <div class="plot-layout">
           <h2 id="walk-lag-comparison-title">Compare an earlier difference with delayed products</h2>
           <div class="plot-stage" data-walk-chart="lag" data-width="580" data-height="420" aria-label="lag" ></div>
-          <p class="walk-caption">Show every delay from 0 to 25. At delay 0, the products duplicate current columns. The product branch selects 11; a minimum at a boundary would call for a wider search.</p>
+          <p class="walk-caption">This shows every delay from 0 to 25. At delay 0, the products duplicate current columns. 11 is obviously optimal in this range, but not neccessarily globally.</p>
         </div>
         <aside class="notes"><p>The row-index plots gave us a reason to investigate earlier inputs, but did not identify a particular delay or a particular product. I will therefore compare two experiments over the same range: adding an earlier second difference on its own, and adding its products with the current <code>x_4</code> and <code>x_6</code> to our exploratory branch.</p><p>A delay of zero uses the current row. In the product branch it duplicates columns already present, so it provides no new information. Positive delays use earlier feature rows only. I will try every delay from zero to our initial budget of 25 and show the full validation curves. An optimum at the end of the range would be a reason to investigate a wider range before settling on a delay.</p><p>The validation curves tell us whether earlier values help these particular models, and whether the products add more than an earlier difference alone. They do not establish a physical delay or a causal relationship. We are selecting a model for this ordered prediction task.</p><p>I would now return to the training residuals of the product branch. We have removed some of the larger variation, which can make smaller relationships easier to see. I will plot them against both differences, rather than looking only at the one that eventually suggests a useful addition.</p></aside>
       </section>
@@ -659,6 +671,33 @@ pred = model.predict(X[valid_rows])</code></pre><p class="walk-small">All delays
           <p class="walk-caption">Points and binned means use the delayed branch’s training residuals. Regional slopes are exploratory associations, not isolated feature effects.</p>
         </div>
         <aside class="notes"><p>In the first-difference plot, I would look closely at the change near zero. The observations immediately on either side appear to follow different residual patterns. This gives us a reason to try a split near zero, rather than choosing that threshold without looking at the residuals. It is an approximate boundary in this reference coordinate, not a known property of the problem.</p><p>I would first ask whether the two regions need different intercepts. Then I would look at the residuals against every original feature, coloured by region. This gives us a way to investigate a changing slope without selecting <code>x_7</code> in advance.</p><p>The regional plots give us several possible experiments. I would include <code>x_7</code> because its positive-region trend is easier to see after this split than in the original target plot. However, I would not assume it is the only useful candidate, or interpret these simple residual slopes as isolated effects of the features.</p><p>Below I compare an indicator alone, and then the indicator with a separate slope for each original feature in turn. The indicator allows the intercept to change; multiplying it by a centred feature allows that feature&#x27;s coefficient to change as well. The validation table makes the choice of a conditional feature explicit. We will still need to revisit this comparison after checking the difference scales.</p></aside>
+      </section>
+
+      <section id="walk-indicator" class="walkthrough" aria-labelledby="walk-indicator-title" data-notebook-cells="fe080fde 0217ee31">
+        <div class="plot-layout">
+          <h2 id="walk-indicator-title">What does the indicator function add?</h2>
+          <div class="plot-stage walk-grid walk-cols-2 walk-prose">
+            <div>
+              <p>An indicator is 1 when a condition is true and 0 otherwise. Here we use the sign of the first difference:</p>
+              <div class="walk-equations">$$d_{12}=x_1-1.10x_2,\qquad g=\begin{cases}1,&amp;d_{12}>0,\\0,&amp;d_{12}\leq0.\end{cases}$$</div>
+              <pre><code class="language-python">d12 = X[:, 0] - 1.10 * X[:, 1]
+indicator = (d12 > 0).astype(float)
+conditional_x7 = indicator * (
+    X[:, 6] - x7_centre
+)</code></pre>
+              <p class="walk-small"><code>x7_centre</code> is the training mean of x_7, reused for validation and prediction.</p>
+            </div>
+            <div>
+              <p>The residual change near zero gives us a reason to let the two regions behave differently.</p>
+              <div class="walk-equations">$$\hat y=\hat y_{\mathrm{base}}+\alpha g+\beta g(x_7-\bar x_{7,\mathrm{train}}).$$</div>
+              <p>When $d_{12}\leq0$, both added terms are zero.</p>
+              <p>When $d_{12}>0$, $\alpha$ allows an offset and $\beta$ allows a different slope for x_7.</p>
+              <p class="walk-small">The indicator and its product are two new design-matrix columns. We fit their coefficients using least squares, as before.</p>
+            </div>
+          </div>
+          <p class="walk-caption">x_7 is one example. Next, compare the indicator alone and the indicator with a changing slope for each original feature.</p>
+        </div>
+        <aside class="notes"><p>The residual plots showed a change near a first difference of zero. An indicator gives us a simple way to represent that split: it is one for observations in the positive region and zero for the others. Here I am using the initial scale of 1.10 in $d_{12}=x_1-1.10x_2$, as in the comparisons that follow. The scale and threshold are modelling choices; we will revisit the difference scale later.</p><p>First, we can add the indicator as one column in the design matrix. Its coefficient allows the prediction to shift in the positive region. In the other region the column is zero, so it contributes nothing. The coefficient is fitted from the training data; the indicator itself only records which side of the boundary an observation belongs to.</p><p>We can also multiply the indicator by a centred feature. Here I have used $x_7$ as an example. Below or at the boundary, both extra columns are zero. Above the boundary, their combined contribution is $\alpha+\beta(x_7-\bar x_{7,\mathrm{train}})$. This lets the coefficient of $x_7$ change by $\beta$ in that region. At the training mean of $x_7$, the additional offset is $\alpha$.</p><p>The centre is calculated from the training data and reused for validation and prediction. We construct these columns before normalising them, following the same fitting procedure as the other basis functions. Normalisation changes the numerical coefficients, but preserves the relationships this model can express.</p><p>This still gives us a regression model that is linear in its fitted coefficients. The indicator is a function of the inputs, and each new column receives a coefficient. It allows an abrupt change at the boundary, rather than requiring a smooth transition. The residual plots suggest trying this, however, we need validation results to decide whether it helps. The next slide compares the indicator alone with an indicator and a changing slope for each original feature, rather than selecting $x_7$ in advance.</p></aside>
       </section>
 
       <section id="walk-regional-comparison" class="walkthrough " aria-labelledby="walk-regional-comparison-title" data-notebook-cells="fe080fde">
@@ -730,11 +769,11 @@ pred = model.predict(X[valid_rows])</code></pre><p class="walk-small">All delays
 
       <section id="walk-takeaway" class="walkthrough " aria-labelledby="walk-takeaway-title" data-notebook-cells="e64b9eaa">
         <div class="plot-layout">
-          <h2 id="walk-takeaway-title">Be able to explain what you tried and why</h2>
+          <h2 id="walk-takeaway-title">What I want you to takeaway from this course</h2>
 
-    <div class="plot-stage walk-prose"><ol><li>Show what observation suggested the experiment.</li><li>Explain which relationship the new columns allow.</li><li>Compare alternatives fairly, including unsuccessful additions.</li><li>Label reference scales, plotting choices and search budgets honestly.</li></ol>
-      <p class="walk-small">We changed the input functions and selected their settings. The model remained linear in its fitted coefficients.</p>
-      <p class="walk-small">A good result on one reserved later block does not prove that we recovered the generating equation, or that this prediction task matches the original problem.</p></div>
+    <div class="plot-stage walk-prose"><ol><li>Not just be able to implement a model, but also understand why you used it.</li><li>Make conclusions and guide experiements based on data and plots.</li><li>Compare alternatives fairly, including unsuccessful additions.</li><li>Be honest about the limitations of your results and the choices you made.</li></ol>
+      <p class="walk-small">I don't expect you to remember every detail about what I just showed, it was more of an example of what you can do. And that plots can guide you the whole way.</p>
+      <p class="walk-small">Obviously I was informed by the generating function, however, with enough EDA you can find everything I found.</p></div>
 
         </div>
         <aside class="notes"><p>What I would like you to take away from this walkthrough is the process of looking at the data, drawing conclusions, and using those conclusions to decide what to try next. I would not expect you to have guessed these particular basis functions.</p><p>The original scatterplots gave us a starting point, however, they did not show all the useful relationships. Looking at the features together and plotting them against the row index gave us other ideas to investigate. Later, looking at the residuals helped us find relationships that were harder to see at the beginning.</p><p>For each change, I would like you to be able to point to the observation that led you to try it, explain the relationship it allows the model to express, and show a fair validation comparison. When a numerical choice is just a starting budget or a plotting choice, say so. When an addition fails, use that result rather than quietly carrying it forward as though it succeeded.</p><p>One other thing to keep in mind is that the model remained linear in its fitted coefficients throughout. We changed the functions of the inputs in the design matrix, and selected some of their settings using validation data, but we could still fit the coefficients using least squares.</p><p>This does not prove that we have found the equation used to generate the data. We have compared a collection of hypotheses, selected one using a repeatedly consulted validation block, and checked it on a reserved later block. Its usefulness still depends on whether that prediction task matches the original problem. If I were marking this practical, that reasoning would matter at least as much as the final MSE.</p></aside>

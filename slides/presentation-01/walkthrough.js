@@ -309,6 +309,26 @@
             scales:{x:{...axis(`x_3 − ${data.initialRatio35.toFixed(2)} x_5`),min:xRange[0],max:xRange[1]},
                     y:{...axis("Mean training residual"),min:yRange[0],max:yRange[1]}},
             plugins:{legend:{display:true,position:"top",labels:{font:{...font,size:12},boxWidth:16,padding:8}},walkReferenceLines:{zero:true}}});
+      } else if (["errors-independent", "errors-correlated", "errors-lag-omitted", "errors-lag-included"].includes(name)) {
+        const example = data.independenceExample;
+        const lagged = name.startsWith("errors-lag-");
+        const rows = lagged ? example.lagErrors : example.errors;
+        const column = ["errors-independent", "errors-lag-omitted"].includes(name) ? 1 : 2;
+        const limit = Math.ceil(Math.max(...rows.flatMap((row) => row.slice(1).map(Math.abs))));
+        create(container, [line(xy(rows, 0, column), { borderColor: colours[column - 1], borderWidth: 1.6, pointRadius: 2 })],
+          "Observation order", "Error", {
+            scales: { x: { ...axis("Observation order"), min: rows[0][0], max: rows.at(-1)[0] },
+              y: { ...axis("Error"), min: -limit, max: limit } },
+            plugins: { walkReferenceLines: { zero: true } },
+          });
+      } else if (name === "errors-mean") {
+        create(container, [
+          line(xy(data.independenceExample.meanDensity, 0, 1), { label: "Independent", borderWidth: 3 }),
+          line(xy(data.independenceExample.meanDensity, 0, 2), { label: "Positively correlated", borderColor: colours[1], borderWidth: 3, borderDash: [7, 4] }),
+        ], "Average error across 100 observations", "Probability density", {
+          scales: { y: { ...axis("Probability density"), beginAtZero: true } },
+          plugins: { legend: { display: true, position: "top", labels: { font: { ...font, size: 15 }, boxWidth: 24 } } },
+        });
       } else if (name === "lag") {
         const baseline=data.allResults.find((r)=>r.Model==="Linear: all seven")["Validation MSE"];
         create(container,[line(xy(data.lagSweep,0,1),{pointRadius:3,label:"All seven + earlier difference"}),
