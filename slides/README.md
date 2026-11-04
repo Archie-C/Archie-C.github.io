@@ -1,9 +1,36 @@
 # Presentations
 
-Eight small reveal.js decks, each starting with one editable intro slide.
-Folders are numbered `presentation-01` through `presentation-08`; rename them
-as titles are decided. Keep them directly inside `slides/` so relative asset
-paths continue to work.
+The completed regression exercise deck is edited in `presentation-01/`.
+`presentation-02/` through `presentation-08/` are intro-only templates and are
+not listed in the course navigation. Keep source decks directly inside
+`slides/` so relative asset paths continue to work.
+
+## Course access and standalone HTML
+
+The [regression slides page](../courses/deep-learning-aau/topics/01-regression/slides/)
+links to the completed presentation, section jumps, PDF printing, and an HTML
+download. It is linked from the course syllabus, regression topic, notes,
+exercises, and written answers.
+
+Generate its [standalone HTML](../courses/deep-learning-aau/topics/01-regression/slides/regression-exercises.html)
+after editing the source deck, shared styles/scripts, or walkthrough data:
+
+```bash
+python3 slides/export-standalone.py
+python3 slides/export-standalone.py --check
+```
+
+The export embeds local CSS, JavaScript, the favicon, and chart data. Scripts
+retain their execution order, and charts read the embedded JSON when present.
+The HTML opens directly from disk without an HTTP server. reveal.js, Chart.js,
+KaTeX, and web fonts still load from their existing CDNs, so internet access is
+required. Hosted course links stay relative. Downloaded files link back to
+`https://archie-c.github.io/`; pass `--site-url` to export for a different
+website base URL. Edit the source rather than the export.
+
+The presentation's navigation links back to course slides, exercises, and
+written answers. The “Jump to” menu opens each written question or the practical
+walkthrough. Navigation is hidden in PDF exports.
 
 ## Shared design
 
@@ -50,7 +77,8 @@ paths.
 
 ## Written answers in presentation-01
 
-The question section follows `presentation-01/exercise_answers/index.html`.
+The question section follows the [regression exercise answers](../courses/deep-learning-aau/topics/01-regression/exercises/answers/).
+The former `presentation-01/exercise_answers/index.html` URL redirects there.
 It includes the scalar least-squares derivation, both matrix OLS derivations,
 the extrapolation and survey limitations, and all six practical fixes.
 Jump to the questions with `#/question-one`, `#/question-two`, or
@@ -126,7 +154,7 @@ fully visible. See the [reveal.js PDF guide](https://revealjs.com/pdf-export/).
 
 ## Branch workflow
 
-Keep these decks on the `slides` branch and merge `main` into it when you
-want updated website assets. They stay off Pages while Pages publishes only
-`main`; this folder does not itself enforce deployment exclusions. Decks
-pushed to a public repository remain readable through GitHub.
+The completed HTML export lives with the regression course materials. Include
+the generated file when publishing the course, and regenerate it after source
+changes. Only completed decks should be added to the course navigation; the
+remaining numbered source folders are templates.

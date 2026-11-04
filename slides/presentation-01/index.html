@@ -3,11 +3,13 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Presentation 01 — Archie Carpenter</title>
+  <title>Regression exercise slides | Deep Learning</title>
+  <meta name="description" content="Regression exercise slides: worked answers, least-squares derivations, and a practical modelling walkthrough."/>
   <link rel="icon" href="../../design_system/assets/favicon.svg"/>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.2.1/dist/reset.css"/>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.2.1/dist/reveal.css"/>
   <link rel="stylesheet" href="../shared/theme.css"/>
+  <link rel="stylesheet" href="../shared/navigation.css"/>
   <link rel="stylesheet" href="../../design_system/charts.css"/>
   <link rel="stylesheet" href="./walkthrough.css"/>
   <link rel="stylesheet" href="./answers.css"/>
@@ -70,15 +72,31 @@
   <script defer src="./layout.js"></script>
   <script defer src="./charts.js"></script>
   <script defer src="./walkthrough.js"></script>
+  <script defer src="../shared/navigation.js"></script>
 </head>
 <body>
+  <nav class="deck-nav" aria-label="Presentation navigation">
+    <a href="../../courses/deep-learning-aau/topics/01-regression/slides/">&larr; Course slides</a>
+    <a href="../../courses/deep-learning-aau/topics/01-regression/exercises/">Exercises</a>
+    <a href="../../courses/deep-learning-aau/topics/01-regression/exercises/answers/">Written answers</a>
+    <details class="deck-contents">
+      <summary>Jump to</summary>
+      <div>
+        <a href="#/regression-exercises">Introduction</a>
+        <a href="#/question-one">Question 1</a>
+        <a href="#/question-two">Question 2</a>
+        <a href="#/question-three">Question 3</a>
+        <a href="#/regression-walkthrough">Practical walkthrough</a>
+      </div>
+    </details>
+  </nav>
   <div class="reveal">
     <div class="slides">
       <!-- Each sibling section is a slide. Keep heading IDs unique when copying. -->
-      <section class="title-slide" aria-labelledby="presentation-title">
+      <section id="regression-exercises" class="title-slide" aria-labelledby="presentation-title">
         <p class="slide-kicker">Introduction</p>
         <div class="title-content">
-          <h1 id="presentation-title">Regression Exercises</h1>
+          <h1 id="presentation-title">Regression exercises</h1>
           <p class="slide-subtitle">Machine Learning and Deep Learning</p>
           <p class="slide-presenter">Archie Carpenter</p>
         </div>
@@ -110,7 +128,7 @@
         </ul>
       </section>
 
-      <!-- Question answers adapted from exercise_answers/index.html. -->
+      <!-- Question answers adapted from ../../courses/deep-learning-aau/topics/01-regression/exercises/answers/index.html. -->
       <section id="question-one" class="answer-slide" aria-labelledby="question-one-title" data-answer-source="question-1">
         <p class="example-label">Answers &middot; Question 1</p>
         <h2 id="question-one-title">Question 1</h2>

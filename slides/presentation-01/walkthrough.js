@@ -370,9 +370,15 @@
 
   async function start() {
     try {
-      const [response]=await Promise.all([fetch("./assets/regression-walkthrough.json"),document.fonts.ready]);
-      if(!response.ok)throw new Error(`Chart data request failed (${response.status}).`);
-      render(await response.json());
+      const embedded = document.getElementById("regression-walkthrough-data");
+      const loadData = async () => {
+        if (embedded) return JSON.parse(embedded.textContent);
+        const response = await fetch("./assets/regression-walkthrough.json");
+        if (!response.ok) throw new Error(`Chart data request failed (${response.status}).`);
+        return response.json();
+      };
+      const [data] = await Promise.all([loadData(), document.fonts.ready]);
+      render(data);
     } catch(error) {
       console.error("Regression walkthrough:",error);
       document.documentElement.dataset.walkthroughReady="error";

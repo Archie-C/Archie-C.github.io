@@ -177,3 +177,23 @@
 .page-links a { color: var(--accent); text-decoration: none; }
 .page-links a:hover { text-decoration: underline; }
 @media (max-width: 640px) { .page-links { flex-direction: column; } }
+
+/* Shared links between questions, written answers, and practical work. */
+.topbar { flex-wrap: wrap; }
+.topbar .crumb { flex: 1 1 240px; line-height: 1.8; }
+.question > div { min-width: 0; }
+.question-title { scroll-margin-top: 24px; }
+.exercise-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  margin: 0 0 28px;
+  padding: 14px 0;
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+.exercise-nav a { text-decoration: none; }
+.exercise-nav a:hover { text-decoration: underline; }
+.exercise-nav a[aria-current="page"] { color: var(--fg); font-weight: 600; }

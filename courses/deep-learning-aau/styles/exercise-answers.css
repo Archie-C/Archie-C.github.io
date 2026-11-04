@@ -1,0 +1,47 @@
+/* Worked answers extend the shared exercise layout and brand tokens. */
+.question-content .answer { color: var(--fg-2); }
+.question-content .answer-parts { margin-top: 16px; }
+.answer-parts > li + li { margin-top: 16px; }
+.answer-parts > li > p:first-child { margin-bottom: 6px; }
+.question-source {
+  margin: 0 0 16px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+.answer-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 20px;
+  margin: 0 0 28px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+.answer-nav span { color: var(--fg-3); }
+.katex { color: var(--fg); }
+.katex-display {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 4px 0;
+  break-inside: avoid;
+}
+
+@media (max-width: 640px) {
+  .question { grid-template-columns: 28px minmax(0, 1fr); }
+}
+
+/* Keep long derivations readable when exported as an A4 handout. */
+@page { size: A4 portrait; margin: 12mm; }
+@media print {
+  html, body { background: var(--bg); }
+  body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .frame { max-width: none; min-height: 0; }
+  .content { padding: 24px 0 0; }
+  .exercise-nav, .answer-nav, .question-source, .page-links { display: none; }
+  .question { display: block; position: relative; padding-left: 36px; }
+  .question-number { position: absolute; left: 0; top: 22px; }
+  .topbar { padding: 0 0 16px; break-inside: avoid; }
+  h1, h2, h3, .standfirst, .answer-parts > li > p:first-child { break-after: avoid; }
+  p, li { orphans: 3; widows: 3; }
+  .katex-display { overflow: visible; font-size: 0.9em; }
+}

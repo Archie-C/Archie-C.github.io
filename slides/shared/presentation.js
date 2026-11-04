@@ -6,6 +6,8 @@ Reveal.initialize({
   center: false,
   hash: true,
   controlsTutorial: false,
+  // Keep the course navigation visible instead of auto-switching to scroll view.
+  scrollActivationWidth: 0,
   slideNumber: "c/t",
   transition: window.matchMedia("(prefers-reduced-motion: reduce)").matches
     ? "none"
