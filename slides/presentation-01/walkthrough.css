@@ -1,0 +1,149 @@
+/* Scoped additions for the notebook walkthrough. */
+.reveal .walkthrough h2 { font-size: 36px; margin-bottom: 22px; }
+.reveal .walkthrough .example-label { margin-bottom: 14px; }
+.reveal .walkthrough p { max-width: none; }
+.reveal .walkthrough .walk-lead { max-width: 54ch; font-size: 30px; }
+.reveal .walkthrough .walk-small { font-size: 22px; color: var(--fg-2); }
+.reveal .walkthrough .walk-caption { font-size: 21px; margin: 16px 0 0; color: var(--fg-2); }
+.reveal .walkthrough figure { margin: 0; }
+.reveal .walk-grid { display: grid; gap: 22px; }
+.reveal .walk-grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.reveal .walk-grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.reveal .walk-chart { position: relative; }
+.reveal .walk-chart canvas { display: block; max-width: 100%; }
+.reveal .walk-chart-title { font-family: var(--font-mono); font-size: 20px; margin-bottom: 8px; }
+.reveal .walk-chart-status { position: absolute; inset: 40% 10px auto; font-size: 20px; color: var(--fg-3); }
+.reveal .walk-chart-status:empty { display: none; }
+.reveal .walkthrough pre { box-shadow: none; width: 100%; margin: 20px 0; padding: 22px; background: var(--bg-2); border: 1px solid var(--rule); box-sizing: border-box; font-size: 23px; }
+.reveal .walkthrough pre code { padding: 0; max-height: none; background: none; color: var(--fg); }
+.reveal .walkthrough .katex-display { margin: 18px 0; font-size: 1em; }
+.reveal .walkthrough .walk-equations { font-size: 25px; }
+.reveal .walk-metrics { display: flex; gap: 44px; margin: 16px 0 22px; }
+.reveal .walk-metric { display: flex; flex-direction: column; font-size: 18px; color: var(--fg-3); }
+.reveal .walk-metric strong { color: var(--accent); font-family: var(--font-mono); font-size: 36px; font-weight: 500; }
+.reveal .walk-split { display: flex; height: 100px; margin: 34px 0 20px; gap: 4px; }
+.reveal .walk-split > div { display: flex; flex-direction: column; justify-content: center; padding: 0 18px; background: var(--accent-soft); border-top: 3px solid var(--accent); font-size: 23px; }
+.reveal .walk-split > div:nth-child(2) { background: var(--bg-2); border-color: var(--c-cat-2); }
+.reveal .walk-split > div:nth-child(3) { background: var(--bg-2); border-color: var(--c-cat-3); }
+.reveal .walk-split small { font-size: 18px; }
+.reveal .walk-colour-key { display: flex; align-items: center; gap: 12px; font-size: 17px; color: var(--fg-3); margin-top: 10px; }
+.reveal .walk-colour-key i { display: inline-block; width: 160px; height: 10px; background: linear-gradient(to right, var(--c-cat-2), var(--c-seq-2), var(--c-cat-1)); }
+.reveal .walk-corr { display: block; height: 380px; width: 100%; }
+.reveal .walk-corr text { font-family: var(--font-mono); font-size: 17px; }
+.reveal .walk-corr text.walk-corr-value { font-size: 16px; }
+.reveal .walk-table { width: 100%; border-collapse: collapse; font-size: 24px; margin: 22px 0; }
+.reveal .walk-table th, .reveal .walk-table td { border-bottom: 1px solid var(--rule); padding: 12px; text-align: left; }
+.reveal .walk-table td:last-child, .reveal .walk-table th:last-child { text-align: right; font-variant-numeric: tabular-nums; }
+.reveal .walk-table .walk-best { color: var(--accent); font-weight: 600; }
+.reveal .walkthrough .walk-summary-caption { font-size: 18px; }
+
+/* A plot takes the space left between its heading and caption. The canvas
+   is redrawn at this size, rather than stretched from a short fixed bitmap. */
+.reveal .plot-layout {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+}
+.reveal .plot-layout > :not(.plot-stage) { flex: 0 0 auto; }
+.reveal .plot-layout > .plot-stage { flex: 1 1 0; min-height: 0; min-width: 0; }
+.reveal .plot-layout > h2 { font-size: 36px; margin-bottom: 18px; }
+.reveal .plot-layout > .example-label { margin-bottom: 12px; }
+.reveal .plot-layout > .walk-small { margin-bottom: 12px; }
+.reveal .plot-layout .walk-caption { font-size: 20px; line-height: 1.35; margin-top: 12px; }
+.reveal .plot-stage > div { min-height: 0; min-width: 0; }
+.reveal .plot-stage > div:has(> [data-walk-chart]) {
+  display: flex;
+  flex-direction: column;
+}
+.reveal .plot-stage > div > [data-walk-chart] { flex: 1 1 0; min-height: 0; }
+.reveal .plot-stage > div > p { flex: 0 0 auto; margin: 8px 0 0; }
+.reveal .plot-stage > div > .walk-chart-title { margin: 0 0 8px; }
+.reveal .plot-layout .walk-chart { width: 100%; min-width: 0; min-height: 0; }
+.reveal .plot-layout canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none;
+  max-height: none;
+}
+.reveal .plot-layout .exercise-figure { display: flex; flex-direction: column; }
+.reveal .plot-layout .exercise-chart { flex: 1 1 0; width: 100%; height: auto; min-height: 0; }
+.reveal .plot-layout .exercise-figure figcaption { flex: 0 0 auto; margin-top: 12px; }
+.reveal .plot-layout .walk-table { align-self: center; margin: 0; font-size: 23px; }
+.reveal .plot-layout .walk-corr { width: 100%; height: 100%; max-height: 100%; }
+
+/* Keep prose and code inside the same slide content area as the plots. */
+.reveal .walkthrough { font-size: 26px; line-height: 1.4; }
+.reveal .walkthrough pre { font-size: 21px; line-height: 1.35; padding: 18px; margin: 16px 0; }
+.reveal .walkthrough pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+.reveal .walkthrough p, .reveal .answer-slide p, .reveal .answer-slide li { overflow-wrap: break-word; }
+
+/* Comparison slides share their complete plot area. Grid tracks may shrink,
+   while canvas pixels are resized by SlideLayout rather than stretched. */
+.reveal .walk-cols-1 { grid-template-columns: minmax(0, 1fr); }
+.reveal .walk-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.reveal .walk-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.reveal .walk-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.reveal .walk-six, .reveal .walk-eight { grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 14px 18px; }
+.reveal .walk-history { grid-template-rows: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.reveal .plot-cell { display: flex; flex-direction: column; min-height: 0; min-width: 0; }
+.reveal .plot-cell > .walk-chart { flex: 1 1 0; min-height: 0; }
+.reveal .plot-cell > .walk-chart-title { flex: 0 0 auto; margin: 0 0 6px; font-size: 18px; line-height: 1.25; }
+.reveal .walk-six .walk-chart-title, .reveal .walk-eight .walk-chart-title { font-size: 17px; }
+.reveal .walk-history .walk-chart-title { font-size: 17px; margin-bottom: 0; }
+.reveal .walkthrough .plot-layout > h2 { font-size: 34px; line-height: 1.2; margin: 0 0 18px; }
+.reveal .walkthrough .walk-caption { font-size: 18px; line-height: 1.3; margin-top: 12px; }
+.reveal .walkthrough .walk-prose { font-size: 25px; line-height: 1.4; }
+.reveal .walk-prose > p, .reveal .walk-prose > div > p { margin-bottom: 20px; }
+.reveal .walk-prose > p:last-child, .reveal .walk-prose > div > p:last-child { margin-bottom: 0; }
+.reveal .walk-prose li + li { margin-top: 20px; }
+.reveal .walk-prose .walk-small { font-size: 21px; line-height: 1.4; }
+.reveal .walk-grid-note { align-self: center; padding: 10px 8px; font-size: 20px; color: var(--fg-2); }
+.reveal .walk-grid-note p { margin-bottom: 18px; }
+.reveal .walk-grid-note p:last-child { margin-bottom: 0; }
+.reveal .walk-correlation-layout { grid-template-columns: 650px minmax(0, 1fr); align-items: center; }
+.reveal .walk-correlation-layout > [data-walk-heatmap] { height: 100%; min-height: 0; }
+.reveal .walk-matrix-layout { grid-template-columns: 1.4fr 1fr; align-items: center; }
+.reveal .walk-matrix-layout .walk-equations { min-width: 0; font-size: 22px; }
+.reveal .walk-centre { text-align: center; }
+.reveal .walkthrough .walk-full-matrix { font-size: 21px; margin-bottom: 22px; }
+.reveal .walkthrough .walk-full-matrix .katex-display { margin: 8px 0; }
+.reveal .walk-delay-table { margin: 14px 0 22px; }
+.reveal .walk-delay-table .walk-table { table-layout: fixed; font-size: 21px; line-height: 1.25; width: 100%; margin: 0; }
+.reveal .walk-delay-table .walk-table th, .reveal .walk-delay-table .walk-table td {
+  text-align: center; padding: 12px 6px; border: 1px solid var(--rule);
+}
+.reveal .walk-delay-table .walk-table th { font-size: 17px; }
+.reveal .walk-delay-table .walk-table td.walk-current { background: color-mix(in srgb, var(--c-cat-1) 12%, var(--bg)); }
+.reveal .walk-delay-table .walk-table td.walk-earlier { background: color-mix(in srgb, var(--c-cat-2) 16%, var(--bg)); }
+.reveal .walk-delay-table .walk-table td.walk-target { background: color-mix(in srgb, var(--c-cat-3) 15%, var(--bg)); border-left: 3px solid var(--c-cat-3); }
+.reveal .walk-delay-table .walk-table td.walk-missing { background: var(--bg-2); font-size: 17px; color: var(--fg-3); }
+.reveal .walk-delay-table .walk-table td.walk-trace { outline: 2px solid var(--c-cat-2); outline-offset: -2px; font-weight: 600; }
+.reveal [data-walk-table="delay-design"] .walk-table th:nth-child(3),
+.reveal [data-walk-table="delay-design"] .walk-table td:nth-child(3) { width: 255px; font-size: 16px; }
+.reveal [data-walk-table="delay-design"] .walk-table td { font-size: 19px; padding: 10px 5px; }
+.reveal [data-walk-table="scales"] { align-self: center; }
+.reveal [data-walk-table="scales"] .walk-table { font-size: 21px; }
+.reveal [data-walk-table="scales"] .walk-table th,
+.reveal [data-walk-table="scales"] .walk-table td { padding: 12px 8px; }
+.reveal .walk-scale-layout { grid-template-columns: 1.15fr 1fr; align-items: center; }
+.reveal .walk-scale-layout > [data-walk-scale] { height: 100%; }
+.reveal .walk-scale-map { display: block; width: 100%; height: 100%; }
+.reveal .walk-scale-map text { font: 14px var(--font-mono); fill: var(--fg-2); }
+.reveal [data-walk-table="branches"] .walk-table { font-size: 18px; line-height: 1.25; margin: 0; }
+.reveal [data-walk-table="branches"] .walk-table th,
+.reveal [data-walk-table="branches"] .walk-table td { padding: 8px 6px; }
+.reveal [data-walk-table="branches"] .walk-table td:not(:first-child) { text-align: right; font-variant-numeric: tabular-nums; }
+.reveal .walk-key { display: inline-block; width: 24px; border-top: 3px solid; vertical-align: middle; }
+.reveal .walk-key-0 { border-color: var(--c-cat-1); }
+.reveal .walk-key-1 { border-color: var(--c-cat-2); }
+.reveal #walk-final-test .walk-metrics { margin: 0 0 14px; gap: 64px; }
+.reveal #walk-final-test .walk-metric strong { font-size: 32px; }
+
+@media print {
+  .reveal .plot-cell { break-inside: avoid; }
+  .reveal .walk-six, .reveal .walk-eight { gap: 14px 18px; }
+}

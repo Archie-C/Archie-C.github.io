@@ -1,0 +1,47 @@
+/* Course links sit above the presentation without covering its slide canvas. */
+:root { --deck-nav-height: 44px; }
+body { height: 100vh; height: 100dvh; }
+.deck-nav {
+  box-sizing: border-box;
+  position: relative;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  height: var(--deck-nav-height);
+  padding: 0 20px;
+  border-bottom: 1px solid var(--rule);
+  background: var(--bg);
+  font: 12px/1.4 var(--font-mono);
+}
+.deck-nav a { color: var(--accent); text-decoration: none; }
+.deck-nav a:hover { text-decoration: underline; }
+.deck-nav a:focus-visible, .deck-nav summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.deck-contents { position: relative; margin-left: auto; }
+.deck-contents summary { cursor: pointer; white-space: nowrap; }
+.deck-contents > div {
+  position: absolute;
+  top: calc(100% + 14px);
+  right: 0;
+  min-width: 220px;
+  padding: 12px;
+  border: 1px solid var(--rule);
+  background: var(--bg);
+  box-shadow: var(--shadow-md);
+}
+.deck-contents a { display: block; padding: 8px; }
+body > .reveal { height: calc(100% - var(--deck-nav-height)); }
+@media (max-width: 600px) {
+  :root { --deck-nav-height: 76px; }
+  .deck-nav { flex-wrap: wrap; align-content: center; gap: 8px 16px; padding: 8px 16px; }
+  .deck-nav > a:first-child { flex-basis: 100%; }
+}
+html.print-pdf { --deck-nav-height: 0px; }
+html.print-pdf .deck-nav { display: none; }
+@media print {
+  :root { --deck-nav-height: 0px; }
+  .deck-nav { display: none; }
+}

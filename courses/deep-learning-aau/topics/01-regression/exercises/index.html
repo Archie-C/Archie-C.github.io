@@ -7,179 +7,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <link rel="icon" href="../../../../../design_system/assets/favicon.svg"/>
 <link rel="stylesheet" href="../../../../../design_system/colors_and_type.css"/>
-<style>
-  :root { --page-w: 1180px; }
-
-  body { background: var(--bg-2); }
-
-  .frame {
-    max-width: var(--page-w);
-    margin: 0 auto;
-    background: var(--bg);
-    min-height: 100vh;
-  }
-
-  .topbar {
-    padding: 20px 32px;
-    display: flex;
-    align-items: baseline;
-    gap: 22px;
-    border-bottom: 1px solid var(--rule);
-  }
-
-  .topbar .mark {
-    font-family: var(--font-mono);
-    font-weight: 700;
-    font-size: 22px;
-    letter-spacing: -0.02em;
-    color: var(--fg);
-    text-decoration: none;
-  }
-
-  .topbar .mark .dot { color: var(--accent); }
-
-  .topbar .crumb {
-    font-family: var(--font-mono);
-    font-size: 13px;
-    color: var(--fg-2);
-  }
-
-  .topbar .crumb a {
-    color: var(--fg-3);
-    text-decoration: none;
-  }
-
-  .topbar .crumb a:hover { color: var(--fg); }
-
-  .topbar .crumb .sep {
-    color: var(--fg-4);
-    margin: 0 8px;
-  }
-
-  .content {
-    max-width: 850px;
-    margin: 0 auto;
-    padding: 56px 32px 88px;
-  }
-
-  h1 {
-    font-family: var(--font-mono);
-    font-size: 38px;
-    letter-spacing: -0.02em;
-    line-height: 1.15;
-    margin: 0 0 12px;
-  }
-
-  .standfirst {
-    max-width: 62ch;
-    margin: 0 0 36px;
-    color: var(--fg-2);
-    font-family: var(--font-serif);
-    font-size: 18px;
-    font-style: italic;
-    line-height: 1.5;
-  }
-
-  .question-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    border-top: 1px solid var(--rule);
-  }
-
-  .question {
-    padding: 22px 0;
-    border-bottom: 1px solid var(--rule);
-    display: grid;
-    grid-template-columns: 58px minmax(0, 1fr);
-    gap: 18px;
-    align-items: start;
-  }
-
-  .question-number { font-family: var(--font-mono); }
-
-  .question-number {
-    color: var(--fg-4);
-    font-size: 13px;
-    padding-top: 4px;
-  }
-
-  .question-title {
-    margin: 0 0 6px;
-    font-family: var(--font-mono);
-    font-size: 18px;
-    font-weight: 600;
-  }
-
-  .question-content {
-    color: var(--fg-3);
-    font-family: var(--font-sans);
-    font-size: 14px;
-    line-height: 1.6;
-  }
-
-  .question-content p { margin: 0 0 12px; }
-  .question-content p:last-child { margin-bottom: 0; }
-  .question-content ol { margin: 8px 0 0; padding-left: 22px; }
-  .question-content li { padding-left: 4px; margin: 6px 0; }
-  .question-content table {
-    border-collapse: collapse;
-    margin: 14px 0;
-    width: 100%;
-    color: var(--fg);
-    font-size: 13px;
-  }
-  .question-content th,
-  .question-content td {
-    border-bottom: 1px solid var(--rule);
-    padding: 8px 10px;
-    text-align: left;
-  }
-  .question-content th {
-    color: var(--fg-2);
-    font-family: var(--font-mono);
-    font-size: 11px;
-  }
-  .question-content code {
-    font-family: var(--font-mono);
-    font-size: 0.92em;
-    color: var(--fg);
-  }
-
-  .question-link {
-    color: var(--accent);
-    font-family: var(--font-mono);
-    font-size: 12px;
-    text-decoration: none;
-  }
-
-  .question-link:hover { text-decoration: underline; }
-
-  .submission {
-    margin: 28px 0 0;
-    color: var(--fg-2);
-    font-family: var(--font-sans);
-    font-size: 14px;
-    line-height: 1.6;
-  }
-
-  .exam-note {
-    margin-top: 18px;
-    color: var(--fg-3);
-    font-family: var(--font-sans);
-    font-size: 13px;
-  }
-
-  @media (max-width: 640px) {
-    .topbar { padding: 18px 20px; }
-    .content { padding: 40px 24px 64px; }
-    h1 { font-size: 30px; }
-    .question { grid-template-columns: 38px minmax(0, 1fr); gap: 12px; }
-    .question-content table { font-size: 12px; }
-    .question-content th,
-    .question-content td { padding: 7px 6px; }
-  }
-</style>
+<link rel="stylesheet" href="../../../styles/exercises.css"/>
   <!-- Cloudflare Web Analytics -->
   <script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "f63b2ef074b74a5e8e78014b83a4071d"}'></script>
   <!-- End Cloudflare Web Analytics -->
@@ -199,12 +27,19 @@
     <h1>Regression Exercises 2026</h1>
     <p class="standfirst">Practice fitting, interpreting, and evaluating regression models.</p>
 
+    <nav class="exercise-nav" aria-label="Exercise materials">
+      <a href="./" aria-current="page">Exercises</a>
+      <a href="./answers/">Written answers</a>
+      <a href="./practical-exercise/">Practical exercise</a>
+      <a href="../slides/">Slides</a>
+    </nav>
+
     <section aria-label="Regression exercises">
       <ol class="question-list">
         <li class="question">
           <span class="question-number">01</span>
           <div>
-            <h3 class="question-title">Question 1</h3>
+            <h3 class="question-title" id="question-1">Question 1</h3>
             <div class="question-content">
               <p>What tasks would you solve with linear regression? When would it not be suitable?</p>
             </div>
@@ -213,7 +48,7 @@
         <li class="question">
           <span class="question-number">02</span>
           <div>
-            <h3 class="question-title">Question 2</h3>
+            <h3 class="question-title" id="question-2">Question 2</h3>
             <div class="question-content">
               <p>You are investigating the relationship between age and the amount of exercise people do. You take a survey of 10 people at a local park and record their age and the amount of hours they exercise for per week. The results are as follows:</p>
               <table>
@@ -242,7 +77,7 @@
         <li class="question">
           <span class="question-number">03</span>
           <div>
-            <h3 class="question-title">Question 3*</h3>
+            <h3 class="question-title" id="question-3">Question 3*</h3>
             <div class="question-content">
               <p>Let X &isin; &#8477;<sup>n &times; (d + 1)</sup> be the input matrix (n samples, d features + a bias term), y &isin; &#8477;<sup>n</sup> be the output vector and &theta; &isin; &#8477;<sup>d + 1</sup> be the weight vector.</p>
               <ol type="a">
@@ -278,6 +113,10 @@
 
     <p class="submission">Submit your answers to questions 1, 2 and 3 in a PDF file, along with all your practical exercise files (including data analysis, model and training scripts).</p>
     <p class="exam-note"><em>* denotes exam-level questions (not necessarily exam length).</em></p>
+    <nav class="page-links" aria-label="Page navigation">
+      <a href="../">&larr; Back to regression</a>
+      <a href="./answers/">Written answers &rarr;</a>
+    </nav>
   </main>
 </div>
 </body>

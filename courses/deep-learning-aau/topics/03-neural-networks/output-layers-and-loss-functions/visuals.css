@@ -1,0 +1,42 @@
+/* Output diagrams use the shared course typography, chart tokens, and paper palette. */
+.lecture article { min-width: 0; }
+.body .katex-display { overflow-x: auto; }
+.chart-card { min-width: 0; }
+.chart-card svg { display: block; width: 100%; height: auto; }
+.diagram-scroll { overflow-x: auto; }
+.chart-card .output-heads { min-width: 590px; }
+.chart-card .bce-plot { min-width: 440px; }
+.head-connection { fill: none; stroke: var(--rule-strong); stroke-width: 1; }
+.head-node { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.5; }
+.head-bracket { fill: none; stroke: var(--fg-3); stroke-width: 1; }
+.head-flow { fill: none; stroke: var(--accent); stroke-width: 1.5; marker-end: url(#head-arrow); }
+.head-box rect { fill: var(--bg-sunk); stroke: var(--rule-strong); stroke-width: 1; }
+.positive-curve { fill: none; stroke: var(--accent); stroke-width: 2.5; stroke-linejoin: round; }
+.negative-curve { fill: none; stroke: var(--c-cat-2); stroke-width: 2.5; stroke-dasharray: 6 4; stroke-linejoin: round; }
+.positive-swatch { color: var(--accent); }
+.negative-swatch { color: var(--c-cat-2); background: none !important; border-top: 2px dashed currentColor; }
+.probability-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.probability-pair h4 { font-family: var(--font-mono); font-weight: 500; font-size: 11px; margin: 12px 0 0; }
+.probability-track { fill: var(--bg-sunk); }
+.sigmoid-bar { fill: var(--c-cat-2); }
+.softmax-bar { fill: var(--accent); }
+.chart-card .probability-total { font-family: var(--font-mono); font-size: 11px; color: var(--fg-2); margin: 0 0 8px; font-variant-numeric: tabular-nums; }
+.logit-controls { padding: 12px 0; border-top: 1px solid var(--rule); }
+.logit-controls[hidden] { display: none; }
+.logit-control { display: grid; grid-template-columns: 95px minmax(0, 1fr); align-items: center; gap: 12px; margin: 6px 0; font-family: var(--font-mono); font-size: 11px; color: var(--fg-2); }
+.logit-control output { color: var(--accent); font-variant-numeric: tabular-nums; }
+.logit-control input { width: 100%; min-width: 0; accent-color: var(--accent); }
+.softmax-readout { display: block; font-family: var(--font-mono); font-size: 11px; color: var(--fg-2); line-height: 1.7; font-variant-numeric: tabular-nums; }
+.output-table-wrap { overflow-x: auto; margin: 1.4em 0; }
+.output-table { width: 100%; min-width: 410px; border-collapse: collapse; font-family: var(--font-sans); font-size: 13px; line-height: 1.5; color: var(--fg-2); }
+.output-table caption { padding-bottom: 10px; text-align: left; font-family: var(--font-serif); font-size: 14px; }
+.output-table th, .output-table td { padding: 10px 12px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--rule); }
+.output-table th { font-weight: 600; color: var(--fg); }
+.output-table thead th { border-top: 1px solid var(--rule); background: var(--bg-sunk); }
+.task-table { min-width: 640px; }
+.example-table { min-width: 650px; }
+.diagram-scroll:focus-visible, .output-table-wrap:focus-visible, .logit-control input:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+@media (max-width: 640px) {
+  .probability-pair { grid-template-columns: 1fr; gap: 12px; }
+  .logit-control { grid-template-columns: 80px minmax(0, 1fr); }
+}
