@@ -132,7 +132,7 @@ class Run:
         item = dict(command_sequence=seq, effective_time=boundary, throttle=cmd.throttle,
                     gimbal=cmd.gimbal, action=action)
         self.pending.append(item)
-        return item
+        return dict(run_id=self.id, **item)
 
     def advance(self):
         applied = False
@@ -153,7 +153,7 @@ class Run:
         self.snapshots.append(state_packet(self, self.t, self.state, self.command.copy(), self.tick, contact))
         if contact:
             self.status = 'contact'
-            self.event = dict(type='contact', time=contact.time, point=contact.point, state=asdict(contact.state), reason='first ground contact')
+            self.event = dict(run_id=self.id, type='contact', time=contact.time, point=contact.point, state=asdict(contact.state), reason='first ground contact')
 
     def wall_tick(self, now):
         elapsed = max(0., now-self.last_wall)
@@ -172,7 +172,7 @@ class Run:
         except Exception as exc:
             self.status = 'error'
             self.error = f'{type(exc).__name__}: {exc}'
-            self.event = dict(type='error', time=self.t, reason=self.error)
+            self.event = dict(run_id=self.id, type='error', time=self.t, reason=self.error)
 
 
 lock = threading.RLock()
@@ -291,9 +291,9 @@ def offline(actions):
             current_action = i
         r.snapshots.append(state_packet(r, t, s, command.copy(), len(r.snapshots), contact))
         if contact:
-            r.event = dict(type='contact', time=contact.time, point=contact.point, state=asdict(contact.state), reason='first ground contact')
+            r.event = dict(run_id=r.id, type='contact', time=contact.time, point=contact.point, state=asdict(contact.state), reason='first ground contact')
     r.status = 'contact' if r.event else 'completed'
-    if not r.event: r.event = dict(type='completed', time=r.snapshots[-1]['time'], reason='action sequence exhausted')
+    if not r.event: r.event = dict(run_id=r.id, type='completed', time=r.snapshots[-1]['time'], reason='action sequence exhausted')
     return r.record()
 
 

@@ -36,7 +36,7 @@ class AdapterTests(unittest.TestCase):
                 self.assertAlmostEqual(ack['effective_time'], i * r.p.control_interval)
             r.status = 'running'; r.speed = speed
             while r.status == 'running': r.wall_tick(r.last_wall + .02 / speed)
-            return ([(p['time'], p['state'], p['command']) for p in r.snapshots], r.commands, r.event)
+            return ([(p['time'], p['state'], p['command']) for p in r.snapshots], r.commands, {k:v for k,v in r.event.items() if k!='run_id'})
         self.assertEqual(paced(.25), paced(1))
         self.assertEqual(paced(1), paced(5))
         r = Run()
@@ -105,7 +105,7 @@ class AdapterTests(unittest.TestCase):
             while r.status != 'contact':
                 for _ in range(reads_per_step): r.record(after=r.tick)
                 r.advance()
-            return ([(p['time'], p['state'], p['command']) for p in r.snapshots], r.commands, r.event)
+            return ([(p['time'], p['state'], p['command']) for p in r.snapshots], r.commands, {k:v for k,v in r.event.items() if k!='run_id'})
         self.assertEqual(flight(1), flight(2))
         self.assertEqual(flight(2), flight(4))
 
@@ -123,6 +123,7 @@ class AdapterTests(unittest.TestCase):
         while r.status == 'running': r.advance()
         self.assertEqual(r.status, 'contact')
         last = r.snapshots[-1]
+        self.assertEqual(r.event['run_id'], r.id)
         self.assertEqual(last['time'], r.event['time'])
         self.assertEqual(last['state'], r.event['state'])
         self.assertEqual(last['contact']['point'], r.event['point'])

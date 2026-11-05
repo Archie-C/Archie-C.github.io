@@ -65,7 +65,7 @@ function validate(r){
   if(!command||!Number.isInteger(command.command_sequence)||command.command_sequence<=commandSequence||!Number.isFinite(command.effective_time)||command.effective_time<commandTime||!Number.isFinite(command.throttle)||command.throttle<0||command.throttle>1||!Number.isFinite(command.gimbal)||Math.abs(command.gimbal)>1||!(command.action===null||Number.isInteger(command.action)&&command.action>=0&&command.action<=9))throw Error('Invalid command history');
   commandSequence=command.command_sequence;commandTime=command.effective_time;
  }
- if(r.terminal&&(!['contact','completed','error'].includes(r.terminal.type)||!Number.isFinite(r.terminal.time)||typeof r.terminal.reason!=='string'||r.terminal.type==='contact'&&(!Array.isArray(r.terminal.point)||r.terminal.point.length!==2||!r.terminal.point.every(Number.isFinite))))throw Error('Invalid terminal event');
+ if(r.terminal&&((r.terminal.run_id!==undefined&&r.terminal.run_id!==config.run_id)||!['contact','completed','error'].includes(r.terminal.type)||!Number.isFinite(r.terminal.time)||typeof r.terminal.reason!=='string'||r.terminal.type==='contact'&&(!Array.isArray(r.terminal.point)||r.terminal.point.length!==2||!r.terminal.point.every(Number.isFinite))))throw Error('Invalid terminal event');
  if(['contact','completed','error'].includes(r.status)&&(!r.terminal||r.terminal.type!==r.status))throw Error('Terminal status and event disagree');
  if(r.terminal?.type==='contact'){
   const last=r.snapshots.at(-1),event=r.terminal;
@@ -85,7 +85,7 @@ async function poll(){
   if(pollGeneration!==generation)return;
   if(!response.ok)throw Error(data.error||'Server returned '+response.status);
   let incoming=data.record;
-  const previousNewest=liveRecord?.snapshots.at(-1);
+  const fresh=!liveRecord, previousNewest=liveRecord?.snapshots.at(-1);
   if(!liveRecord){
    validate(incoming);
    liveRecord=incoming;liveId=incoming.config.run_id;
@@ -111,7 +111,14 @@ async function poll(){
   lastPacket=newest.sequence;connected=true;lag=data.lag;
   const accepted=[...liveRecord.commands,...(liveRecord.pending_commands||[])].at(-1);
   if(accepted){seq=Math.max(seq,accepted.command_sequence);$('accepted').textContent=`Accepted #${accepted.command_sequence}: throttle ${fmt(accepted.throttle)}, gimbal ${fmt(accepted.gimbal)}${accepted.action===null?'':`, action ${accepted.action}`} · effective ${fmt(accepted.effective_time,3)} s`;}
-  if(!replayMode){record=liveRecord;frame=record.snapshots.length-1;view=newest;updateUI();}
+  if(fresh){
+   const current=accepted||newest.command;
+   $('throttle').value=current.throttle;$('gimbal').value=current.gimbal;
+   $('throttleout').textContent=fmt(current.throttle);$('gimbalout').textContent=fmt(current.gimbal);
+   $('mode').value=current.action===null?'manual':'discrete';
+   $('manual').hidden=current.action!==null;$('discrete').hidden=current.action===null;
+  }
+  if(!replayMode){record=liveRecord;frame=record.snapshots.length-1;view=newest;updateUI();if(fresh&&accepted?.action!==null&&accepted?.action!==undefined)$('action').value=accepted.action;}
   else if(replayFollowsLive&&record.config.run_id===liveId){
    for(let i=record.snapshots.length;i<liveRecord.snapshots.length;i++)record.snapshots.push(liveRecord.snapshots[i]);
    for(const key of ['commands','pending_commands','terminal','status','error'])record[key]=liveRecord[key];

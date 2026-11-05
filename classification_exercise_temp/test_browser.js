@@ -45,6 +45,8 @@ async function waitFor(fn, label, timeout=10000) {
   await evaluate("$('pause').click()");
   await waitFor(()=>evaluate("record.status==='paused'"),'pause');
   let t=await evaluate('view.time');await sleep(500);assert.equal(await evaluate('view.time'),t,'pause must freeze simulation');
+  await call('Page.reload');
+  await waitFor(()=>evaluate("record?.status==='paused' && $('throttle').value==='0.6'"),'reconnected control state');
   // Entering replay during flight captures the final acknowledged pause frame.
   await evaluate("$('start').click()");
   await waitFor(()=>evaluate("record.status==='running'"),'resume before replay');
