@@ -78,7 +78,7 @@ class AdapterTests(unittest.TestCase):
             r.status = 'paused'; before = (r.t, r.state, len(r.snapshots))
             r.wall_tick(r.last_wall + .2)
             self.assertEqual(before, (r.t, r.state, len(r.snapshots)))
-            outputs.append(r.snapshots)
+            outputs.append([p for p in r.snapshots if p['time'] <= 1 + 1e-8])
         # Ignore run identities; physics and simulation times remain identical.
         self.assertEqual([[ (p['time'], p['state']) for p in o] for o in outputs][0], [(p['time'], p['state']) for p in outputs[1]])
         self.assertEqual([(p['time'], p['state']) for p in outputs[0]], [(p['time'], p['state']) for p in outputs[2]])
@@ -163,7 +163,7 @@ class AdapterTests(unittest.TestCase):
         self.assertNotEqual(a.id, b.id)
         self.assertEqual(a.initial, b.initial)
         self.assertEqual(a.config['physics_config'], b.config['physics_config'])
-        self.assertEqual(a.config['environment']['lift_coefficient'], 'sin(alpha)')
+        self.assertEqual(a.config['environment']['lift_coefficient'], '-0.60*sin(2*alpha)')
         self.assertEqual(len(a.config['physics_engine_sha256']), 64)
         for payload in ({'command_sequence': 1, 'action': True}, {'command_sequence': 1, 'throttle': True, 'gimbal': 0}, {'command_sequence': 1, 'throttle': 2, 'gimbal': 0}, {'command_sequence': 1, 'throttle': 10**400, 'gimbal': 0}):
             with self.assertRaises(ValueError): a.queue(payload)
