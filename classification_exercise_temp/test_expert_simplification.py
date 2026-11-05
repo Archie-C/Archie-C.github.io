@@ -3,6 +3,7 @@ from dataclasses import replace
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
 import numpy as np
 
@@ -33,6 +34,17 @@ class ExpertSimplificationTests(unittest.TestCase):
         self.assertIsNone(expert.previous_action)
         self.assertEqual(expert.diagnostics, {})
         self.assertEqual(action, expert.predict_action(make_observation(s, 0, p)))
+
+    def test_search_failure_uses_recorded_deterministic_fallback(self):
+        p, state = configuration('near_ground_contact')
+        obs = make_observation(state, 0, p)
+        expert = ExpertController(horizon_steps=1)
+        with patch('rocket_expert.step', side_effect=ArithmeticError('injected')):
+            first = expert.predict_action(obs)
+            self.assertTrue(expert.diagnostics['fallback'])
+            self.assertIn('injected', expert.diagnostics['reason'])
+            expert.reset()
+            self.assertEqual(first, expert.predict_action(obs))
 
     def test_timing_replay_and_determinism(self):
         p, s = configuration('near_ground_contact')
