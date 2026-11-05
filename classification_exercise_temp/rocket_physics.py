@@ -202,7 +202,8 @@ def _add(s: State, k: State, scale: float) -> State:
     return State(*(a + scale * b for a, b in zip(s.values(), k.values())))
 
 
-def _rk4(t: float, s: State, command: Command, p: Parameters, h: float) -> State:
+def _rk4_trajectory(t: float, s: State, command: Command, p: Parameters, h: float):
+    """Return RK4 endpoint and its cubic continuous extension on [0, 1]."""
     # Extend the powered ODE smoothly across a trial fuel boundary; the
     # event locator truncates the accepted step at exhaustion.
     powered = s.fuel > 0
@@ -210,8 +211,19 @@ def _rk4(t: float, s: State, command: Command, p: Parameters, h: float) -> State
     k2 = derivative(t + h / 2, _add(s, k1, h / 2), command, p, _powered=powered)
     k3 = derivative(t + h / 2, _add(s, k2, h / 2), command, p, _powered=powered)
     k4 = derivative(t + h, _add(s, k3, h), command, p, _powered=powered)
-    return State(*(a + h * (b + 2*c + 2*d + e) / 6 for a, b, c, d, e in
-                   zip(s.values(), k1.values(), k2.values(), k3.values(), k4.values())))
+    # y(u) = y0 + a*u + b*u^2 + c*u^3; at u=1 this is RK4.
+    coefficients = tuple((h * a, h * (-1.5*a + b + c - 0.5*d),
+                          h * (2/3) * (a - b - c + d))
+                         for a, b, c, d in zip(k1.values(), k2.values(),
+                                               k3.values(), k4.values()))
+    def evaluate(u):
+        return State(*(v + u*(a + u*(b + u*c))
+                       for v, (a, b, c) in zip(s.values(), coefficients)))
+    return evaluate(1.0), evaluate, coefficients
+
+
+def _rk4(t: float, s: State, command: Command, p: Parameters, h: float) -> State:
+    return _rk4_trajectory(t, s, command, p, h)[0]
 
 
 def ground_height(x: float, terrain: tuple[Vector, ...]) -> float:
@@ -240,6 +252,54 @@ def clearance(s: State, p: Parameters) -> tuple[float, Vector]:
     return min(((y - ground_height(x, p.terrain), (x, y)) for x, y in points), key=lambda item: item[0])
 
 
+def _contact_search(evaluate, coefficients, duration: float, p: Parameters):
+    """Find first contact on the RK4 continuous extension, conservatively.
+
+    Each transformed point has a bounded displacement derived from the
+    cubic coefficients, tank geometry and terrain's maximum slope. A search
+    interval can be rejected only when that bound proves it stays above the
+    surface. Near a tangent, terminate on the safe side at time tolerance.
+    """
+    slopes = [abs((b[1] - a[1]) / (b[0] - a[0]))
+              for a, b in zip(p.terrain, p.terrain[1:])]
+    slope = max(slopes, default=0.0)
+    # The mixture centroid lies between the dry centroid and the tank axis.
+    fuel_ends = ((0.0, p.tank_bottom), (0.0, p.tank_bottom + p.tank_height / 2))
+    references = (p.dry_centroid, *fuel_ends)
+    points = (*p.hull, *p.feet)
+    radius = max(hypot(point[0] - c[0], point[1] - c[1])
+                 for point in points for c in references)
+    centroid_span = max(hypot(p.dry_centroid[0] - c[0], p.dry_centroid[1] - c[1])
+                        for c in fuel_ends)
+    # Bound |dc/dfuel| for the tank, including the moving fuel centroid.
+    centre_rate = centroid_span / p.dry_mass + p.tank_height / (2 * p.fuel_capacity)
+    def rate_bound(i):
+        a, b, c = coefficients[i]
+        return abs(a) + 2 * abs(b) + 3 * abs(c)
+    bound = (slope * rate_bound(0) + rate_bound(1) + (1 + slope) *
+             (radius * rate_bound(4) + centre_rate * rate_bound(6)))
+
+    def search(lo, hi, distance):
+        # Clearance is Lipschitz with this conservative bound, including
+        # terrain corners sliding along an edge of the rigid hull.
+        if distance > bound * (hi - lo):
+            return None
+        if (hi - lo) * duration <= p.event_tolerance:
+            return lo
+        mid = (lo + hi) / 2
+        if mid == lo or mid == hi:
+            return lo
+        left = search(lo, mid, distance)
+        if left is not None:
+            return left
+        return search(mid, hi, clearance(evaluate(mid), p)[0])
+
+    fraction = search(0.0, 1.0, clearance(evaluate(0.0), p)[0])
+    if fraction is None:
+        return None
+    return fraction, evaluate(fraction)
+
+
 @dataclass(frozen=True)
 class Contact:
     time: float
@@ -257,10 +317,12 @@ def step(t: float, s: State, command: Command, p: Parameters, h: float) -> tuple
         raise ValueError('thrust must be zero without fuel')
     distance, point = clearance(s, p)
     if distance <= 0:
-        if distance < -p.event_tolerance:
+        if distance < 0:
             raise ValueError('initial hull penetrates terrain')
         return s, Contact(t, s, point)
     end = t + h
+    if not isfinite(end) or end <= t:
+        raise ValueError('step is not representable at the current time')
     while t < end:
         # A bounded actuator substep keeps RK4 stable even if the requested
         # physics step is much larger than an actuator response time.
@@ -269,8 +331,7 @@ def step(t: float, s: State, command: Command, p: Parameters, h: float) -> tuple
         def metrics(state):
             return (state.fuel if s.fuel > 0 else 1.0,
                     state.thrust, p.max_thrust - state.thrust,
-                    p.gimbal_max - state.gimbal, p.gimbal_max + state.gimbal,
-                    clearance(state, p)[0])
+                    p.gimbal_max - state.gimbal, p.gimbal_max + state.gimbal)
         start_metrics = metrics(s)
         end_metrics = metrics(candidate)
         events = []
@@ -282,17 +343,23 @@ def step(t: float, s: State, command: Command, p: Parameters, h: float) -> tuple
                     if metrics(_rk4(t, s, command, p, mid))[i] > 0: lo = mid
                     else: hi = mid
                 events.append((hi, i, lo))
+        event_duration = min(events)[0] if events else duration
+        _, trajectory, coefficients = _rk4_trajectory(t, s, command, p, event_duration)
+        contact = _contact_search(trajectory, coefficients, event_duration, p)
+        if contact is not None:
+            fraction, contact_state = contact
+            return contact_state, Contact(t + fraction * event_duration, contact_state,
+                                          clearance(contact_state, p)[1])
         if not events:
-            if any(v < -1e-10 for v in end_metrics):
+            if any(v < 0 for v in end_metrics):
                 raise ArithmeticError('unresolved actuator or fuel boundary')
             s = candidate
-            t += duration
+            next_time = t + duration
+            if next_time <= t:
+                raise ArithmeticError('time cannot advance at this precision')
+            t = next_time
             continue
-        event_time, kind, before = min(events)
-        if kind == 5:
-            # Return the nonpenetrating side of the bracket.
-            s = _rk4(t, s, command, p, before)
-            return s, Contact(t + before, s, clearance(s, p)[1])
+        event_time, kind, _ = min(events)
         s = _rk4(t, s, command, p, event_time)
         values = list(s.values())
         if kind == 0: values[6], values[7] = 0.0, 0.0
@@ -301,7 +368,10 @@ def step(t: float, s: State, command: Command, p: Parameters, h: float) -> tuple
         elif kind == 3: values[8] = p.gimbal_max
         else: values[8] = -p.gimbal_max
         s = State(*values)
-        t += event_time
+        next_time = t + event_time
+        if next_time <= t:
+            raise ArithmeticError('event time cannot advance at this precision')
+        t = next_time
     if not all(isfinite(v) for v in s.values()):
         raise ArithmeticError('non-finite integration result')
     return s, None
@@ -314,6 +384,8 @@ def simulate(initial: State, actions: list[int], p: Parameters, start_time: floa
     for action in actions:
         command = discrete_command(action, p)
         interval_end = t + p.control_interval
+        if not isfinite(interval_end) or interval_end <= t:
+            raise ValueError('control interval is not representable at the current time')
         while t < interval_end:
             h = min(p.timestep, interval_end - t)
             s, contact = step(t, s, command, p, h)

@@ -54,12 +54,15 @@ class Verification(unittest.TestCase):
         self.assertLess(forces(0, s, p)[3], 0)
 
     def test_v05_constant_acceleration(self):
-        p = parameters(gravity=lambda y: 0)
-        # No flow approximated: compare exact acceleration at fixed mass using zero thrust
-        # and constant gravity, distinct from the ballistic initial conditions.
-        p = replace(p, gravity=lambda y: 3)
-        s, _ = advance(state(vy=-2, fuel=0), p, 1.5)
-        self.assertAlmostEqual(s.y, 100 - 3 - 3 * 1.5**2 / 2, places=9)
+        # Time-varying wind keeps air-relative speed at -1 m/s for the exact
+        # solution, producing a constant 1 N horizontal drag force on 10 kg.
+        p = parameters(gravity=lambda y: 0, density=lambda y: 2,
+                       wind=lambda y, t: (1 + 0.1*t, 0),
+                       lift_coefficient=lambda a: 0)
+        s, _ = advance(state(fuel=0), p, 2)
+        self.assertAlmostEqual(s.x, .2, places=9)
+        self.assertAlmostEqual(s.vx, .2, places=9)
+        self.assertAlmostEqual(s.y, 100, places=9)
 
     def test_v06_rocket_equation(self):
         p = parameters(gravity=lambda y: 0)
@@ -109,6 +112,19 @@ class Verification(unittest.TestCase):
             return abs(s.thrust - 100*(1-math.exp(-2)))
         self.assertGreater(error(.1)/error(.05), 14)
 
+    def test_coupled_refinement(self):
+        # Exercise changing mass, orientation, actuators and aerodynamics.
+        base = parameters(density=lambda y: .2, gravity=lambda y: 3)
+        initial = state(vx=2, vy=-3, theta=.2, omega=.1, thrust=20)
+        command = Command(.7, -.5)
+        def solution(h):
+            return advance(initial, replace(base, timestep=h), .8, command)[0]
+        reference = solution(.001)
+        def error(h):
+            actual = solution(h)
+            return math.sqrt(sum((a-b)**2 for a, b in zip(actual.values(), reference.values())))
+        self.assertGreater(error(.08) / error(.04), 12)
+
     def test_v13_contact(self):
         p = parameters(terrain=((-5, 0), (0, 1), (5, 0)), timestep=.5)
         s, event = advance(state(y=5, vy=-1, theta=.2), p, 2)
@@ -138,6 +154,30 @@ class Verification(unittest.TestCase):
         trajectory = list(simulate(state(), [9, 0], p))
         transition = next(i for i, row in enumerate(trajectory) if abs(row[0] - .13) < 1e-12)
         self.assertLess(trajectory[transition + 1][1].thrust, trajectory[transition][1].thrust)
+
+    def test_transient_contact_inside_step(self):
+        # Both endpoint clearances are positive: the rocket crosses a narrow
+        # triangular ridge completely within a single RK4 step.
+        p = parameters(gravity=lambda y: 0, feet=(),
+                       hull=((-0.1, 0), (0.1, 0), (0.1, 1), (-0.1, 1)),
+                       terrain=((-10, 0), (-0.1, 0), (0, 2), (0.1, 0), (10, 0)))
+        s = state(x=-4, y=2, vx=20, fuel=0)
+        self.assertGreater(clearance(s, p)[0], 0)
+        self.assertGreater(clearance(replace(s, x=6), p)[0], 0)
+        result, contact = step(0, s, Command(0, 0), p, .5)
+        self.assertIsNotNone(contact)
+        self.assertAlmostEqual(contact.time, .1925, places=8)
+        self.assertGreaterEqual(clearance(result, p)[0], 0)
+        self.assertLess(clearance(result, p)[0], 1e-7)
+
+    def test_grazing_contact_inside_step(self):
+        p = parameters(gravity=lambda y: 0, feet=(),
+                       hull=((-0.1, 0), (0.1, 0), (0.1, 1), (-0.1, 1)),
+                       terrain=((-10, 0), (-0.1, 0), (0, 1), (0.1, 0), (10, 0)))
+        _, contact = step(0, state(x=-4, y=2, vx=20, fuel=0), Command(0, 0), p, .5)
+        self.assertIsNotNone(contact)
+        self.assertAlmostEqual(contact.time, .195, places=8)
+        self.assertGreaterEqual(clearance(contact.state, p)[0], 0)
 
     def test_large_step_actuator_bounds(self):
         p = parameters(timestep=10, gravity=lambda y: 0)
