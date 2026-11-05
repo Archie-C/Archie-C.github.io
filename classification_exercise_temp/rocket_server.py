@@ -110,8 +110,23 @@ class Run:
                 cmd = Command(a, b)
             except OverflowError as exc:
                 raise ValueError('command must be finite and normalized') from exc
-        # The next control boundary is chosen by the server, never by paint rate.
+        # Boundaries are in simulation time, independent of browser paint rate.
         boundary = math.ceil((self.t - 1e-10) / self.p.control_interval) * self.p.control_interval
+        if 'effective_time' in payload:
+            requested = payload['effective_time']
+            if type(requested) not in (int, float):
+                raise ValueError('effective_time must be a finite control boundary')
+            try:
+                quotient = requested / self.p.control_interval
+                if not math.isfinite(quotient): raise ValueError('non-finite boundary')
+                nearest = round(quotient) * self.p.control_interval
+            except OverflowError as exc:
+                raise ValueError('effective_time must be a finite control boundary') from exc
+            if requested < self.t - 1e-10 or requested < 0 or abs(requested-nearest) > 1e-9:
+                raise ValueError('effective_time must be a future control boundary')
+            boundary = nearest
+        if self.pending and boundary < self.pending[-1]['effective_time'] - 1e-10:
+            raise ValueError('commands must be scheduled in boundary order')
         if len(self.pending) >= 128:
             raise ValueError('too many commands are awaiting a control boundary')
         item = dict(command_sequence=seq, effective_time=boundary, throttle=cmd.throttle,

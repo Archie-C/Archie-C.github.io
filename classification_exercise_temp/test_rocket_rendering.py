@@ -28,6 +28,31 @@ class AdapterTests(unittest.TestCase):
         self.assertEqual([c['command_sequence'] for c in r.commands], [1, 2, 3])
         self.assertEqual(r.snapshots[-1]['command']['throttle'], .3)
 
+    def test_scheduled_controls_reproduce_across_speeds(self):
+        def paced(speed):
+            r = Run()
+            for i, action in enumerate([1, 5, 0, 9, 0]):
+                ack = r.queue({'command_sequence': i, 'action': action, 'effective_time': i * r.p.control_interval})
+                self.assertAlmostEqual(ack['effective_time'], i * r.p.control_interval)
+            r.status = 'running'; r.speed = speed
+            while r.status == 'running': r.wall_tick(r.last_wall + .02 / speed)
+            return ([(p['time'], p['state'], p['command']) for p in r.snapshots], r.commands, r.event)
+        self.assertEqual(paced(.25), paced(1))
+        self.assertEqual(paced(1), paced(5))
+        r = Run()
+        for invalid in (-1, .11, float('inf'), 10**400, True):
+            with self.assertRaises(ValueError):
+                r.queue({'command_sequence': 1, 'action': 1, 'effective_time': invalid})
+
+    def test_physics_exception_becomes_inspectable_error(self):
+        r = Run(); r.status = 'running'
+        with patch('rocket_server.step', side_effect=ArithmeticError('test failure')):
+            r.wall_tick(r.last_wall + .1)
+        self.assertEqual(r.status, 'error')
+        self.assertIn('test failure', r.error)
+        self.assertEqual(r.event['type'], 'error')
+        self.assertEqual(len(r.snapshots), 1)
+
     def test_pause_and_pacing(self):
         outputs = []
         for speed in (.25, 1, 5):
