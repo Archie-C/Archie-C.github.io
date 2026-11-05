@@ -179,6 +179,33 @@ class Verification(unittest.TestCase):
         self.assertAlmostEqual(contact.time, .195, places=8)
         self.assertGreaterEqual(clearance(contact.state, p)[0], 0)
 
+    def test_contact_and_exhaustion_event_order(self):
+        p = parameters(gravity=lambda y: 0, terrain=((-10, 0), (10, 0)))
+        # With little fuel the engine cuts out before contact; with more fuel
+        # contact occurs first and the returned state retains both fuel and thrust.
+        for fuel, exhausted in ((.05, True), (.3, False)):
+            with self.subTest(fuel=fuel):
+                initial = state(y=1.9, vy=-2, fuel=fuel, thrust=50)
+                final, contact = step(0, initial, Command(.5, 0), p, .5)
+                self.assertIsNotNone(contact)
+                self.assertGreaterEqual(clearance(final, p)[0], 0)
+                if exhausted:
+                    self.assertEqual((final.fuel, final.thrust), (0, 0))
+                else:
+                    self.assertGreater(final.fuel, 0)
+                    self.assertEqual(final.thrust, 50)
+
+    def test_contact_time_refines_against_ballistic_solution(self):
+        p = parameters(terrain=((-10, 0), (10, 0)), gravity=lambda y: 10)
+        initial = state(y=5, vy=-1, fuel=0)
+        # Dry centre at y=1, foot at -0.5: the COM contacts at y=1.5.
+        expected = (-1 + math.sqrt(1 + 2*10*3.5)) / 10
+        for h in (.4, .2, .1):
+            final, event = advance(initial, replace(p, timestep=h), 2)
+            self.assertIsNotNone(event)
+            self.assertAlmostEqual(event.time, expected, places=8)
+            self.assertGreaterEqual(clearance(final, p)[0], 0)
+
     def test_large_step_actuator_bounds(self):
         p = parameters(timestep=10, gravity=lambda y: 0)
         s, _ = step(0, state(), Command(1, 1), p, 5)
