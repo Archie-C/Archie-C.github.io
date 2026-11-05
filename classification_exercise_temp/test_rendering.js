@@ -20,6 +20,7 @@ let second=bodyPoint([1,0],{x:0,y:.8,theta:0},[0,.8]);
 near(first[0],second[0]);near(first[1],second[1]);
 camera={x:0,y:0,scale:2}; canvas.clientWidth=100;canvas.clientHeight=100;
 let pixel=screen([1,2]);near(pixel[0],52);near(pixel[1],46);
+let terrain=[[-2,3],[0,1],[4,5]];near(terrainHeight(terrain,-3),3);near(terrainHeight(terrain,-1),2);near(terrainHeight(terrain,0),1);near(terrainHeight(terrain,2),3);near(terrainHeight(terrain,5),5);
 for(const g of [-.2,.2]){assert.equal(Math.sign(thrustDirection(0,g)[0]),-Math.sign(g));assert.equal(Math.sign(nozzleDirection(0,g)[0]),Math.sign(g));}
 // A positive gimbal tips the thrust left and the physical nozzle right of the downward body axis.
 assert.ok(thrustDirection(0,.2)[0]<0);assert.ok(nozzleDirection(0,.2)[0]>0);

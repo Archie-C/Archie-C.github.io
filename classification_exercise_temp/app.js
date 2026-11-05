@@ -10,6 +10,11 @@ const fmt=(n,d=2)=>Number(n).toFixed(d);
 function bodyPoint(point,s,c){const x=point[0]-c[0], y=point[1]-c[1], a=s.theta;return [s.x+x*Math.cos(a)-y*Math.sin(a),s.y+x*Math.sin(a)+y*Math.cos(a)];}
 function thrustDirection(theta,gimbal){return [-Math.sin(theta+gimbal),Math.cos(theta+gimbal)];}
 function nozzleDirection(theta,gimbal){return [Math.sin(theta+gimbal),-Math.cos(theta+gimbal)];}
+function terrainHeight(terrain,x){
+ if(x<=terrain[0][0])return terrain[0][1];
+ for(let i=1;i<terrain.length;i++){let a=terrain[i-1],b=terrain[i];if(x<=b[0])return a[1]+(b[1]-a[1])*(x-a[0])/(b[0]-a[0]);}
+ return terrain.at(-1)[1];
+}
 function screen(point){return [canvas.clientWidth/2+(point[0]-camera.x)*camera.scale,canvas.clientHeight/2-(point[1]-camera.y)*camera.scale];}
 // Use the engine's clearance and a conservative bound on rigid-body motion to
 // avoid interpolating a pose that might cross the piecewise-linear terrain.
@@ -148,7 +153,7 @@ function dot(a,color,r=4){ctx.fillStyle=color;ctx.beginPath();ctx.arc(...screen(
 function draw(){let w=canvas.clientWidth,h=canvas.clientHeight,dpr=window.devicePixelRatio||1;if(canvas.width!==Math.round(w*dpr)||canvas.height!==Math.round(h*dpr)){canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);}ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);if(!view||!record)return;
  let s=view.state,p=record.config.parameters,c=view.centre;
  if(camera.auto){let targetX=s.x/2,targetY=(s.y+2)/2, scale=Math.max(1,Math.min(20,Math.min(w/Math.max(40,Math.abs(s.x)+30),h/Math.max(25,Math.abs(s.y)+15))));const blend=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches?1:.06;camera.x+=(targetX-camera.x)*blend;camera.y+=(targetY-camera.y)*blend;camera.scale+=(scale-camera.scale)*blend;}
- let left=camera.x-w/(2*camera.scale),right=camera.x+w/(2*camera.scale),terrain=p.terrain;const terrainHeight=x=>{if(x<=terrain[0][0])return terrain[0][1];for(let i=1;i<terrain.length;i++){let a=terrain[i-1],b=terrain[i];if(x<=b[0])return a[1]+(b[1]-a[1])*(x-a[0])/(b[0]-a[0]);}return terrain.at(-1)[1];};let points=[[left,terrainHeight(left)],...terrain.filter(q=>q[0]>left&&q[0]<right),[right,terrainHeight(right)]];ctx.fillStyle='#253c35';ctx.beginPath();ctx.moveTo(...screen([left,camera.y-h/camera.scale]));for(let pt of points)ctx.lineTo(...screen(pt));ctx.lineTo(...screen([right,camera.y-h/camera.scale]));ctx.closePath();ctx.fill();for(let i=1;i<points.length;i++)line(points[i-1],points[i],'#84a693',2);
+ let left=camera.x-w/(2*camera.scale),right=camera.x+w/(2*camera.scale),terrain=p.terrain;let points=[[left,terrainHeight(terrain,left)],...terrain.filter(q=>q[0]>left&&q[0]<right),[right,terrainHeight(terrain,right)]];ctx.fillStyle='#253c35';ctx.beginPath();ctx.moveTo(...screen([left,camera.y-h/camera.scale]));for(let pt of points)ctx.lineTo(...screen(pt));ctx.lineTo(...screen([right,camera.y-h/camera.scale]));ctx.closePath();ctx.fill();for(let i=1;i<points.length;i++)line(points[i-1],points[i],'#84a693',2);
  if($('trail').checked){let snaps=record.snapshots,endIndex=replayMode?frame:snaps.length-1,stride=Math.max(1,Math.ceil(endIndex/1000));ctx.beginPath();for(let i=0;i<=endIndex;i+=stride){let q=screen([snaps[i].state.x,snaps[i].state.y]);if(i===0)ctx.moveTo(...q);else ctx.lineTo(...q);}ctx.strokeStyle='#77b5a277';ctx.lineWidth=1;ctx.stroke();}
  const bp=q=>bodyPoint(q,s,c), engine=bp(p.engine);
  function rocket(){
@@ -200,5 +205,5 @@ window.addEventListener('keyup',event=>{
  $('gimbal').value=steeringKeys.has('ArrowLeft')===steeringKeys.has('ArrowRight')?0:steeringKeys.has('ArrowLeft')?1:-1;queueManual();
 });
 canvas.addEventListener('blur',releaseSteering);window.addEventListener('blur',releaseSteering);
-window.addEventListener('pagehide',()=>{if(liveId && record && record.status==='running')navigator.sendBeacon('/api/control',new Blob([JSON.stringify({run_id:liveId,operation:'pause'})],{type:'application/json'}));});
+window.addEventListener('pagehide',()=>{if(liveId && liveRecord && liveRecord.status==='running')navigator.sendBeacon('/api/control',new Blob([JSON.stringify({run_id:liveId,operation:'pause'})],{type:'application/json'}));});
 poll();setInterval(poll,200);requestAnimationFrame(animate);
