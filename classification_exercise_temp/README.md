@@ -327,3 +327,10 @@ The same audit accepts `--private-agreement /secure/path/agreement.csv` and
 reports only aggregate counts while checking that every private agreement label
 matches the current expert. Exact sources for the recorded v0.4 and v0.5
 controllers are retained for versioned reproduction.
+
+The [controller comparison](benchmarks/controller-comparison-v1.0.json)
+collects both current reference controllers' diagnostic and frozen-set results
+without combining the two success rates. It identifies continuous-only
+candidate cases, discrete successes and failures separately; the source
+archives retain each full replay. Rebuild it with `rocket_expert_aggregate.py`
+and the diagnostic and feasibility controller archives.
