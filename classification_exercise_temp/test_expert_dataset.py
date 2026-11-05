@@ -38,6 +38,20 @@ class DatasetTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'empty'):
                 export_draft(report, path)
 
+    def test_recovery_samples_are_deterministic_and_provenanced(self):
+        report = self.make_report(4.)
+        with tempfile.TemporaryDirectory() as tmp:
+            first, second = Path(tmp) / 'one', Path(tmp) / 'two'
+            a = export_draft(report, first, seed=7, recovery_per_episode=1)
+            b = export_draft(report, second, seed=7, recovery_per_episode=1)
+            self.assertEqual(a, b)
+            for split in ('train', 'validation'):
+                self.assertEqual((first / f'{split}.csv').read_bytes(), (second / f'{split}.csv').read_bytes())
+                metadata = [json.loads(line) for line in (first / f'{split}_metadata.jsonl').read_text().splitlines()]
+                self.assertEqual([row['provenance'] for row in metadata],
+                                 ['expert flight', 'perturbed recovery state'])
+                self.assertEqual(metadata[0]['group'], metadata[1]['group'])
+
     def test_near_duplicate_leakage_is_rejected(self):
         report = self.make_report(.005)
         with tempfile.TemporaryDirectory() as tmp:
