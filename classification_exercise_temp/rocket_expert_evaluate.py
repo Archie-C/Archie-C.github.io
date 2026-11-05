@@ -12,7 +12,7 @@ import time
 from rocket_calibration import configuration
 from rocket_closed_loop import evaluate_closed_loop
 from rocket_evaluation import CASES
-from rocket_expert import ExpertController
+from rocket_expert import ExpertController, SOURCE_SHA256
 from rocket_physics import clearance
 from rocket_scoring import aggregate
 from rocket_server import Run, state_packet
@@ -91,15 +91,41 @@ def _run_case(item):
                 policy_seconds=result['policy_seconds'], wall_seconds=wall, replay=replay_path)
 
 
-def evaluate(cases, intervals, output, max_time=20., workers=1, metadata=None):
+def evaluate(cases, intervals, output, max_time=20., workers=1, metadata=None, resume=False):
     output = Path(output)
     output.mkdir(parents=True, exist_ok=True)
     if workers < 1:
         raise ValueError('workers must be positive')
+    checkpoint = output / 'summary.json'
     reports = []
-    for interval in intervals:
-        rows = []
-        items = [(case, interval, str(output), max_time) for case in cases]
+    if checkpoint.exists():
+        if not resume:
+            raise ValueError('output already contains a summary; use --resume or a new directory')
+        saved = json.loads(checkpoint.read_text(encoding='utf-8'))
+        reports = saved['reports']
+        if (saved['expected_cases'] != len(cases) or saved['metadata'] != (metadata or {}) or
+                [r['control_interval'] for r in reports] != intervals[:len(reports)]):
+            raise ValueError('checkpoint configuration differs from requested evaluation')
+        for report in reports:
+            if len(report['runs']) > len(cases):
+                raise ValueError('checkpoint has too many runs')
+            for row, case in zip(report['runs'], cases):
+                if (row['case_id'] != case['case_id'] or row['tier'] != case['tier'] or
+                        row['scenario'] != case['scenario'] or row['initial'] != asdict(case['initial'])):
+                    raise ValueError('checkpoint case differs from requested evaluation')
+                replay = json.loads((output / row['replay']).read_text(encoding='utf-8'))
+                policy = replay['config']['closed_loop']['policy']
+                if policy['source_sha256'] != SOURCE_SHA256 or replay['config']['closed_loop']['max_time'] != max_time:
+                    raise ValueError('checkpoint controller or run limit differs')
+    for index, interval in enumerate(intervals):
+        if index < len(reports):
+            report = reports[index]
+            rows = report['runs']
+        else:
+            rows = []
+            report = dict(control_interval=interval, overall=None, tiers={}, runs=rows, complete=False)
+            reports.append(report)
+        items = [(case, interval, str(output), max_time) for case in cases[len(rows):]]
         # Ordered output makes the summaries and replay names reproducible.
         if workers == 1:
             completed = map(_run_case, items)
@@ -118,8 +144,6 @@ def evaluate(cases, intervals, output, max_time=20., workers=1, metadata=None):
                         policy_seconds=sum(r['policy_seconds'] for r in group), wall_seconds=sum(r['wall_seconds'] for r in group),
                         optimisation_failures=fallbacks, timeout_count=0, fallbacks=fallbacks,
                         fallback_frequency=fallbacks / total_decisions if total_decisions else 0.)
-        report = dict(control_interval=interval, overall=None, tiers={}, runs=rows, complete=False)
-        reports.append(report)
         try:
             for row in completed:
                 rows.append(row)
@@ -145,11 +169,13 @@ def main():
     parser.add_argument('--interval', type=float, choices=(.1, .05, .02), action='append')
     parser.add_argument('--max-time', type=float, default=20.)
     parser.add_argument('--workers', type=int, default=1)
+    parser.add_argument('--resume', action='store_true')
     args = parser.parse_args()
     cases = sample_cases(args.seed, args.per_tier) if args.set == 'held-out' else regression_cases()
     evaluate(cases, args.interval or [.1, .05, .02], args.output, args.max_time, args.workers,
              metadata=dict(scenario_set=args.set, seed=args.seed if args.set == 'held-out' else None,
-                           per_tier=args.per_tier if args.set == 'held-out' else None, max_time=args.max_time))
+                           per_tier=args.per_tier if args.set == 'held-out' else None, max_time=args.max_time),
+             resume=args.resume)
 
 
 if __name__ == '__main__':

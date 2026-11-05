@@ -69,6 +69,11 @@ class ExpertSimplificationTests(unittest.TestCase):
             replay = json.loads((Path(tmp) / report['runs'][0]['replay']).read_text())
             self.assertEqual(replay['schema'], 'rocket-run-v1')
             self.assertEqual(replay['terminal']['reason'], 'run time limit')
+            with self.assertRaises(ValueError):
+                evaluate([case], [.1], tmp, max_time=.1)
+            self.assertEqual(evaluate([case], [.1], tmp, max_time=.1, resume=True)[0]['runs'], report['runs'])
+            with self.assertRaises(ValueError):
+                evaluate([case], [.05], tmp, max_time=.1, resume=True)
 
     def test_historical_expert_loads_by_hash(self):
         import hashlib
