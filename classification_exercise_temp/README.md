@@ -138,3 +138,19 @@ existing touchdown scoring: approximately 98.57 for continuous guidance and
 95.36 for the discrete baseline. These single cases do not establish robustness
 or certify the predictive expert; the other diagnostic and feasibility cases
 still need evaluation.
+
+Run the closed-loop diagnostic benchmark separately from the open-loop action
+sequence evaluation:
+
+```sh
+python3 classification_exercise_temp/rocket_expert_benchmark.py /tmp/diagnostic.json --set diagnostic
+python3 classification_exercise_temp/rocket_expert_benchmark.py /tmp/feasibility.json --set feasibility
+```
+
+The report retains a complete replay and touchdown result for every run. It
+compares all-off, always-full-thrust, continuous guidance, discrete guidance and
+the experimental predictive expert; it includes failure reasons and fallback
+frequency. Solver time is measured outside replay records and varies by runtime.
+The fixed-seed feasibility set is exploratory: a continuous safe contact is
+only evidence for a candidate case, and no success target or certification has
+been assigned. The diagnostic benchmark can take several minutes.

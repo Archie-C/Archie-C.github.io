@@ -7,6 +7,7 @@ from rocket_calibration import configuration
 from rocket_closed_loop import OBSERVATION_NAMES, evaluate_closed_loop, make_observation
 from rocket_physics import discrete_command
 from rocket_expert import DiscreteExpert, guidance, simple_discrete_guidance
+from rocket_expert_benchmark import benchmark, diagnostic_cases, feasibility_cases
 from unittest.mock import patch
 
 
@@ -67,6 +68,20 @@ class ClosedLoopTests(unittest.TestCase):
                     self.assertTrue(all('throttle' in d['command'] for d in result['decisions']))
                 else:
                     self.assertTrue(all(d['action'] in range(10) for d in result['decisions']))
+
+    def test_benchmark_retains_cases_and_results(self):
+        self.assertEqual(len(diagnostic_cases()), 12)
+        self.assertEqual(feasibility_cases(), feasibility_cases())
+        self.assertEqual(len(feasibility_cases()), 12)
+        cases = diagnostic_cases()[:1]
+        report = benchmark(cases, ['all_off'], max_time=.2)
+        result = report['policies']['all_off']
+        self.assertEqual(result['metrics']['total_runs'], 1)
+        self.assertEqual(result['failure_reasons'], {'no contact': 1})
+        self.assertEqual(result['runs'][0]['case_id'], cases[0]['case_id'])
+        self.assertIsNone(report['cases'][0]['discrete_expert_safe'])
+        self.assertIn('snapshots', result['runs'][0]['replay'])
+        self.assertGreaterEqual(result['mean_wall_seconds_per_decision'], 0)
 
     def test_predictive_expert_centred_touchdown(self):
         p, initial = configuration('centred_descent')

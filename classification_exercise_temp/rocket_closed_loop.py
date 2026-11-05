@@ -5,6 +5,7 @@ import inspect
 from pathlib import Path
 import json
 import math
+import time
 
 import numpy as np
 
@@ -35,7 +36,7 @@ def make_observation(state, time, parameters):
     return observation
 
 
-def evaluate_closed_loop(policy, initial_state, parameters, scenario_id, *, max_time=30.0, control_mode="discrete"):
+def evaluate_closed_loop(policy, initial_state, parameters, scenario_id, *, max_time=30.0, control_mode="discrete", measure_time=False):
     """Run a trusted stateless policy at fixed simulation-time boundaries.
 
     The scenario must describe the supplied configuration, so replay metadata
@@ -60,7 +61,7 @@ def evaluate_closed_loop(policy, initial_state, parameters, scenario_id, *, max_
     provenance = dict(name=getattr(policy, '__qualname__', type(policy).__name__),
                       version=getattr(owner, 'version', None),
                       settings=getattr(owner, 'solver_settings', None),
-                      source_sha256=hashlib.sha256(Path(source).read_bytes()).hexdigest() if source else None)
+                      source_sha256=hashlib.sha256(Path(source).read_bytes()).hexdigest() if source and Path(source).is_file() else None)
     identity = json.dumps([run.config['physics_config'], asdict(initial_state), max_time, control_mode, provenance], sort_keys=True)
     run.id = hashlib.sha256(identity.encode()).hexdigest()[:32]
     run.config['run_id'] = run.id
@@ -68,6 +69,7 @@ def evaluate_closed_loop(policy, initial_state, parameters, scenario_id, *, max_
     run.config['closed_loop'] = dict(max_time=max_time, control_mode=control_mode, policy=provenance)
     run.snapshots = [state_packet(run, 0, initial_state, run.command.copy(), 0)]
     decisions = []
+    policy_seconds = 0.
     run.status = 'running'
     # Detect initial contact before asking the policy for an action.
     if clearance(initial_state, parameters)[0] <= 0:
@@ -80,7 +82,12 @@ def evaluate_closed_loop(policy, initial_state, parameters, scenario_id, *, max_
             break
         obs = make_observation(run.state, run.t, parameters)
         try:
-            output = policy(obs.copy())
+            started = time.perf_counter() if measure_time else None
+            try:
+                output = policy(obs.copy())
+            finally:
+                if measure_time:
+                    policy_seconds += time.perf_counter() - started
             if control_mode == 'continuous':
                 if not isinstance(output, Command):
                     raise ValueError('continuous policy must return a Command')
@@ -104,5 +111,8 @@ def evaluate_closed_loop(policy, initial_state, parameters, scenario_id, *, max_
             run.advance()
     replay = run.record()
     replay['decisions'] = decisions
-    return dict(scenario_id=scenario_id, decisions=decisions,
-                scoring=run.event['scoring'], termination_reason=run.event['reason'], replay=replay)
+    result = dict(scenario_id=scenario_id, decisions=decisions,
+                  scoring=run.event['scoring'], termination_reason=run.event['reason'], replay=replay)
+    if measure_time:
+        result['policy_seconds'] = policy_seconds
+    return result
