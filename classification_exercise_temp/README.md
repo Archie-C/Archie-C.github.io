@@ -1,12 +1,21 @@
 # Rocket landing expert
 
-The simulator uses a Falcon 9-inspired calibrated model, deterministic physics and the `touchdown-v1.0` first-contact scorer. `ExpertController` selects one of ten discrete actions every 0.10 seconds. Its five-step predictive search and the 0.01-second physics timestep are unchanged; the selected expert achieved 241/300 successful landings in the earlier held-out evaluation.
+The simulator uses a Falcon 9-inspired calibrated model, deterministic physics and the `touchdown-v1.0` first-contact scorer. `ExpertController` selects one of ten discrete actions every 0.10 seconds. Its five-step predictive search and the 0.01-second physics timestep are unchanged; the previous expert achieved 241/300 successful landings in an earlier held-out evaluation.
 
 Install Python 3.10+ and `python3 -m pip install -r requirements.txt`. Generate a CSV with:
 
 ```sh
 python3 generate_dataset.py --runs 100 --seed 42 --output landings.csv
 ```
+
+Landings run in parallel by default, using up to the available CPU count. Use
+`--workers 4` to choose a process count, or `--workers 1` for serial execution.
+For the same seed and run count, the output is identical regardless of worker
+count. Parallel execution uses more CPU and memory; the best speedup depends on
+the machine and number of runs.
+The terminal reports completed runs, successful landings, elapsed time, and
+the final row count; progress messages are limited to roughly one every five
+seconds, plus the first and last completed run.
 
 Each independently sampled start varies position, velocity, orientation, rotation, fuel and constant horizontal and vertical wind. Nominal, challenging and extreme ranges are sampled. Runs end at first contact or after 20 seconds; unsuccessful contacts and timeouts remain in the CSV. Each row contains an observation immediately before an expert decision, its action (0–9), and the final run outcome. Run IDs are unique within the file; the seed makes the dataset reproducible. `success` is outcome metadata and must not be used as a controller observation or classifier input.
 
@@ -28,5 +37,17 @@ Run checks with:
 python3 -m unittest test_dataset test_rocket_physics test_scoring test_calibration test_rocket_rendering
 node test_rendering.js
 ```
+
+To measure landing success and contact failure reasons on reproducible sampled
+starts, run `python benchmark_expert.py --runs 30 --seed 42001 --workers 4`.
+Add `--output results.json` to save the per-flight outcomes and final
+pre-decision observations. This benchmark uses the same 20-second limit as
+dataset generation.
+
+In paired tests of the current expert against the previous version, the
+current version landed 27/30 versus 22/30 starts (seed 42001), 25/30 versus
+25/30 (seed 72002), and 53/60 versus 48/60 (seed 91041). These samples do not
+guarantee success on other starts; fuel, pad position, and the time limit can
+still prevent a landing.
 
 The regression tests run the expert on 18 previously successful starts and take considerably longer than the other tests. `test_browser.js` is an optional browser end-to-end check; start the server first and supply `CHROME_PATH` if needed.

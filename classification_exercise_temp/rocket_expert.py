@@ -16,7 +16,7 @@ from rocket_scoring import score_contact
 
 # Freeze provenance at import, before a long-running evaluation begins.
 SOURCE_SHA256 = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
-EXPERT_VERSION = 'expert-closed-loop-v1.0'
+EXPERT_VERSION = 'expert-closed-loop-v1.1'
 
 
 def _state(observation):
@@ -24,6 +24,10 @@ def _state(observation):
     if v.shape != (12,) or not np.all(np.isfinite(v)):
         raise ValueError('expected 12 finite observation values')
     return State(*map(float, v[:9]))
+
+
+def _desired_theta(state):
+    return max(-.12, min(.12, .003 * state.x + .035 * state.vx))
 
 
 def guidance(observation):
@@ -39,8 +43,12 @@ def guidance(observation):
     desired_vy = -max(1., .65 * math.sqrt(2 * braking * height))
     acceleration = max(-p.g0, min(braking, 3. * (desired_vy - s.vy) + braking * .65**2))
     throttle = (mass * (p.g0 + acceleration) - p.min_thrust) / (p.max_thrust - p.min_thrust)
+    desired_theta = _desired_theta(s)
     throttle = 0. if throttle <= .15 or s.fuel <= 0 else min(1., max(.01, throttle))
-    desired_theta = max(-.12, min(.12, .003 * s.x + .035 * s.vx))
+    # Near touchdown an unpowered engine cannot provide attitude control.
+    if (not throttle and s.fuel > 0 and height < 100.
+            and abs(s.theta - desired_theta + 3. * s.omega) > .06):
+        throttle = p.throttle_levels[0]
     gimbal = max(-1., min(1., 4. * (s.theta - desired_theta) + 12. * s.omega)) if throttle else 0.
     return Command(throttle, gimbal)
 
@@ -64,7 +72,7 @@ class ExpertController:
     Each candidate starts with a different action and continues with a fixed
     guidance baseline; predictions use the authoritative step and contact
     solver. Wind and density are held at their observed values throughout the
-    short horizon. No plan or state is retained across calls.
+    short horizon. The previous action is retained for the switching penalty.
     """
     version = EXPERT_VERSION
 
@@ -119,6 +127,10 @@ class ExpertController:
                     mass = p.dry_mass + candidate.fuel
                     braking = max(.1, p.max_thrust / mass - p.g0)
                     desired_vy = -max(1., .65 * math.sqrt(2 * braking * height))
+                    # At altitude, allow the vehicle to tilt for lateral
+                    # correction; favor upright attitude near touchdown.
+                    target_theta = _desired_theta(candidate)
+                    target_theta *= max(0., min(1., (height - 100.) / 100.))
                     # Guidance tracking encourages progress even when the short
                     # horizon cannot reach contact; predicted state and contact
                     # can outweigh the initial command's tracking penalty.
@@ -126,7 +138,7 @@ class ExpertController:
                             + .1 * (first.gimbal - desired.gimbal)**2
                             + .005 * (candidate.vy - desired_vy)**2
                             + .002 * candidate.x**2 + .05 * candidate.vx**2
-                            + 20 * candidate.theta**2 + 40 * candidate.omega**2)
+                            + 20 * (candidate.theta - target_theta)**2 + 40 * candidate.omega**2)
                 if not math.isfinite(cost):
                     raise ArithmeticError('nonfinite candidate cost')
                 if contact is None:

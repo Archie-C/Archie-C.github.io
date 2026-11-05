@@ -42,7 +42,8 @@ class DatasetTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp, patch('generate_dataset.random_initial_state', return_value=(state, p)), \
              patch('generate_dataset.run_expert', side_effect=[(successful, {'success': True}), (failed, {'success': False})]):
             path = Path(tmp) / 'data.csv'
-            generate_dataset(2, 7, path)
+            with self.assertLogs('generate_dataset', level='INFO') as logs:
+                generate_dataset(2, 7, path)
             with path.open(newline='') as source:
                 reader = csv.reader(source)
                 self.assertEqual(next(reader), list(COLUMNS))
@@ -50,6 +51,25 @@ class DatasetTests(unittest.TestCase):
         self.assertEqual(rows, [[str(x) for x in (0, 0, *successful[0][0], 3, 1)],
                                 [str(x) for x in (0, 1, *successful[1][0], 8, 1)],
                                 [str(x) for x in (1, 0, *failed[0][0], 0, 0)]])
+        self.assertTrue(any('Completed 2/2 runs' in message and '1 successful' in message for message in logs.output))
+        self.assertTrue(any('Wrote 3 rows' in message for message in logs.output))
+
+    def test_parallel_output_matches_serial(self):
+        p, state = configuration('centred_descent')
+        state = replace(state, y=25., vy=-2., fuel=4000.)
+        with tempfile.TemporaryDirectory() as tmp, \
+             patch('generate_dataset.random_initial_state', return_value=(state, p)):
+            serial = Path(tmp) / 'serial.csv'
+            parallel = Path(tmp) / 'parallel.csv'
+            generate_dataset(5, 42, serial, workers=1)
+            with self.assertLogs('generate_dataset', level='INFO') as logs:
+                generate_dataset(5, 42, parallel, workers=2)
+            self.assertEqual(serial.read_bytes(), parallel.read_bytes())
+            self.assertTrue(any('Completed 5/5 runs' in message for message in logs.output))
+
+    def test_invalid_worker_count(self):
+        with self.assertRaises(ValueError):
+            generate_dataset(1, 0, 'unused.csv', workers=0)
 
     def test_successful_regressions(self):
         cases = []

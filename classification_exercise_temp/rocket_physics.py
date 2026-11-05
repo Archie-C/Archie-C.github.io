@@ -5,6 +5,7 @@ centre of mass. Angular acceleration uses the specified effective exhaust-flux
 closure I * omega_dot = torque, not d(I*omega)/dt = torque.
 """
 from dataclasses import dataclass
+from functools import lru_cache
 from math import atan2, cos, hypot, isfinite, sin
 from typing import Callable
 
@@ -115,10 +116,15 @@ class Parameters:
 def discrete_command(action: int, p: Parameters) -> Command:
     if type(action) is not int or not 0 <= action <= 9:
         raise ValueError('action must be an integer from 0 to 9')
+    return _discrete_command(action, p.throttle_levels)
+
+
+@lru_cache(maxsize=128)
+def _discrete_command(action: int, throttle_levels: tuple[float, float, float]) -> Command:
     if action == 0:
         return Command(0, 0)
     i = action - 1
-    return Command(p.throttle_levels[i // 3], (1, 0, -1)[i % 3])
+    return Command(throttle_levels[i // 3], (1, 0, -1)[i % 3])
 
 
 def mass_properties(fuel: float, p: Parameters) -> tuple[float, Vector, float]:
@@ -148,9 +154,13 @@ def relative_point(point: Vector, centre: Vector, theta: float) -> Vector:
     return world_vector((point[0] - centre[0], point[1] - centre[1]), theta)
 
 
-def forces(t: float, s: State, p: Parameters, *, _powered: bool | None = None):
+def forces(t: float, s: State, p: Parameters, *, _powered: bool | None = None,
+           _centre: Vector | None = None):
     """Return thrust, drag, lift, thrust torque, aero torque and damping."""
-    _, c, _ = mass_properties(clip(s.fuel, 0, p.fuel_capacity), p)
+    if _centre is None:
+        _, c, _ = mass_properties(clip(s.fuel, 0, p.fuel_capacity), p)
+    else:
+        c = _centre
     thrust = s.thrust if (s.fuel > 0 if _powered is None else _powered) else 0.0
     ft = (-thrust * sin(s.theta + s.gimbal), thrust * cos(s.theta + s.gimbal))
     torque_t = cross(relative_point(p.engine, c, s.theta), ft)
@@ -180,9 +190,9 @@ def forces(t: float, s: State, p: Parameters, *, _powered: bool | None = None):
 def derivative(t: float, s: State, command: Command, p: Parameters, *, _powered: bool | None = None) -> State:
     if not all(isfinite(v) for v in s.values()):
         raise ValueError('non-finite state')
-    mass, _, inertia = mass_properties(clip(s.fuel, 0, p.fuel_capacity), p)
+    mass, centre, inertia = mass_properties(clip(s.fuel, 0, p.fuel_capacity), p)
     powered = s.fuel > 0 if _powered is None else _powered
-    ft, fd, fl, torque, aero_torque, _ = forces(t, s, p, _powered=powered)
+    ft, fd, fl, torque, aero_torque, _ = forces(t, s, p, _powered=powered, _centre=centre)
     g = p.gravity(s.y)
     if not isfinite(g) or g < 0:
         raise ValueError('gravity must be finite and nonnegative')
@@ -252,6 +262,26 @@ def clearance(s: State, p: Parameters) -> tuple[float, Vector]:
     return min(((y - ground_height(x, p.terrain), (x, y)) for x, y in points), key=lambda item: item[0])
 
 
+@lru_cache(maxsize=128)
+def _contact_geometry(terrain, hull, feet, dry_centroid, tank_bottom, tank_height,
+                      dry_mass, fuel_capacity):
+    """Cache geometry-only terms used by every contact search."""
+    slopes = [abs((b[1] - a[1]) / (b[0] - a[0]))
+              for a, b in zip(terrain, terrain[1:])]
+    slope = max(slopes, default=0.0)
+    # The mixture centroid lies between the dry centroid and the tank axis.
+    fuel_ends = ((0.0, tank_bottom), (0.0, tank_bottom + tank_height / 2))
+    references = (dry_centroid, *fuel_ends)
+    points = (*hull, *feet)
+    radius = max(hypot(point[0] - c[0], point[1] - c[1])
+                 for point in points for c in references)
+    centroid_span = max(hypot(dry_centroid[0] - c[0], dry_centroid[1] - c[1])
+                        for c in fuel_ends)
+    # Bound |dc/dfuel| for the tank, including the moving fuel centroid.
+    centre_rate = centroid_span / dry_mass + tank_height / (2 * fuel_capacity)
+    return slope, radius, centre_rate
+
+
 def _contact_search(evaluate, coefficients, duration: float, p: Parameters):
     """Find first contact on the RK4 continuous extension, conservatively.
 
@@ -260,19 +290,9 @@ def _contact_search(evaluate, coefficients, duration: float, p: Parameters):
     interval can be rejected only when that bound proves it stays above the
     surface. Near a tangent, terminate on the safe side at time tolerance.
     """
-    slopes = [abs((b[1] - a[1]) / (b[0] - a[0]))
-              for a, b in zip(p.terrain, p.terrain[1:])]
-    slope = max(slopes, default=0.0)
-    # The mixture centroid lies between the dry centroid and the tank axis.
-    fuel_ends = ((0.0, p.tank_bottom), (0.0, p.tank_bottom + p.tank_height / 2))
-    references = (p.dry_centroid, *fuel_ends)
-    points = (*p.hull, *p.feet)
-    radius = max(hypot(point[0] - c[0], point[1] - c[1])
-                 for point in points for c in references)
-    centroid_span = max(hypot(p.dry_centroid[0] - c[0], p.dry_centroid[1] - c[1])
-                        for c in fuel_ends)
-    # Bound |dc/dfuel| for the tank, including the moving fuel centroid.
-    centre_rate = centroid_span / p.dry_mass + p.tank_height / (2 * p.fuel_capacity)
+    slope, radius, centre_rate = _contact_geometry(
+        p.terrain, p.hull, p.feet, p.dry_centroid, p.tank_bottom,
+        p.tank_height, p.dry_mass, p.fuel_capacity)
     def rate_bound(i):
         a, b, c = coefficients[i]
         return abs(a) + 2 * abs(b) + 3 * abs(c)
@@ -327,7 +347,7 @@ def step(t: float, s: State, command: Command, p: Parameters, h: float) -> tuple
         # A bounded actuator substep keeps RK4 stable even if the requested
         # physics step is much larger than an actuator response time.
         duration = min(end - t, p.thrust_tau, p.gimbal_tau)
-        candidate = _rk4(t, s, command, p, duration)
+        candidate, trajectory, coefficients = _rk4_trajectory(t, s, command, p, duration)
         def metrics(state):
             return (state.fuel if s.fuel > 0 else 1.0,
                     state.thrust, p.max_thrust - state.thrust,
@@ -344,7 +364,8 @@ def step(t: float, s: State, command: Command, p: Parameters, h: float) -> tuple
                     else: hi = mid
                 events.append((hi, i, lo))
         event_duration = min(events)[0] if events else duration
-        _, trajectory, coefficients = _rk4_trajectory(t, s, command, p, event_duration)
+        if events:
+            _, trajectory, coefficients = _rk4_trajectory(t, s, command, p, event_duration)
         contact = _contact_search(trajectory, coefficients, event_duration, p)
         if contact is not None:
             fraction, contact_state = contact
