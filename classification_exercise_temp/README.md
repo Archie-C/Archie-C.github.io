@@ -292,3 +292,6 @@ used fallback 15 times. The continuous reference landed 7 and used fallback
 12 times; its [diagnostic report](benchmarks/diagnostic-continuous-reference-summary.json)
 retains every case and failure reason. These diagnostics are distinct from the
 frozen feasibility set and do not imply every preset is recoverable.
+The matching [diagnostic baseline report](benchmarks/diagnostic-baselines-summary.json)
+includes the all-off, fixed-burn and continuous-guidance cases; their complete
+replays are retained in the corresponding compressed report.
