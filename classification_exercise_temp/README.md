@@ -338,3 +338,16 @@ The exact `rocket-softmax-v0.2` source is retained under `versions/` alongside
 the expert sources. Its recorded weights and scaler can be restored with
 `SoftmaxPolicy.from_settings`; both archived classifier variants have been
 checked by reproducing their closed-loop replays.
+
+For a new candidate, the freeze command accepts the six paths below; the final
+and sanity reports are uncompressed JSON, while the source benchmark may be
+JSON or `.json.gz`:
+
+```sh
+python3 classification_exercise_temp/rocket_expert_release.py \
+  "$DRAFT_DIR" "$PRIVATE_DIR" "$FINAL_REPORT" "$SANITY_REPORT" \
+  "$SOURCE_REPORT" "$OUTPUT_DIR"
+```
+
+`OUTPUT_DIR` must not already exist. The checker does not publish anything or
+create a student-upload service.
