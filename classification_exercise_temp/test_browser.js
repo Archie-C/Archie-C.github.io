@@ -50,6 +50,7 @@ async function waitFor(fn, label, timeout=10000) {
   assert.equal(await evaluate(`(()=>{let before=record;try{setRecord({schema:'bad'})}catch(_){}return before===record})()`),true);
 
   await evaluate("$('begin').click()");assert.equal(await evaluate('view.time'),0);
+  await evaluate("$('forward').click()");assert.equal(await evaluate('view.time'),0);assert.equal(await evaluate('view.command.throttle'),.6);
   await evaluate("$('forward').click()");assert.ok(await evaluate('view.time>0'));
   await evaluate("$('terminal').click()");assert.equal(await evaluate('frame'),end);
   await evaluate("$('back').click();$('forward').click()");assert.equal(await evaluate('frame'),end);

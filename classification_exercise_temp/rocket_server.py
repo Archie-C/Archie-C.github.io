@@ -111,10 +111,17 @@ class Run:
         return item
 
     def advance(self):
+        applied = False
         while self.pending and self.pending[0]['effective_time'] <= self.t + 1e-10:
             item = self.pending.pop(0)
             self.command = {k:item[k] for k in ('throttle', 'gimbal', 'action')}
             self.commands.append(item)
+            applied = True
+        if applied:
+            # Preserve the exact command transition even when it shares the
+            # timestamp and physical pose of the preceding integration frame.
+            self.tick += 1
+            self.snapshots.append(state_packet(self, self.t, self.state, self.command.copy(), self.tick))
         h = min(self.p.timestep, (math.floor((self.t+1e-10)/self.p.control_interval)+1)*self.p.control_interval-self.t)
         self.state, contact = step(self.t, self.state, Command(self.command['throttle'], self.command['gimbal']), self.p, h)
         self.t = contact.time if contact else self.t + h
@@ -245,15 +252,22 @@ class Handler(BaseHTTPRequestHandler):
 def offline(actions):
     """Generate a complete predetermined discrete-action recording with simulate()."""
     r = Run()
+    current_action = -1
     for t, s, contact in simulate(r.initial, actions, r.p):
         if t == 0 and contact is None: continue
         i = min(len(actions)-1, max(0, math.ceil((t-1e-10)/r.p.control_interval)-1))
         cmd = discrete_command(actions[i], r.p)
         command = dict(throttle=cmd.throttle, gimbal=cmd.gimbal, action=actions[i])
-        r.snapshots.append(state_packet(r, t, s, command, len(r.snapshots), contact))
+        if i != current_action:
+            previous = r.snapshots[-1]
+            transition_time = previous['time']
+            previous_state = State(**previous['state'])
+            r.commands.append(dict(command_sequence=i, effective_time=transition_time, **command))
+            r.snapshots.append(state_packet(r, transition_time, previous_state, command.copy(), len(r.snapshots)))
+            current_action = i
+        r.snapshots.append(state_packet(r, t, s, command.copy(), len(r.snapshots), contact))
         if contact:
             r.event = dict(type='contact', time=contact.time, point=contact.point, state=asdict(contact.state), reason='first ground contact')
-    r.commands = [dict(command_sequence=i, effective_time=i*r.p.control_interval, action=a, **asdict(discrete_command(a, r.p))) for i,a in enumerate(actions) if i*r.p.control_interval < r.snapshots[-1]['time']]
     r.status = 'contact' if r.event else 'completed'
     if not r.event: r.event = dict(type='completed', time=r.snapshots[-1]['time'], reason='action sequence exhausted')
     return r.record()

@@ -55,8 +55,17 @@ class AdapterTests(unittest.TestCase):
             self.assertEqual(r.record()['snapshots'], r.record()['snapshots'])
         recording = offline(actions)
         expected = list(simulate(r.initial, actions, r.p))
-        self.assertEqual([p['time'] for p in recording['snapshots']], [t for t, _, _ in expected])
-        self.assertEqual([tuple(p['state'].values()) for p in recording['snapshots']], [s.values() for _, s, _ in expected])
+        simulated = iter(expected)
+        current = next(simulated, None)
+        for packet in recording['snapshots']:
+            if current and packet['time'] == current[0] and tuple(packet['state'].values()) == current[1].values():
+                current = next(simulated, None)
+        self.assertIsNone(current, 'all simulate() states must be retained')
+        self.assertEqual(recording['snapshots'][1]['time'], 0)
+        self.assertEqual(recording['snapshots'][1]['command']['action'], 1)
+        for command in recording['commands']:
+            frames = [p for p in recording['snapshots'] if p['time'] == command['effective_time']]
+            self.assertEqual(frames[-1]['command']['action'], command['action'])
         self.assertEqual(recording['terminal']['reason'], 'action sequence exhausted')
 
     def test_incremental_record_is_complete_and_does_not_alias_lists(self):
