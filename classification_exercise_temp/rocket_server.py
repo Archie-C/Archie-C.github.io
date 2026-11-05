@@ -11,6 +11,7 @@ import uuid
 from urllib.parse import parse_qs, urlsplit
 
 import rocket_physics
+import rocket_calibration as calibration
 from rocket_physics import Command, Parameters, State, clearance, discrete_command, forces, mass_properties, simulate, step
 
 ROOT = Path(__file__).resolve().parent
@@ -20,21 +21,21 @@ MAX_SNAPSHOTS = 20000
 MAX_COMMANDS = 20000
 
 
-def scenario():
-    # Illustrative, deliberately uncalibrated parameters; not flight hardware.
-    p = Parameters(dry_mass=10, dry_centroid=(0, 1), dry_inertia=8,
-        fuel_capacity=10, tank_bottom=0, tank_height=2, tank_radius=.5,
-        engine=(0, 0), hull=((-0.5, 0), (0.5, 0), (0.5, 2.3), (0, 3), (-0.5, 2.3)),
-        feet=((-1, -0.5), (1, -0.5)), area=1, length=3,
-        min_thrust=0, max_thrust=200, isp=40, g0=9.81,
-        thrust_tau=.5, thrust_rate=1000, gimbal_max=.3, gimbal_tau=.5,
-        gimbal_rate=2, cmq=1, speed_epsilon=.01, throttle_levels=(.2, .5, 1),
-        control_interval=.2, timestep=.02, event_tolerance=1e-9,
-        gravity=lambda y: 9.81, density=lambda y: .02, wind=lambda y, t: (0, 0),
-        drag_coefficient=lambda a: 1, lift_coefficient=math.sin,
-        centre_of_pressure=lambda a: (0, 2),
-        terrain=((-100, 4), (-30, 0), (30, 0), (100, 8)))
-    return p, State(0, 60, 2, -5, .08, 0, 8, 0, 0)
+def scenario(name='demo_descent'):
+    return calibration.configuration(name)
+
+
+def contact_quality(contact, p):
+    """Classify first contact only; no stability or impact model is implied."""
+    s = contact.state
+    _, centre, _ = mass_properties(s.fuel, p)
+    feet = [(s.x + rocket_physics.relative_point(foot, centre, s.theta)[0],
+             s.y + rocket_physics.relative_point(foot, centre, s.theta)[1]) for foot in p.feet]
+    foot_first = any(math.hypot(x-contact.point[0], y-contact.point[1]) < .01 for x, y in feet)
+    inside = abs(contact.point[0]) <= calibration.CONCRETE_EDGE and all(abs(x) <= calibration.CONCRETE_EDGE for x, _ in feet)
+    safe = (foot_first and inside and abs(s.vx) <= 1.5 and -3 <= s.vy <= 0
+            and abs(s.theta) <= math.radians(4) and abs(s.omega) <= math.radians(2))
+    return 'candidate safe first contact' if safe else 'contact outside envelope'
 
 
 def state_packet(run, t, state, command, sequence, contact=None):
@@ -43,22 +44,30 @@ def state_packet(run, t, state, command, sequence, contact=None):
     wind = run.p.wind(state.y, t)
     air = (state.vx - wind[0], state.vy - wind[1])
     speed = math.hypot(*air)
+    alpha = None
     if speed:
         tail = (math.sin(state.theta), -math.cos(state.theta))
         alpha = math.atan2(tail[0]*air[1] - tail[1]*air[0], tail[0]*air[0] + tail[1]*air[1])
         cp = run.p.centre_of_pressure(alpha)
     else:
         cp = None  # Angle of attack (and thus pressure centre) is undefined.
+    violations = []
+    if not 0 <= state.y <= 1000: violations.append('altitude')
+    if speed > 130: violations.append('airspeed')
+    if alpha is not None and abs(alpha) > math.radians(35): violations.append('angle of attack')
+    run.envelope_left = run.envelope_left or bool(violations)
     return dict(run_id=run.id, sequence=sequence, time=t, state=asdict(state),
                 command=command, centre=centre, diagnostics=dict(mass=mass, inertia=inertia,
                 thrust_vector=thrust, aero_force=[drag[0]+lift[0], drag[1]+lift[1]],
-                aero_torque=at, wind=wind, airspeed=speed, centre_of_pressure=cp, clearance=clearance(state, run.p)[0]),
+                aero_torque=at, wind=wind, airspeed=speed, angle_of_attack=alpha, envelope_violations=violations, envelope_left=run.envelope_left, centre_of_pressure=cp, clearance=clearance(state, run.p)[0]),
                 contact=asdict(contact) if contact else None)
 
 
 class Run:
-    def __init__(self):
-        self.p, self.initial = scenario()
+    def __init__(self, scenario_name='demo_descent'):
+        self.scenario_name = scenario_name
+        self.p, self.initial = scenario() if scenario_name == 'demo_descent' else scenario(scenario_name)
+        self.envelope_left = False
         self.id = uuid.uuid4().hex
         self.status = 'ready'
         self.t = 0.0
@@ -73,17 +82,15 @@ class Run:
         self.last_wall = time.monotonic()
         self.tick = 0
         numeric = {k:v for k,v in asdict(self.p).items() if not callable(v)}
-        environment = dict(gravity='9.81 m/s² constant', density='0.02 kg/m³ constant',
-            wind='(0, 0) m/s', drag_coefficient='1', lift_coefficient='sin(alpha)',
-            centre_of_pressure='(0, 2) m in body coordinates')
+        meta = calibration.metadata(scenario_name)
         engine_hash = hashlib.sha256(Path(rocket_physics.__file__).read_bytes()).hexdigest()
-        definition = dict(parameters=numeric, environment=environment, physics_engine_sha256=engine_hash)
+        definition = dict(parameters=numeric, **meta, physics_engine_sha256=engine_hash)
         identity = hashlib.sha256(json.dumps(definition, sort_keys=True).encode()).hexdigest()
-        self.config = dict(schema=SCHEMA, run_id=self.id, physics_config='illustrative-v1:'+identity,
-            parameter_status='Uncalibrated illustrative test parameters', parameters=numeric,
-            environment=environment, physics_engine_sha256=engine_hash,
+        self.config = dict(schema=SCHEMA, run_id=self.id, physics_config=calibration.NAME+':'+identity,
+            parameter_status='Falcon 9–inspired engineering model (not flight-certified).',
+            parameters=numeric, **meta, physics_engine_sha256=engine_hash,
             units='SI; angles in radians', recording_limits=dict(snapshots=MAX_SNAPSHOTS, commands=MAX_COMMANDS), initial_state=asdict(self.initial),
-            actions=[asdict(discrete_command(i, self.p)) for i in range(10)], pad=None)
+            actions=[asdict(discrete_command(i, self.p)) for i in range(10)])
         self.snapshots = [state_packet(self, 0, self.state, self.command.copy(), 0)]
 
     def record(self, after=None):
@@ -164,7 +171,7 @@ class Run:
         self.snapshots.append(state_packet(self, self.t, self.state, self.command.copy(), self.tick, contact))
         if contact:
             self.status = 'contact'
-            self.event = dict(run_id=self.id, type='contact', time=contact.time, point=contact.point, state=asdict(contact.state), reason='first ground contact')
+            self.event = dict(run_id=self.id, type='contact', time=contact.time, point=contact.point, state=asdict(contact.state), reason='first ground contact', quality=contact_quality(contact, self.p))
 
     def wall_tick(self, now):
         elapsed = max(0., now-self.last_wall)
@@ -256,13 +263,14 @@ class Handler(BaseHTTPRequestHandler):
                     if data.get('run_id') != run.id: raise ValueError('unknown run_id')
                     last_client = time.monotonic()
                     for action in actions: discrete_command(action, run.p)
+                    scenario_name = run.scenario_name
                 # Generation is independent; it must not hold the live worker lock.
-                self.reply(offline(actions))
+                self.reply(offline(actions, scenario_name))
                 return
             with lock:
                 last_client = time.monotonic()
                 if self.path == '/api/reset':
-                    run = Run(); self.reply(run.record()); return
+                    run = Run(data.get('scenario', run.scenario_name)); self.reply(run.record()); return
                 if data.get('run_id') != run.id: raise ValueError('unknown run_id')
                 if self.path == '/api/command':
                     self.reply(run.queue(data)); return
@@ -284,9 +292,9 @@ class Handler(BaseHTTPRequestHandler):
         pass
 
 
-def offline(actions):
+def offline(actions, scenario_name='demo_descent'):
     """Generate a complete predetermined discrete-action recording with simulate()."""
-    r = Run()
+    r = Run(scenario_name)
     per_action = math.ceil(r.p.control_interval / r.p.timestep) + 2
     if len(actions) * per_action + 1 > MAX_SNAPSHOTS:
         raise ValueError('action sequence exceeds recording capacity')
@@ -305,7 +313,7 @@ def offline(actions):
             current_action = i
         r.snapshots.append(state_packet(r, t, s, command.copy(), len(r.snapshots), contact))
         if contact:
-            r.event = dict(run_id=r.id, type='contact', time=contact.time, point=contact.point, state=asdict(contact.state), reason='first ground contact')
+            r.event = dict(run_id=r.id, type='contact', time=contact.time, point=contact.point, state=asdict(contact.state), reason='first ground contact', quality=contact_quality(contact, r.p))
     r.status = 'contact' if r.event else 'completed'
     if not r.event: r.event = dict(run_id=r.id, type='completed', time=r.snapshots[-1]['time'], reason='action sequence exhausted')
     return r.record()
