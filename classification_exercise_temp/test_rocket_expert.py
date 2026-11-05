@@ -1,5 +1,7 @@
+import json
+from pathlib import Path
 import unittest
-from dataclasses import replace
+from dataclasses import asdict, replace
 
 import numpy as np
 
@@ -7,7 +9,8 @@ from rocket_calibration import configuration
 from rocket_closed_loop import OBSERVATION_NAMES, evaluate_closed_loop, make_observation
 from rocket_physics import discrete_command
 from rocket_expert import ContinuousReference, DiscreteExpert, SOURCE_SHA256, guidance, simple_discrete_guidance
-from rocket_expert_benchmark import benchmark, diagnostic_cases, feasibility_cases
+from rocket_expert_benchmark import (FINAL_SEED, FINAL_SET, FINAL_SUCCESS_TARGET, benchmark,
+                                     diagnostic_cases, feasibility_cases, final_feasibility_cases)
 from unittest.mock import patch
 
 
@@ -83,6 +86,17 @@ class ClosedLoopTests(unittest.TestCase):
         self.assertIsNone(report['cases'][0]['discrete_expert_safe'])
         self.assertIn('snapshots', result['runs'][0]['replay'])
         self.assertGreaterEqual(result['mean_wall_seconds_per_decision'], 0)
+
+    def test_frozen_final_feasibility_manifest(self):
+        path = Path(__file__).parent / 'benchmarks' / 'feasibility-v1.0-manifest.json'
+        manifest = json.loads(path.read_text(encoding='utf-8'))
+        cases = [dict(case_id=c['case_id'], scenario=c['scenario'], initial=asdict(c['initial']))
+                 for c in final_feasibility_cases()]
+        self.assertEqual(manifest['cases'], cases)
+        self.assertEqual(manifest['scenario_set'], FINAL_SET)
+        self.assertEqual(manifest['seed'], FINAL_SEED)
+        self.assertEqual(manifest['target_success_rate'], FINAL_SUCCESS_TARGET)
+        self.assertEqual(manifest['target_minimum_successes'], 9)
 
     def test_expert_replay_repeats_identically(self):
         expert = DiscreteExpert(horizon_steps=1)

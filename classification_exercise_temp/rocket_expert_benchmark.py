@@ -16,6 +16,9 @@ from rocket_scoring import aggregate
 
 FEASIBILITY_SET = 'expert-feasibility-study-v0.1'
 FEASIBILITY_SEED = 42017
+FINAL_SET = 'expert-feasibility-v1.0'
+FINAL_SEED = 73013
+FINAL_SUCCESS_TARGET = .75
 
 
 def diagnostic_cases():
@@ -37,6 +40,14 @@ def feasibility_cases(count=12, seed=FEASIBILITY_SEED):
                     theta=rng.uniform(-.015, .015), omega=rng.uniform(-.002, .002),
                     fuel=rng.uniform(8000, 10000), thrust=0., gimbal=0.)
         cases.append(dict(case_id=f'{FEASIBILITY_SET}:{seed}:{i+1:02}', scenario=name, initial=s))
+    return cases
+
+
+def final_feasibility_cases():
+    """Frozen evaluation distribution and independent seed, fixed before evaluation."""
+    cases = feasibility_cases(count=12, seed=FINAL_SEED)
+    for i, case in enumerate(cases):
+        case['case_id'] = f'{FINAL_SET}:{FINAL_SEED}:{i+1:02}'
     return cases
 
 
@@ -96,18 +107,21 @@ def benchmark(cases, selected=None, max_time=20.):
     return dict(schema='rocket-expert-benchmark-v0.1', cases=comparison,
                 diagnostic_scenario_set=SCENARIO_SET, feasibility_set=FEASIBILITY_SET,
                 feasibility_seed=FEASIBILITY_SEED, feasibility_target=None,
+                final_set=FINAL_SET, final_seed=FINAL_SEED, final_success_target=FINAL_SUCCESS_TARGET,
                 max_time=max_time, policies=reports)
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('output')
-    parser.add_argument('--set', choices=('diagnostic', 'feasibility'), default='diagnostic')
+    parser.add_argument('--set', choices=('diagnostic', 'feasibility', 'final'), default='diagnostic')
     parser.add_argument('--policy', action='append', choices=tuple(policies()))
     parser.add_argument('--max-time', type=float, default=20.)
     args = parser.parse_args()
-    cases = diagnostic_cases() if args.set == 'diagnostic' else feasibility_cases()
+    cases = {'diagnostic': diagnostic_cases, 'feasibility': feasibility_cases,
+             'final': final_feasibility_cases}[args.set]()
     report = benchmark(cases, args.policy, args.max_time)
+    report['evaluated_set'] = args.set
     with open(args.output, 'w', encoding='utf-8') as target:
         json.dump(report, target, allow_nan=False, separators=(',', ':'))
     for name, result in report['policies'].items():

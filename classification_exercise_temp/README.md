@@ -225,3 +225,16 @@ splits are checked for near-duplicate observations. The directory is created
 with owner-only permissions where the filesystem supports them. A future upload
 service still needs its own access controls and separate hidden closed-loop
 starts.
+
+Following the feasibility study, the independent
+[feasibility-v1.0 manifest](benchmarks/feasibility-v1.0-manifest.json) freezes
+12 new starts and a target of **at least 9 candidate-safe touchdowns (75%)**.
+The earlier study achieved 12/12 and a separate six-start exploratory run
+achieved 6/6, making the target a testable goal rather than a guarantee. The
+manifest was frozen before this final-set evaluation; failures must remain in
+the report. This visible feasibility set is separate from the future hidden
+student evaluation starts.
+
+```sh
+python3 classification_exercise_temp/rocket_expert_benchmark.py /tmp/final-feasibility.json --set final
+```
