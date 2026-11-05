@@ -50,23 +50,24 @@ class SoftmaxTests(unittest.TestCase):
                 sanity_check(tmp, iterations=1)
 
     def test_recorded_models_reproduce_closed_loop_replays(self):
-        archive = Path(__file__).parent / 'benchmarks' / 'classifier-v1.0-full-report.json.gz'
-        with gzip.open(archive, 'rt', encoding='utf-8') as source:
-            report = json.load(source)
-        for name in ('raw', 'engineered'):
-            with self.subTest(basis=name):
-                result = report[name]
-                recorded = result['closed_loop']['runs'][0]['replay']
-                config = recorded['config']
-                archived_source = Path(__file__).parent / 'versions' / 'rocket-softmax-v0.2' / 'rocket_softmax.py'
-                self.assertEqual(hashlib.sha256(archived_source.read_bytes()).hexdigest(),
-                                 config['closed_loop']['policy']['source_sha256'])
-                p, _ = configuration(config['scenario'])
-                model = SoftmaxPolicy.from_settings(result['model'])
-                reproduced = evaluate_closed_loop(model.predict_action, State(**config['initial_state']),
-                                                   p, config['scenario'], max_time=20.)['replay']
-                canonical = lambda value: json.dumps(value, sort_keys=True, separators=(',', ':'), allow_nan=False)
-                self.assertEqual(canonical(reproduced), canonical(recorded))
+        for version in ('v1.0', 'v1.1'):
+            archive = Path(__file__).parent / 'benchmarks' / f'classifier-{version}-full-report.json.gz'
+            with gzip.open(archive, 'rt', encoding='utf-8') as source:
+                report = json.load(source)
+            for name in ('raw', 'engineered'):
+                with self.subTest(dataset=version, basis=name):
+                    result = report[name]
+                    recorded = result['closed_loop']['runs'][0]['replay']
+                    config = recorded['config']
+                    archived_source = Path(__file__).parent / 'versions' / 'rocket-softmax-v0.2' / 'rocket_softmax.py'
+                    self.assertEqual(hashlib.sha256(archived_source.read_bytes()).hexdigest(),
+                                     config['closed_loop']['policy']['source_sha256'])
+                    p, _ = configuration(config['scenario'])
+                    model = SoftmaxPolicy.from_settings(result['model'])
+                    reproduced = evaluate_closed_loop(model.predict_action, State(**config['initial_state']),
+                                                       p, config['scenario'], max_time=20.)['replay']
+                    canonical = lambda value: json.dumps(value, sort_keys=True, separators=(',', ':'), allow_nan=False)
+                    self.assertEqual(canonical(reproduced), canonical(recorded))
 
     def test_invalid_labels_are_rejected(self):
         with self.assertRaises(ValueError):
