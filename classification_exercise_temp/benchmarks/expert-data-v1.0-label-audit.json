@@ -15,5 +15,6 @@
     "train_metadata.jsonl": "df26236e116d611162996966d560c70f3d16f9d2b452940bb837a3b820906ded",
     "validation_metadata.jsonl": "a989b07af5db6c34f5b558d559fff07e5c3f23ba8b99322dcb1885bb1cf245f5"
   },
-  "scope": "Every flight label matched its archived decision; every recovery label was re-queried from the exact archived teacher and checked against the recorded environment and flight envelope."
+  "scope": "Every flight label matched its archived decision; every recovery label was re-queried from the exact archived teacher and checked against the recorded environment and flight envelope.",
+  "scope_note": "The historical audit checked recovery-state scope only. A later complete scope audit found 54 flight observations outside the angle-of-attack envelope; dataset v1.0 is superseded."
 }

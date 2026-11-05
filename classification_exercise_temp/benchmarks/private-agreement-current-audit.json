@@ -1,6 +1,6 @@
 {
   "schema": "rocket-private-agreement-audit-v1.0",
-  "result": "passed",
+  "result": "label match passed; dataset version superseded",
   "teacher_version": "expert-prototype-v0.4",
   "current_expert_version": "expert-prototype-v0.5",
   "teacher_sha256": "e4beaafbb67eb9ad420b234315e286b4513fca038036cc55d4f7b00b5370774d",
@@ -8,5 +8,6 @@
   "labels_checked": 478,
   "mismatches": 0,
   "fallbacks": 0,
-  "scope": "All private agreement labels matched the current expert; private observations, seeds and starts are not included."
+  "scope": "All private agreement labels matched the current expert; private observations, seeds and starts are not included.",
+  "scope_note": "The former private agreement set included 20 observations outside the calibrated angle-of-attack envelope and is not used for the corrected release."
 }
