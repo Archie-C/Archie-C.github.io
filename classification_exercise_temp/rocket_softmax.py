@@ -11,7 +11,7 @@ from rocket_expert_benchmark import feasibility_cases
 from rocket_expert_dataset import _near_duplicate
 from rocket_scoring import aggregate
 
-MODEL_VERSION = 'rocket-softmax-v0.1'
+MODEL_VERSION = 'rocket-softmax-v0.2'
 
 
 def basis(observations, engineered=False):
@@ -25,10 +25,23 @@ def basis(observations, engineered=False):
     position, height, vx, vy, theta, omega, fuel, thrust, gimbal, wx, wy, rho = x.T
     # Fixed, interpretable interactions; feature scaling is fitted on train only.
     with np.errstate(over='ignore', invalid='ignore'):
+        mass = np.maximum(1., 28000. + fuel)
+        braking = np.maximum(.1, 845000. / mass - 9.80665)
+        # The pad-relative COM height is only an approximate foot clearance;
+        # the classifier never receives true clearance or a target action.
+        clearance_estimate = np.maximum(0., height - 22.)
+        target_vy = -np.maximum(1., .65 * np.sqrt(2 * braking * clearance_estimate))
+        acceleration = np.clip(3 * (target_vy - vy) + .65**2 * braking, -9.80665, braking)
+        throttle_demand = (mass * (9.80665 + acceleration) - 482000.) / 363000.
+        desired_theta = np.clip(.003 * position + .035 * vx, -.12, .12)
+        steering_demand = np.clip(20 * (theta - desired_theta) + 60 * omega, -1., 1.)
         features = np.column_stack((x, position * vx, vx * theta, theta * omega,
                                     vy * np.abs(vy), height * vy, thrust * theta,
                                     thrust * gimbal, (vx-wx)**2, (vy-wy)**2,
-                                    fuel * theta, rho * (vy-wy)**2))
+                                    fuel * theta, rho * (vy-wy)**2,
+                                    braking, target_vy, vy-target_vy, throttle_demand,
+                                    np.maximum(0., throttle_demand), steering_demand,
+                                    steering_demand * throttle_demand, theta-desired_theta))
     if not np.all(np.isfinite(features)):
         raise ValueError('basis functions produced nonfinite values')
     return features

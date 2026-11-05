@@ -212,3 +212,8 @@ records all 12 fixed-seed varied starts and their outcomes. The continuous
 predictive reference landed 12; discrete expert prototype v0.3 landed 5, with
 20 fallback decisions. All-off and fixed burn landed none. This is evidence of improvement
 on the exploratory set, not a final success target or a certified release set.
+
+The engineered sanity baseline includes approximate braking-curve and steering
+terms derived from the twelve public inputs and the fixed published vehicle
+configuration. They are examples of student-constructible basis functions; no
+future trajectory or target action is supplied to the model.
