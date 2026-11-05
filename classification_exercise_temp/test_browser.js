@@ -33,6 +33,9 @@ async function waitFor(fn, label, timeout=10000) {
   await waitFor(()=>evaluate("document.getElementById('status')?.textContent==='ready'"),'ready');
   const screenshot=async name=>{const {data}=await call('Page.captureScreenshot',{format:'png'});fs.writeFileSync(path.join(os.tmpdir(),name),Buffer.from(data,'base64'));};
   await screenshot('rocket-desktop.png');
+  await evaluate("desired={throttle:3,gimbal:0};sendDesired()");
+  await waitFor(()=>evaluate("$('message').textContent.includes('Command rejected')"),'invalid-command error');
+  await sleep(500);assert.ok(await evaluate("$('message').textContent.includes('Command rejected')"),'error must remain inspectable');
   assert.equal(await evaluate(`canvas.focus(); const keyEvent=new KeyboardEvent('keydown',{key:'ArrowLeft',bubbles:true,cancelable:true}); canvas.dispatchEvent(keyEvent); keyEvent.defaultPrevented`),true);
   await waitFor(()=>evaluate("$('accepted').textContent.includes('gimbal 1.00')"),'keyboard steering');
   await evaluate("canvas.blur()");

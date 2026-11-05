@@ -171,7 +171,7 @@ class Run:
                 count += 1
         except Exception as exc:
             self.status = 'error'
-            self.error = f'{type(exc).__name__}: {exc}'
+            self.error = f'Physics error ({type(exc).__name__}): {exc}'
             self.event = dict(run_id=self.id, type='error', time=self.t, reason=self.error)
 
 
