@@ -217,3 +217,11 @@ The engineered sanity baseline includes approximate braking-curve and steering
 terms derived from the twelve public inputs and the fixed published vehicle
 configuration. They are examples of student-constructible basis functions; no
 future trajectory or target action is supplied to the model.
+
+Pass `--private-agreement-output /path/to/private-directory` to reserve whole
+initial-condition groups for a separate expert-agreement set. The private
+directory must be new and outside the student output directory; all three
+splits are checked for near-duplicate observations. The directory is created
+with owner-only permissions where the filesystem supports them. A future upload
+service still needs its own access controls and separate hidden closed-loop
+starts.

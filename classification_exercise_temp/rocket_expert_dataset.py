@@ -18,7 +18,7 @@ from rocket_closed_loop import OBSERVATION_NAMES, OBSERVATION_VERSION, make_obse
 from rocket_calibration import configuration
 from rocket_physics import State, clearance
 
-DATASET_VERSION = 'expert-draft-v0.1'
+DATASET_VERSION = 'expert-draft-v0.2'
 # Componentwise near-duplicate tolerances in observation units.
 LEAKAGE_TOLERANCES = np.array([.01, .01, .01, .01, .0001, .0001, .1, 1., .0001, .01, .01, .0001])
 
@@ -78,12 +78,15 @@ def _recovery_rows(run, count, seed):
     return rows
 
 
-def export_draft(report, output, *, seed=20261105, validation_fraction=.25, recovery_per_episode=0):
+def export_draft(report, output, *, seed=20261105, validation_fraction=.25, recovery_per_episode=0,
+                 private_output=None, private_fraction=.15):
     """Write a draft only; reject ambiguous provenance and cross-split leakage."""
     if type(recovery_per_episode) is not int or recovery_per_episode < 0:
         raise ValueError('recovery_per_episode must be a nonnegative integer')
     if not 0 < validation_fraction < 1:
         raise ValueError('validation_fraction must be between zero and one')
+    if private_output is not None and not 0 < private_fraction < 1:
+        raise ValueError('private_fraction must be between zero and one')
     runs = report['policies']['discrete_expert']['runs']
     episodes = []
     seen = set()
@@ -118,25 +121,46 @@ def export_draft(report, output, *, seed=20261105, validation_fraction=.25, reco
                                  scoring=run['result'], physics_config=config['physics_config'],
                                  policy=policy, replay_run_id=config['run_id'], rows=rows))
     groups = sorted({episode['group'] for episode in episodes})
-    if len(groups) < 2:
-        raise ValueError('at least two distinct initial conditions are required')
+    minimum = 3 if private_output is not None else 2
+    if len(groups) < minimum:
+        raise ValueError(f'at least {minimum} distinct initial conditions are required')
     random.Random(seed).shuffle(groups)
-    validation_groups = set(groups[:max(1, min(len(groups)-1, round(len(groups)*validation_fraction)))])
-    splits = {name: [episode for episode in episodes if (episode['group'] in validation_groups) == (name == 'validation')]
-              for name in ('train', 'validation')}
+    private_count = max(1, min(len(groups)-2, round(len(groups)*private_fraction))) if private_output is not None else 0
+    private_groups = set(groups[:private_count])
+    remaining = groups[private_count:]
+    validation_count = max(1, min(len(remaining)-1, round(len(remaining)*validation_fraction)))
+    validation_groups = set(remaining[:validation_count])
+    def split_name(episode):
+        if episode['group'] in private_groups:
+            return 'agreement'
+        return 'validation' if episode['group'] in validation_groups else 'train'
+    names = ('train', 'validation', 'agreement') if private_output is not None else ('train', 'validation')
+    splits = {name: [episode for episode in episodes if split_name(episode) == name] for name in names}
     observations = {name: [row['observation'] for episode in subset for row in episode['rows']]
                     for name, subset in splits.items()}
-    if _near_duplicate(observations['train'], observations['validation']):
-        raise ValueError('near-duplicate observations across episode splits; change grouping or sampling')
+    for i, name in enumerate(names):
+        for other in names[i+1:]:
+            if _near_duplicate(observations[name], observations[other]):
+                raise ValueError('near-duplicate observations across episode splits; change grouping or sampling')
     path = Path(output)
-    path.mkdir(parents=True, exist_ok=True)
-    if any(path.iterdir()):
+    private_path = Path(private_output) if private_output is not None else None
+    if private_path is not None:
+        public_resolved, private_resolved = path.resolve(), private_path.resolve()
+        if public_resolved == private_resolved or public_resolved in private_resolved.parents or private_resolved in public_resolved.parents:
+            raise ValueError('private output must be separate from the public output directory')
+        if private_path.exists():
+            raise ValueError('private output directory must not already exist')
+    if path.exists() and any(path.iterdir()):
         raise ValueError('output directory must be empty')
+    path.mkdir(parents=True, exist_ok=True)
+    if private_path is not None:
+        private_path.mkdir(parents=True, mode=0o700)
     counts = {}
     for name, subset in splits.items():
         counts[name] = Counter()
-        with (path / f'{name}.csv').open('w', newline='', encoding='utf-8') as data, \
-             (path / f'{name}_metadata.jsonl').open('w', encoding='utf-8') as metadata:
+        destination = private_path if name == 'agreement' else path
+        with (destination / f'{name}.csv').open('w', newline='', encoding='utf-8') as data, \
+             (destination / f'{name}_metadata.jsonl').open('w', encoding='utf-8') as metadata:
             writer = csv.writer(data)
             writer.writerow([*OBSERVATION_NAMES, 'action'])
             for episode in subset:
@@ -151,6 +175,8 @@ def export_draft(report, output, *, seed=20261105, validation_fraction=.25, reco
                     observation_version=OBSERVATION_VERSION, observation_names=OBSERVATION_NAMES,
                     units=['m', 'm', 'm/s', 'm/s', 'rad', 'rad/s', 'kg', 'N', 'rad', 'm/s', 'm/s', 'kg/m^3'],
                     action='integer 0–9', split_seed=seed, validation_fraction=validation_fraction,
+                    private_agreement_reserved=private_output is not None,
+                    private_fraction=private_fraction if private_output is not None else None,
                     recovery_per_episode=recovery_per_episode, recovery_seed=seed,
                     recovery_scope=dict(position_m=1., velocity_m_per_s=.2, theta_rad=.002, omega_rad_per_s=.001,
                                         altitude_m=[0, 1000], airspeed_m_per_s=130, angle_of_attack_degrees=35,
@@ -172,10 +198,11 @@ def main():
     parser.add_argument('output_directory')
     parser.add_argument('--seed', type=int, default=20261105)
     parser.add_argument('--recovery-per-episode', type=int, default=0)
+    parser.add_argument('--private-agreement-output', help='separate new directory, not part of the student files')
     args = parser.parse_args()
     with open(args.benchmark_json, encoding='utf-8') as source:
         report = json.load(source)
-    print(json.dumps(export_draft(report, args.output_directory, seed=args.seed, recovery_per_episode=args.recovery_per_episode), indent=2))
+    print(json.dumps(export_draft(report, args.output_directory, seed=args.seed, recovery_per_episode=args.recovery_per_episode, private_output=args.private_agreement_output), indent=2))
 
 
 if __name__ == '__main__':

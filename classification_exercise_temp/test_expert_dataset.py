@@ -52,6 +52,24 @@ class DatasetTests(unittest.TestCase):
                                  ['expert flight', 'perturbed recovery state'])
                 self.assertEqual(metadata[0]['group'], metadata[1]['group'])
 
+    def test_private_agreement_is_separate_by_episode(self):
+        _, initial = configuration('centred_descent')
+        cases = [dict(case_id=f'case-{i}', scenario='centred_descent', initial=replace(initial, x=4.*i))
+                 for i in range(3)]
+        report = benchmark(cases, ['discrete_expert'], max_time=.1)
+        with tempfile.TemporaryDirectory() as tmp:
+            public, private = Path(tmp) / 'public', Path(tmp) / 'private'
+            manifest = export_draft(report, public, private_output=private, seed=7)
+            self.assertEqual(manifest['episode_counts'], {'train': 1, 'validation': 1, 'agreement': 1})
+            self.assertFalse((public / 'agreement.csv').exists())
+            self.assertTrue((private / 'agreement.csv').exists())
+            groups = []
+            for path in (public / 'train_metadata.jsonl', public / 'validation_metadata.jsonl',
+                         private / 'agreement_metadata.jsonl'):
+                groups.append(json.loads(path.read_text())['group'])
+            self.assertEqual(len(set(groups)), 3)
+            self.assertEqual(private.stat().st_mode & 0o077, 0)
+
     def test_near_duplicate_leakage_is_rejected(self):
         report = self.make_report(.005)
         with tempfile.TemporaryDirectory() as tmp:
