@@ -286,3 +286,9 @@ controls.
 For example, the centred preset's initial observation is approximately
 `[0, 450, 0, -48, 0, 0, 9000, 0, 0, 0, 0, 1.1618338564]` in the published
 column order.
+
+On the original 12 diagnostic cases, the v0.4 discrete expert landed 6 and
+used fallback 15 times. The continuous reference landed 7 and used fallback
+12 times; its [diagnostic report](benchmarks/diagnostic-continuous-reference-summary.json)
+retains every case and failure reason. These diagnostics are distinct from the
+frozen feasibility set and do not imply every preset is recoverable.
