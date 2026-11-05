@@ -122,9 +122,10 @@ runner rejects configurations that do not match the named scenario.
 
 The short-horizon shooting controller is **experimental**, not a validated
 expert. It holds observed wind and density fixed in predicted trajectories,
-tries each discrete command over a bounded horizon, and records costs and
-fallback use. It is not an acceptance benchmark or a source of student labels.
-In an initial centred-descent trial it did not touch down within 15 seconds.
+tries each initial discrete command with a bounded guidance continuation,
+and records candidate costs, predicted contact and fallback use. It is not an acceptance benchmark or a source of student labels.
+The current prototype reached a candidate-safe centred touchdown with a score
+of approximately 94.58; this single run does not certify it.
 Continuous predictive control, the feasibility study, acceptance gates,
 dataset generation and classifier evaluation are still outstanding. No data
 should be released until those gates are met.

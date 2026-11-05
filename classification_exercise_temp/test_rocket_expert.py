@@ -68,6 +68,19 @@ class ClosedLoopTests(unittest.TestCase):
                 else:
                     self.assertTrue(all(d['action'] in range(10) for d in result['decisions']))
 
+    def test_predictive_expert_centred_touchdown(self):
+        p, initial = configuration('centred_descent')
+        expert = DiscreteExpert()
+        result = evaluate_closed_loop(expert.predict_action, initial, p, 'centred_descent', max_time=20)
+        self.assertTrue(result['scoring']['success'], result['scoring'])
+        self.assertGreater(result['scoring']['score'], 80)
+        self.assertTrue(all(d['action'] in range(10) for d in result['decisions']))
+        self.assertFalse(any(d['diagnostics']['fallback'] for d in result['decisions']))
+        policy = result['replay']['config']['closed_loop']['policy']
+        self.assertEqual(policy['version'], expert.version)
+        self.assertEqual(policy['settings']['horizon_steps'], expert.horizon_steps)
+        self.assertEqual(len(policy['source_sha256']), 64)
+
     def test_continuous_mode_rejects_discrete_outputs(self):
         result = evaluate_closed_loop(lambda _: 0, self.initial, self.p, 'near_ground_contact',
                                       max_time=1, control_mode='continuous')

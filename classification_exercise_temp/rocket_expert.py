@@ -12,7 +12,7 @@ from rocket_calibration import configuration
 from rocket_physics import Command, State, clearance, discrete_command, mass_properties, step
 from rocket_scoring import score_contact
 
-EXPERT_VERSION = 'expert-prototype-v0.1'
+EXPERT_VERSION = 'expert-prototype-v0.2'
 
 
 def _state(observation):
@@ -53,19 +53,22 @@ def simple_discrete_guidance(observation):
 
 
 class DiscreteExpert:
-    """Fixed-budget ten-way shooting, stateless across decision boundaries.
+    """Bounded discrete shooting with an observation-derived guidance rollout.
 
-    Wind and density are held at their observed values in the hypothetical
-    horizon; all other model parameters are the published fixed coastal profile.
-    The same observation therefore always produces the same action.
+    Each candidate starts with a different action and continues with a fixed
+    guidance baseline; predictions use the authoritative step and contact
+    solver. Wind and density are held at their observed values throughout the
+    short horizon. No plan or state is retained across calls.
     """
     version = EXPERT_VERSION
 
-    def __init__(self, horizon_steps=3):
+    def __init__(self, horizon_steps=5):
         if type(horizon_steps) is not int or not 1 <= horizon_steps <= 10:
             raise ValueError('horizon_steps must be an integer from 1 to 10')
         self.horizon_steps = horizon_steps
         self.diagnostics = {}
+        self.solver_settings = dict(horizon_steps=horizon_steps, candidates=10,
+                                    continuation='simple_discrete_guidance', tie_break='lowest action ID')
 
     def predict_action(self, observation):
         s = _state(observation)
@@ -73,37 +76,55 @@ class DiscreteExpert:
         p, _ = configuration('centred_descent')
         p = replace(p, wind=lambda y, t: (float(values[9]), float(values[10])),
                     density=lambda y, t=None: float(values[11]))
-        fallback = guidance(observation)
-        # The fallback is a deterministic discrete command, used only on error.
-        fallback_id = min(range(10), key=lambda i: (abs(discrete_command(i, p).throttle-fallback.throttle)
-                          + .1 * abs(discrete_command(i, p).gimbal-fallback.gimbal), i))
-        costs = []
+        fallback_id = simple_discrete_guidance(observation)
+        desired = guidance(observation)
+        costs, contacts = [], []
         try:
             for action in range(10):
                 candidate = s
-                cmd = discrete_command(action, p)
+                first = discrete_command(action, p)
                 contact = None
                 t = 0.
-                for _ in range(self.horizon_steps * round(p.control_interval / p.timestep)):
-                    candidate, contact = step(t, candidate, cmd, p, p.timestep)
-                    t += p.timestep
+                for interval in range(self.horizon_steps):
+                    predicted_observation = np.array((*candidate.values(), *values[9:]), dtype=np.float64)
+                    rollout_action = action if interval == 0 else simple_discrete_guidance(predicted_observation)
+                    cmd = discrete_command(rollout_action, p)
+                    for _ in range(round(p.control_interval / p.timestep)):
+                        candidate, contact = step(t, candidate, cmd, p, p.timestep)
+                        t += p.timestep
+                        if contact:
+                            break
                     if contact:
                         break
                 if contact:
-                    score = score_contact(contact, p)
-                    cost = -1000. - score['score'] if score['success'] else 1e8
+                    result = score_contact(contact, p)
+                    cost = -1e6 - result['score'] if result['success'] else 1e8
                 else:
+                    result = None
                     height = max(0., clearance(candidate, p)[0])
                     mass = p.dry_mass + candidate.fuel
                     braking = max(.1, p.max_thrust / mass - p.g0)
-                    desired = -min(30., max(1., math.sqrt(2 * braking * height) * .6))
-                    cost = ((candidate.vy-desired)**2 + .02*candidate.x**2 + 2*candidate.vx**2
-                            + 1000*candidate.theta**2 + 4000*candidate.omega**2)
+                    desired_vy = -max(1., .65 * math.sqrt(2 * braking * height))
+                    # Guidance tracking encourages progress even when the short
+                    # horizon cannot reach contact; predicted state and contact
+                    # can outweigh the initial command's tracking penalty.
+                    cost = (100 * (first.throttle - desired.throttle)**2
+                            + .1 * (first.gimbal - desired.gimbal)**2
+                            + .005 * (candidate.vy - desired_vy)**2
+                            + .002 * candidate.x**2 + .05 * candidate.vx**2
+                            + 20 * candidate.theta**2 + 40 * candidate.omega**2)
                 if not math.isfinite(cost):
                     raise ArithmeticError('nonfinite candidate cost')
                 costs.append(cost)
+                contacts.append(result)
+            if all(value >= 1e8 for value in costs):
+                raise ArithmeticError('all predicted candidates contact unsafely')
             action = min(range(10), key=lambda i: (costs[i], i))
-            self.diagnostics = dict(fallback=False, costs=costs, predicted_safe=costs[action] < 0,
+            ordered = sorted(costs)
+            self.diagnostics = dict(fallback=False, costs=costs,
+                                    cost_gap=ordered[1] - ordered[0],
+                                    predicted_safe=bool(contacts[action] and contacts[action]['success']),
+                                    predicted_contact=contacts[action],
                                     horizon_seconds=self.horizon_steps * p.control_interval)
             return action
         except (ArithmeticError, ValueError, OverflowError) as exc:

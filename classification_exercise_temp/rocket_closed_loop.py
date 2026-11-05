@@ -1,6 +1,8 @@
 """Trusted local closed-loop driver and the public observation-v1.0 contract."""
 from dataclasses import asdict
 import hashlib
+import inspect
+from pathlib import Path
 import json
 import math
 
@@ -50,11 +52,20 @@ def evaluate_closed_loop(policy, initial_state, parameters, scenario_id, *, max_
         raise ValueError('parameters must match the named calibrated scenario')
     run.initial = run.state = initial_state
     run.config['initial_state'] = asdict(initial_state)
-    identity = json.dumps([run.config['physics_config'], asdict(initial_state), max_time, control_mode], sort_keys=True)
+    owner = getattr(policy, '__self__', None)
+    try:
+        source = inspect.getsourcefile(policy)
+    except TypeError:
+        source = inspect.getsourcefile(type(policy))
+    provenance = dict(name=getattr(policy, '__qualname__', type(policy).__name__),
+                      version=getattr(owner, 'version', None),
+                      settings=getattr(owner, 'solver_settings', None),
+                      source_sha256=hashlib.sha256(Path(source).read_bytes()).hexdigest() if source else None)
+    identity = json.dumps([run.config['physics_config'], asdict(initial_state), max_time, control_mode, provenance], sort_keys=True)
     run.id = hashlib.sha256(identity.encode()).hexdigest()[:32]
     run.config['run_id'] = run.id
     run.config['observation_version'] = OBSERVATION_VERSION
-    run.config['closed_loop'] = dict(max_time=max_time, control_mode=control_mode, policy=getattr(policy, '__qualname__', type(policy).__name__))
+    run.config['closed_loop'] = dict(max_time=max_time, control_mode=control_mode, policy=provenance)
     run.snapshots = [state_packet(run, 0, initial_state, run.command.copy(), 0)]
     decisions = []
     run.status = 'running'
