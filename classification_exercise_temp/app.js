@@ -163,7 +163,7 @@ function line(a,b,color,width=1){ctx.strokeStyle=color;ctx.lineWidth=width;ctx.b
 function dot(a,color,r=4){ctx.fillStyle=color;ctx.beginPath();ctx.arc(...screen(a),r,0,Math.PI*2);ctx.fill();}
 function draw(){let w=canvas.clientWidth,h=canvas.clientHeight,dpr=window.devicePixelRatio||1;if(canvas.width!==Math.round(w*dpr)||canvas.height!==Math.round(h*dpr)){canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);}ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);if(!view||!record)return;
  let s=view.state,p=record.config.parameters,c=view.centre;
- if(camera.auto){let targetX=s.x/2,targetY=(s.y+2)/2, scale=Math.max(1,Math.min(20,Math.min(w/Math.max(40,Math.abs(s.x)+30),h/Math.max(25,Math.abs(s.y)+15))));const blend=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches?1:.06;camera.x+=(targetX-camera.x)*blend;camera.y+=(targetY-camera.y)*blend;camera.scale+=(scale-camera.scale)*blend;}
+ if(camera.auto){let ground=terrainHeight(p.terrain,s.x),targetX=s.x,targetY=(s.y+ground)/2, scale=Math.max(.2,Math.min(20,Math.min(w/40,h/Math.max(25,Math.abs(s.y-ground)+15))));const blend=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches?1:.06;camera.x+=(targetX-camera.x)*blend;camera.y+=(targetY-camera.y)*blend;camera.scale+=(scale-camera.scale)*blend;}
  const guideStep=Math.pow(10,Math.ceil(Math.log10(Math.max(1,50/camera.scale))));
  const bottom=camera.y-h/(2*camera.scale),top=camera.y+h/(2*camera.scale);
  ctx.font='10px system-ui';ctx.fillStyle='#78918a';ctx.strokeStyle='#89a69a1a';ctx.lineWidth=1;
@@ -198,7 +198,7 @@ function draw(){let w=canvas.clientWidth,h=canvas.clientHeight,dpr=window.device
   const x=w-138,y=12,iw=124,ih=130;ctx.save();ctx.fillStyle='#172b32ee';ctx.strokeStyle='#6e8780';ctx.lineWidth=1;ctx.fillRect(x,y,iw,ih);ctx.strokeRect(x,y,iw,ih);ctx.beginPath();ctx.rect(x,y,iw,ih);ctx.clip();
   const saved=camera, scale=Math.min(20,72/p.length);camera={x:s.x-(x+iw/2-w/2)/scale,y:s.y+(y+ih/2-h/2)/scale,scale,auto:false};rocket();camera=saved;ctx.fillStyle='#d1e2dc';ctx.font='10px system-ui';ctx.fillText('VEHICLE DETAIL',x+8,y+15);ctx.fillText('separate scale',x+8,y+ih-8);ctx.restore();
  }
- if(view.contact&&$('contactMarker').checked)dot(view.contact.point,'#ffcf78',5);ctx.fillStyle='#b9ccc3';ctx.font='12px system-ui';let scaleLength=10*camera.scale;ctx.fillRect(16,h-35,scaleLength,2);ctx.fillText('10 m',16,h-40);
+ if(view.contact&&$('contactMarker').checked)dot(view.contact.point,'#ffcf78',5);ctx.fillStyle='#b9ccc3';ctx.font='12px system-ui';let scaleMetres=Math.pow(10,Math.floor(Math.log10(100/camera.scale))),scaleLength=scaleMetres*camera.scale;ctx.fillRect(16,h-35,scaleLength,2);ctx.fillText(`${scaleMetres} m`,16,h-40);
 }
 $('camera').onclick=()=>{camera.auto=true;};canvas.onpointerdown=e=>{dragging=[e.clientX,e.clientY];camera.auto=false;canvas.setPointerCapture(e.pointerId);};canvas.onpointermove=e=>{if(!dragging)return;camera.x-=(e.clientX-dragging[0])/camera.scale;camera.y+=(e.clientY-dragging[1])/camera.scale;dragging=[e.clientX,e.clientY];};canvas.onpointerup=canvas.onpointercancel=()=>{dragging=null;};canvas.onwheel=e=>{e.preventDefault();camera.auto=false;const rect=canvas.getBoundingClientRect(),px=e.clientX-rect.left-canvas.clientWidth/2,py=e.clientY-rect.top-canvas.clientHeight/2;const x=camera.x+px/camera.scale,y=camera.y-py/camera.scale;camera.scale=Math.max(.2,Math.min(100,camera.scale*Math.exp(-e.deltaY*.001)));camera.x=x-px/camera.scale;camera.y=y+py/camera.scale;};
 function updateVisualQuality(interval){
