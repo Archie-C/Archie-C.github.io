@@ -1,0 +1,2758 @@
+{
+  "schema": "rocket-final-feasibility-summary-v1.0",
+  "scenario_set": "expert-feasibility-v1.0",
+  "target_success_rate": 0.75,
+  "target_met": true,
+  "frozen_manifest_sha256": "98958ca6a42b54d6768b343339e2ed1eeb4e803d33f3e34bfbef1225b1a9cb51",
+  "full_report_sha256": "374d81bfa2ddfa3aff12925bd59e45b3d77e8b2149342d0830b2f50e3387da08",
+  "max_time": 20.0,
+  "policy_results": {
+    "all_off": {
+      "metrics": {
+        "total_runs": 12,
+        "successful_runs": 0,
+        "success_rate": 0.0,
+        "mean_successful_quality": null,
+        "mean_score": 0.0
+      },
+      "failure_reasons": {
+        "tilt outside limits": 6,
+        "vertical velocity outside limits": 12
+      },
+      "decisions": 702,
+      "fallback_count": 0,
+      "fallback_frequency": 0.0,
+      "mean_wall_seconds_per_decision": 1.2687848961274961e-06,
+      "cases": [
+        {
+          "case_id": "expert-feasibility-v1.0:73013:01",
+          "scenario": "centred_descent",
+          "result": {
+            "success": false,
+            "reasons": [
+              "vertical velocity outside limits"
+            ],
+            "contact_time": 5.75734374999992,
+            "surface": "concrete",
+            "first_geometry": "foot 2",
+            "feet": [
+              [
+                -4.878761955279336,
+                0.20744375080395372
+              ],
+              [
+                13.120045519573956,
+                0.00024943822472778265
+              ]
+            ],
+            "midpoint_offset": 4.12064178214731,
+            "vx": -0.35875411375404664,
+            "vy": -100.2193865033888,
+            "theta": -0.011511049352113317,
+            "omega": -0.004680853203194659,
+            "foot_velocity": [
+              -0.4466241825156695,
+              -100.26050545204461
+            ],
+            "errors": {
+              "vertical": 1.0,
+              "horizontal": 0.23916940916936444,
+              "tilt": 0.16488363641072343,
+              "angular_rate": 0.13409656653167315,
+              "centre": 0.1223759141763872
+            },
+            "score": 0.0
+          },
+          "termination_reason": "first ground contact"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:02",
+          "scenario": "crosswind_diagnostics",
+          "result": {
+            "success": false,
+            "reasons": [
+              "vertical velocity outside limits",
+              "tilt outside limits"
+            ],
+            "contact_time": 5.796621093749919,
+            "surface": "concrete",
+            "first_geometry": "foot 2",
+            "feet": [
+              [
+                -10.408023432345063,
+                1.5821097184551682
+              ],
+              [
+                7.522341384132521,
+                0.00033301233553473253
+              ]
+            ],
+            "midpoint_offset": -1.4428410241062708,
+            "vx": 0.7518015463383244,
+            "vy": -103.71646260546156,
+            "theta": -0.08798997960088609,
+            "omega": -0.001543914931479413,
+            "foot_velocity": [
+              0.722253014205179,
+              -103.72780509855376
+            ],
+            "errors": {
+              "vertical": 1.0,
+              "horizontal": 0.5012010308922162,
+              "tilt": 1.0,
+              "angular_rate": 0.044229904750500024,
+              "centre": 0.04284987598319883
+            },
+            "score": 0.0
+          },
+          "termination_reason": "first ground contact"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:03",
+          "scenario": "centred_descent",
+          "result": {
+            "success": false,
+            "reasons": [
+              "vertical velocity outside limits"
+            ],
+            "contact_time": 6.087695312499913,
+            "surface": "concrete",
+            "first_geometry": "foot 1",
+            "feet": [
+              [
+                -13.94433420226694,
+                0.00050128532600624
+              ],
+              [
+                4.0556490677127535,
+                0.02504268812085897
+              ]
+            ],
+            "midpoint_offset": -4.9443425672770935,
+            "vx": 0.23404420065938794,
+            "vy": -102.14945910539798,
+            "theta": 0.0013634116887865295,
+            "omega": 0.0019208450724673514,
+            "foot_velocity": [
+              0.2702716246257214,
+              -102.1666973341942
+            ],
+            "errors": {
+              "vertical": 1.0,
+              "horizontal": 0.15602946710625862,
+              "tilt": 0.019529433876568053,
+              "angular_rate": 0.05502815787544,
+              "centre": 0.14683839888563477
+            },
+            "score": 0.0
+          },
+          "termination_reason": "first ground contact"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:04",
+          "scenario": "crosswind_diagnostics",
+          "result": {
+            "success": false,
+            "reasons": [
+              "vertical velocity outside limits",
+              "tilt outside limits"
+            ],
+            "contact_time": 5.484892578124926,
+            "surface": "concrete",
+            "first_geometry": "foot 2",
+            "feet": [
+              [
+                -10.981192563617173,
+                1.9195260841004043
+              ],
+              [
+                6.916239732172028,
+                0.0006938304519223948
+              ]
+            ],
+            "midpoint_offset": -2.0324764157225723,
+            "vx": -0.1820661296791793,
+            "vy": -100.09159900495314,
+            "theta": -0.10680473415674928,
+            "omega": -0.013041280198662256,
+            "foot_velocity": [
+              -0.44190619938034903,
+              -100.18178500811685
+            ],
+            "errors": {
+              "vertical": 1.0,
+              "horizontal": 0.12137741978611953,
+              "tilt": 1.0,
+              "angular_rate": 0.3736051574154395,
+              "centre": 0.060361024463131754
+            },
+            "score": 0.0
+          },
+          "termination_reason": "first ground contact"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:05",
+          "scenario": "centred_descent",
+          "result": {
+            "success": false,
+            "reasons": [
+              "vertical velocity outside limits"
+            ],
+            "contact_time": 5.887470703124917,
+            "surface": "concrete",
+            "first_geometry": "foot 1",
+            "feet": [
+              [
+                -5.8833832730190085,
+                0.00028871052568746336
+              ],
+              [
+                12.114951750690194,
+                0.245107774984902
+              ]
+            ],
+            "midpoint_offset": 3.1157842388355927,
+            "vx": 0.8150779443881008,
+            "vy": -100.13368947109575,
+            "theta": 0.013601478512158042,
+            "omega": -0.002951896475710324,
+            "foot_velocity": [
+              0.7590460617327311,
+              -100.10788210861685
+            ],
+            "errors": {
+              "vertical": 1.0,
+              "horizontal": 0.5433852962587339,
+              "tilt": 0.19482682847113353,
+              "angular_rate": 0.08456560480887174,
+              "centre": 0.09253338794356121
+            },
+            "score": 0.0
+          },
+          "termination_reason": "first ground contact"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:06",
+          "scenario": "crosswind_diagnostics",
+          "result": {
+            "success": false,
+            "reasons": [
+              "vertical velocity outside limits",
+              "tilt outside limits"
+            ],
+            "contact_time": 5.682890624999922,
+            "surface": "concrete",
+            "first_geometry": "foot 2",
+            "feet": [
+              [
+                -5.0986748424757105,
+                1.5743047831469141
+              ],
+              [
+                12.832408858723229,
+                0.0006983200826127245
+              ]
+            ],
+            "midpoint_offset": 3.866867008123759,
+            "vx": 0.8907770675232534,
+            "vy": -100.2928544351716,
+            "theta": -0.08753432355509425,
+            "omega": -0.0101042056819089,
+            "foot_velocity": [
+              0.6965720154089141,
+              -100.36709863688783
+            ],
+            "errors": {
+              "vertical": 1.0,
+              "horizontal": 0.5938513783488356,
+              "tilt": 1.0,
+              "angular_rate": 0.289464170452743,
+              "centre": 0.11483924352945353
+            },
+            "score": 0.0
+          },
+          "termination_reason": "first ground contact"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:07",
+          "scenario": "centred_descent",
+          "result": {
+            "success": false,
+            "reasons": [
+              "vertical velocity outside limits"
+            ],
+            "contact_time": 6.0008007812499145,
+            "surface": "concrete",
+            "first_geometry": "foot 1",
+            "feet": [
+              [
+                -0.6682442853921593,
+                0.0005056045047666657
+              ],
+              [
+                17.33148921364054,
+                0.09845438601814749
+              ]
+            ],
+            "midpoint_offset": 8.331622464124191,
+            "vx": 0.5757131041490566,
+            "vy": -101.59117181492164,
+            "theta": 0.005441625828520712,
+            "omega": -0.0027929818589684805,
+            "foot_velocity": [
+              0.5235695995448595,
+              -101.5663183542614
+            ],
+            "errors": {
+              "vertical": 1.0,
+              "horizontal": 0.3838087360993711,
+              "tilt": 0.07794554841590416,
+              "angular_rate": 0.08001303638774843,
+              "centre": 0.24743473699584795
+            },
+            "score": 0.0
+          },
+          "termination_reason": "first ground contact"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:08",
+          "scenario": "crosswind_diagnostics",
+          "result": {
+            "success": false,
+            "reasons": [
+              "vertical velocity outside limits",
+              "tilt outside limits"
+            ],
+            "contact_time": 5.684169921874921,
+            "surface": "concrete",
+            "first_geometry": "foot 2",
+            "feet": [
+              [
+                -10.700049506932892,
+                1.5093065742841247
+              ],
+              [
+                7.236597068909773,
+                0.0004296365216163167
+              ]
+            ],
+            "midpoint_offset": -1.7317262190115597,
+            "vx": 0.9729540637871269,
+            "vy": -102.61304198316668,
+            "theta": -0.08392498142328775,
+            "omega": -0.0033297004127431037,
+            "foot_velocity": [
+              0.9091374552212317,
+              -102.63774671579769
+            ],
+            "errors": {
+              "vertical": 1.0,
+              "horizontal": 0.6486360425247513,
+              "tilt": 1.0,
+              "angular_rate": 0.09538889034657404,
+              "centre": 0.05142926523555357
+            },
+            "score": 0.0
+          },
+          "termination_reason": "first ground contact"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:09",
+          "scenario": "centred_descent",
+          "result": {
+            "success": false,
+            "reasons": [
+              "vertical velocity outside limits"
+            ],
+            "contact_time": 5.860312499999917,
+            "surface": "concrete",
+            "first_geometry": "foot 1",
+            "feet": [
+              [
+                -8.418098333483611,
+                0.0005253348027167704
+              ],
+              [
+                9.57984540620249,
+                0.272593603981349
+              ]
+            ],
+            "midpoint_offset": 0.5808735363594391,
+            "vx": 0.7737624575808605,
+            "vy": -103.5979856043399,
+            "theta": 0.015115479428390408,
+            "omega": 0.0005188924478507906,
+            "foot_velocity": [
+              0.7835267842767437,
+              -103.60250856619962
+            ],
+            "errors": {
+              "vertical": 1.0,
+              "horizontal": 0.5158416383872403,
+              "tilt": 0.2165132941408971,
+              "angular_rate": 0.014865173641531233,
+              "centre": 0.01725093657517935
+            },
+            "score": 0.0
+          },
+          "termination_reason": "first ground contact"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:10",
+          "scenario": "crosswind_diagnostics",
+          "result": {
+            "success": false,
+            "reasons": [
+              "vertical velocity outside limits",
+              "tilt outside limits"
+            ],
+            "contact_time": 5.954814453124916,
+            "surface": "concrete",
+            "first_geometry": "foot 2",
+            "feet": [
+              [
+                -10.937793542380126,
+                1.835595107383618
+              ],
+              [
+                6.9684377455579485,
+                0.0006888256167343343
+              ]
+            ],
+            "midpoint_offset": -1.9846778984110887,
+            "vx": -0.0666818525627503,
+            "vy": -103.02127338305678,
+            "theta": -0.10211662071986556,
+            "omega": -0.0023928657027518637,
+            "foot_velocity": [
+              -0.11325466518224497,
+              -103.03814949129817
+            ],
+            "errors": {
+              "vertical": 1.0,
+              "horizontal": 0.04445456837516687,
+              "tilt": 1.0,
+              "angular_rate": 0.06855055285464379,
+              "centre": 0.058941491399711596
+            },
+            "score": 0.0
+          },
+          "termination_reason": "first ground contact"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:11",
+          "scenario": "centred_descent",
+          "result": {
+            "success": false,
+            "reasons": [
+              "vertical velocity outside limits"
+            ],
+            "contact_time": 5.75899414062492,
+            "surface": "concrete",
+            "first_geometry": "foot 2",
+            "feet": [
+              [
+                -5.724654653819142,
+                0.14218682620940015
+              ],
+              [
+                12.274789996942408,
+                0.0007928229015909949
+              ]
+            ],
+            "midpoint_offset": 3.275067671561633,
+            "vx": -0.290984224313115,
+            "vy": -98.72186583246858,
+            "theta": -0.007855303192019271,
+            "omega": -0.0043176218119629585,
+            "foot_velocity": [
+              -0.37243056333664093,
+              -98.7600858288605
+            ],
+            "errors": {
+              "vertical": 1.0,
+              "horizontal": 0.19398948287540999,
+              "tilt": 0.11251892992458698,
+              "angular_rate": 0.12369075367955232,
+              "centre": 0.09726382963772966
+            },
+            "score": 0.0
+          },
+          "termination_reason": "first ground contact"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:12",
+          "scenario": "crosswind_diagnostics",
+          "result": {
+            "success": false,
+            "reasons": [
+              "vertical velocity outside limits",
+              "tilt outside limits"
+            ],
+            "contact_time": 5.8605175781249175,
+            "surface": "concrete",
+            "first_geometry": "foot 2",
+            "feet": [
+              [
+                -5.520141073074615,
+                1.4499611032079258
+              ],
+              [
+                12.421369025243006,
+                5.924723050299008e-05
+              ]
+            ],
+            "midpoint_offset": 3.4506139760841954,
+            "vx": 1.2142175778951345,
+            "vy": -102.28603719399659,
+            "theta": -0.0806374642186041,
+            "omega": -0.00449453153590349,
+            "foot_velocity": [
+              1.1255910849292392,
+              -102.31945770257644
+            ],
+            "errors": {
+              "vertical": 1.0,
+              "horizontal": 0.809478385263423,
+              "tilt": 1.0,
+              "angular_rate": 0.1287588439478608,
+              "centre": 0.10247725041827618
+            },
+            "score": 0.0
+          },
+          "termination_reason": "first ground contact"
+        }
+      ]
+    },
+    "fixed_burn": {
+      "metrics": {
+        "total_runs": 12,
+        "successful_runs": 0,
+        "success_rate": 0.0,
+        "mean_successful_quality": null,
+        "mean_score": 0.0
+      },
+      "failure_reasons": {
+        "no contact": 12
+      },
+      "decisions": 2400,
+      "fallback_count": 0,
+      "fallback_frequency": 0.0,
+      "mean_wall_seconds_per_decision": 1.3472533494981084e-06,
+      "cases": [
+        {
+          "case_id": "expert-feasibility-v1.0:73013:01",
+          "scenario": "centred_descent",
+          "result": {
+            "success": false,
+            "reasons": [
+              "no contact"
+            ],
+            "contact_time": null,
+            "surface": null,
+            "first_geometry": null,
+            "feet": null,
+            "midpoint_offset": null,
+            "vx": null,
+            "vy": null,
+            "theta": null,
+            "omega": null,
+            "foot_velocity": null,
+            "errors": null,
+            "score": 0.0
+          },
+          "termination_reason": "run time limit"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:02",
+          "scenario": "crosswind_diagnostics",
+          "result": {
+            "success": false,
+            "reasons": [
+              "no contact"
+            ],
+            "contact_time": null,
+            "surface": null,
+            "first_geometry": null,
+            "feet": null,
+            "midpoint_offset": null,
+            "vx": null,
+            "vy": null,
+            "theta": null,
+            "omega": null,
+            "foot_velocity": null,
+            "errors": null,
+            "score": 0.0
+          },
+          "termination_reason": "run time limit"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:03",
+          "scenario": "centred_descent",
+          "result": {
+            "success": false,
+            "reasons": [
+              "no contact"
+            ],
+            "contact_time": null,
+            "surface": null,
+            "first_geometry": null,
+            "feet": null,
+            "midpoint_offset": null,
+            "vx": null,
+            "vy": null,
+            "theta": null,
+            "omega": null,
+            "foot_velocity": null,
+            "errors": null,
+            "score": 0.0
+          },
+          "termination_reason": "run time limit"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:04",
+          "scenario": "crosswind_diagnostics",
+          "result": {
+            "success": false,
+            "reasons": [
+              "no contact"
+            ],
+            "contact_time": null,
+            "surface": null,
+            "first_geometry": null,
+            "feet": null,
+            "midpoint_offset": null,
+            "vx": null,
+            "vy": null,
+            "theta": null,
+            "omega": null,
+            "foot_velocity": null,
+            "errors": null,
+            "score": 0.0
+          },
+          "termination_reason": "run time limit"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:05",
+          "scenario": "centred_descent",
+          "result": {
+            "success": false,
+            "reasons": [
+              "no contact"
+            ],
+            "contact_time": null,
+            "surface": null,
+            "first_geometry": null,
+            "feet": null,
+            "midpoint_offset": null,
+            "vx": null,
+            "vy": null,
+            "theta": null,
+            "omega": null,
+            "foot_velocity": null,
+            "errors": null,
+            "score": 0.0
+          },
+          "termination_reason": "run time limit"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:06",
+          "scenario": "crosswind_diagnostics",
+          "result": {
+            "success": false,
+            "reasons": [
+              "no contact"
+            ],
+            "contact_time": null,
+            "surface": null,
+            "first_geometry": null,
+            "feet": null,
+            "midpoint_offset": null,
+            "vx": null,
+            "vy": null,
+            "theta": null,
+            "omega": null,
+            "foot_velocity": null,
+            "errors": null,
+            "score": 0.0
+          },
+          "termination_reason": "run time limit"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:07",
+          "scenario": "centred_descent",
+          "result": {
+            "success": false,
+            "reasons": [
+              "no contact"
+            ],
+            "contact_time": null,
+            "surface": null,
+            "first_geometry": null,
+            "feet": null,
+            "midpoint_offset": null,
+            "vx": null,
+            "vy": null,
+            "theta": null,
+            "omega": null,
+            "foot_velocity": null,
+            "errors": null,
+            "score": 0.0
+          },
+          "termination_reason": "run time limit"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:08",
+          "scenario": "crosswind_diagnostics",
+          "result": {
+            "success": false,
+            "reasons": [
+              "no contact"
+            ],
+            "contact_time": null,
+            "surface": null,
+            "first_geometry": null,
+            "feet": null,
+            "midpoint_offset": null,
+            "vx": null,
+            "vy": null,
+            "theta": null,
+            "omega": null,
+            "foot_velocity": null,
+            "errors": null,
+            "score": 0.0
+          },
+          "termination_reason": "run time limit"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:09",
+          "scenario": "centred_descent",
+          "result": {
+            "success": false,
+            "reasons": [
+              "no contact"
+            ],
+            "contact_time": null,
+            "surface": null,
+            "first_geometry": null,
+            "feet": null,
+            "midpoint_offset": null,
+            "vx": null,
+            "vy": null,
+            "theta": null,
+            "omega": null,
+            "foot_velocity": null,
+            "errors": null,
+            "score": 0.0
+          },
+          "termination_reason": "run time limit"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:10",
+          "scenario": "crosswind_diagnostics",
+          "result": {
+            "success": false,
+            "reasons": [
+              "no contact"
+            ],
+            "contact_time": null,
+            "surface": null,
+            "first_geometry": null,
+            "feet": null,
+            "midpoint_offset": null,
+            "vx": null,
+            "vy": null,
+            "theta": null,
+            "omega": null,
+            "foot_velocity": null,
+            "errors": null,
+            "score": 0.0
+          },
+          "termination_reason": "run time limit"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:11",
+          "scenario": "centred_descent",
+          "result": {
+            "success": false,
+            "reasons": [
+              "no contact"
+            ],
+            "contact_time": null,
+            "surface": null,
+            "first_geometry": null,
+            "feet": null,
+            "midpoint_offset": null,
+            "vx": null,
+            "vy": null,
+            "theta": null,
+            "omega": null,
+            "foot_velocity": null,
+            "errors": null,
+            "score": 0.0
+          },
+          "termination_reason": "run time limit"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:12",
+          "scenario": "crosswind_diagnostics",
+          "result": {
+            "success": false,
+            "reasons": [
+              "no contact"
+            ],
+            "contact_time": null,
+            "surface": null,
+            "first_geometry": null,
+            "feet": null,
+            "midpoint_offset": null,
+            "vx": null,
+            "vy": null,
+            "theta": null,
+            "omega": null,
+            "foot_velocity": null,
+            "errors": null,
+            "score": 0.0
+          },
+          "termination_reason": "run time limit"
+        }
+      ]
+    },
+    "guidance": {
+      "metrics": {
+        "total_runs": 12,
+        "successful_runs": 12,
+        "success_rate": 1.0,
+        "mean_successful_quality": 95.31674053750817,
+        "mean_score": 95.31674053750817
+      },
+      "failure_reasons": {},
+      "decisions": 1502,
+      "fallback_count": 0,
+      "fallback_frequency": 0.0,
+      "mean_wall_seconds_per_decision": 5.333113182548965e-05,
+      "cases": [
+        {
+          "case_id": "expert-feasibility-v1.0:73013:01",
+          "scenario": "centred_descent",
+          "result": {
+            "success": true,
+            "reasons": [],
+            "contact_time": 12.292294921874781,
+            "surface": "concrete",
+            "first_geometry": "foot 1",
+            "feet": [
+              [
+                -6.909327620665483,
+                5.737650113246673e-06
+              ],
+              [
+                11.090669062303046,
+                0.010933368773045515
+              ]
+            ],
+            "midpoint_offset": 2.090670720818782,
+            "vx": -0.07871897711653508,
+            "vy": -0.6702247038112678,
+            "theta": 0.0006070906552322603,
+            "omega": 0.001372962162529005,
+            "foot_velocity": [
+              -0.05198807726765864,
+              -0.6825651374696107
+            ],
+            "errors": {
+              "vertical": 0.22340823460375592,
+              "horizontal": 0.05247931807769005,
+              "tilt": 0.008695933081660065,
+              "angular_rate": 0.03933246867203328,
+              "centre": 0.06208929439352524
+            },
+            "score": 98.35953199796202
+          },
+          "termination_reason": "first ground contact"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:02",
+          "scenario": "crosswind_diagnostics",
+          "result": {
+            "success": true,
+            "reasons": [],
+            "contact_time": 12.807607421874769,
+            "surface": "concrete",
+            "first_geometry": "foot 2",
+            "feet": [
+              [
+                -5.135093512127265,
+                0.08020240790418143
+              ],
+              [
+                12.864727841028767,
+                7.3053844644732635e-06
+              ]
+            ],
+            "midpoint_offset": 3.8648171644507507,
+            "vx": -0.7077369289552099,
+            "vy": -0.7447723436160174,
+            "theta": -0.004455298212678478,
+            "omega": -0.009425935144625239,
+            "foot_velocity": [
+              -0.8893909208593784,
+              -0.8287972738223515
+            ],
+            "errors": {
+              "vertical": 0.2482574478720058,
+              "horizontal": 0.47182461930347325,
+              "tilt": 0.06381744601466395,
+              "angular_rate": 0.2700331508755307,
+              "centre": 0.11477836672757041
+            },
+            "score": 93.37306678030318
+          },
+          "termination_reason": "first ground contact"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:03",
+          "scenario": "centred_descent",
+          "result": {
+            "success": true,
+            "reasons": [],
+            "contact_time": 12.624667968749774,
+            "surface": "concrete",
+            "first_geometry": "foot 1",
+            "feet": [
+              [
+                -11.098166894067415,
+                6.1367297874426185e-06
+              ],
+              [
+                6.901730937368819,
+                0.060653130531939325
+              ]
+            ],
+            "midpoint_offset": -2.098217978349298,
+            "vx": 0.1941286809252053,
+            "vy": -0.6570117529877764,
+            "theta": 0.003369283808175508,
+            "omega": -0.0007547070915584174,
+            "foot_velocity": [
+              0.17926353847877696,
+              -0.6502694356831362
+            ],
+            "errors": {
+              "vertical": 0.2190039176625921,
+              "horizontal": 0.12941912061680352,
+              "tilt": 0.04826143554755557,
+              "angular_rate": 0.021620765557445357,
+              "centre": 0.06231343485237878
+            },
+            "score": 98.1786244207011
+          },
+          "termination_reason": "first ground contact"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:04",
+          "scenario": "crosswind_diagnostics",
+          "result": {
+            "success": true,
+            "reasons": [],
+            "contact_time": 12.086982421874785,
+            "surface": "concrete",
+            "first_geometry": "foot 1",
+            "feet": [
+              [
+                -3.5211333970410603,
+                9.403683776554317e-06
+              ],
+              [
+                14.478109529208082,
+                0.16509750704131676
+              ]
+            ],
+            "midpoint_offset": 5.478488066083511,
+            "vx": -0.8043846120368459,
+            "vy": -0.4984179890247795,
+            "theta": 0.009171689884032323,
+            "omega": -0.01325305963050659,
+            "foot_velocity": [
+              -1.069218983588332,
+              -0.38156448220469863
+            ],
+            "errors": {
+              "vertical": 0.1661393296749265,
+              "horizontal": 0.5362564080245639,
+              "tilt": 0.1313747803394709,
+              "angular_rate": 0.37967219123161894,
+              "centre": 0.16270159378960297
+            },
+            "score": 91.82148024430616
+          },
+          "termination_reason": "first ground contact"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:05",
+          "scenario": "centred_descent",
+          "result": {
+            "success": true,
+            "reasons": [],
+            "contact_time": 12.29813476562478,
+            "surface": "concrete",
+            "first_geometry": "foot 2",
+            "feet": [
+              [
+                -9.764510470851622,
+                0.10935628867664349
+              ],
+              [
+                8.235157392908352,
+                9.161021480963427e-06
+              ]
+            ],
+            "midpoint_offset": -0.764676538971635,
+            "vx": 0.17989219799466535,
+            "vy": -0.5633409352917408,
+            "theta": -0.006074877789907984,
+            "omega": 0.002846328863060954,
+            "foot_velocity": [
+              0.236016950861787,
+              -0.5380644580398734
+            ],
+            "errors": {
+              "vertical": 0.1877803117639136,
+              "horizontal": 0.11992813199644357,
+              "tilt": 0.08701621460487217,
+              "angular_rate": 0.08154131547983134,
+              "centre": 0.022709566968746587
+            },
+            "score": 98.46492957007898
+          },
+          "termination_reason": "first ground contact"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:06",
+          "scenario": "crosswind_diagnostics",
+          "result": {
+            "success": true,
+            "reasons": [],
+            "contact_time": 12.38580078124978,
+            "surface": "concrete",
+            "first_geometry": "foot 2",
+            "feet": [
+              [
+                -3.415348042470062,
+                0.06582163006971342
+              ],
+              [
+                14.584531635315564,
+                6.850270295899463e-06
+              ]
+            ],
+            "midpoint_offset": 5.584591796422751,
+            "vx": -0.773365865985217,
+            "vy": -0.7044968531996255,
+            "theta": -0.003656384802643983,
+            "omega": -0.008485065361201308,
+            "foot_velocity": [
+              -0.9373318400603733,
+              -0.7802634265573
+            ],
+            "errors": {
+              "vertical": 0.23483228439987516,
+              "horizontal": 0.5155772439901446,
+              "tilt": 0.05237385436681866,
+              "angular_rate": 0.2430792170447412,
+              "centre": 0.1658526905566272
+            },
+            "score": 92.86700023019054
+          },
+          "termination_reason": "first ground contact"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:07",
+          "scenario": "centred_descent",
+          "result": {
+            "success": true,
+            "reasons": [],
+            "contact_time": 12.676474609374772,
+            "surface": "concrete",
+            "first_geometry": "foot 2",
+            "feet": [
+              [
+                -7.5073533302834985,
+                0.19365814770308631
+              ],
+              [
+                10.491604956652564,
+                7.469584854646882e-06
+              ]
+            ],
+            "midpoint_offset": 1.4921258131845327,
+            "vx": -0.06493503702722642,
+            "vy": -0.5384559375532418,
+            "theta": -0.010758578550921383,
+            "omega": 0.0034012523170647963,
+            "foot_velocity": [
+              0.0014624050318631232,
+              -0.5085572646908777
+            ],
+            "errors": {
+              "vertical": 0.17948531251774727,
+              "horizontal": 0.04329002468481761,
+              "tilt": 0.15410528613194208,
+              "angular_rate": 0.09743870141345247,
+              "centre": 0.04431354874033419
+            },
+            "score": 98.34878317984152
+          },
+          "termination_reason": "first ground contact"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:08",
+          "scenario": "crosswind_diagnostics",
+          "result": {
+            "success": true,
+            "reasons": [],
+            "contact_time": 12.569736328124774,
+            "surface": "concrete",
+            "first_geometry": "foot 2",
+            "feet": [
+              [
+                -5.647386547034159,
+                0.06855905947813312
+              ],
+              [
+                12.352482908551668,
+                5.5630800801509395e-06
+              ]
+            ],
+            "midpoint_offset": 3.3525481807587543,
+            "vx": -0.6747369439247397,
+            "vy": -0.6940409786496288,
+            "theta": -0.003808536784770546,
+            "omega": -0.009662073949050736,
+            "foot_velocity": [
+              -0.8613754896897585,
+              -0.7802894516567266
+            ],
+            "errors": {
+              "vertical": 0.2313469928832096,
+              "horizontal": 0.4498246292831598,
+              "tilt": 0.054553270971919164,
+              "angular_rate": 0.2767980293119538,
+              "centre": 0.0995648663803384
+            },
+            "score": 93.95218243458477
+          },
+          "termination_reason": "first ground contact"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:09",
+          "scenario": "centred_descent",
+          "result": {
+            "success": true,
+            "reasons": [],
+            "contact_time": 12.607373046874773,
+            "surface": "concrete",
+            "first_geometry": "foot 2",
+            "feet": [
+              [
+                -10.40851677135496,
+                0.08954004558553663
+              ],
+              [
+                7.591260534413111,
+                2.663690047199907e-06
+              ]
+            ],
+            "midpoint_offset": -1.408628118470924,
+            "vx": 0.1648664153220868,
+            "vy": -0.6045727562064004,
+            "theta": -0.004974319508141462,
+            "omega": 0.0015983820789605865,
+            "foot_velocity": [
+              0.1961179705023268,
+              -0.5903425960211112
+            ],
+            "errors": {
+              "vertical": 0.20152425206880012,
+              "horizontal": 0.10991094354805786,
+              "tilt": 0.07125187844152432,
+              "angular_rate": 0.04579027358689395,
+              "centre": 0.041833812023964245
+            },
+            "score": 98.43244384464347
+          },
+          "termination_reason": "first ground contact"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:10",
+          "scenario": "crosswind_diagnostics",
+          "result": {
+            "success": true,
+            "reasons": [],
+            "contact_time": 12.944101562499768,
+            "surface": "concrete",
+            "first_geometry": "foot 2",
+            "feet": [
+              [
+                -3.831869322427239,
+                0.02958819050747863
+              ],
+              [
+                14.168106369185733,
+                6.078647029283957e-06
+              ]
+            ],
+            "midpoint_offset": 5.168118523379247,
+            "vx": -0.9368859042896828,
+            "vy": -0.04847256588605768,
+            "theta": -0.001643451398722278,
+            "omega": -0.012804564869911201,
+            "foot_velocity": [
+              -1.1864201453825627,
+              -0.16330370757785925
+            ],
+            "errors": {
+              "vertical": 0.016157521962019226,
+              "horizontal": 0.6245906028597885,
+              "tilt": 0.023540707245414596,
+              "angular_rate": 0.3668237627736959,
+              "centre": 0.15348415666961415
+            },
+            "score": 91.63984059785436
+          },
+          "termination_reason": "first ground contact"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:11",
+          "scenario": "centred_descent",
+          "result": {
+            "success": true,
+            "reasons": [],
+            "contact_time": 12.107148437499784,
+            "surface": "concrete",
+            "first_geometry": "foot 1",
+            "feet": [
+              [
+                -7.336618021012414,
+                9.19393123766099e-06
+              ],
+              [
+                10.663378292061154,
+                0.011530015863041143
+              ]
+            ],
+            "midpoint_offset": 1.66338013552437,
+            "vx": -0.03855917165706886,
+            "vy": -0.6848443909071704,
+            "theta": 0.0006400457065779727,
+            "omega": 0.0013727463787094809,
+            "foot_velocity": [
+              -0.011672642108192213,
+              -0.6971819022360113
+            ],
+            "errors": {
+              "vertical": 0.22828146363572346,
+              "horizontal": 0.025706114438045907,
+              "tilt": 0.009167979420596627,
+              "angular_rate": 0.03932628692096031,
+              "centre": 0.04939950509397631
+            },
+            "score": 98.35302952436885
+          },
+          "termination_reason": "first ground contact"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:12",
+          "scenario": "crosswind_diagnostics",
+          "result": {
+            "success": true,
+            "reasons": [],
+            "contact_time": 12.27121093749978,
+            "surface": "concrete",
+            "first_geometry": "foot 2",
+            "feet": [
+              [
+                -3.8941632588910986,
+                0.11851069215986243
+              ],
+              [
+                14.105446640096794,
+                5.4844381729424185e-06
+              ]
+            ],
+            "midpoint_offset": 5.105641690602848,
+            "vx": -0.9022438572844842,
+            "vy": -0.8971327805230089,
+            "theta": -0.006583670212318434,
+            "omega": -0.010046597027679521,
+            "foot_velocity": [
+              -1.1025705158989167,
+              -0.9862352096974861
+            ],
+            "errors": {
+              "vertical": 0.29904426017433633,
+              "horizontal": 0.6014959048563228,
+              "tilt": 0.09430412921796122,
+              "angular_rate": 0.287813804077357,
+              "centre": 0.15162870309464388
+            },
+            "score": 90.009973625263
+          },
+          "termination_reason": "first ground contact"
+        }
+      ]
+    },
+    "continuous_reference": {
+      "metrics": {
+        "total_runs": 12,
+        "successful_runs": 12,
+        "success_rate": 1.0,
+        "mean_successful_quality": 92.66242999695727,
+        "mean_score": 92.66242999695727
+      },
+      "failure_reasons": {},
+      "decisions": 1495,
+      "fallback_count": 0,
+      "fallback_frequency": 0.0,
+      "mean_wall_seconds_per_decision": 0.0826168691056814,
+      "cases": [
+        {
+          "case_id": "expert-feasibility-v1.0:73013:01",
+          "scenario": "centred_descent",
+          "result": {
+            "success": true,
+            "reasons": [],
+            "contact_time": 12.213662109374782,
+            "surface": "concrete",
+            "first_geometry": "foot 1",
+            "feet": [
+              [
+                -6.913085398084125,
+                7.756960215488107e-06
+              ],
+              [
+                11.086914061435117,
+                0.004418800723279048
+              ]
+            ],
+            "midpoint_offset": 2.0869143316754957,
+            "vx": -0.10355622634145659,
+            "vy": -1.354967387451134,
+            "theta": 0.0002450579892897345,
+            "omega": -0.0008919747703512563,
+            "foot_velocity": [
+              -0.12091315691613842,
+              -1.3469438677315173
+            ],
+            "errors": {
+              "vertical": 0.4516557958170447,
+              "horizontal": 0.06903748422763772,
+              "tilt": 0.0035101971305659795,
+              "angular_rate": 0.02555319488663891,
+              "centre": 0.06197773615097101
+            },
+            "score": 93.72185293793933
+          },
+          "termination_reason": "first ground contact"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:02",
+          "scenario": "crosswind_diagnostics",
+          "result": {
+            "success": true,
+            "reasons": [],
+            "contact_time": 12.868349609374768,
+            "surface": "concrete",
+            "first_geometry": "foot 2",
+            "feet": [
+              [
+                -5.172037455294198,
+                0.08080482407144984
+              ],
+              [
+                12.82778118565237,
+                3.258291918939449e-06
+              ]
+            ],
+            "midpoint_offset": 3.8278718651790857,
+            "vx": -0.6191725945609883,
+            "vy": -0.06944328473190076,
+            "theta": -0.004488990952931311,
+            "omega": -0.002870594233902665,
+            "foot_velocity": [
+              -0.6745126012201943,
+              -0.09503047068588646
+            ],
+            "errors": {
+              "vertical": 0.023147761577300252,
+              "horizontal": 0.4127817297073255,
+              "tilt": 0.06430005896884343,
+              "angular_rate": 0.08223646714860629,
+              "centre": 0.11368115541634254
+            },
+            "score": 96.98549348677615
+          },
+          "termination_reason": "first ground contact"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:03",
+          "scenario": "centred_descent",
+          "result": {
+            "success": true,
+            "reasons": [],
+            "contact_time": 12.556142578124774,
+            "surface": "concrete",
+            "first_geometry": "foot 1",
+            "feet": [
+              [
+                -11.114259333368977,
+                6.808309027661608e-06
+              ],
+              [
+                6.8856429428252435,
+                0.05931993888021836
+              ]
+            ],
+            "midpoint_offset": -2.114308195271867,
+            "vx": 0.17552451402970565,
+            "vy": -1.468949294351975,
+            "theta": 0.003295179883911208,
+            "omega": -0.0028640188820275043,
+            "foot_velocity": [
+              0.11913663768226646,
+              -1.4433587933399097
+            ],
+            "errors": {
+              "vertical": 0.4896497647839917,
+              "horizontal": 0.11701634268647043,
+              "tilt": 0.0471999750211302,
+              "angular_rate": 0.0820480971929762,
+              "centre": 0.06279128638844937
+            },
+            "score": 92.37751084901264
+          },
+          "termination_reason": "first ground contact"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:04",
+          "scenario": "crosswind_diagnostics",
+          "result": {
+            "success": true,
+            "reasons": [],
+            "contact_time": 11.751249999999793,
+            "surface": "concrete",
+            "first_geometry": "foot 1",
+            "feet": [
+              [
+                -3.165580400641086,
+                8.490810525785264e-06
+              ],
+              [
+                14.83280431272052,
+                0.2411468532319354
+              ]
+            ],
+            "midpoint_offset": 5.833611956039716,
+            "vx": -0.7641876237839212,
+            "vy": -1.128342241993137,
+            "theta": 0.013396976432420675,
+            "omega": -0.009633083947808225,
+            "foot_velocity": [
+              -0.9568458898248051,
+              -1.0442178983435177
+            ],
+            "errors": {
+              "vertical": 0.376114080664379,
+              "horizontal": 0.5094584158559475,
+              "tilt": 0.19189755195348382,
+              "angular_rate": 0.27596752695231636,
+              "centre": 0.17324815740198732
+            },
+            "score": 89.38376475872177
+          },
+          "termination_reason": "first ground contact"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:05",
+          "scenario": "centred_descent",
+          "result": {
+            "success": true,
+            "reasons": [],
+            "contact_time": 12.206513671874783,
+            "surface": "concrete",
+            "first_geometry": "foot 2",
+            "feet": [
+              [
+                -9.7476942110463,
+                0.11601624275999356
+              ],
+              [
+                8.251931982986315,
+                1.247086030886635e-05
+              ]
+            ],
+            "midpoint_offset": -0.7478811140299921,
+            "vx": 0.12213345816770953,
+            "vy": -1.3608037504866906,
+            "theta": -0.0064446986068366855,
+            "omega": 0.0005436691034046109,
+            "foot_velocity": [
+              0.1328507882824963,
+              -1.3559796978592908
+            ],
+            "errors": {
+              "vertical": 0.4536012501622302,
+              "horizontal": 0.08142230544513969,
+              "tilt": 0.09231350760139588,
+              "angular_rate": 0.01557497253837287,
+              "centre": 0.022210771977607277
+            },
+            "score": 93.54399256008398
+          },
+          "termination_reason": "first ground contact"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:06",
+          "scenario": "crosswind_diagnostics",
+          "result": {
+            "success": true,
+            "reasons": [],
+            "contact_time": 12.31294921874978,
+            "surface": "concrete",
+            "first_geometry": "foot 2",
+            "feet": [
+              [
+                -3.340950556591758,
+                0.05132250617116796
+              ],
+              [
+                14.6589762935305,
+                5.937230625363554e-06
+              ]
+            ],
+            "midpoint_offset": 5.659012868469372,
+            "vx": -0.7385460192037847,
+            "vy": -1.3339385051713981,
+            "theta": -0.002850924358638069,
+            "omega": -0.004209337168997322,
+            "foot_velocity": [
+              -0.8198294759972049,
+              -1.3715909600344964
+            ],
+            "errors": {
+              "vertical": 0.44464616839046606,
+              "horizontal": 0.4923640128025231,
+              "tilt": 0.04083648336525061,
+              "angular_rate": 0.12058862716554634,
+              "centre": 0.16806286732208875
+            },
+            "score": 89.61597956157695
+          },
+          "termination_reason": "first ground contact"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:07",
+          "scenario": "centred_descent",
+          "result": {
+            "success": true,
+            "reasons": [],
+            "contact_time": 12.583583984374775,
+            "surface": "concrete",
+            "first_geometry": "foot 2",
+            "feet": [
+              [
+                -7.38350683071479,
+                0.20624985513071437
+              ],
+              [
+                10.615311666652868,
+                1.528282079021892e-05
+              ]
+            ],
+            "midpoint_offset": 1.615902417969039,
+            "vx": -0.1806824770317829,
+            "vy": -1.3907432631429348,
+            "theta": -0.011457726931917314,
+            "omega": 0.0018330845717673707,
+            "foot_velocity": [
+              -0.14490279191308014,
+              -1.3746543908310758
+            ],
+            "errors": {
+              "vertical": 0.4635810877143116,
+              "horizontal": 0.12045498468785526,
+              "tilt": 0.1641198490030599,
+              "angular_rate": 0.052514004726408096,
+              "centre": 0.047989499226925615
+            },
+            "score": 92.70900405552337
+          },
+          "termination_reason": "first ground contact"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:08",
+          "scenario": "crosswind_diagnostics",
+          "result": {
+            "success": true,
+            "reasons": [],
+            "contact_time": 12.501679687499776,
+            "surface": "concrete",
+            "first_geometry": "foot 2",
+            "feet": [
+              [
+                -5.4220725202907305,
+                0.05833050199321832
+              ],
+              [
+                12.577833017883577,
+                1.5694252475384474e-05
+              ]
+            ],
+            "midpoint_offset": 3.5778802487964234,
+            "vx": -0.7255171570590289,
+            "vy": -1.342575168526321,
+            "theta": -0.0032397172083693266,
+            "omega": -0.0071349253392141085,
+            "foot_velocity": [
+              -0.8632578533044126,
+              -1.4063435911049142
+            ],
+            "errors": {
+              "vertical": 0.4475250561754403,
+              "horizontal": 0.48367810470601924,
+              "tilt": 0.046405530713866876,
+              "angular_rate": 0.20440055453895783,
+              "centre": 0.10625683798991517
+            },
+            "score": 89.58689850982844
+          },
+          "termination_reason": "first ground contact"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:09",
+          "scenario": "centred_descent",
+          "result": {
+            "success": true,
+            "reasons": [],
+            "contact_time": 12.653837890624773,
+            "surface": "concrete",
+            "first_geometry": "foot 2",
+            "feet": [
+              [
+                -10.38515738535036,
+                0.10028897397337033
+              ],
+              [
+                7.614563239644229,
+                2.274234773835815e-06
+              ]
+            ],
+            "midpoint_offset": -1.385297072853065,
+            "vx": 0.10501261329464964,
+            "vy": -0.04901559173993682,
+            "theta": -0.005571512143678614,
+            "omega": -0.0021620718562170064,
+            "foot_velocity": [
+              0.0627173609117167,
+              -0.06823888951438012
+            ],
+            "errors": {
+              "vertical": 0.01633853057997894,
+              "horizontal": 0.07000840886309977,
+              "tilt": 0.07980603283466763,
+              "angular_rate": 0.061938796182625114,
+              "centre": 0.04114092043398269
+            },
+            "score": 99.69969613157392
+          },
+          "termination_reason": "first ground contact"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:10",
+          "scenario": "crosswind_diagnostics",
+          "result": {
+            "success": true,
+            "reasons": [],
+            "contact_time": 12.76079101562477,
+            "surface": "concrete",
+            "first_geometry": "foot 1",
+            "feet": [
+              [
+                -3.6127266793253723,
+                7.967846222811659e-06
+              ],
+              [
+                14.387269297197808,
+                0.01204313088032194
+              ]
+            ],
+            "midpoint_offset": 5.387271308936217,
+            "vx": -0.9395897070199751,
+            "vy": -0.9735743699441526,
+            "theta": 0.0006686202183790078,
+            "omega": -0.010658177159882815,
+            "foot_velocity": [
+              -1.1470572279397386,
+              -0.8777894710635533
+            ],
+            "errors": {
+              "vertical": 0.3245247899813842,
+              "horizontal": 0.6263931380133168,
+              "tilt": 0.009577279152558146,
+              "angular_rate": 0.3053342842820079,
+              "centre": 0.15999261430673015
+            },
+            "score": 89.04276177483015
+          },
+          "termination_reason": "first ground contact"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:11",
+          "scenario": "centred_descent",
+          "result": {
+            "success": true,
+            "reasons": [],
+            "contact_time": 12.151054687499784,
+            "surface": "concrete",
+            "first_geometry": "foot 1",
+            "feet": [
+              [
+                -7.355826354383514,
+                2.9077947019118255e-06
+              ],
+              [
+                10.644173568958406,
+                0.0016641395164711525
+              ]
+            ],
+            "midpoint_offset": 1.644173607287446,
+            "vx": -0.06119261168808449,
+            "vy": -0.03659177758785403,
+            "theta": 9.22906513404607e-05,
+            "omega": -0.0006909294631827402,
+            "foot_velocity": [
+              -0.07472547165899847,
+              -0.030374661349191465
+            ],
+            "errors": {
+              "vertical": 0.012197259195951342,
+              "horizontal": 0.040795074458723,
+              "tilt": 0.001321966202580448,
+              "angular_rate": 0.019793671090805307,
+              "centre": 0.048829104516733376
+            },
+            "score": 99.91697581246211
+          },
+          "termination_reason": "first ground contact"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:12",
+          "scenario": "crosswind_diagnostics",
+          "result": {
+            "success": true,
+            "reasons": [],
+            "contact_time": 12.205957031249783,
+            "surface": "concrete",
+            "first_geometry": "foot 2",
+            "feet": [
+              [
+                -3.817712515421473,
+                0.10418455941126581
+              ],
+              [
+                14.181986089256291,
+                2.055045730742222e-05
+              ]
+            ],
+            "midpoint_offset": 5.182136786917409,
+            "vx": -0.8763916068385206,
+            "vy": -1.5906786865123752,
+            "theta": -0.005786921685462113,
+            "omega": -0.006172530405045247,
+            "foot_velocity": [
+              -0.9993841271551278,
+              -1.6455206343310604
+            ],
+            "errors": {
+              "vertical": 0.5302262288374584,
+              "horizontal": 0.5842610712256804,
+              "tilt": 0.08289154723742799,
+              "angular_rate": 0.1768299705626346,
+              "centre": 0.1539004747837197
+            },
+            "score": 85.36522952515841
+          },
+          "termination_reason": "first ground contact"
+        }
+      ]
+    },
+    "discrete_guidance": {
+      "metrics": {
+        "total_runs": 12,
+        "successful_runs": 12,
+        "success_rate": 1.0,
+        "mean_successful_quality": 92.44665171104266,
+        "mean_score": 92.44665171104266
+      },
+      "failure_reasons": {},
+      "decisions": 1466,
+      "fallback_count": 0,
+      "fallback_frequency": 0.0,
+      "mean_wall_seconds_per_decision": 6.734337859838585e-05,
+      "cases": [
+        {
+          "case_id": "expert-feasibility-v1.0:73013:01",
+          "scenario": "centred_descent",
+          "result": {
+            "success": true,
+            "reasons": [],
+            "contact_time": 12.065234374999786,
+            "surface": "concrete",
+            "first_geometry": "foot 1",
+            "feet": [
+              [
+                -3.8317696913417736,
+                7.355335071679292e-06
+              ],
+              [
+                14.167803622355411,
+                0.12394493978894872
+              ]
+            ],
+            "midpoint_offset": 5.168016965506819,
+            "vx": 0.41172411129815306,
+            "vy": -1.0496131901097656,
+            "theta": 0.006885475764897601,
+            "omega": 0.005455263996246721,
+            "foot_velocity": [
+              0.5181702468422947,
+              -1.0979787860772936
+            ],
+            "errors": {
+              "vertical": 0.34987106336992185,
+              "horizontal": 0.2744827408654354,
+              "tilt": 0.09862717531706121,
+              "angular_rate": 0.15628180155730423,
+              "centre": 0.15348114057694284
+            },
+            "score": 94.1655599180506
+          },
+          "termination_reason": "first ground contact"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:02",
+          "scenario": "crosswind_diagnostics",
+          "result": {
+            "success": true,
+            "reasons": [],
+            "contact_time": 12.564013671874775,
+            "surface": "concrete",
+            "first_geometry": "foot 1",
+            "feet": [
+              [
+                -3.92359313096253,
+                6.527497532715643e-06
+              ],
+              [
+                14.076251125654341,
+                0.07488467876081017
+              ]
+            ],
+            "midpoint_offset": 5.076328997345906,
+            "vx": 0.22408235699485618,
+            "vy": -0.9737331040771622,
+            "theta": 0.004159909290158439,
+            "omega": -0.0021233341470175606,
+            "foot_velocity": [
+              0.1831948560502173,
+              -0.9547930206811066
+            ],
+            "errors": {
+              "vertical": 0.32457770135905406,
+              "horizontal": 0.14938823799657078,
+              "tilt": 0.05958631137083518,
+              "angular_rate": 0.06082904256005844,
+              "centre": 0.15075816694422386
+            },
+            "score": 95.92365313429349
+          },
+          "termination_reason": "first ground contact"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:03",
+          "scenario": "centred_descent",
+          "result": {
+            "success": true,
+            "reasons": [],
+            "contact_time": 12.442646484374777,
+            "surface": "concrete",
+            "first_geometry": "foot 1",
+            "feet": [
+              [
+                -12.586822895984739,
+                6.697637314090343e-06
+              ],
+              [
+                5.412693053862398,
+                0.13201264901249132
+              ]
+            ],
+            "midpoint_offset": -3.5870649210611703,
+            "vx": -0.21347650896741804,
+            "vy": -0.8946171275009734,
+            "theta": 0.007333729704164564,
+            "omega": -0.001802893121253798,
+            "foot_velocity": [
+              -0.24903234612208403,
+              -0.8786514146266218
+            ],
+            "errors": {
+              "vertical": 0.29820570916699113,
+              "horizontal": 0.14231767264494535,
+              "tilt": 0.10504794003458882,
+              "angular_rate": 0.0516490833805052,
+              "centre": 0.1065296068264781
+            },
+            "score": 96.54069889746725
+          },
+          "termination_reason": "first ground contact"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:04",
+          "scenario": "crosswind_diagnostics",
+          "result": {
+            "success": true,
+            "reasons": [],
+            "contact_time": 11.480976562499798,
+            "surface": "concrete",
+            "first_geometry": "foot 1",
+            "feet": [
+              [
+                -5.076548703702599,
+                1.1281071728319603e-05
+              ],
+              [
+                12.923335738919846,
+                0.06450974801845888
+              ]
+            ],
+            "midpoint_offset": 3.9233935176086234,
+            "vx": 0.3813993994025209,
+            "vy": -1.4139107865288216,
+            "theta": 0.0035832558317038113,
+            "omega": 0.0005037191144762707,
+            "foot_velocity": [
+              0.39142206819506736,
+              -1.4184083737234163
+            ],
+            "errors": {
+              "vertical": 0.4713035955096072,
+              "horizontal": 0.25426626626834725,
+              "tilt": 0.051326359018066994,
+              "angular_rate": 0.01443048965977874,
+              "centre": 0.11651798282277928
+            },
+            "score": 92.03907731886068
+          },
+          "termination_reason": "first ground contact"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:05",
+          "scenario": "centred_descent",
+          "result": {
+            "success": true,
+            "reasons": [],
+            "contact_time": 11.995429687499787,
+            "surface": "concrete",
+            "first_geometry": "foot 2",
+            "feet": [
+              [
+                -12.448657117650319,
+                0.33517607045791564
+              ],
+              [
+                5.548222272192179,
+                1.6067679649012234e-05
+              ]
+            ],
+            "midpoint_offset": -3.45021742272907,
+            "vx": -0.4661278022688125,
+            "vy": -1.5730103113709684,
+            "theta": -0.01862107626159587,
+            "omega": -0.008009876270009889,
+            "foot_velocity": [
+              -0.6247866680497451,
+              -1.6421569574582908
+            ],
+            "errors": {
+              "vertical": 0.5243367704569895,
+              "horizontal": 0.31075186817920836,
+              "tilt": 0.26672726994517204,
+              "angular_rate": 0.22946605234677842,
+              "centre": 0.10246547347140265
+            },
+            "score": 87.88095544733233
+          },
+          "termination_reason": "first ground contact"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:06",
+          "scenario": "crosswind_diagnostics",
+          "result": {
+            "success": true,
+            "reasons": [],
+            "contact_time": 12.145283203124784,
+            "surface": "concrete",
+            "first_geometry": "foot 1",
+            "feet": [
+              [
+                -2.614069844200393,
+                3.728139208902803e-06
+              ],
+              [
+                15.385906477449787,
+                0.029199961336420444
+              ]
+            ],
+            "midpoint_offset": 6.3859183166246964,
+            "vx": 0.09514539939272704,
+            "vy": -1.0033000022536154,
+            "theta": 0.0016220136666340245,
+            "omega": -0.0012942246820957766,
+            "foot_velocity": [
+              0.07017617607367142,
+              -0.9916924652491675
+            ],
+            "errors": {
+              "vertical": 0.33443333408453846,
+              "horizontal": 0.06343026626181802,
+              "tilt": 0.02323363435266732,
+              "angular_rate": 0.03707680601287434,
+              "centre": 0.18965069840296678
+            },
+            "score": 95.83351524486123
+          },
+          "termination_reason": "first ground contact"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:07",
+          "scenario": "centred_descent",
+          "result": {
+            "success": true,
+            "reasons": [],
+            "contact_time": 12.36490234374978,
+            "surface": "concrete",
+            "first_geometry": "foot 2",
+            "feet": [
+              [
+                -10.896595260660476,
+                0.46449841529938496
+              ],
+              [
+                7.097410738872746,
+                1.150615937106636e-05
+              ]
+            ],
+            "midpoint_offset": -1.899592260893865,
+            "vx": -0.7854364415059488,
+            "vy": -1.3733249775299021,
+            "theta": -0.025807693003303152,
+            "omega": -0.009550990216514373,
+            "foot_velocity": [
+              -0.9729424164770606,
+              -1.4544723520697123
+            ],
+            "errors": {
+              "vertical": 0.4577749925099674,
+              "horizontal": 0.5236242943372992,
+              "tilt": 0.3696679720146437,
+              "angular_rate": 0.27361571478850694,
+              "centre": 0.05641459553616848
+            },
+            "score": 85.6808019495245
+          },
+          "termination_reason": "first ground contact"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:08",
+          "scenario": "crosswind_diagnostics",
+          "result": {
+            "success": true,
+            "reasons": [],
+            "contact_time": 12.325410156249779,
+            "surface": "concrete",
+            "first_geometry": "foot 1",
+            "feet": [
+              [
+                -4.018032400510458,
+                3.415530589023774e-06
+              ],
+              [
+                13.981710320469313,
+                0.09624258913364869
+              ]
+            ],
+            "midpoint_offset": 4.981838959979427,
+            "vx": 0.1966369563268173,
+            "vy": -0.933642177742994,
+            "theta": 0.005346646229451798,
+            "omega": -0.0011624218885120845,
+            "foot_velocity": [
+              0.17418188135969354,
+              -0.9233002916968142
+            ],
+            "errors": {
+              "vertical": 0.31121405924766465,
+              "horizontal": 0.1310913042178782,
+              "tilt": 0.0765850658742808,
+              "angular_rate": 0.033300934112684574,
+              "centre": 0.14795197671594879
+            },
+            "score": 96.26486485140042
+          },
+          "termination_reason": "first ground contact"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:09",
+          "scenario": "centred_descent",
+          "result": {
+            "success": true,
+            "reasons": [],
+            "contact_time": 12.384648437499779,
+            "surface": "concrete",
+            "first_geometry": "foot 2",
+            "feet": [
+              [
+                -13.248670382006793,
+                0.2896079125267015
+              ],
+              [
+                4.748999805548561,
+                8.499576257037234e-06
+              ]
+            ],
+            "midpoint_offset": -4.249835288229116,
+            "vx": -0.42780903931510633,
+            "vy": -1.3294746960621793,
+            "theta": -0.01608955045943875,
+            "omega": -0.007235870777280043,
+            "foot_velocity": [
+              -0.5698863472955286,
+              -1.3923198059651678
+            ],
+            "errors": {
+              "vertical": 0.4431582320207264,
+              "horizontal": 0.2852060262100709,
+              "tilt": 0.23046583389715372,
+              "angular_rate": 0.20729242832009648,
+              "centre": 0.12621273723655016
+            },
+            "score": 90.86275090569413
+          },
+          "termination_reason": "first ground contact"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:10",
+          "scenario": "crosswind_diagnostics",
+          "result": {
+            "success": true,
+            "reasons": [],
+            "contact_time": 12.484814453124777,
+            "surface": "concrete",
+            "first_geometry": "foot 1",
+            "feet": [
+              [
+                -3.0797734555966096,
+                7.595988588349201e-06
+              ],
+              [
+                14.919955460361813,
+                0.09879500414539066
+              ]
+            ],
+            "midpoint_offset": 5.920091002382602,
+            "vx": 0.1259618041543057,
+            "vy": -1.5405390663150285,
+            "theta": 0.005488216893331973,
+            "omega": -0.0014486651269273022,
+            "foot_velocity": [
+              0.09772413300402626,
+              -1.5276558598345515
+            ],
+            "errors": {
+              "vertical": 0.5135130221050095,
+              "horizontal": 0.08397453610287046,
+              "tilt": 0.0786129162600806,
+              "angular_rate": 0.041501198850359064,
+              "centre": 0.175816435090954
+            },
+            "score": 91.21569201154163
+          },
+          "termination_reason": "first ground contact"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:11",
+          "scenario": "centred_descent",
+          "result": {
+            "success": true,
+            "reasons": [],
+            "contact_time": 11.86239257812479,
+            "surface": "concrete",
+            "first_geometry": "foot 1",
+            "feet": [
+              [
+                -5.010803758938777,
+                1.1640729599804445e-05
+              ],
+              [
+                12.989123823416474,
+                0.051070723824953035
+              ]
+            ],
+            "midpoint_offset": 3.9891600322388485,
+            "vx": 0.5929672474887795,
+            "vy": -1.3282771583353457,
+            "theta": 0.002836619531619071,
+            "omega": 0.006478248772859813,
+            "foot_velocity": [
+              0.7198779497626384,
+              -1.38622163351938
+            ],
+            "errors": {
+              "vertical": 0.44275905277844857,
+              "horizontal": 0.395311498325853,
+              "tilt": 0.04063158181153729,
+              "angular_rate": 0.18558815666033598,
+              "centre": 0.118471134243254
+            },
+            "score": 90.94449376467593
+          },
+          "termination_reason": "first ground contact"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:12",
+          "scenario": "crosswind_diagnostics",
+          "result": {
+            "success": true,
+            "reasons": [],
+            "contact_time": 12.016591796874787,
+            "surface": "concrete",
+            "first_geometry": "foot 2",
+            "feet": [
+              [
+                -4.780155888019318,
+                0.04872032448524166
+              ],
+              [
+                13.219778205295569,
+                1.0609638852798753e-05
+              ]
+            ],
+            "midpoint_offset": 4.219811158638125,
+            "vx": -0.15169376847188015,
+            "vy": -1.4643567806939062,
+            "theta": -0.0027060985720220847,
+            "omega": -0.005308222065737248,
+            "foot_velocity": [
+              -0.25727101827511395,
+              -1.5118452510675127
+            ],
+            "errors": {
+              "vertical": 0.4881189268979687,
+              "horizontal": 0.10112917898125344,
+              "tilt": 0.03876200678081107,
+              "angular_rate": 0.15206936054247985,
+              "centre": 0.12532107266090892
+            },
+            "score": 92.00775708880981
+          },
+          "termination_reason": "first ground contact"
+        }
+      ]
+    },
+    "discrete_expert": {
+      "metrics": {
+        "total_runs": 12,
+        "successful_runs": 12,
+        "success_rate": 1.0,
+        "mean_successful_quality": 95.72571452937358,
+        "mean_score": 95.72571452937358
+      },
+      "failure_reasons": {},
+      "decisions": 1470,
+      "fallback_count": 0,
+      "fallback_frequency": 0.0,
+      "mean_wall_seconds_per_decision": 0.07653152749049807,
+      "cases": [
+        {
+          "case_id": "expert-feasibility-v1.0:73013:01",
+          "scenario": "centred_descent",
+          "result": {
+            "success": true,
+            "reasons": [],
+            "contact_time": 11.969804687499787,
+            "surface": "concrete",
+            "first_geometry": "foot 1",
+            "feet": [
+              [
+                -3.9588318179284654,
+                2.1354647770976953e-05
+              ],
+              [
+                14.041030098788841,
+                0.0705265254512426
+              ]
+            ],
+            "midpoint_offset": 5.0410991404301875,
+            "vx": 0.3036983852394883,
+            "vy": -1.8722265963806433,
+            "theta": 0.003916963949591515,
+            "omega": -0.006095202434387307,
+            "foot_velocity": [
+              0.18497969580379853,
+              -1.817834372850016
+            ],
+            "errors": {
+              "vertical": 0.624075532126881,
+              "horizontal": 0.20246559015965884,
+              "tilt": 0.05610637570412188,
+              "angular_rate": 0.17461468738412886,
+              "centre": 0.1497119012957409
+            },
+            "score": 86.73242126659741
+          },
+          "termination_reason": "first ground contact"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:02",
+          "scenario": "crosswind_diagnostics",
+          "result": {
+            "success": true,
+            "reasons": [],
+            "contact_time": 12.446884765624777,
+            "surface": "concrete",
+            "first_geometry": "foot 1",
+            "feet": [
+              [
+                -3.2547562578027875,
+                1.5807740989970398e-05
+              ],
+              [
+                14.744933013516706,
+                0.10578033840201684
+              ]
+            ],
+            "midpoint_offset": 5.745088377856959,
+            "vx": 0.13814673102414007,
+            "vy": -1.3511892180773444,
+            "theta": 0.005875841069954321,
+            "omega": -0.0011039288152082376,
+            "foot_velocity": [
+              0.11688035750896703,
+              -1.3413786464953443
+            ],
+            "errors": {
+              "vertical": 0.45039640602578146,
+              "horizontal": 0.09209782068276005,
+              "tilt": 0.08416522359950412,
+              "angular_rate": 0.03162523099715469,
+              "centre": 0.17061916066336896
+            },
+            "score": 93.04816620903918
+          },
+          "termination_reason": "first ground contact"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:03",
+          "scenario": "centred_descent",
+          "result": {
+            "success": true,
+            "reasons": [],
+            "contact_time": 12.35260742187478,
+            "surface": "concrete",
+            "first_geometry": "foot 1",
+            "feet": [
+              [
+                -12.575785838666086,
+                8.662709117146505e-06
+              ],
+              [
+                5.423760309087629,
+                0.12783070652127648
+              ]
+            ],
+            "midpoint_offset": -3.5760127647892284,
+            "vx": -0.18262754183720045,
+            "vy": -0.6200869435687804,
+            "theta": 0.007101284340291423,
+            "omega": 0.0002904072807219927,
+            "foot_velocity": [
+              -0.17690175606059677,
+              -0.6226600138815752
+            ],
+            "errors": {
+              "vertical": 0.20669564785626013,
+              "horizontal": 0.12175169455813363,
+              "tilt": 0.10171840545526041,
+              "angular_rate": 0.008319555762620548,
+              "centre": 0.10620137695382599
+            },
+            "score": 98.06240959317547
+          },
+          "termination_reason": "first ground contact"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:04",
+          "scenario": "crosswind_diagnostics",
+          "result": {
+            "success": true,
+            "reasons": [],
+            "contact_time": 11.441279296874798,
+            "surface": "concrete",
+            "first_geometry": "foot 1",
+            "feet": [
+              [
+                -2.8190311362884284,
+                7.725835075689247e-06
+              ],
+              [
+                15.17987279829683,
+                0.19864597384220417
+              ]
+            ],
+            "midpoint_offset": 6.1804208310042,
+            "vx": 0.27059350487372563,
+            "vy": -0.9429811452907143,
+            "theta": 0.011035682220372255,
+            "omega": -0.0024390519401209787,
+            "foot_velocity": [
+              0.2219002202002744,
+              -0.9215657264994792
+            ],
+            "errors": {
+              "vertical": 0.3143270484302381,
+              "horizontal": 0.1803956699158171,
+              "tilt": 0.15807450381872287,
+              "angular_rate": 0.06987369109106363,
+              "centre": 0.18354777949050252
+            },
+            "score": 95.30103452001947
+          },
+          "termination_reason": "first ground contact"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:05",
+          "scenario": "centred_descent",
+          "result": {
+            "success": true,
+            "reasons": [],
+            "contact_time": 12.34122070312478,
+            "surface": "concrete",
+            "first_geometry": "foot 2",
+            "feet": [
+              [
+                -12.43688881842618,
+                0.2863686257329192
+              ],
+              [
+                5.5608330851821774,
+                1.2386654688611998e-06
+              ]
+            ],
+            "midpoint_offset": -3.438027866622001,
+            "vx": -0.2800605751685105,
+            "vy": -0.2847634939532167,
+            "theta": -0.01590997048063923,
+            "omega": 0.0006943205466482981,
+            "foot_velocity": [
+              -0.26630733769407156,
+              -0.2787326501353672
+            ],
+            "errors": {
+              "vertical": 0.09492116465107224,
+              "horizontal": 0.18670705011234034,
+              "tilt": 0.2278935401795884,
+              "angular_rate": 0.019890818476081838,
+              "centre": 0.10210346479632934
+            },
+            "score": 97.95366000313899
+          },
+          "termination_reason": "first ground contact"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:06",
+          "scenario": "crosswind_diagnostics",
+          "result": {
+            "success": true,
+            "reasons": [],
+            "contact_time": 12.067480468749785,
+            "surface": "concrete",
+            "first_geometry": "foot 1",
+            "feet": [
+              [
+                -2.204783379029661,
+                9.578659525999456e-06
+              ],
+              [
+                15.795159530681556,
+                0.045344412252529054
+              ]
+            ],
+            "midpoint_offset": 6.795188075825948,
+            "vx": 0.07015273754670642,
+            "vy": -1.410776645794273,
+            "theta": 0.002518604529016463,
+            "omega": -0.0011779585832953543,
+            "foot_velocity": [
+              0.04742383271955774,
+              -1.4002322301631902
+            ],
+            "errors": {
+              "vertical": 0.47025888193142434,
+              "horizontal": 0.04676849169780428,
+              "tilt": 0.03607635244379445,
+              "angular_rate": 0.033746027632016715,
+              "centre": 0.20180530042248598
+            },
+            "score": 92.4752685763036
+          },
+          "termination_reason": "first ground contact"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:07",
+          "scenario": "centred_descent",
+          "result": {
+            "success": true,
+            "reasons": [],
+            "contact_time": 12.34462890624978,
+            "surface": "concrete",
+            "first_geometry": "foot 2",
+            "feet": [
+              [
+                -6.57900396480318,
+                0.1485307406916121
+              ],
+              [
+                11.420383340229526,
+                1.5948743374849528e-05
+              ]
+            ],
+            "midpoint_offset": 2.420689687713173,
+            "vx": -0.3705762296876521,
+            "vy": -1.0410217548958591,
+            "theta": -0.008250915391676248,
+            "omega": 0.006498316142937126,
+            "foot_velocity": [
+              -0.2439847828836847,
+              -0.9835794378186435
+            ],
+            "errors": {
+              "vertical": 0.34700725163195306,
+              "horizontal": 0.24705081979176804,
+              "tilt": 0.1181856572656449,
+              "angular_rate": 0.18616304446601456,
+              "centre": 0.07189028533241783
+            },
+            "score": 94.56949596500579
+          },
+          "termination_reason": "first ground contact"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:08",
+          "scenario": "crosswind_diagnostics",
+          "result": {
+            "success": true,
+            "reasons": [],
+            "contact_time": 12.436777343749778,
+            "surface": "concrete",
+            "first_geometry": "foot 1",
+            "feet": [
+              [
+                -3.698078404613198,
+                5.166208865148292e-06
+              ],
+              [
+                14.301700249911487,
+                0.08927099459524612
+              ]
+            ],
+            "midpoint_offset": 5.301810922649144,
+            "vx": 0.1679939012663283,
+            "vy": -0.16222727691933458,
+            "theta": 0.004959233015996857,
+            "omega": -0.0026501547929691613,
+            "foot_velocity": [
+              0.11678433690189419,
+              -0.13862955272343538
+            ],
+            "errors": {
+              "vertical": 0.05407575897311153,
+              "horizontal": 0.1119959341775522,
+              "tilt": 0.07103578035963855,
+              "angular_rate": 0.0759213423467497,
+              "centre": 0.1574545890546788
+            },
+            "score": 99.04090668219033
+          },
+          "termination_reason": "first ground contact"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:09",
+          "scenario": "centred_descent",
+          "result": {
+            "success": true,
+            "reasons": [],
+            "contact_time": 12.566816406249774,
+            "surface": "concrete",
+            "first_geometry": "foot 2",
+            "feet": [
+              [
+                -13.223821951502147,
+                0.2406045241033148
+              ],
+              [
+                4.774569963027817,
+                4.251904098140358e-06
+              ]
+            ],
+            "midpoint_offset": -4.224625994237165,
+            "vx": -0.2555843405508467,
+            "vy": -0.02576602477972169,
+            "theta": -0.013367079854306782,
+            "omega": 0.004510757937113943,
+            "foot_velocity": [
+              -0.1670521228607705,
+              0.013650936108050675
+            ],
+            "errors": {
+              "vertical": 0.008588674926573897,
+              "horizontal": 0.17038956036723116,
+              "tilt": 0.1914693150165315,
+              "angular_rate": 0.12922369610088325,
+              "centre": 0.12546406492745205
+            },
+            "score": 98.26378194752809
+          },
+          "termination_reason": "first ground contact"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:10",
+          "scenario": "crosswind_diagnostics",
+          "result": {
+            "success": true,
+            "reasons": [],
+            "contact_time": 12.445664062499777,
+            "surface": "concrete",
+            "first_geometry": "foot 1",
+            "feet": [
+              [
+                -2.301945084398347,
+                8.377738090814546e-06
+              ],
+              [
+                15.697357328148382,
+                0.1584781278152434
+              ]
+            ],
+            "midpoint_offset": 6.697706121875017,
+            "vx": 0.10926902581063667,
+            "vy": -0.8187646136690111,
+            "theta": 0.00880398873702625,
+            "omega": -0.003264216278358115,
+            "foot_velocity": [
+              0.045540520629806625,
+              -0.7899466081198824
+            ],
+            "errors": {
+              "vertical": 0.2729215378896704,
+              "horizontal": 0.07284601720709112,
+              "tilt": 0.12610784937807903,
+              "angular_rate": 0.09351290808391036,
+              "centre": 0.1989102554607691
+            },
+            "score": 96.44527734361478
+          },
+          "termination_reason": "first ground contact"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:11",
+          "scenario": "centred_descent",
+          "result": {
+            "success": true,
+            "reasons": [],
+            "contact_time": 11.914521484374788,
+            "surface": "concrete",
+            "first_geometry": "foot 2",
+            "feet": [
+              [
+                -5.078685522750799,
+                0.00476011534096088
+              ],
+              [
+                12.921313849048026,
+                4.566806847350335e-06
+              ]
+            ],
+            "midpoint_offset": 3.9213141631486135,
+            "vx": 0.4922064803736159,
+            "vy": -0.31145832220175074,
+            "theta": -0.000264197143857697,
+            "omega": -0.003014233608130187,
+            "foot_velocity": [
+              0.43320312669980976,
+              -0.33857083710381364
+            ],
+            "errors": {
+              "vertical": 0.10381944073391691,
+              "horizontal": 0.3281376535824106,
+              "tilt": 0.0037843453256141747,
+              "angular_rate": 0.0863514321061749,
+              "centre": 0.1164562296017051
+            },
+            "score": 97.67815487523876
+          },
+          "termination_reason": "first ground contact"
+        },
+        {
+          "case_id": "expert-feasibility-v1.0:73013:12",
+          "scenario": "crosswind_diagnostics",
+          "result": {
+            "success": true,
+            "reasons": [],
+            "contact_time": 12.086337890624785,
+            "surface": "concrete",
+            "first_geometry": "foot 1",
+            "feet": [
+              [
+                -2.2819605717613793,
+                3.491189442428322e-06
+              ],
+              [
+                15.718037116437538,
+                0.00912625577491255
+              ]
+            ],
+            "midpoint_offset": 6.718038272338079,
+            "vx": -0.06184202622651133,
+            "vy": -0.06993442959584223,
+            "theta": 0.0005068202764458825,
+            "omega": 0.0013678210302956874,
+            "foot_velocity": [
+              -0.03464899609324565,
+              -0.0822310384693391
+            ],
+            "errors": {
+              "vertical": 0.02331147653194741,
+              "horizontal": 0.041228017484340886,
+              "tilt": 0.007259665703000679,
+              "angular_rate": 0.0391851860825894,
+              "centre": 0.19951408506587312
+            },
+            "score": 99.13799737063094
+          },
+          "termination_reason": "first ground contact"
+        }
+      ]
+    }
+  }
+}

@@ -95,7 +95,7 @@ python3 classification_exercise_temp/rocket_evaluation.py leaderboard --sort mea
 
 Pass multiple evaluation JSON files to the leaderboard to compare submissions. Its default ordering is success rate, then mean successful quality; the alternative sorts by successful quality, then success rate. With no successes quality is `N/A`. Each saved evaluation contains the scenario-set and scoring versions, aggregate metrics, and each case's result with its complete replay in `runs[].replay`. Save a replay object as a JSON file to import it into the flight lab. An exhausted action sequence is a no-contact failure. Evaluation is of the supplied open-loop sequence; it is not a controller benchmark.
 
-## Closed-loop controller prototype
+## Closed-loop controllers
 
 The trusted local closed-loop runner requires NumPy (`pip install -r
 classification_exercise_temp/requirements.txt`). It calls a policy once per
@@ -120,24 +120,20 @@ Upward velocity, anticlockwise angle and leftward thrust deflection are positive
 The pad and vehicle configuration are fixed to the calibrated profile. The
 runner rejects configurations that do not match the named scenario.
 
-The short-horizon shooting controller is **experimental**, not a validated
-expert. It holds observed wind and density fixed in predicted trajectories,
-tries each initial discrete command with a bounded guidance continuation,
-and records candidate costs, predicted contact and fallback use. It is not an acceptance benchmark or a source of student labels.
-The current prototype reached a candidate-safe centred touchdown with a score
-of approximately 94.58; this single run does not certify it.
-Continuous predictive control, the feasibility study, acceptance gates,
-dataset generation and classifier evaluation are still outstanding. No data
-should be released until those gates are met.
+The discrete expert uses bounded short-horizon shooting. It holds observed
+wind and density fixed in hypothetical trajectories, tries each initial discrete
+command with a guidance continuation, and records costs, predicted contact and
+fallback use. It replans at each decision and does not retain a previous plan.
+Its results apply to this fixed engineering profile and first-contact scoring;
+they do not establish post-impact stability or general flight certification.
 
 `guidance` is a continuous braking-curve baseline; use the same runner with
 `control_mode='continuous'` to evaluate it. `simple_discrete_guidance` is a
 quantized diagnostic baseline, not an expert or a source of labels. On the
 centred-descent preset both reach candidate-safe first contact under the
 existing touchdown scoring: approximately 98.57 for continuous guidance and
-95.36 for the discrete baseline. These single cases do not establish robustness
-or certify the predictive expert; the other diagnostic and feasibility cases
-still need evaluation.
+95.36 for the discrete baseline. These single cases do not establish robustness; the benchmark results below
+retain all successful and failed cases.
 
 Run the closed-loop diagnostic benchmark separately from the open-loop action
 sequence evaluation:
@@ -166,8 +162,8 @@ initial conditions into one split, and rejects componentwise near-duplicates
 across train and validation. Observation columns and action labels are in CSV;
 episode, time, policy, scoring and solver details are in separate JSONL files.
 It rejects an existing nonempty destination. The resulting manifest explicitly
-marks the files as experimental: the hidden sets, recovery sampling, classifier
-sanity checks and release gates remain unfinished.
+marks the files as experimental. The separate release checker below verifies
+the acceptance gates before freezing a student dataset.
 
 To run the NumPy-only sanity check on a draft, fit both raw and engineered
 multinomial logistic regression models and evaluate them on separate exploratory
@@ -221,8 +217,7 @@ future trajectory or target action is supplied to the model.
 Pass `--private-agreement-output /path/to/private-directory` to reserve whole
 initial-condition groups for a separate expert-agreement set. The private
 directory must be new and outside the student output directory; all three
-splits are checked for near-duplicate observations. The directory is created
-with owner-only permissions where the filesystem supports them. A future upload
+splits are checked for near-duplicate observations. The directory must be on a filesystem that enforces owner-only permissions. A future upload
 service still needs its own access controls and separate hidden closed-loop
 starts.
 
@@ -249,7 +244,45 @@ a draft with recovery samples. It is not a release dataset.
 `rocket_expert_private.py` prepares a separate trusted-local expert-agreement
 set and independent closed-loop starts from caller-supplied private seeds. It
 checks both against the student files and frozen feasibility starts, stores
-agreement replays and provenance, and creates a separate owner-only directory
-where supported. Keep that directory and its seeds outside the student
+agreement replays and provenance, and requires a filesystem that supports a separate owner-only directory. Keep that directory and its seeds outside the student
 publication. It is local preparation only; a future student-upload service
 must enforce its own sandbox and access controls.
+
+## Frozen student data and evaluation evidence
+
+The local [expert-data-v1.0 dataset](datasets/expert-data-v1.0/manifest.json)
+contains `train.csv` and `validation.csv` with the twelve observation columns
+and integer action, plus separate per-row metadata. It has nine training and
+three validation episodes; all ten actions occur in training. Controlled
+recovery states remain in their parent episode's split. The matching private
+agreement set and separate private closed-loop starts are stored outside the
+student files; keep their directory and seeds private and back them up securely.
+
+The frozen [feasibility-v1.0 results](benchmarks/feasibility-v1.0-summary.json)
+met the predeclared 9/12 target: the discrete expert and continuous reference
+each achieved 12 candidate-safe contacts, while all-off and fixed burn each
+achieved zero. The expert's mean successful quality was 95.73. On the frozen
+data, raw and engineered NumPy softmax models reached 71.3% and 74.2% validation
+agreement respectively; they landed 0/6 and 3/6 separate exploratory starts.
+Agreement is not a substitute for closed-loop performance.
+
+The full compressed benchmark and classifier reports in `benchmarks/` retain
+recorded replays, including failed runs. For example, extract one final-set
+expert replay for import into the flight lab:
+
+```sh
+gzip -dc classification_exercise_temp/benchmarks/feasibility-v1.0-full-report.json.gz | python3 -c 'import json,sys; r=json.load(sys.stdin); json.dump(r["policies"]["discrete_expert"]["runs"][0]["replay"],sys.stdout)' > /tmp/rocket-replay.json
+```
+
+To prepare another local freeze, generate a draft and private data, run both
+classifier checks and the frozen final benchmark, then pass their paths to
+`rocket_expert_release.py`. The release checker verifies scoring, action
+mapping and timing, episode separation, class coverage, private-data separation,
+classifier evidence and an exactly reproduced expert replay before writing.
+The private directory must be on a filesystem that enforces owner-only
+permissions. The later upload service still needs its own sandbox and access
+controls.
+
+For example, the centred preset's initial observation is approximately
+`[0, 450, 0, -48, 0, 0, 9000, 0, 0, 0, 0, 1.1618338564]` in the published
+column order.
