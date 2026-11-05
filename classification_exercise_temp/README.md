@@ -168,3 +168,19 @@ episode, time, policy, scoring and solver details are in separate JSONL files.
 It rejects an existing nonempty destination. The resulting manifest explicitly
 marks the files as experimental: the hidden sets, recovery sampling, classifier
 sanity checks and release gates remain unfinished.
+
+To run the NumPy-only sanity check on a draft, fit both raw and engineered
+multinomial logistic regression models and evaluate them on separate exploratory
+closed-loop starts:
+
+```sh
+python3 classification_exercise_temp/rocket_softmax.py /tmp/expert-draft /tmp/sanity.json
+```
+
+The report separates held-out expert agreement and the 10×10 confusion matrix
+from closed-loop landing scores, and includes the fitted parameters and replays.
+The feature scaler is fitted on training episodes only. These exploratory starts
+are not the required hidden evaluation set. The first diagnostic draft lacks
+examples of action 6 and has strong class imbalance; neither classifier landed
+any of six separate exploratory starts. It must not be published as the final
+dataset.
