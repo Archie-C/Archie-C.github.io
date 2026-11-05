@@ -202,6 +202,27 @@ class ClosedLoopTests(unittest.TestCase):
         self.assertTrue(decision['diagnostics']['fallback'])
         self.assertIn('TimeoutError', decision['diagnostics']['reason'])
 
+    def test_discrete_ties_choose_lowest_action(self):
+        observation = make_observation(self.initial, 0, self.p)
+        expert = DiscreteExpert(horizon_steps=1)
+        with patch('rocket_expert.guidance', return_value=Command(.55, .1)), \
+             patch('rocket_expert.step', return_value=(self.initial, None)):
+            self.assertEqual(expert.predict_action(observation), 4)
+            self.assertEqual(expert.diagnostics['costs'][4], expert.diagnostics['costs'][5])
+
+    def test_empty_fuel_cannot_produce_thrust(self):
+        state = replace(self.initial, fuel=0., thrust=0.)
+        observation = make_observation(state, 0, self.p)
+        discrete = DiscreteExpert(horizon_steps=1)
+        continuous = ContinuousReference(horizon_steps=1)
+        for command in (discrete_command(discrete.predict_action(observation), self.p),
+                        continuous.predict_command(observation)):
+            result, contact = step(0., state, command, self.p, self.p.timestep)
+            self.assertIsNone(contact)
+            self.assertEqual(result.fuel, 0.)
+            self.assertEqual(result.thrust, 0.)
+            self.assertLessEqual(abs(result.gimbal), self.p.gimbal_max)
+
     def test_action_mapping(self):
         for action in range(10):
             command = discrete_command(action, self.p)
