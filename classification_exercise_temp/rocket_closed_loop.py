@@ -1,5 +1,5 @@
 """Trusted local closed-loop driver and the public observation-v1.0 contract."""
-from dataclasses import asdict
+from dataclasses import asdict, replace
 import hashlib
 import inspect
 from pathlib import Path
@@ -49,11 +49,20 @@ def evaluate_closed_loop(policy, initial_state, parameters, scenario_id, *, max_
     if abs(max_time / parameters.control_interval - round(max_time / parameters.control_interval)) > 1e-9:
         raise ValueError('max_time must be a control boundary')
     run = Run(scenario_id)
-    if parameters != run.p:
-        raise ValueError('parameters must match the named calibrated scenario')
+    if replace(parameters, control_interval=run.p.control_interval, timestep=run.p.timestep) != run.p:
+        raise ValueError('parameters must match the named calibrated scenario except timing')
+    run.p = parameters
+    run.config['parameters']['control_interval'] = parameters.control_interval
+    run.config['parameters']['timestep'] = parameters.timestep
+    definition = dict(parameters=run.config['parameters'], **__import__('rocket_calibration').metadata(scenario_id),
+                      physics_engine_sha256=run.config['physics_engine_sha256'])
+    run.config['physics_config'] = __import__('rocket_calibration').NAME + ':' + hashlib.sha256(
+        json.dumps(definition, sort_keys=True).encode()).hexdigest()
     run.initial = run.state = initial_state
     run.config['initial_state'] = asdict(initial_state)
     owner = getattr(policy, '__self__', None)
+    if owner is not None and hasattr(owner, 'reset'):
+        owner.reset()
     try:
         source = inspect.getsourcefile(policy)
     except TypeError:
