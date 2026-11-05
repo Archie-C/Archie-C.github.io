@@ -312,3 +312,14 @@ python3 classification_exercise_temp/rocket_expert_audit.py classification_exerc
 
 The current freeze command also requires that archived source report, so it
 can run the same label audit before writing a new dataset.
+
+The timeout-safe v0.5 discrete expert and v0.3 continuous reference were
+re-evaluated on both the diagnostic cases and the frozen feasibility set. The
+[updated feasibility report](benchmarks/feasibility-v1.0-controllers-v0.5-summary.json)
+records 12/12 safe contacts for each and includes a linkable companion replay
+archive. All twelve runs for both controllers matched the preceding versions'
+observations, decisions, states, contacts and scores; a successful v0.5 replay
+was independently reproduced exactly. The [updated diagnostic report](benchmarks/diagnostic-controllers-v0.5-summary.json)
+retains the six discrete and seven continuous successes as well as all failures.
+The [label audit](benchmarks/expert-data-v1.0-label-audit.json) records the
+verification of all frozen flight and recovery labels.
