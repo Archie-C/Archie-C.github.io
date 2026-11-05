@@ -148,7 +148,7 @@ python3 classification_exercise_temp/rocket_expert_benchmark.py /tmp/feasibility
 ```
 
 The report retains a complete replay and touchdown result for every run. It
-compares all-off, always-full-thrust, continuous guidance, discrete guidance and
+compares all-off, always-full-thrust, continuous guidance, the continuous predictive reference, discrete guidance and
 the experimental predictive expert; it includes failure reasons and fallback
 frequency. Solver time is measured outside replay records and varies by runtime.
 The fixed-seed feasibility set is exploratory: a continuous safe contact is
@@ -184,3 +184,10 @@ are not the required hidden evaluation set. The first diagnostic draft lacks
 examples of action 6 and has strong class imbalance; neither classifier landed
 any of six separate exploratory starts. It must not be published as the final
 dataset.
+
+`ContinuousReference.predict_command` performs a separate bounded predictive
+search over explicit engine-off and enabled throttle/gimbal candidates, then
+replans at each boundary. Its centred-descent trial reached candidate-safe
+contact with a score of approximately 93.69. It is an engineering reference,
+not proof of global feasibility; continuous commands never become student
+action labels.

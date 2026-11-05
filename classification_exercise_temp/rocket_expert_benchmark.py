@@ -11,7 +11,7 @@ import random
 from rocket_calibration import configuration
 from rocket_closed_loop import evaluate_closed_loop
 from rocket_evaluation import CASES, SCENARIO_SET
-from rocket_expert import DiscreteExpert, guidance, simple_discrete_guidance
+from rocket_expert import ContinuousReference, DiscreteExpert, guidance, simple_discrete_guidance
 from rocket_scoring import aggregate
 
 FEASIBILITY_SET = 'expert-feasibility-study-v0.1'
@@ -50,8 +50,10 @@ def fixed_burn(observation):
 
 def policies():
     expert = DiscreteExpert()
+    continuous = ContinuousReference()
     return {'all_off': (all_off, 'discrete'), 'fixed_burn': (fixed_burn, 'discrete'),
-            'guidance': (guidance, 'continuous'), 'discrete_guidance': (simple_discrete_guidance, 'discrete'),
+            'guidance': (guidance, 'continuous'), 'continuous_reference': (continuous.predict_command, 'continuous'),
+            'discrete_guidance': (simple_discrete_guidance, 'discrete'),
             'discrete_expert': (expert.predict_action, 'discrete')}
 
 
@@ -89,6 +91,7 @@ def benchmark(cases, selected=None, max_time=20.):
             matching = next(run for run in report['runs'] if run['case_id'] == case['case_id'])
             statuses[name] = matching['result']['success']
         comparison.append(dict(case_id=case['case_id'], continuous_baseline_safe=statuses.get('guidance'),
+                               continuous_reference_safe=statuses.get('continuous_reference'),
                                discrete_expert_safe=statuses.get('discrete_expert')))
     return dict(schema='rocket-expert-benchmark-v0.1', cases=comparison,
                 diagnostic_scenario_set=SCENARIO_SET, feasibility_set=FEASIBILITY_SET,

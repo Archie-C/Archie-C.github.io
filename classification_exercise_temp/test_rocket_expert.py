@@ -6,7 +6,7 @@ import numpy as np
 from rocket_calibration import configuration
 from rocket_closed_loop import OBSERVATION_NAMES, evaluate_closed_loop, make_observation
 from rocket_physics import discrete_command
-from rocket_expert import DiscreteExpert, guidance, simple_discrete_guidance
+from rocket_expert import ContinuousReference, DiscreteExpert, guidance, simple_discrete_guidance
 from rocket_expert_benchmark import benchmark, diagnostic_cases, feasibility_cases
 from unittest.mock import patch
 
@@ -82,6 +82,18 @@ class ClosedLoopTests(unittest.TestCase):
         self.assertIsNone(report['cases'][0]['discrete_expert_safe'])
         self.assertIn('snapshots', result['runs'][0]['replay'])
         self.assertGreaterEqual(result['mean_wall_seconds_per_decision'], 0)
+
+    def test_continuous_predictive_reference_centred_touchdown(self):
+        p, initial = configuration('centred_descent')
+        expert = ContinuousReference()
+        obs = make_observation(initial, 0, p)
+        self.assertEqual(expert.predict_command(obs), expert.predict_command(obs))
+        result = evaluate_closed_loop(expert.predict_command, initial, p, 'centred_descent',
+                                      max_time=20, control_mode='continuous')
+        self.assertTrue(result['scoring']['success'], result['scoring'])
+        self.assertGreater(result['scoring']['score'], 80)
+        self.assertFalse(any(d['diagnostics']['fallback'] for d in result['decisions']))
+        self.assertTrue(all(d['action'] is None for d in result['decisions']))
 
     def test_predictive_expert_centred_touchdown(self):
         p, initial = configuration('centred_descent')
