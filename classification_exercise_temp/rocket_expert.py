@@ -12,7 +12,7 @@ from rocket_calibration import configuration
 from rocket_physics import Command, State, clearance, discrete_command, mass_properties, step
 from rocket_scoring import score_contact
 
-EXPERT_VERSION = 'expert-prototype-v0.2'
+EXPERT_VERSION = 'expert-prototype-v0.3'
 
 
 def _state(observation):
@@ -115,6 +115,8 @@ class DiscreteExpert:
                             + 20 * candidate.theta**2 + 40 * candidate.omega**2)
                 if not math.isfinite(cost):
                     raise ArithmeticError('nonfinite candidate cost')
+                if contact is None:
+                    cost = min(cost, 1e6)  # Every unsafe contact remains more costly.
                 costs.append(cost)
                 contacts.append(result)
             if all(value >= 1e8 for value in costs):
@@ -141,7 +143,7 @@ class ContinuousReference:
     each control boundary. This bounded grid is a reference search, not proof of
     global optimality or feasibility.
     """
-    version = 'continuous-reference-prototype-v0.1'
+    version = 'continuous-reference-prototype-v0.2'
 
     def __init__(self, horizon_steps=3):
         if type(horizon_steps) is not int or not 1 <= horizon_steps <= 10:
@@ -194,6 +196,8 @@ class ContinuousReference:
                             + 20 * candidate.theta**2 + 40 * candidate.omega**2)
                 if not math.isfinite(cost):
                     raise ArithmeticError('nonfinite candidate cost')
+                if contact is None:
+                    cost = min(cost, 1e6)  # Every unsafe contact remains more costly.
                 costs.append(cost)
                 contacts.append(result)
             if all(value >= 1e8 for value in costs):

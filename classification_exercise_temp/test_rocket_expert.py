@@ -73,6 +73,7 @@ class ClosedLoopTests(unittest.TestCase):
         self.assertEqual(len(diagnostic_cases()), 12)
         self.assertEqual(feasibility_cases(), feasibility_cases())
         self.assertEqual(len(feasibility_cases()), 12)
+        self.assertNotEqual(feasibility_cases(seed=1)[0]['case_id'], feasibility_cases(seed=2)[0]['case_id'])
         cases = diagnostic_cases()[:1]
         report = benchmark(cases, ['all_off'], max_time=.2)
         result = report['policies']['all_off']
@@ -82,6 +83,17 @@ class ClosedLoopTests(unittest.TestCase):
         self.assertIsNone(report['cases'][0]['discrete_expert_safe'])
         self.assertIn('snapshots', result['runs'][0]['replay'])
         self.assertGreaterEqual(result['mean_wall_seconds_per_decision'], 0)
+
+    def test_expert_replay_repeats_identically(self):
+        expert = DiscreteExpert(horizon_steps=1)
+        first = evaluate_closed_loop(expert.predict_action, self.initial, self.p,
+                                     'near_ground_contact', max_time=2)
+        second = evaluate_closed_loop(expert.predict_action, self.initial, self.p,
+                                      'near_ground_contact', max_time=2)
+        self.assertEqual(first['decisions'], second['decisions'])
+        self.assertEqual(first['scoring'], second['scoring'])
+        self.assertEqual(first['replay'], second['replay'])
+        self.assertEqual(first['replay']['terminal']['type'], 'contact')
 
     def test_continuous_predictive_reference_centred_touchdown(self):
         p, initial = configuration('centred_descent')
