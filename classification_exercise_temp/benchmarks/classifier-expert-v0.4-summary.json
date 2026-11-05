@@ -1,0 +1,833 @@
+{
+  "schema": "rocket-classifier-study-v0.1",
+  "status": "exploratory; not approved for release",
+  "dataset_version": "expert-draft-v0.2",
+  "source_set": [
+    "expert-feasibility-study-v0.1"
+  ],
+  "split_seed": 20261105,
+  "recovery_per_episode": 15,
+  "train_and_validation_class_counts": {
+    "train": {
+      "0": 173,
+      "1": 30,
+      "2": 558,
+      "3": 48,
+      "4": 14,
+      "5": 166,
+      "6": 18,
+      "7": 11,
+      "8": 38,
+      "9": 29
+    },
+    "validation": {
+      "0": 43,
+      "1": 0,
+      "2": 153,
+      "3": 8,
+      "4": 0,
+      "5": 43,
+      "6": 8,
+      "7": 2,
+      "8": 15,
+      "9": 4
+    }
+  },
+  "models": {
+    "raw": {
+      "model_version": "rocket-softmax-v0.2",
+      "basis": "raw",
+      "held_out_agreement": 0.7355072463768116,
+      "confusion": [
+        [
+          37,
+          0,
+          5,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          1,
+          0,
+          150,
+          0,
+          0,
+          2,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          8,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          2,
+          0,
+          33,
+          0,
+          0,
+          8,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          2,
+          0,
+          6,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          2,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          1,
+          0,
+          7,
+          0,
+          0,
+          1,
+          0,
+          0,
+          5,
+          1
+        ],
+        [
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          3
+        ]
+      ],
+      "train_class_counts": [
+        173,
+        30,
+        558,
+        48,
+        14,
+        166,
+        18,
+        11,
+        38,
+        29
+      ],
+      "validation_class_counts": [
+        43,
+        0,
+        153,
+        8,
+        0,
+        43,
+        8,
+        2,
+        15,
+        4
+      ],
+      "closed_loop": {
+        "case_seed": 42018,
+        "metrics": {
+          "total_runs": 6,
+          "successful_runs": 0,
+          "success_rate": 0.0,
+          "mean_successful_quality": null,
+          "mean_score": 0.0
+        },
+        "cases": [
+          {
+            "case_id": "expert-feasibility-study-v0.1:42018:01",
+            "scoring": {
+              "success": false,
+              "reasons": [
+                "vertical velocity outside limits"
+              ],
+              "contact_time": 6.964062499999894,
+              "surface": "concrete",
+              "first_geometry": "foot 2",
+              "feet": [
+                [
+                  -7.6450526477539205,
+                  0.3171087900059355
+                ],
+                [
+                  10.352159440628533,
+                  0.0003169880594917629
+                ]
+              ],
+              "midpoint_offset": 1.3535533964373063,
+              "vx": -0.043333580126413876,
+              "vy": -50.32567339254416,
+              "theta": -0.017600453238038456,
+              "omega": -0.0006384818554806183,
+              "foot_velocity": [
+                -0.055725802007530884,
+                -50.33120248815071
+              ],
+              "errors": {
+                "vertical": 1.0,
+                "horizontal": 0.02888905341760925,
+                "tilt": 0.2521079220142418,
+                "angular_rate": 0.018291157807360597,
+                "centre": 0.040198188299991285
+              },
+              "score": 0.0
+            }
+          },
+          {
+            "case_id": "expert-feasibility-study-v0.1:42018:02",
+            "scoring": {
+              "success": false,
+              "reasons": [
+                "vertical velocity outside limits",
+                "horizontal velocity outside limits"
+              ],
+              "contact_time": 7.706054687499878,
+              "surface": "concrete",
+              "first_geometry": "foot 2",
+              "feet": [
+                [
+                  -4.404690437752893,
+                  0.2524947950114047
+                ],
+                [
+                  13.593544535300008,
+                  0.00042763178813132185
+                ]
+              ],
+              "midpoint_offset": 4.594427048773557,
+              "vx": 1.9328194425226133,
+              "vy": -45.518336524846895,
+              "theta": -0.01400418902967434,
+              "omega": -0.004883808994606584,
+              "foot_velocity": [
+                1.8376002424476243,
+                -45.56096156139229
+              ],
+              "errors": {
+                "vertical": 1.0,
+                "horizontal": 1.0,
+                "tilt": 0.2005952317259368,
+                "angular_rate": 0.13991082166949353,
+                "centre": 0.13644651487210613
+              },
+              "score": 0.0
+            }
+          },
+          {
+            "case_id": "expert-feasibility-study-v0.1:42018:03",
+            "scoring": {
+              "success": false,
+              "reasons": [
+                "vertical velocity outside limits"
+              ],
+              "contact_time": 6.889794921874896,
+              "surface": "concrete",
+              "first_geometry": "foot 1",
+              "feet": [
+                [
+                  -3.5266629797176803,
+                  0.0001428182746572304
+                ],
+                [
+                  14.473194189115386,
+                  0.07184987238214902
+                ]
+              ],
+              "midpoint_offset": 5.473265604698852,
+              "vx": 0.1704789510295855,
+              "vy": -50.76267858549703,
+              "theta": 0.00398373576526679,
+              "omega": 0.0014078336614610969,
+              "foot_velocity": [
+                0.19780953102171167,
+                -50.775240310607266
+              ],
+              "errors": {
+                "vertical": 1.0,
+                "horizontal": 0.11365263401972366,
+                "tilt": 0.05706281151127656,
+                "angular_rate": 0.0403314635290852,
+                "centre": 0.16254649574420446
+              },
+              "score": 0.0
+            }
+          },
+          {
+            "case_id": "expert-feasibility-study-v0.1:42018:04",
+            "scoring": {
+              "success": false,
+              "reasons": [
+                "vertical velocity outside limits",
+                "horizontal velocity outside limits"
+              ],
+              "contact_time": 8.15416992187487,
+              "surface": "concrete",
+              "first_geometry": "foot 2",
+              "feet": [
+                [
+                  2.5042550580379146,
+                  0.11506043335650062
+                ],
+                [
+                  20.503888853624616,
+                  0.00024220843897282407
+                ]
+              ],
+              "midpoint_offset": 11.504071955831265,
+              "vx": 2.1964760880838936,
+              "vy": -38.297670812125865,
+              "theta": -0.0063788335317175385,
+              "omega": -0.001881204774750173,
+              "foot_velocity": [
+                2.1608074183277823,
+                -38.31437447196569
+              ],
+              "errors": {
+                "vertical": 1.0,
+                "horizontal": 1.0,
+                "tilt": 0.09137005989598607,
+                "angular_rate": 0.0538925469965218,
+                "centre": 0.34165098467068383
+              },
+              "score": 0.0
+            }
+          },
+          {
+            "case_id": "expert-feasibility-study-v0.1:42018:05",
+            "scoring": {
+              "success": false,
+              "reasons": [
+                "vertical velocity outside limits"
+              ],
+              "contact_time": 7.249140624999888,
+              "surface": "concrete",
+              "first_geometry": "foot 2",
+              "feet": [
+                [
+                  -13.602661176601416,
+                  0.21104652374948074
+                ],
+                [
+                  4.39610439085401,
+                  0.00024318463687222902
+                ]
+              ],
+              "midpoint_offset": -4.603278392873703,
+              "vx": -0.28365972524055105,
+              "vy": -40.52520459444826,
+              "theta": -0.01171156434333519,
+              "omega": -0.005285735855527586,
+              "foot_velocity": [
+                -0.38682639964192755,
+                -40.571571181424396
+              ],
+              "errors": {
+                "vertical": 1.0,
+                "horizontal": 0.1891064834937007,
+                "tilt": 0.16775580209225247,
+                "angular_rate": 0.15142517807135106,
+                "centre": 0.13670938444029768
+              },
+              "score": 0.0
+            }
+          },
+          {
+            "case_id": "expert-feasibility-study-v0.1:42018:06",
+            "scoring": {
+              "success": false,
+              "reasons": [
+                "vertical velocity outside limits",
+                "horizontal velocity outside limits"
+              ],
+              "contact_time": 9.417373046874841,
+              "surface": "concrete",
+              "first_geometry": "foot 1",
+              "feet": [
+                [
+                  2.5264986662935645,
+                  0.00020138247776912976
+                ],
+                [
+                  20.526497404264127,
+                  0.006941787366486096
+                ]
+              ],
+              "midpoint_offset": 11.526498035278845,
+              "vx": 1.7582396724951745,
+              "vy": -25.93306677176214,
+              "theta": 0.00037446694701368124,
+              "omega": 0.0006349289158122077,
+              "foot_velocity": [
+                1.770450505512777,
+                -25.938776559851522
+              ],
+              "errors": {
+                "vertical": 1.0,
+                "horizontal": 1.0,
+                "tilt": 0.00536384390775824,
+                "angular_rate": 0.01818937358342833,
+                "centre": 0.34231700033496215
+              },
+              "score": 0.0
+            }
+          }
+        ]
+      }
+    },
+    "engineered": {
+      "model_version": "rocket-softmax-v0.2",
+      "basis": "engineered",
+      "held_out_agreement": 0.7717391304347826,
+      "confusion": [
+        [
+          37,
+          0,
+          4,
+          1,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          2,
+          0,
+          146,
+          0,
+          0,
+          5,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          8,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          25,
+          0,
+          0,
+          17,
+          0,
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          0,
+          5,
+          2,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          2,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          2,
+          0,
+          0,
+          2,
+          0,
+          0,
+          10,
+          1
+        ],
+        [
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          3
+        ]
+      ],
+      "train_class_counts": [
+        173,
+        30,
+        558,
+        48,
+        14,
+        166,
+        18,
+        11,
+        38,
+        29
+      ],
+      "validation_class_counts": [
+        43,
+        0,
+        153,
+        8,
+        0,
+        43,
+        8,
+        2,
+        15,
+        4
+      ],
+      "closed_loop": {
+        "case_seed": 42018,
+        "metrics": {
+          "total_runs": 6,
+          "successful_runs": 1,
+          "success_rate": 0.16666666666666666,
+          "mean_successful_quality": 74.77624490063444,
+          "mean_score": 12.462707483439074
+        },
+        "cases": [
+          {
+            "case_id": "expert-feasibility-study-v0.1:42018:01",
+            "scoring": {
+              "success": false,
+              "reasons": [
+                "vertical velocity outside limits"
+              ],
+              "contact_time": 10.972197265624809,
+              "surface": "concrete",
+              "first_geometry": "foot 2",
+              "feet": [
+                [
+                  -4.0553286932167225,
+                  0.13209201727391573
+                ],
+                [
+                  13.94418668359441,
+                  7.953361514267954e-06
+                ]
+              ],
+              "midpoint_offset": 4.944428995188844,
+              "vx": 1.2400318278938556,
+              "vy": -8.874940262569119,
+              "theta": -0.0073380694063367785,
+              "omega": 0.007681676495635285,
+              "foot_velocity": [
+                1.391557607690207,
+                -8.806915239346141
+              ],
+              "errors": {
+                "vertical": 1.0,
+                "horizontal": 0.8266878852625704,
+                "tilt": 0.10511010168929173,
+                "angular_rate": 0.22006382139237307,
+                "centre": 0.14684096564471502
+              },
+              "score": 0.0
+            }
+          },
+          {
+            "case_id": "expert-feasibility-study-v0.1:42018:02",
+            "scoring": {
+              "success": false,
+              "reasons": [
+                "vertical velocity outside limits"
+              ],
+              "contact_time": 11.4115624999998,
+              "surface": "concrete",
+              "first_geometry": "foot 1",
+              "feet": [
+                [
+                  -3.892808563756751,
+                  3.096090786414152e-06
+                ],
+                [
+                  14.106962154048247,
+                  0.09085520916338652
+                ]
+              ],
+              "midpoint_offset": 5.107076795145748,
+              "vx": 0.7285813769343314,
+              "vy": -6.610253204133131,
+              "theta": 0.005047361046088755,
+              "omega": 0.0009835001419454782,
+              "foot_velocity": [
+                0.7480528600426586,
+                -6.619006537721668
+              ],
+              "errors": {
+                "vertical": 1.0,
+                "horizontal": 0.48572091795622097,
+                "tilt": 0.07229812140490546,
+                "angular_rate": 0.028175203641996643,
+                "centre": 0.1516713232105532
+              },
+              "score": 0.0
+            }
+          },
+          {
+            "case_id": "expert-feasibility-study-v0.1:42018:03",
+            "scoring": {
+              "success": true,
+              "reasons": [],
+              "contact_time": 19.467373046875014,
+              "surface": "concrete",
+              "first_geometry": "foot 2",
+              "feet": [
+                [
+                  -9.90426135876548,
+                  0.17219685830814413
+                ],
+                [
+                  8.094915090698345,
+                  1.3406528427850617e-05
+                ]
+              ],
+              "midpoint_offset": -0.9046731340335672,
+              "vx": -1.1997508906471386,
+              "vy": -2.0110258843289106,
+              "theta": -0.009565893210363927,
+              "omega": -0.01194688175728316,
+              "foot_velocity": [
+                -1.4428999791119779,
+                -2.1162267306369267
+              ],
+              "errors": {
+                "vertical": 0.6703419614429702,
+                "horizontal": 0.7998339270980924,
+                "tilt": 0.1370213270566757,
+                "angular_rate": 0.3422529515170807,
+                "centre": 0.026867223034971705
+              },
+              "score": 74.77624490063444
+            }
+          },
+          {
+            "case_id": "expert-feasibility-study-v0.1:42018:04",
+            "scoring": {
+              "success": false,
+              "reasons": [
+                "vertical velocity outside limits"
+              ],
+              "contact_time": 19.095625000000005,
+              "surface": "concrete",
+              "first_geometry": "foot 1",
+              "feet": [
+                [
+                  -14.041521033905823,
+                  4.0281435786937436e-05
+                ],
+                [
+                  3.9584458627817254,
+                  0.03456155244951731
+                ]
+              ],
+              "midpoint_offset": -5.041537585562049,
+              "vx": -0.1444234238183371,
+              "vy": -3.0557880658063956,
+              "theta": 0.0019178495653402808,
+              "omega": -0.02292284853000153,
+              "foot_velocity": [
+                -0.5941286360664809,
+                -2.8503445176278452
+              ],
+              "errors": {
+                "vertical": 1.0,
+                "horizontal": 0.09628228254555805,
+                "tilt": 0.027471171458749374,
+                "angular_rate": 0.6566912375933754,
+                "centre": 0.1497249223557273
+              },
+              "score": 0.0
+            }
+          },
+          {
+            "case_id": "expert-feasibility-study-v0.1:42018:05",
+            "scoring": {
+              "success": false,
+              "reasons": [
+                "vertical velocity outside limits"
+              ],
+              "contact_time": 11.767070312499792,
+              "surface": "concrete",
+              "first_geometry": "foot 2",
+              "feet": [
+                [
+                  -13.19605921873638,
+                  0.05844268351145132
+                ],
+                [
+                  4.8038459690143585,
+                  1.981141465989822e-05
+                ]
+              ],
+              "midpoint_offset": -4.196106624861011,
+              "vx": 0.7756102249111774,
+              "vy": -4.0512399162357005,
+              "theta": -0.003245720815269887,
+              "omega": 0.0076064967950160624,
+              "foot_velocity": [
+                0.9266324848920985,
+                -3.9832712622982047
+              ],
+              "errors": {
+                "vertical": 1.0,
+                "horizontal": 0.5170734832741183,
+                "tilt": 0.04649152604818131,
+                "angular_rate": 0.21791008161710382,
+                "centre": 0.12461708912036741
+              },
+              "score": 0.0
+            }
+          },
+          {
+            "case_id": "expert-feasibility-study-v0.1:42018:06",
+            "scoring": {
+              "success": false,
+              "reasons": [
+                "vertical velocity outside limits"
+              ],
+              "contact_time": 11.697167968749794,
+              "surface": "concrete",
+              "first_geometry": "foot 1",
+              "feet": [
+                [
+                  -0.7764499566970038,
+                  4.878833452792719e-05
+                ],
+                [
+                  17.223231630904827,
+                  0.10711299779611139
+                ]
+              ],
+              "midpoint_offset": 8.223390837103912,
+              "vx": 0.4139769599955027,
+              "vy": -5.833291296314623,
+              "theta": 0.005948046709607429,
+              "omega": -0.0009241457025380624,
+              "foot_velocity": [
+                0.39596462304221164,
+                -5.825080977344508
+              ],
+              "errors": {
+                "vertical": 1.0,
+                "horizontal": 0.2759846399970018,
+                "tilt": 0.08519949320179551,
+                "angular_rate": 0.02647482420529169,
+                "centre": 0.24422044538797555
+              },
+              "score": 0.0
+            }
+          }
+        ]
+      }
+    }
+  }
+}

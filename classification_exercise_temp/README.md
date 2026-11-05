@@ -238,3 +238,10 @@ student evaluation starts.
 ```sh
 python3 classification_exercise_temp/rocket_expert_benchmark.py /tmp/final-feasibility.json --set final
 ```
+
+The updated discrete-controller results and all per-case failures are recorded
+in the [v0.4 diagnostic](benchmarks/diagnostic-expert-v0.4-summary.json) and
+[v0.4 feasibility](benchmarks/feasibility-expert-v0.4-summary.json) summaries.
+The [classifier study](benchmarks/classifier-expert-v0.4-summary.json) records
+class counts, confusion matrices, agreement and exploratory landing results for
+a draft with recovery samples. It is not a release dataset.
