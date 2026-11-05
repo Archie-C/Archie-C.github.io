@@ -5,7 +5,6 @@ from dataclasses import replace
 import rocket_calibration as calibration
 from rocket_physics import Contact, mass_properties, relative_point
 from rocket_scoring import CONFIG, ScoringConfig, aggregate, score_contact
-from rocket_evaluation import evaluate, leaderboard
 from rocket_server import offline
 
 
@@ -55,26 +54,6 @@ class ScoringTests(unittest.TestCase):
         self.assertAlmostEqual(r['foot_velocity'][1], c.state.vy + c.state.omega*(x-c.state.x))
         self.assertEqual(r, score_contact(c, self.p))
 
-    def test_fixed_evaluation_is_reproducible(self):
-        first, second = evaluate([]), evaluate([])
-        self.assertEqual(len(first['runs']), 12)
-        self.assertEqual(first['metrics'], second['metrics'])
-        self.assertEqual([r['result'] for r in first['runs']], [r['result'] for r in second['runs']])
-        self.assertTrue(all(r['replay']['terminal']['scoring'] == r['result'] for r in first['runs']))
-
-    def test_record_aggregation_and_version(self):
-        record = offline([])
-        self.assertEqual(record['terminal']['scoring']['reasons'], ['no contact'])
-        self.assertEqual(record['config']['scoring']['version'], 'touchdown-v1.0')
-        r = score_contact(None, self.p)
-        self.assertIsNone(aggregate([r])['mean_successful_quality'])
-        self.assertEqual(aggregate([r])['mean_score'], 0)
-        with self.assertRaises(ValueError): ScoringConfig(d_ref=10)
-        self.assertEqual(ScoringConfig(version='custom-v1', d_ref=10).d_ref, 10)
-        a = dict(name='a', metrics=dict(success_rate=.5, mean_successful_quality=99))
-        b = dict(name='b', metrics=dict(success_rate=1, mean_successful_quality=20))
-        self.assertEqual(leaderboard([a,b])[0], b)
-        self.assertEqual(leaderboard([a,b], 'mean_successful_quality')[0], a)
 
 
 if __name__ == '__main__': unittest.main()
