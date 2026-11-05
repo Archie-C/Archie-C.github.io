@@ -125,7 +125,7 @@ class Run:
             self.event = dict(type='contact', time=contact.time, point=contact.point, state=asdict(contact.state), reason='first ground contact')
 
     def wall_tick(self, now):
-        elapsed = min(now-self.last_wall, .25)
+        elapsed = max(0., now-self.last_wall)
         self.last_wall = now
         if self.status != 'running':
             return
@@ -206,17 +206,22 @@ class Handler(BaseHTTPRequestHandler):
             if length > 16384: raise ValueError('request too large')
             data = json.loads(self.rfile.read(length) or b'{}', parse_constant=lambda x: (_ for _ in ()).throw(ValueError('non-finite JSON')))
             if not isinstance(data, dict): raise ValueError('object required')
+            if self.path == '/api/offline':
+                actions = data.get('actions')
+                if not isinstance(actions, list) or len(actions) > 10000:
+                    raise ValueError('actions must be a list of at most 10000 entries')
+                with lock:
+                    if data.get('run_id') != run.id: raise ValueError('unknown run_id')
+                    last_client = time.monotonic()
+                    for action in actions: discrete_command(action, run.p)
+                # Generation is independent; it must not hold the live worker lock.
+                self.reply(offline(actions))
+                return
             with lock:
                 last_client = time.monotonic()
                 if self.path == '/api/reset':
                     run = Run(); self.reply(run.record()); return
                 if data.get('run_id') != run.id: raise ValueError('unknown run_id')
-                if self.path == '/api/offline':
-                    actions = data.get('actions')
-                    if not isinstance(actions, list) or len(actions) > 10000:
-                        raise ValueError('actions must be a list of at most 10000 entries')
-                    for action in actions: discrete_command(action, run.p)
-                    self.reply(offline(actions)); return
                 if self.path == '/api/command':
                     self.reply(run.queue(data)); return
                 if self.path == '/api/control':

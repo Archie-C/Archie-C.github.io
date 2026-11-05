@@ -32,9 +32,9 @@ Start the local server with Python 3.10 or newer:
 python3 classification_exercise_temp/rocket_server.py
 ```
 
-Open <http://127.0.0.1:8765/>. The server binds only to localhost and has one shared flight session. The scenario uses **illustrative, uncalibrated** values; it is not a flight-hardware model. Start, pause and reset the flight with the buttons. Throttle and gimbal are normalized commands; actual actuator values appear in telemetry. Discrete actions and their hold interval come from the active configuration. Drag the canvas to pan, scroll to zoom, and use Reset camera to restore automatic framing. All critical controls are keyboard operable. The trail and vectors are visual aids; vectors use 1 metre per 10 newtons, and velocity uses a one-second scale. Positive angle and gimbal rotate the applied thrust left; the nozzle points the opposite way.
+Open <http://127.0.0.1:8765/>. The server binds only to localhost and has one shared flight session. The scenario uses **illustrative, uncalibrated** values; it is not a flight-hardware model. Start, pause and reset the flight with the buttons. Throttle and gimbal are normalized commands; actual actuator values appear in telemetry. Discrete actions and their hold interval come from the active configuration. Drag the canvas to pan, scroll to zoom, and use Reset camera to restore automatic framing. All critical controls are keyboard operable. With the flight canvas focused, Up/Down adjust throttle, holding Left/Right steers, and Space pauses or resumes; steering is released on blur. The detail inset has its own clearly labelled scale. The trail and vectors are visual aids; vectors use 1 metre per 10 newtons, and velocity uses a one-second scale. Positive angle and gimbal rotate the applied thrust left; the nozzle points the opposite way.
 
-The replay timeline selects authoritative recorded frames. Play, step, and seek do not advance physics. Export saves a `rocket-run-v1` JSON recording; import accepts that schema up to 20 MB for read-only inspection. Replay uses exact recorded frames; the live scene interpolates between received states, and contact is shown at the exact recorded pose. Closing the page or losing the heartbeat pauses the live flight. Reset starts a new run and discards the previous live recording, so export it first if needed.
+The replay timeline selects authoritative recorded frames. Play, step, and seek do not advance physics. Export saves a `rocket-run-v1` JSON recording; import accepts that schema up to 20 MB for read-only inspection. Replay uses exact recorded frames; the live scene interpolates between received states only when a clearance bound proves the interpolated pose is safe, and contact is shown at the exact recorded pose. The telemetry is the latest recorded snapshot, while the scene can display a slightly delayed interpolated pose. Closing the page or losing the heartbeat pauses the live flight. Reset starts a new run and discards the previous live recording, so export it first if needed.
 
 ### Local HTTP interface
 
@@ -45,3 +45,14 @@ All JSON uses SI units and radians. `GET /api/run` returns `{record, lag}`; retr
 - `/api/reset`: creates a new ready run. `/api/offline` accepts the current `run_id` and an `actions` array (maximum 10,000), and returns a separate record generated with `simulate()`.
 
 The worker uses fixed physics steps and simulation-time control boundaries. Wall-clock speed affects pacing only. It accumulates debt rather than skipping steps, and pauses after two seconds without a client heartbeat. Errors are reported explicitly. This is a local, single-user development server, not an authenticated public service. Configuration identifiers cover the serialized numerical parameters and the named illustrative environment. The Python module's event tolerance and numerical limitations described above also apply to rendered contact.
+
+### Rendering checks
+
+Run the Python suite and the dependency-free JavaScript geometry and packet checks:
+
+```sh
+python3 -m unittest discover -s classification_exercise_temp -v
+node classification_exercise_temp/test_rendering.js
+```
+
+For an optional real-browser check, start the server in another terminal, install a recent Node.js with built-in `WebSocket`, and run `CHROME_PATH=/path/to/chromium node classification_exercise_temp/test_browser.js` (on Windows set `CHROME_PATH` in the shell if Chrome is not in its usual location). The test drives a real flight, keyboard input, pause, replay, contact and high-DPI/responsive layouts, and writes screenshots to the operating system's temporary directory. It resets/uses the shared local session.

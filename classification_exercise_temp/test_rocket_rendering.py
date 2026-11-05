@@ -43,6 +43,12 @@ class AdapterTests(unittest.TestCase):
         self.assertEqual([[ (p['time'], p['state']) for p in o] for o in outputs][0], [(p['time'], p['state']) for p in outputs[1]])
         self.assertEqual([(p['time'], p['state']) for p in outputs[0]], [(p['time'], p['state']) for p in outputs[2]])
 
+    def test_long_wall_stall_keeps_simulation_debt(self):
+        r = Run(); r.status = 'running'; r.speed = 1
+        r.wall_tick(r.last_wall + 2)
+        self.assertGreater(r.credit, 1.4)
+        self.assertAlmostEqual(r.t + r.credit, 2, places=8)
+
     def test_record_read_is_pure_and_offline_matches_simulate(self):
         r = Run(); actions = [1, 5, 0, 9]
         with patch('rocket_server.step', side_effect=AssertionError('unexpected step')):
