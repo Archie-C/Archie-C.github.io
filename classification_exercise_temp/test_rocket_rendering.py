@@ -17,6 +17,17 @@ class AdapterTests(unittest.TestCase):
         with self.assertRaises(ValueError): r.queue({'command_sequence': 10, 'action': 10})
         with self.assertRaises(ValueError): r.queue({'command_sequence': 10, 'throttle': float('nan'), 'gimbal': 0})
 
+    def test_multiple_commands_at_same_boundary(self):
+        r = Run()
+        acknowledgements = [r.queue({'command_sequence': i, 'throttle': i / 10, 'gimbal': 0}) for i in range(1, 4)]
+        self.assertEqual([a['effective_time'] for a in acknowledgements], [0, 0, 0])
+        self.assertEqual(len(r.record()['pending_commands']), 3)
+        r.advance()
+        self.assertFalse(r.pending)
+        self.assertEqual(r.command['throttle'], .3)
+        self.assertEqual([c['command_sequence'] for c in r.commands], [1, 2, 3])
+        self.assertEqual(r.snapshots[-1]['command']['throttle'], .3)
+
     def test_pause_and_pacing(self):
         outputs = []
         for speed in (.25, 1, 5):

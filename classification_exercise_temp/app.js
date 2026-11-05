@@ -19,6 +19,7 @@ async function poll(){if(polling)return;polling=true;const pollGeneration=genera
  if(liveId && id!==liveId){if(replayMode)return; liveId=id;lastPacket=-1;}
  if(newest.sequence<lastPacket)throw Error('Stale or out-of-order state packet');
  liveId=id;lastPacket=newest.sequence;connected=true;lag=data.lag;liveArrival=performance.now();
+ const accepted=[...incoming.commands,...(incoming.pending_commands||[])].at(-1);if(accepted){seq=Math.max(seq,accepted.command_sequence);$('accepted').textContent=`Accepted #${accepted.command_sequence}: throttle ${fmt(accepted.throttle)}, gimbal ${fmt(accepted.gimbal)}${accepted.action===null?'':`, action ${accepted.action}`} · effective ${fmt(accepted.effective_time,3)} s`;}
  if(!replayMode){record=incoming;frame=record.snapshots.length-1;view=newest;updateUI();}
  if(incoming.error)notice(incoming.error); else if(lag>.2)notice('Simulation is '+fmt(lag)+' s behind requested speed; no steps are skipped.'); else notice('');
  }catch(e){connected=false;playing=false;notice('Connection or packet error: '+e.message+'. Flight pauses when the heartbeat is lost.');$('status').textContent='Disconnected';}finally{polling=false;} }

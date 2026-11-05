@@ -51,7 +51,7 @@ class Run:
         self.t = 0.0
         self.state = self.initial
         self.command = dict(throttle=0., gimbal=0., action=None)
-        self.pending = None
+        self.pending = []
         self.commands = []
         self.event = None
         self.error = None
@@ -70,7 +70,7 @@ class Run:
 
     def record(self):
         return dict(schema=SCHEMA, config=self.config, snapshots=self.snapshots,
-                    commands=self.commands, terminal=self.event, status=self.status, error=self.error)
+                    commands=self.commands, pending_commands=self.pending, terminal=self.event, status=self.status, error=self.error)
 
     def queue(self, payload):
         if self.status not in ('ready', 'running', 'paused'):
@@ -78,7 +78,7 @@ class Run:
         seq = payload.get('command_sequence')
         if type(seq) is not int or seq < 0 or (self.commands and seq <= self.commands[-1]['command_sequence']):
             raise ValueError('command sequence must increase')
-        if self.pending and seq <= self.pending['command_sequence']:
+        if self.pending and seq <= self.pending[-1]['command_sequence']:
             raise ValueError('command sequence must increase')
         if 'action' in payload:
             action = payload['action']
@@ -91,16 +91,16 @@ class Run:
             cmd = Command(a, b)
         # The next control boundary is chosen by the server, never by paint rate.
         boundary = math.ceil((self.t - 1e-10) / self.p.control_interval) * self.p.control_interval
-        if self.pending:
-            raise ValueError('a command is already awaiting its boundary')
+        if len(self.pending) >= 128:
+            raise ValueError('too many commands are awaiting a control boundary')
         item = dict(command_sequence=seq, effective_time=boundary, throttle=cmd.throttle,
                     gimbal=cmd.gimbal, action=action)
-        self.pending = item
+        self.pending.append(item)
         return item
 
     def advance(self):
-        if self.pending and self.pending['effective_time'] <= self.t + 1e-10:
-            item, self.pending = self.pending, None
+        while self.pending and self.pending[0]['effective_time'] <= self.t + 1e-10:
+            item = self.pending.pop(0)
             self.command = {k:item[k] for k in ('throttle', 'gimbal', 'action')}
             self.commands.append(item)
         h = min(self.p.timestep, (math.floor((self.t+1e-10)/self.p.control_interval)+1)*self.p.control_interval-self.t)

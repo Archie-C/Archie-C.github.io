@@ -40,7 +40,7 @@ The replay timeline selects authoritative recorded frames. Play, step, and seek 
 
 All JSON uses SI units and radians. `GET /api/run` returns `{record, lag}`; retrieving it never advances physics. A `rocket-run-v1` record contains a configuration snapshot and identifier, initial state, ordered snapshots, accepted control changes, and any terminal event. Each snapshot includes the run ID, sequence, simulation time, full physics state, current command, centre of mass and read-only diagnostics. `lag` is accumulated simulation-time debt in seconds. Commands and controls are `POST` requests containing the current `run_id`:
 
-- `/api/command`: `command_sequence` (strictly increasing) and either `action` (0–9) or normalized `throttle` and `gimbal`. The response acknowledges accepted values and effective simulation time. Only one command may await a control boundary; another is rejected explicitly.
+- `/api/command`: `command_sequence` (strictly increasing) and either `action` (0–9) or normalized `throttle` and `gimbal`. The response acknowledges accepted values and effective simulation time. Up to 128 accepted commands may await a control boundary. Commands sharing that boundary are applied in sequence order, with the last one held afterwards.
 - `/api/control`: `operation` is `start`, `pause`, or `speed`; the latter also requires `speed` of 0.25, 0.5, 1, 2 or 5.
 - `/api/reset`: creates a new ready run. `/api/offline` accepts the current `run_id` and an `actions` array (maximum 10,000), and returns a separate record generated with `simulate()`.
 
