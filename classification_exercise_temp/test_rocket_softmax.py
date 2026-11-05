@@ -26,6 +26,8 @@ class SoftmaxTests(unittest.TestCase):
                 np.testing.assert_allclose(probabilities.sum(axis=1), 1)
                 self.assertTrue(np.array_equal(np.argmax(probabilities, axis=1), actions))
                 self.assertEqual(model.predict_action(observations[0]), 0)
+                restored = SoftmaxPolicy.from_settings(model.solver_settings)
+                np.testing.assert_array_equal(restored.predict_proba(observations), probabilities)
                 result = evaluate_closed_loop(model.predict_action, s, p, 'near_ground_contact', max_time=.2)
                 self.assertEqual(len(result['decisions']), 2)
                 self.assertIn(result['decisions'][0]['action'], range(10))

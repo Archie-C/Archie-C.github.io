@@ -97,6 +97,23 @@ class SoftmaxPolicy:
             raise ValueError('predict_action requires one observation')
         return int(np.argmax(probabilities))
 
+    @classmethod
+    def from_settings(cls, settings):
+        """Restore a fitted policy from the settings stored with a replay."""
+        if type(settings.get('engineered')) is not bool:
+            raise ValueError('invalid feature specification')
+        model = cls(settings['engineered'])
+        model.mean = np.asarray(settings['mean'], dtype=np.float64)
+        model.scale = np.asarray(settings['scale'], dtype=np.float64)
+        model.weights = np.asarray(settings['weights'], dtype=np.float64)
+        count = basis(np.zeros(12), model.engineered).shape[1]
+        if (model.mean.shape != (count,) or model.scale.shape != (count,) or
+                model.weights.shape != (count + 1, 10) or
+                not all(np.all(np.isfinite(value)) for value in (model.mean, model.scale, model.weights)) or
+                np.any(model.scale <= 0)):
+            raise ValueError('invalid model settings')
+        return model
+
     @property
     def solver_settings(self):
         return dict(engineered=self.engineered, mean=self.mean.tolist(), scale=self.scale.tolist(),
