@@ -45,6 +45,11 @@ class ReleaseArtifactTests(unittest.TestCase):
         self.assertFalse(groups[0] & groups[1])
         self.assertFalse(_near_duplicate(*observations))
         self.assertEqual(audit['counts'], {'expert flight': 1401, 'perturbed recovery state': 180})
+        self.assertEqual(manifest['label_audit'], audit['counts'])
+        self.assertEqual(manifest['excluded_flight_observations'], {'angle of attack': 54, 'observations': 54})
+        source_archive = root / 'benchmarks' / 'feasibility-study-expert-v0.4-full-report.json.gz'
+        self.assertEqual(hashlib.sha256(source_archive.read_bytes()).hexdigest(), audit['source_archive_sha256'])
+        self.assertEqual(manifest['source_archive_sha256'], audit['source_archive_sha256'])
         for key, name in (('final_report_sha256', 'feasibility-v1.0-full-report.json.gz'),
                           ('sanity_report_sha256', 'classifier-v1.1-full-report.json.gz')):
             digest = hashlib.sha256()
