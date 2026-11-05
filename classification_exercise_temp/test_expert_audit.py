@@ -7,7 +7,7 @@ import tempfile
 import unittest
 
 from rocket_calibration import configuration
-from rocket_expert_audit import audit_labels
+from rocket_expert_audit import audit_labels, audit_private_agreement
 from rocket_expert_benchmark import benchmark
 from rocket_expert_dataset import export_draft
 
@@ -27,6 +27,7 @@ class LabelAuditTests(unittest.TestCase):
             export_draft(report, dataset, recovery_per_episode=1)
             self.assertEqual(audit_labels(dataset, archive),
                              {'expert flight': 2, 'perturbed recovery state': 2})
+            self.assertEqual(audit_private_agreement(dataset / 'validation.csv')['labels'], 2)
             path = dataset / 'train.csv'
             with path.open(newline='', encoding='utf-8') as source:
                 rows = list(csv.reader(source))

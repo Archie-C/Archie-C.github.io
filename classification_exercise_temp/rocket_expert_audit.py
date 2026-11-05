@@ -85,12 +85,39 @@ def audit_labels(dataset, report_path):
     return counts
 
 
+def audit_private_agreement(path):
+    """Check hidden agreement labels against the current expert; expose counts only."""
+    from rocket_expert import DiscreteExpert
+    expert = DiscreteExpert()
+    count = fallbacks = 0
+    with Path(path).open(newline='', encoding='utf-8') as source:
+        reader = csv.reader(source)
+        if next(reader) != [*OBSERVATION_NAMES, 'action']:
+            raise ValueError('unexpected private agreement schema')
+        for row in reader:
+            obs = np.asarray([float(value) for value in row[:-1]], dtype=np.float64)
+            action = int(row[-1])
+            if obs.shape != (12,) or not np.all(np.isfinite(obs)) or not 0 <= action <= 9:
+                raise ValueError('invalid private agreement observation or action')
+            if expert.predict_action(obs) != action:
+                raise ValueError('private agreement label differs from the current expert')
+            count += 1
+            fallbacks += bool(expert.diagnostics.get('fallback'))
+    if not count:
+        raise ValueError('private agreement set is empty')
+    return dict(labels=count, fallbacks=fallbacks)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('dataset')
     parser.add_argument('source_report')
+    parser.add_argument('--private-agreement', help='optional private agreement CSV to check without printing its rows')
     args = parser.parse_args()
-    print(json.dumps(audit_labels(args.dataset, args.source_report), sort_keys=True))
+    results = dict(labels=audit_labels(args.dataset, args.source_report))
+    if args.private_agreement:
+        results['private_agreement'] = audit_private_agreement(args.private_agreement)
+    print(json.dumps(results, sort_keys=True))
 
 
 if __name__ == '__main__':
