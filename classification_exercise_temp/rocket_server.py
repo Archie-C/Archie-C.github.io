@@ -100,7 +100,10 @@ class Run:
             a, b = payload.get('throttle'), payload.get('gimbal')
             if type(a) not in (int, float) or type(b) not in (int, float):
                 raise ValueError('throttle and gimbal must be numbers')
-            cmd = Command(a, b)
+            try:
+                cmd = Command(a, b)
+            except OverflowError as exc:
+                raise ValueError('command must be finite and normalized') from exc
         # The next control boundary is chosen by the server, never by paint rate.
         boundary = math.ceil((self.t - 1e-10) / self.p.control_interval) * self.p.control_interval
         if len(self.pending) >= 128:
@@ -210,7 +213,7 @@ class Handler(BaseHTTPRequestHandler):
         global run, last_client
         try:
             length = int(self.headers.get('Content-Length', '0'))
-            if length > 16384: raise ValueError('request too large')
+            if length < 0 or length > 16384: raise ValueError('invalid request size')
             data = json.loads(self.rfile.read(length) or b'{}', parse_constant=lambda x: (_ for _ in ()).throw(ValueError('non-finite JSON')))
             if not isinstance(data, dict): raise ValueError('object required')
             if self.path == '/api/offline':
@@ -242,7 +245,7 @@ class Handler(BaseHTTPRequestHandler):
                     else: raise ValueError('invalid operation for current session')
                     self.reply(dict(status=run.status, speed=run.speed)); return
                 raise ValueError('unknown endpoint')
-        except (ValueError, TypeError, json.JSONDecodeError) as exc:
+        except (ValueError, TypeError, OverflowError, json.JSONDecodeError) as exc:
             self.reply(dict(error=str(exc)), 400)
 
     def log_message(self, format, *args):

@@ -102,12 +102,12 @@ async function poll(){
   if(accepted){seq=Math.max(seq,accepted.command_sequence);$('accepted').textContent=`Accepted #${accepted.command_sequence}: throttle ${fmt(accepted.throttle)}, gimbal ${fmt(accepted.gimbal)}${accepted.action===null?'':`, action ${accepted.action}`} · effective ${fmt(accepted.effective_time,3)} s`;}
   if(!replayMode){record=liveRecord;frame=record.snapshots.length-1;view=newest;updateUI();}
   if(liveRecord.error)notice(liveRecord.error);else if(lag>.2)notice('Simulation is '+fmt(lag)+' s behind requested speed; no steps are skipped.');else notice('');
- }catch(e){connected=false;playing=false;notice('Connection or packet error: '+e.message+'. Flight pauses when the heartbeat is lost.');$('status').textContent='Disconnected';}
+ }catch(e){connected=false;playing=false;notice('Connection or packet error: '+e.message+'. Flight pauses when the heartbeat is lost.');$('status').textContent='Disconnected';$('start').disabled=true;$('pause').disabled=true;}
  finally{polling=false;}
 }
 function setRecord(r){validate(r);enterReplay();record=r;frame=0;view=record.snapshots[0];replayMode=true;playing=false;updateUI();}
 async function control(operation,extra={}){try{if(!liveId)throw Error('No live connection');await post('/api/control',{run_id:liveId,operation,...extra});await poll();}catch(e){notice(e.message);}}
-async function sendDesired(){if(sending||!desired||!liveId)return;sending=true;const request=desired;desired=null;try{let ack=await post('/api/command',{run_id:liveId,command_sequence:++seq,...request});$('accepted').textContent=`Accepted #${ack.command_sequence}: throttle ${fmt(ack.throttle)}, gimbal ${fmt(ack.gimbal)}${ack.action===null?'':`, action ${ack.action}`} · effective ${fmt(ack.effective_time,3)} s`;notice('');}catch(e){notice('Command rejected: '+e.message);}finally{sending=false;if(desired)setTimeout(sendDesired,220);}}
+async function sendDesired(){if(sending||!desired||!liveId)return;if(!connected||replayMode){desired=null;notice('Command not sent: return to a connected live session.');return;}sending=true;const request=desired;desired=null;try{let ack=await post('/api/command',{run_id:liveId,command_sequence:++seq,...request});$('accepted').textContent=`Accepted #${ack.command_sequence}: throttle ${fmt(ack.throttle)}, gimbal ${fmt(ack.gimbal)}${ack.action===null?'':`, action ${ack.action}`} · effective ${fmt(ack.effective_time,3)} s`;notice('');}catch(e){notice('Command rejected: '+e.message);}finally{sending=false;if(desired)setTimeout(sendDesired,220);}}
 function queueManual(){ $('throttleout').textContent=fmt(+$('throttle').value);$('gimbalout').textContent=fmt(+$('gimbal').value);desired={throttle:+$('throttle').value,gimbal:+$('gimbal').value};sendDesired();}
 $('throttle').oninput=$('gimbal').oninput=queueManual;
 $('mode').onchange=()=>{$('manual').hidden=$('mode').value!=='manual';$('discrete').hidden=$('mode').value!=='discrete';};

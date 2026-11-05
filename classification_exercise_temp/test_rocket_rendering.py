@@ -68,6 +68,22 @@ class AdapterTests(unittest.TestCase):
             self.assertEqual(frames[-1]['command']['action'], command['action'])
         self.assertEqual(recording['terminal']['reason'], 'action sequence exhausted')
 
+    def test_command_schedule_is_independent_of_snapshot_consumption(self):
+        def flight(reads_per_step):
+            r = Run()
+            for sequence, action in enumerate([1, 5, 0, 9, 0]):
+                r.queue({'command_sequence': sequence, 'action': action})
+                boundary = (sequence + 1) * r.p.control_interval
+                while r.t < boundary - 1e-10:
+                    for _ in range(reads_per_step): r.record(after=r.tick)
+                    r.advance()
+            while r.status != 'contact':
+                for _ in range(reads_per_step): r.record(after=r.tick)
+                r.advance()
+            return ([(p['time'], p['state'], p['command']) for p in r.snapshots], r.commands, r.event)
+        self.assertEqual(flight(1), flight(2))
+        self.assertEqual(flight(2), flight(4))
+
     def test_incremental_record_is_complete_and_does_not_alias_lists(self):
         r = Run()
         first = r.record()
@@ -91,7 +107,7 @@ class AdapterTests(unittest.TestCase):
         a, b = Run(), Run()
         self.assertNotEqual(a.id, b.id)
         self.assertEqual(a.initial, b.initial)
-        for payload in ({'command_sequence': 1, 'action': True}, {'command_sequence': 1, 'throttle': True, 'gimbal': 0}, {'command_sequence': 1, 'throttle': 2, 'gimbal': 0}):
+        for payload in ({'command_sequence': 1, 'action': True}, {'command_sequence': 1, 'throttle': True, 'gimbal': 0}, {'command_sequence': 1, 'throttle': 2, 'gimbal': 0}, {'command_sequence': 1, 'throttle': 10**400, 'gimbal': 0}):
             with self.assertRaises(ValueError): a.queue(payload)
 
 

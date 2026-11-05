@@ -45,6 +45,14 @@ async function waitFor(fn, label, timeout=10000) {
   await evaluate("$('pause').click()");
   await waitFor(()=>evaluate("record.status==='paused'"),'pause');
   let t=await evaluate('view.time');await sleep(500);assert.equal(await evaluate('view.time'),t,'pause must freeze simulation');
+  // A lost transport must visibly disconnect, then resume into a paused run.
+  await evaluate("$('start').click()");
+  await waitFor(()=>evaluate("record.status==='running'"),'resume before disconnect');
+  await evaluate("window.savedFetch=window.fetch;window.fetch=()=>Promise.reject(new Error('test disconnect'))");
+  await waitFor(()=>evaluate("$('status').textContent==='Disconnected'"),'disconnect notice');
+  await sleep(2500);
+  await evaluate("window.fetch=window.savedFetch");
+  await waitFor(()=>evaluate("record.status==='paused' && $('message').textContent.includes('Connection lost')"),'heartbeat pause');
   let end=await evaluate('record.snapshots.length-1');assert.ok(end>2);
   assert.equal(await evaluate(`(()=>{const saved=JSON.parse(JSON.stringify(record));setRecord(saved);return record.snapshots.length})()`),end+1);
   assert.equal(await evaluate(`(()=>{let before=record;try{setRecord({schema:'bad'})}catch(_){}return before===record})()`),true);
@@ -69,5 +77,9 @@ async function waitFor(fn, label, timeout=10000) {
   await call('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
   await sleep(300);assert.ok(await evaluate('document.documentElement.scrollWidth<=window.innerWidth+1'),'mobile horizontal overflow');
   await screenshot('rocket-mobile.png');
+  const oldId=await evaluate('record.config.run_id');
+  await evaluate("$('reset').click()");
+  await waitFor(()=>evaluate(`record?.config.run_id!==${JSON.stringify(oldId)} && record.status==='ready'`),'reset after contact');
+  assert.equal(await evaluate('view.time'),0);assert.equal(await evaluate('record.snapshots.length'),1);
   console.log('Chrome verified commands, live/pause, replay, contact, responsive layout and high DPI. Screenshots: '+os.tmpdir());
 })().catch(error=>{console.error(error);process.exitCode=1;}).finally(()=>{if(socket)socket.close();if(chrome)chrome.kill();});
