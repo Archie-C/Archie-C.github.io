@@ -10,7 +10,7 @@ import time
 import uuid
 from urllib.parse import parse_qs, urlsplit
 
-from rocket_physics import Command, Parameters, State, discrete_command, forces, mass_properties, simulate, step
+from rocket_physics import Command, Parameters, State, clearance, discrete_command, forces, mass_properties, simulate, step
 
 ROOT = Path(__file__).resolve().parent
 SCHEMA = 'rocket-run-v1'
@@ -37,10 +37,18 @@ def state_packet(run, t, state, command, sequence, contact=None):
     mass, centre, inertia = mass_properties(state.fuel, run.p)
     thrust, drag, lift, tt, at, damping = forces(t, state, run.p)
     wind = run.p.wind(state.y, t)
+    air = (state.vx - wind[0], state.vy - wind[1])
+    speed = math.hypot(*air)
+    if speed:
+        tail = (math.sin(state.theta), -math.cos(state.theta))
+        alpha = math.atan2(tail[0]*air[1] - tail[1]*air[0], tail[0]*air[0] + tail[1]*air[1])
+        cp = run.p.centre_of_pressure(alpha)
+    else:
+        cp = None  # Angle of attack (and thus pressure centre) is undefined.
     return dict(run_id=run.id, sequence=sequence, time=t, state=asdict(state),
                 command=command, centre=centre, diagnostics=dict(mass=mass, inertia=inertia,
                 thrust_vector=thrust, aero_force=[drag[0]+lift[0], drag[1]+lift[1]],
-                aero_torque=at, wind=wind, airspeed=math.hypot(state.vx-wind[0], state.vy-wind[1])),
+                aero_torque=at, wind=wind, airspeed=speed, centre_of_pressure=cp, clearance=clearance(state, run.p)[0]),
                 contact=asdict(contact) if contact else None)
 
 
