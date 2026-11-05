@@ -44,6 +44,20 @@ class AdapterTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 r.queue({'command_sequence': 1, 'action': 1, 'effective_time': invalid})
 
+    def test_recording_bounds_stop_without_discarding_frames(self):
+        r = Run(); r.status = 'running'
+        with patch('rocket_server.MAX_SNAPSHOTS', 5):
+            r.wall_tick(r.last_wall + 1)
+        self.assertEqual(r.status, 'completed')
+        self.assertEqual(r.event['reason'], 'recording capacity reached')
+        self.assertEqual(r.event['time'], r.snapshots[-1]['time'])
+        self.assertLessEqual(len(r.snapshots), 5)
+        with patch('rocket_server.MAX_COMMANDS', 1):
+            r = Run(); r.queue({'command_sequence': 0, 'action': 1})
+            with self.assertRaises(ValueError): r.queue({'command_sequence': 1, 'action': 2})
+        with patch('rocket_server.MAX_SNAPSHOTS', 20):
+            with self.assertRaises(ValueError): offline([0, 1])
+
     def test_physics_exception_becomes_inspectable_error(self):
         r = Run(); r.status = 'running'
         with patch('rocket_server.step', side_effect=ArithmeticError('test failure')):

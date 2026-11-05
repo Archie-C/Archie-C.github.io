@@ -15,6 +15,9 @@ from rocket_physics import Command, Parameters, State, clearance, discrete_comma
 
 ROOT = Path(__file__).resolve().parent
 SCHEMA = 'rocket-run-v1'
+# Complete recordings are retained; stop before these bounds would be exceeded.
+MAX_SNAPSHOTS = 20000
+MAX_COMMANDS = 20000
 
 
 def scenario():
@@ -79,7 +82,7 @@ class Run:
         self.config = dict(schema=SCHEMA, run_id=self.id, physics_config='illustrative-v1:'+identity,
             parameter_status='Uncalibrated illustrative test parameters', parameters=numeric,
             environment=environment, physics_engine_sha256=engine_hash,
-            units='SI; angles in radians', initial_state=asdict(self.initial),
+            units='SI; angles in radians', recording_limits=dict(snapshots=MAX_SNAPSHOTS, commands=MAX_COMMANDS), initial_state=asdict(self.initial),
             actions=[asdict(discrete_command(i, self.p)) for i in range(10)], pad=None)
         self.snapshots = [state_packet(self, 0, self.state, self.command.copy(), 0)]
 
@@ -127,6 +130,8 @@ class Run:
             boundary = nearest
         if self.pending and boundary < self.pending[-1]['effective_time'] - 1e-10:
             raise ValueError('commands must be scheduled in boundary order')
+        if len(self.commands) + len(self.pending) >= MAX_COMMANDS:
+            raise ValueError('command recording limit reached; reset to begin a new flight')
         if len(self.pending) >= 128:
             raise ValueError('too many commands are awaiting a control boundary')
         item = dict(command_sequence=seq, effective_time=boundary, throttle=cmd.throttle,
@@ -135,6 +140,12 @@ class Run:
         return dict(run_id=self.id, **item)
 
     def advance(self):
+        # Reserve space for both an optional command-boundary frame and the
+        # next physics frame. Never discard a state that has been integrated.
+        if len(self.snapshots) >= MAX_SNAPSHOTS - 1:
+            self.status = 'completed'
+            self.event = dict(run_id=self.id, type='completed', time=self.t, reason='recording capacity reached')
+            return
         applied = False
         while self.pending and self.pending[0]['effective_time'] <= self.t + 1e-10:
             item = self.pending.pop(0)
@@ -276,6 +287,9 @@ class Handler(BaseHTTPRequestHandler):
 def offline(actions):
     """Generate a complete predetermined discrete-action recording with simulate()."""
     r = Run()
+    per_action = math.ceil(r.p.control_interval / r.p.timestep) + 2
+    if len(actions) * per_action + 1 > MAX_SNAPSHOTS:
+        raise ValueError('action sequence exceeds recording capacity')
     current_action = -1
     for t, s, contact in simulate(r.initial, actions, r.p):
         if t == 0 and contact is None: continue
