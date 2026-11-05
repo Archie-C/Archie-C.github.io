@@ -77,9 +77,10 @@ def audit_labels(dataset, report_path):
 
 
 def audit_private_agreement(path):
-    """Check hidden agreement labels against the current expert; expose counts only."""
-    from rocket_expert import DiscreteExpert
-    expert = DiscreteExpert()
+    """Recheck the historical agreement labels against their frozen teacher."""
+    archive = Path(__file__).resolve().parent / 'versions/expert-prototype-v0.5/rocket_expert.py'
+    digest = hashlib.sha256(archive.read_bytes()).hexdigest()
+    expert = load_expert('expert-prototype-v0.5', digest).DiscreteExpert()
     count = fallbacks = 0
     path = Path(path)
     metadata_path = path.with_name(path.stem + '_metadata.jsonl')
@@ -97,7 +98,7 @@ def audit_private_agreement(path):
             if envelope_violations(obs, info['time'], p):
                 raise ValueError('private agreement label is outside the calibrated envelope')
             if expert.predict_action(obs) != action:
-                raise ValueError('private agreement label differs from the current expert')
+                raise ValueError('private agreement label differs from the frozen expert')
             count += 1
             fallbacks += bool(expert.diagnostics.get('fallback'))
     if not count:
