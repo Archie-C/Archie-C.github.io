@@ -1,0 +1,19 @@
+{
+  "schema": "rocket-expert-label-audit-v1.0",
+  "result": "passed",
+  "counts": {
+    "expert flight": 1455,
+    "perturbed recovery state": 180
+  },
+  "teacher_version": "expert-prototype-v0.4",
+  "teacher_source_sha256": "e4beaafbb67eb9ad420b234315e286b4513fca038036cc55d4f7b00b5370774d",
+  "source_archive_sha256": "4ecc46d362c0f65379b20637185b5b2d691673b8e5b54b8f709c56f9689387bb",
+  "audit_tool_sha256": "4fcc3f843d5eab29b78a4886f5ae102f12fd93f336d4909f1501d80d7d210218",
+  "dataset_files": {
+    "train.csv": "09b9083b70ebc2e6907229bea27cfcca5bf36561d92dcc0e986b8ccd9a89ea53",
+    "validation.csv": "8c81c40bb7d3e0f58c5ca2690308c144525526f50db0cbf313b3d2a6787608a3",
+    "train_metadata.jsonl": "df26236e116d611162996966d560c70f3d16f9d2b452940bb837a3b820906ded",
+    "validation_metadata.jsonl": "a989b07af5db6c34f5b558d559fff07e5c3f23ba8b99322dcb1885bb1cf245f5"
+  },
+  "scope": "Every flight label matched its archived decision; every recovery label was re-queried from the exact archived teacher and checked against the recorded environment and flight envelope."
+}
