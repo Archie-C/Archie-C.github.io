@@ -9,7 +9,7 @@ python3 rocket_expert_evaluate.py results/held-out
 python3 rocket_server.py
 ```
 
-The first command samples 100 starts per tier using seed `964731` and evaluates the same starts at 0.10, 0.05 and 0.02 seconds. It writes `summary.json` and one complete replay per attempt. This is computationally expensive. Use `--per-tier 1` for a smoke test or `--set regression` for the fixed diagnostic and historical feasibility cases; `--interval 0.05` selects one interval. A smaller run is not the held-out evaluation. Choose a new output directory for each run.
+The first command samples 100 starts per tier using seed `964731` and evaluates the same starts at 0.10, 0.05 and 0.02 seconds. It writes `summary.json` after each completed attempt and one complete replay per attempt. This is computationally expensive; `--workers 4` runs independent attempts in parallel. A partial summary is explicitly marked incomplete. Use `--per-tier 1` for a smoke test or `--set regression` for the fixed diagnostic and historical feasibility cases; `--interval 0.05` selects one interval. A smaller run is not the held-out evaluation. Choose a new output directory for each run.
 
 The independent physics timestep remains 0.01 s. The existing 0.10 s default is retained provisionally until the full interval comparison is complete; it is not a claim that this interval is best. Construct a controller using `ExpertController(control_interval=interval)`, pass `expert.predict_action` to `evaluate_closed_loop` with matching calibrated parameters, and call `reset()` for a fresh run (the runner resets bound controllers automatically).
 
