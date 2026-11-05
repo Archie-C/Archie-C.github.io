@@ -8,6 +8,7 @@ import math
 import threading
 import time
 import uuid
+from urllib.parse import parse_qs, urlsplit
 
 from rocket_physics import Command, Parameters, State, discrete_command, forces, mass_properties, simulate, step
 
@@ -68,9 +69,12 @@ class Run:
             actions=[asdict(discrete_command(i, self.p)) for i in range(10)], pad=None)
         self.snapshots = [state_packet(self, 0, self.state, self.command.copy(), 0)]
 
-    def record(self):
-        return dict(schema=SCHEMA, config=self.config, snapshots=self.snapshots,
-                    commands=self.commands, pending_commands=self.pending, terminal=self.event, status=self.status, error=self.error)
+    def record(self, after=None):
+        # Sequences start at zero and are contiguous, so the cursor is also an index.
+        start = 0 if after is None else after + 1
+        return dict(schema=SCHEMA, config=self.config, snapshots=self.snapshots[start:],
+                    commands=self.commands.copy(), pending_commands=self.pending.copy(),
+                    terminal=self.event, status=self.status, error=self.error)
 
     def queue(self, payload):
         if self.status not in ('ready', 'running', 'paused'):
@@ -156,11 +160,29 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         global last_client
-        path = self.path.split('?')[0]
+        url = urlsplit(self.path)
+        path = url.path
         if path == '/api/run':
-            with lock:
-                last_client = time.monotonic()
-                self.reply(dict(record=run.record(), lag=run.credit))
+            try:
+                query = parse_qs(url.query, keep_blank_values=True)
+                if set(query) - {'run_id', 'after'} or any(len(v) != 1 for v in query.values()):
+                    raise ValueError('invalid snapshot cursor')
+                after = None
+                with lock:
+                    if query:
+                        if set(query) != {'run_id', 'after'} or query['run_id'][0] != run.id:
+                            raise ValueError('unknown run_id')
+                        cursor = query['after'][0]
+                        if not cursor.isascii() or not cursor.isdecimal():
+                            raise ValueError('invalid snapshot cursor')
+                        after = int(cursor)
+                        if after >= len(run.snapshots):
+                            raise ValueError('snapshot cursor is ahead of the run')
+                    last_client = time.monotonic()
+                    result = dict(record=run.record(after), lag=run.credit)
+                self.reply(result)
+            except ValueError as exc:
+                self.reply(dict(error=str(exc)), 400)
             return
         files = {'/': ('index.html', 'text/html; charset=utf-8'), '/app.js': ('app.js', 'text/javascript; charset=utf-8'), '/style.css': ('style.css', 'text/css; charset=utf-8')}
         if path not in files:

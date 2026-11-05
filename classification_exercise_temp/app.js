@@ -3,9 +3,9 @@
 const $ = id => document.getElementById(id);
 const canvas=$('scene'), ctx=canvas.getContext('2d');
 const stateKeys=['x','y','vx','vy','theta','omega','fuel','thrust','gimbal'];
-let record=null, view=null, replayMode=false, playing=false, frame=0, lastFrame=0, seq=0;
+let record=null, liveRecord=null, view=null, replayMode=false, playing=false, frame=0, lastFrame=0, seq=0;
 let camera={x:0,y:25,scale:5,auto:true}, dragging=null, connected=false, sending=false, desired=null;
-let lastPacket=-1, liveId=null, liveArrival=0, lag=0, replayClock=0, polling=false, generation=0;
+let lastPacket=-1, liveId=null, liveArrival=0, lag=0, replayClock=0, polling=false, resetting=false, generation=0;
 const fmt=(n,d=2)=>Number(n).toFixed(d);
 function bodyPoint(point,s,c){const x=point[0]-c[0], y=point[1]-c[1], a=s.theta;return [s.x+x*Math.cos(a)-y*Math.sin(a),s.y+x*Math.sin(a)+y*Math.cos(a)];}
 function screen(point){return [canvas.clientWidth/2+(point[0]-camera.x)*camera.scale,canvas.clientHeight/2-(point[1]-camera.y)*camera.scale];}
@@ -15,14 +15,39 @@ function validate(r){if(!r||r.schema!=='rocket-run-v1'||!r.config||r.config.sche
  let time=-1, sequence=-1; for(const s of r.snapshots){if(!validPacket(s,r.config.run_id)||s.sequence<=sequence||s.time<time) throw Error('Invalid or out-of-order state packet'); time=s.time;sequence=s.sequence;} return r;}
 async function post(path,data={}){let res=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});let json=await res.json();if(!res.ok)throw Error(json.error||'Request failed');return json;}
 function notice(s){$('message').textContent=s||'';}
-async function poll(){if(polling)return;polling=true;const pollGeneration=generation;try{let response=await fetch('/api/run',{cache:'no-store'});if(!response.ok)throw Error('Server returned '+response.status);let data=await response.json();if(pollGeneration!==generation)return;let incoming=validate(data.record), id=incoming.config.run_id, newest=incoming.snapshots.at(-1);
- if(liveId && id!==liveId){if(replayMode)return; liveId=id;lastPacket=-1;}
- if(newest.sequence<lastPacket)throw Error('Stale or out-of-order state packet');
- liveId=id;lastPacket=newest.sequence;connected=true;lag=data.lag;liveArrival=performance.now();
- const accepted=[...incoming.commands,...(incoming.pending_commands||[])].at(-1);if(accepted){seq=Math.max(seq,accepted.command_sequence);$('accepted').textContent=`Accepted #${accepted.command_sequence}: throttle ${fmt(accepted.throttle)}, gimbal ${fmt(accepted.gimbal)}${accepted.action===null?'':`, action ${accepted.action}`} · effective ${fmt(accepted.effective_time,3)} s`;}
- if(!replayMode){record=incoming;frame=record.snapshots.length-1;view=newest;updateUI();}
- if(incoming.error)notice(incoming.error); else if(lag>.2)notice('Simulation is '+fmt(lag)+' s behind requested speed; no steps are skipped.'); else notice('');
- }catch(e){connected=false;playing=false;notice('Connection or packet error: '+e.message+'. Flight pauses when the heartbeat is lost.');$('status').textContent='Disconnected';}finally{polling=false;} }
+async function poll(){
+ if(polling||resetting)return;
+ polling=true;const pollGeneration=generation;
+ try{
+  const cursor=liveRecord ? `?run_id=${encodeURIComponent(liveRecord.config.run_id)}&after=${lastPacket}` : '';
+  const response=await fetch('/api/run'+cursor,{cache:'no-store'});
+  const data=await response.json();
+  if(pollGeneration!==generation)return;
+  if(!response.ok)throw Error(data.error||'Server returned '+response.status);
+  let incoming=data.record;
+  if(!liveRecord){
+   validate(incoming);
+   liveRecord=incoming;liveId=incoming.config.run_id;
+  }else{
+   if(incoming.config?.run_id!==liveId || incoming.schema!=='rocket-run-v1' || !Array.isArray(incoming.snapshots))throw Error('Unknown run or invalid snapshot batch');
+   let previous=liveRecord.snapshots.at(-1);
+   for(const packet of incoming.snapshots){
+    if(!validPacket(packet,liveId)||packet.sequence!==previous.sequence+1||packet.time<previous.time)throw Error('Stale or out-of-order state packet');
+    previous=packet;
+   }
+   for(const packet of incoming.snapshots)liveRecord.snapshots.push(packet);
+   for(const key of ['commands','pending_commands','terminal','status','error'])liveRecord[key]=incoming[key];
+  }
+  const newest=liveRecord.snapshots.at(-1);
+  if(newest.sequence>lastPacket)liveArrival=performance.now();
+  lastPacket=newest.sequence;connected=true;lag=data.lag;
+  const accepted=[...liveRecord.commands,...(liveRecord.pending_commands||[])].at(-1);
+  if(accepted){seq=Math.max(seq,accepted.command_sequence);$('accepted').textContent=`Accepted #${accepted.command_sequence}: throttle ${fmt(accepted.throttle)}, gimbal ${fmt(accepted.gimbal)}${accepted.action===null?'':`, action ${accepted.action}`} · effective ${fmt(accepted.effective_time,3)} s`;}
+  if(!replayMode){record=liveRecord;frame=record.snapshots.length-1;view=newest;updateUI();}
+  if(liveRecord.error)notice(liveRecord.error);else if(lag>.2)notice('Simulation is '+fmt(lag)+' s behind requested speed; no steps are skipped.');else notice('');
+ }catch(e){connected=false;playing=false;notice('Connection or packet error: '+e.message+'. Flight pauses when the heartbeat is lost.');$('status').textContent='Disconnected';}
+ finally{polling=false;}
+}
 function setRecord(r){enterReplay();record=validate(r);frame=0;view=record.snapshots[0];replayMode=true;playing=false;updateUI();}
 async function control(operation,extra={}){try{if(!liveId)throw Error('No live connection');await post('/api/control',{run_id:liveId,operation,...extra});await poll();}catch(e){notice(e.message);}}
 async function sendDesired(){if(sending||!desired||!liveId)return;sending=true;const request=desired;desired=null;try{let ack=await post('/api/command',{run_id:liveId,command_sequence:++seq,...request});$('accepted').textContent=`Accepted #${ack.command_sequence}: throttle ${fmt(ack.throttle)}, gimbal ${fmt(ack.gimbal)}${ack.action===null?'':`, action ${ack.action}`} · effective ${fmt(ack.effective_time,3)} s`;notice('');}catch(e){notice('Command rejected: '+e.message);}finally{sending=false;if(desired)setTimeout(sendDesired,220);}}
@@ -31,14 +56,14 @@ $('throttle').oninput=$('gimbal').oninput=queueManual;
 $('mode').onchange=()=>{$('manual').hidden=$('mode').value!=='manual';$('discrete').hidden=$('mode').value!=='discrete';};
 $('sendaction').onclick=()=>{desired={action:+$('action').value};sendDesired();};
 $('start').onclick=()=>control('start');$('pause').onclick=()=>control('pause');$('speed').onchange=()=>control('speed',{speed:+$('speed').value});
-$('reset').onclick=async()=>{try{generation++;const r=await post('/api/reset');liveId=r.config.run_id;lastPacket=-1;seq=0;desired=null;replayMode=false;playing=false;$('throttle').value=0;$('gimbal').value=0;$('throttleout').textContent='0.00';$('gimbalout').textContent='0.00';$('accepted').textContent='Accepted: engine off';await poll();}catch(e){notice(e.message);}};
-function enterReplay(){if(!replayMode && record && record.status==='running')control('pause');replayMode=true;}
+$('reset').onclick=async()=>{if(resetting)return;resetting=true;generation++;try{const r=await post('/api/reset');liveId=r.config.run_id;liveRecord=null;lastPacket=-1;seq=0;desired=null;replayMode=false;playing=false;$('throttle').value=0;$('gimbal').value=0;$('throttleout').textContent='0.00';$('gimbalout').textContent='0.00';$('accepted').textContent='Accepted: engine off';}catch(e){notice(e.message);}finally{resetting=false;poll();}};
+function enterReplay(){if(!replayMode && record){if(record.status==='running')control('pause');record={...record,snapshots:record.snapshots.slice(),commands:record.commands.slice()};}replayMode=true;}
 $('timeline').oninput=()=>{enterReplay();playing=false;frame=+$('timeline').value;view=record.snapshots[frame];updateUI();};
 function seekTime(t){if(!record)return;let lo=0,hi=record.snapshots.length-1;while(lo<hi){let mid=Math.floor((lo+hi+1)/2);if(record.snapshots[mid].time<=t)lo=mid;else hi=mid-1;}seek(lo);}
 $('backtime').onclick=()=>seekTime(view.time-1);$('forwardtime').onclick=()=>seekTime(view.time+1);
 $('begin').onclick=()=>seek(0);$('back').onclick=()=>seek(frame-1);$('forward').onclick=()=>seek(frame+1);$('terminal').onclick=()=>seek(record.snapshots.length-1);
 $('replay').onclick=()=>{if(!record)return;if(!replayMode){enterReplay();frame=0;} if(frame>=record.snapshots.length-1)frame=0;playing=!playing;lastFrame=0;view=record.snapshots[frame];replayClock=view.time;updateUI();};
-$('live').onclick=()=>{replayMode=false;playing=false;poll();};
+$('live').onclick=()=>{replayMode=false;playing=false;if(liveRecord){record=liveRecord;frame=record.snapshots.length-1;view=record.snapshots[frame];updateUI();}poll();};
 function seek(i){if(!record)return;enterReplay();playing=false;frame=Math.max(0,Math.min(record.snapshots.length-1,i));view=record.snapshots[frame];updateUI();}
 $('export').onclick=()=>{if(!record)return;const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(record)],{type:'application/json'}));a.download='rocket-'+record.config.run_id+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);};
 $('import').onchange=async e=>{try{let f=e.target.files[0];if(!f)return;if(f.size>20*1024*1024)throw Error('File exceeds 20 MB limit');setRecord(JSON.parse(await f.text()));notice('Recording imported for read-only replay.');}catch(err){notice('Import error: '+err.message);}e.target.value='';};

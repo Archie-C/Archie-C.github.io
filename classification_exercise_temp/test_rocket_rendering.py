@@ -53,6 +53,15 @@ class AdapterTests(unittest.TestCase):
         self.assertEqual([tuple(p['state'].values()) for p in recording['snapshots']], [s.values() for _, s, _ in expected])
         self.assertEqual(recording['terminal']['reason'], 'action sequence exhausted')
 
+    def test_incremental_record_is_complete_and_does_not_alias_lists(self):
+        r = Run()
+        first = r.record()
+        for _ in range(12): r.advance()
+        delta = r.record(after=0)
+        self.assertEqual(len(first['snapshots']), 1)
+        self.assertEqual(first['snapshots'] + delta['snapshots'], r.record()['snapshots'])
+        self.assertEqual(r.record(after=12)['snapshots'], [])
+
     def test_contact_terminates_and_matches_snapshot(self):
         r = Run(); r.status = 'running'
         while r.status == 'running': r.advance()
