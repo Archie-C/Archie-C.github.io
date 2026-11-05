@@ -5,7 +5,7 @@ const canvas=$('scene'), ctx=canvas.getContext('2d');
 const stateKeys=['x','y','vx','vy','theta','omega','fuel','thrust','gimbal'];
 let record=null, liveRecord=null, view=null, replayMode=false, replayFollowsLive=false, playing=false, frame=0, lastFrame=0, seq=0;
 let camera={x:0,y:25,scale:5,auto:true}, dragging=null, connected=false, sending=false, desired=null;
-let lastPacket=-1, liveId=null, liveArrival=0, renderWindow=null, lag=0, replayClock=0, polling=false, resetting=false, generation=0;
+let lastPacket=-1, liveId=null, liveArrival=0, renderWindow=null, lag=0, replayClock=0, polling=false, resetting=false, generation=0, actionsConfig=null;
 const fmt=(n,d=2)=>Number(n).toFixed(d);
 function bodyPoint(point,s,c){const x=point[0]-c[0], y=point[1]-c[1], a=s.theta;return [s.x+x*Math.cos(a)-y*Math.sin(a),s.y+x*Math.sin(a)+y*Math.cos(a)];}
 function thrustDirection(theta,gimbal){return [-Math.sin(theta+gimbal),Math.cos(theta+gimbal)];}
@@ -119,7 +119,7 @@ async function poll(){
    updateUI();
   }
   if(liveRecord.error)notice(liveRecord.error);else if(lag>.2)notice('Simulation is '+fmt(lag)+' s behind requested speed; no steps are skipped.');else notice('');
- }catch(e){connected=false;playing=false;notice('Connection or packet error: '+e.message+'. Flight pauses when the heartbeat is lost.');$('status').textContent='Disconnected';$('start').disabled=true;$('pause').disabled=true;}
+ }catch(e){connected=false;playing=false;notice('Connection or packet error: '+e.message+'. Flight pauses when the heartbeat is lost.');if(record)updateUI();$('status').textContent='Disconnected';}
  finally{polling=false;}
 }
 function setRecord(r){validate(r);enterReplay();replayFollowsLive=false;record=r;frame=0;view=record.snapshots[0];replayMode=true;playing=false;updateUI();}
@@ -146,19 +146,31 @@ function updateUI(){if(!record||!view)return;let s=view.state,d=view.diagnostics
  $('status').textContent=replayMode?'Replay':record.status;$('clock').textContent='T + '+fmt(view.time)+' s';$('timeline').max=record.snapshots.length-1;$('timeline').value=frame;$('replaytime').textContent=fmt(view.time)+' / '+fmt(end.time)+' s';$('replay').textContent=playing?'Pause replay':'Play replay';
  $('telemetry').innerHTML=metric('Position x / y',`${fmt(s.x)} / ${fmt(s.y)} m`)+metric('Velocity x / y',`${fmt(s.vx)} / ${fmt(s.vy)} m/s`)+metric('Speed',`${fmt(Math.hypot(s.vx,s.vy))} m/s`)+metric('Angle θ',`${fmt(s.theta*180/Math.PI)}°`)+metric('Angular rate',`${fmt(s.omega*180/Math.PI)} °/s`)+metric('Fuel',`${fmt(s.fuel)} kg`)+metric('Actual thrust',`${fmt(s.thrust)} N`)+metric('Actual gimbal',`${fmt(s.gimbal*180/Math.PI)}°`)+metric('Command',`${fmt(c.throttle)} / ${fmt(c.gimbal)}${c.action===null?'':` · action ${c.action}`}`)+metric('Mass (derived)',d.mass!==undefined?`${fmt(d.mass)} kg`:'not available')+metric('Inertia (derived)',d.inertia!==undefined?`${fmt(d.inertia)} kg m²`:'not available')+metric('Airspeed (derived)',d.airspeed!==undefined?`${fmt(d.airspeed)} m/s`:'not available')+metric('Body centre of mass (derived)',`${fmt(view.centre[0])} / ${fmt(view.centre[1])} m`)+metric('Wind (derived)',Array.isArray(d.wind)?`${fmt(d.wind[0])} / ${fmt(d.wind[1])} m/s`:'not available')+metric('Aerodynamic torque (derived)',d.aero_torque!==undefined?`${fmt(d.aero_torque)} N m`:'not available');
  let initial=record.config.initial_state, event=record.terminal; $('notes').textContent='';for(const text of [record.config.parameter_status,`Initial: x ${fmt(initial.x)} m, y ${fmt(initial.y)} m, vx ${fmt(initial.vx)} m/s, vy ${fmt(initial.vy)} m/s, θ ${fmt(initial.theta)} rad, ω ${fmt(initial.omega)} rad/s, fuel ${fmt(initial.fuel)} kg, thrust ${fmt(initial.thrust)} N, gimbal ${fmt(initial.gimbal)} rad.`,event?`${event.reason}; t = ${event.time} s${event.point?`; contact = (${event.point[0]}, ${event.point[1]}) m`:''}`:`Run status: ${record.status}`,`Control interval: ${p.control_interval} s; physics step: ${p.timestep} s.`, `Configuration: ${record.config.physics_config}`]){const el=document.createElement('p');el.textContent=text;$('notes').appendChild(el);}
- if(!$('action').options.length)record.config.actions.forEach((a,i)=>{let o=document.createElement('option');o.value=i;o.textContent=`${i}: ${i===0?'off':['low','medium','high'][Math.floor((i-1)/3)]+' / '+['left','centre','right'][(i-1)%3]} (${a.throttle}, ${a.gimbal})`;$('action').appendChild(o);});
- $('start').disabled=replayMode||!connected||!['ready','paused'].includes(record.status);$('pause').disabled=replayMode||!connected||record.status!=='running';}
+ const mapping=JSON.stringify(record.config.actions);
+ if(actionsConfig!==mapping){let selected=$('action').value;$('action').textContent='';record.config.actions.forEach((a,i)=>{let o=document.createElement('option');o.value=i;o.textContent=`${i}: ${i===0?'off':['low','medium','high'][Math.floor((i-1)/3)]+' / '+['left','centre','right'][(i-1)%3]} (${a.throttle}, ${a.gimbal})`;$('action').appendChild(o);});if(selected)$('action').value=selected;actionsConfig=mapping;}
+ const canCommand=!replayMode&&connected&&['ready','running','paused'].includes(record.status);
+ for(const id of ['mode','throttle','gimbal','action','sendaction','speed'])$(id).disabled=!canCommand;
+ $('start').disabled=replayMode||!connected||!['ready','paused'].includes(record.status);$('pause').disabled=replayMode||!connected||record.status!=='running';} 
 function line(a,b,color,width=1){ctx.strokeStyle=color;ctx.lineWidth=width;ctx.beginPath();ctx.moveTo(...screen(a));ctx.lineTo(...screen(b));ctx.stroke();}
 function dot(a,color,r=4){ctx.fillStyle=color;ctx.beginPath();ctx.arc(...screen(a),r,0,Math.PI*2);ctx.fill();}
 function draw(){let w=canvas.clientWidth,h=canvas.clientHeight,dpr=window.devicePixelRatio||1;if(canvas.width!==Math.round(w*dpr)||canvas.height!==Math.round(h*dpr)){canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);}ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);if(!view||!record)return;
  let s=view.state,p=record.config.parameters,c=view.centre;
  if(camera.auto){let targetX=s.x/2,targetY=(s.y+2)/2, scale=Math.max(1,Math.min(20,Math.min(w/Math.max(40,Math.abs(s.x)+30),h/Math.max(25,Math.abs(s.y)+15))));const blend=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches?1:.06;camera.x+=(targetX-camera.x)*blend;camera.y+=(targetY-camera.y)*blend;camera.scale+=(scale-camera.scale)*blend;}
+ const guideStep=Math.pow(10,Math.ceil(Math.log10(Math.max(1,50/camera.scale))));
+ const bottom=camera.y-h/(2*camera.scale),top=camera.y+h/(2*camera.scale);
+ ctx.font='10px system-ui';ctx.fillStyle='#78918a';ctx.strokeStyle='#89a69a1a';ctx.lineWidth=1;
+ for(let altitude=Math.ceil(bottom/guideStep)*guideStep;altitude<=top;altitude+=guideStep){let y=screen([0,altitude])[1];ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();ctx.fillText(`${altitude} m`,8,y-4);}
  let left=camera.x-w/(2*camera.scale),right=camera.x+w/(2*camera.scale),terrain=p.terrain;let points=[[left,terrainHeight(terrain,left)],...terrain.filter(q=>q[0]>left&&q[0]<right),[right,terrainHeight(terrain,right)]];ctx.fillStyle='#253c35';ctx.beginPath();ctx.moveTo(...screen([left,camera.y-h/camera.scale]));for(let pt of points)ctx.lineTo(...screen(pt));ctx.lineTo(...screen([right,camera.y-h/camera.scale]));ctx.closePath();ctx.fill();for(let i=1;i<points.length;i++)line(points[i-1],points[i],'#84a693',2);
  if($('trail').checked){let snaps=record.snapshots,endIndex=replayMode?frame:snaps.length-1,stride=Math.max(1,Math.ceil(endIndex/1000));ctx.beginPath();for(let i=0;i<=endIndex;i+=stride){let q=screen([snaps[i].state.x,snaps[i].state.y]);if(i===0)ctx.moveTo(...q);else ctx.lineTo(...q);}ctx.strokeStyle='#77b5a277';ctx.lineWidth=1;ctx.stroke();}
  const bp=q=>bodyPoint(q,s,c), engine=bp(p.engine);
  function rocket(){
   const hull=p.hull.map(bp);
-  if(s.thrust>0){let v=thrustDirection(s.theta,s.gimbal), length=Math.min(5,.7+4*s.thrust/p.max_thrust);line(engine,[engine[0]-v[0]*length,engine[1]-v[1]*length],'#ffad66',Math.max(2,camera.scale*.35));}
+  if(s.thrust>0){
+   const v=thrustDirection(s.theta,s.gimbal),length=Math.min(5,.7+4*s.thrust/p.max_thrust),reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+   ctx.save();if(!reduced){ctx.shadowColor='#ffad66';ctx.shadowBlur=12;}line(engine,[engine[0]-v[0]*length,engine[1]-v[1]*length],'#ffad66',Math.max(2,camera.scale*.35));
+   if(!reduced){for(let i=0;i<8;i++){const seed=Math.sin((view.sequence+1)*12.9898+i*78.233)*43758.5453,noise=seed-Math.floor(seed),along=length*(.25+.9*(i+noise)/8),side=(noise-.5)*.45;ctx.globalAlpha=.65*(1-i/10);dot([engine[0]-v[0]*along+v[1]*side,engine[1]-v[1]*along-v[0]*side],'#ffca87',Math.max(1,Math.min(3,camera.scale*.08)));}}
+   ctx.restore();
+  }
   ctx.beginPath();hull.forEach((q,i)=>{let z=screen(q);i?ctx.lineTo(...z):ctx.moveTo(...z);});ctx.closePath();ctx.fillStyle='#e9eee5';ctx.fill();ctx.lineWidth=2;ctx.strokeStyle='#9db6ae';ctx.stroke();
   for(const foot of p.feet){line(bp([foot[0]*.35,0]),bp(foot),'#c1d1c4',2);dot(bp(foot),'#dce8dc',2.5);}
   const n=nozzleDirection(s.theta,s.gimbal);line(engine,[engine[0]+n[0]*.7,engine[1]+n[1]*.7],'#e6b78b',Math.max(2,camera.scale*.3));
