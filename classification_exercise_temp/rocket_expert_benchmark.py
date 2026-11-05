@@ -36,7 +36,7 @@ def feasibility_cases(count=12, seed=FEASIBILITY_SEED):
                     vx=rng.uniform(-1, 1), vy=rng.uniform(-51, -45),
                     theta=rng.uniform(-.015, .015), omega=rng.uniform(-.002, .002),
                     fuel=rng.uniform(8000, 10000), thrust=0., gimbal=0.)
-        cases.append(dict(case_id=f'{FEASIBILITY_SET}:{i+1:02}', scenario=name, initial=s))
+        cases.append(dict(case_id=f'{FEASIBILITY_SET}:{seed}:{i+1:02}', scenario=name, initial=s))
     return cases
 
 

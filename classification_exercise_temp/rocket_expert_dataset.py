@@ -104,7 +104,8 @@ def export_draft(report, output, *, seed=20261105, validation_fraction=.25):
                     action='integer 0–9', split_seed=seed, validation_fraction=validation_fraction,
                     grouping='identical initial state', leakage_tolerances=LEAKAGE_TOLERANCES.tolist(),
                     source_schema=report['schema'],
-                    scenario_sets=sorted({episode['episode_id'].rsplit(':', 1)[0] for episode in episodes}),
+                    scenario_sets=sorted({name for name in (report['diagnostic_scenario_set'], report['feasibility_set'])
+                                          if any(episode['episode_id'].startswith(name + ':') for episode in episodes)}),
                     feasibility_seed=(report['feasibility_seed'] if any(episode['episode_id'].startswith(report['feasibility_set'] + ':') for episode in episodes) else None),
                     class_counts={name: {str(i): counter[i] for i in range(10)} for name, counter in counts.items()},
                     episode_counts={name: len(subset) for name, subset in splits.items()})
