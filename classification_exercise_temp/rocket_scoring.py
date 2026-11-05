@@ -41,11 +41,11 @@ def score_contact(contact, p, config=CONFIG):
         reasons.append('no contact')
         return result
     s = contact.state
-    result.update(contact_time=contact.time, vx=s.vx, vy=s.vy, theta=s.theta, omega=s.omega)
     try:
         if (len(p.feet) != 2 or not all(isfinite(v) for v in (*s.values(), contact.time, *contact.point))
                 or not 0 <= s.fuel <= p.fuel_capacity):
             raise ValueError('invalid contact state or feet')
+        result.update(contact_time=contact.time, vx=s.vx, vy=s.vy, theta=s.theta, omega=s.omega)
         _, centre, _ = mass_properties(s.fuel, p)
         def transform(point):
             x, y = relative_point(point, centre, s.theta)
@@ -68,7 +68,11 @@ def score_contact(contact, p, config=CONFIG):
         first = min(range(2), key=distances.__getitem__)
         # The physics event locator stops on the safe side of contact; its
         # returned point is nonetheless exactly one of the clearance candidates.
-        foot_first = distances[first] < 1e-7 and hull_gap > min(foot_gaps) + 1e-9
+        speed_bound = hypot(s.vx, s.vy) + abs(s.omega) * max(hypot(x-s.x, y-s.y) for x, y in feet + hull)
+        gap_tolerance = 1e-7 + p.event_tolerance * (1 + speed_bound) * 4
+        foot_first = (distances[first] < 1e-7 and abs(foot_gaps[first]) <= gap_tolerance
+                      and foot_gaps[first] <= min(foot_gaps) + 1e-9
+                      and hull_gap > min(foot_gaps) + 1e-9)
         result['first_geometry'] = f'foot {first + 1}' if foot_first else 'hull or invalid'
         on_pad = (config.pad_left <= contact.point[0] <= config.pad_right and
                   abs(ground_height(contact.point[0], p.terrain) - config.pad_height) < 1e-7)

@@ -12,6 +12,7 @@ from urllib.parse import parse_qs, urlsplit
 
 import rocket_physics
 import rocket_calibration as calibration
+import rocket_scoring
 from rocket_physics import Command, Parameters, State, clearance, discrete_command, forces, mass_properties, simulate, step
 
 ROOT = Path(__file__).resolve().parent
@@ -27,16 +28,8 @@ def scenario(name='demo_descent'):
 
 def contact_quality(contact, p):
     """Classify first contact only; no stability or impact model is implied."""
-    s = contact.state
-    _, centre, _ = mass_properties(s.fuel, p)
-    feet = [(s.x + rocket_physics.relative_point(foot, centre, s.theta)[0],
-             s.y + rocket_physics.relative_point(foot, centre, s.theta)[1]) for foot in p.feet]
-    foot_first = any(math.hypot(x-contact.point[0], y-contact.point[1]) < .01 for x, y in feet)
-    inside = abs(contact.point[0]) <= calibration.CONCRETE_EDGE and all(abs(x) <= calibration.CONCRETE_EDGE for x, _ in feet)
-    safe = (foot_first and inside and abs(s.vx) <= 1.5 and -3 <= s.vy <= 0
-            and abs(s.theta) <= math.radians(4) and abs(s.omega) <= math.radians(2))
-    return 'candidate safe first contact' if safe else 'contact outside envelope'
-
+    return ('candidate safe first contact' if rocket_scoring.score_contact(contact, p)['success']
+            else 'contact outside envelope')
 
 def state_packet(run, t, state, command, sequence, contact=None):
     mass, centre, inertia = mass_properties(state.fuel, run.p)
@@ -88,7 +81,7 @@ class Run:
         identity = hashlib.sha256(json.dumps(definition, sort_keys=True).encode()).hexdigest()
         self.config = dict(schema=SCHEMA, run_id=self.id, physics_config=calibration.NAME+':'+identity,
             parameter_status='Falcon 9–inspired engineering model (not flight-certified).',
-            parameters=numeric, **meta, physics_engine_sha256=engine_hash,
+            parameters=numeric, **meta, scoring=asdict(rocket_scoring.CONFIG), physics_engine_sha256=engine_hash,
             units='SI; angles in radians', recording_limits=dict(snapshots=MAX_SNAPSHOTS, commands=MAX_COMMANDS), initial_state=asdict(self.initial),
             actions=[asdict(discrete_command(i, self.p)) for i in range(10)])
         self.snapshots = [state_packet(self, 0, self.state, self.command.copy(), 0)]
@@ -151,7 +144,7 @@ class Run:
         # next physics frame. Never discard a state that has been integrated.
         if len(self.snapshots) >= MAX_SNAPSHOTS - 1:
             self.status = 'completed'
-            self.event = dict(run_id=self.id, type='completed', time=self.t, reason='recording capacity reached')
+            self.event = dict(run_id=self.id, type='completed', time=self.t, reason='recording capacity reached', scoring=rocket_scoring.score_contact(None, self.p))
             return
         applied = False
         while self.pending and self.pending[0]['effective_time'] <= self.t + 1e-10:
@@ -171,7 +164,7 @@ class Run:
         self.snapshots.append(state_packet(self, self.t, self.state, self.command.copy(), self.tick, contact))
         if contact:
             self.status = 'contact'
-            self.event = dict(run_id=self.id, type='contact', time=contact.time, point=contact.point, state=asdict(contact.state), reason='first ground contact', quality=contact_quality(contact, self.p))
+            self.event = dict(run_id=self.id, type='contact', time=contact.time, point=contact.point, state=asdict(contact.state), reason='first ground contact', quality=contact_quality(contact, self.p), scoring=rocket_scoring.score_contact(contact, self.p))
 
     def wall_tick(self, now):
         elapsed = max(0., now-self.last_wall)
@@ -190,7 +183,7 @@ class Run:
         except Exception as exc:
             self.status = 'error'
             self.error = f'Physics error ({type(exc).__name__}): {exc}'
-            self.event = dict(run_id=self.id, type='error', time=self.t, reason=self.error)
+            self.event = dict(run_id=self.id, type='error', time=self.t, reason=self.error, scoring=rocket_scoring.score_contact(None, self.p))
 
 
 lock = threading.RLock()
@@ -292,9 +285,13 @@ class Handler(BaseHTTPRequestHandler):
         pass
 
 
-def offline(actions, scenario_name='demo_descent'):
+def offline(actions, scenario_name='demo_descent', initial_override=None):
     """Generate a complete predetermined discrete-action recording with simulate()."""
     r = Run(scenario_name)
+    if initial_override is not None:
+        r.initial = r.state = initial_override
+        r.config['initial_state'] = asdict(initial_override)
+        r.snapshots = [state_packet(r, 0, initial_override, r.command.copy(), 0)]
     per_action = math.ceil(r.p.control_interval / r.p.timestep) + 2
     if len(actions) * per_action + 1 > MAX_SNAPSHOTS:
         raise ValueError('action sequence exceeds recording capacity')
@@ -313,9 +310,9 @@ def offline(actions, scenario_name='demo_descent'):
             current_action = i
         r.snapshots.append(state_packet(r, t, s, command.copy(), len(r.snapshots), contact))
         if contact:
-            r.event = dict(run_id=r.id, type='contact', time=contact.time, point=contact.point, state=asdict(contact.state), reason='first ground contact', quality=contact_quality(contact, r.p))
+            r.event = dict(run_id=r.id, type='contact', time=contact.time, point=contact.point, state=asdict(contact.state), reason='first ground contact', quality=contact_quality(contact, r.p), scoring=rocket_scoring.score_contact(contact, r.p))
     r.status = 'contact' if r.event else 'completed'
-    if not r.event: r.event = dict(run_id=r.id, type='completed', time=r.snapshots[-1]['time'], reason='action sequence exhausted')
+    if not r.event: r.event = dict(run_id=r.id, type='completed', time=r.snapshots[-1]['time'], reason='action sequence exhausted', scoring=rocket_scoring.score_contact(None, r.p))
     return r.record()
 
 
