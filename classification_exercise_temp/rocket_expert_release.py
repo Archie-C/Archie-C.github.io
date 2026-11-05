@@ -183,6 +183,8 @@ def freeze_dataset(draft, private, final_report, sanity_report, output, *, sourc
         public_sanity[name]['closed_loop_metrics'] = sanity[name]['closed_loop']['metrics']
     manifest = dict(draft_manifest, dataset_version=RELEASE_VERSION,
                     status='frozen local student dataset', train_validation_sha256=hashes,
+                    teacher=dict(version=teacher.EXPERT_VERSION, source_sha256=teacher.SOURCE_SHA256,
+                                 settings=private_manifest['expert_settings']),
                     final_set=FINAL_SET, final_target=FINAL_SUCCESS_TARGET,
                     final_expert_metrics=metrics, deterministic_replay_verified=True,
                     final_manifest_sha256=_hash(frozen_path), final_report_sha256=_hash(final_report),

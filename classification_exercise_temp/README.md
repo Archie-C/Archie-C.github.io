@@ -323,3 +323,7 @@ was independently reproduced exactly. The [updated diagnostic report](benchmarks
 retains the six discrete and seven continuous successes as well as all failures.
 The [label audit](benchmarks/expert-data-v1.0-label-audit.json) records the
 verification of all frozen flight and recovery labels.
+The same audit accepts `--private-agreement /secure/path/agreement.csv` and
+reports only aggregate counts while checking that every private agreement label
+matches the current expert. Exact sources for the recorded v0.4 and v0.5
+controllers are retained for versioned reproduction.

@@ -8,12 +8,15 @@ import rocket_expert
 
 _ARCHIVES = {
     'expert-prototype-v0.4': Path(__file__).resolve().parent / 'versions' / 'expert-prototype-v0.4' / 'rocket_expert.py',
+    'continuous-reference-prototype-v0.2': Path(__file__).resolve().parent / 'versions' / 'expert-prototype-v0.4' / 'rocket_expert.py',
+    'expert-prototype-v0.5': Path(__file__).resolve().parent / 'versions' / 'expert-prototype-v0.5' / 'rocket_expert.py',
+    'continuous-reference-prototype-v0.3': Path(__file__).resolve().parent / 'versions' / 'expert-prototype-v0.5' / 'rocket_expert.py',
 }
 
 
 def load_expert(version, source_sha256):
     """Return only an exact current or locally archived expert implementation."""
-    if version == rocket_expert.EXPERT_VERSION and source_sha256 == rocket_expert.SOURCE_SHA256:
+    if version in (rocket_expert.EXPERT_VERSION, rocket_expert.ContinuousReference.version) and source_sha256 == rocket_expert.SOURCE_SHA256:
         return rocket_expert
     path = _ARCHIVES.get(version)
     if path is None or not path.is_file() or hashlib.sha256(path.read_bytes()).hexdigest() != source_sha256:
@@ -29,6 +32,6 @@ def load_expert(version, source_sha256):
         except Exception:
             del sys.modules[name]
             raise
-    if module.EXPERT_VERSION != version or module.SOURCE_SHA256 != source_sha256:
+    if version not in (module.EXPERT_VERSION, module.ContinuousReference.version) or module.SOURCE_SHA256 != source_sha256:
         raise ValueError('archived expert provenance does not match')
     return module
