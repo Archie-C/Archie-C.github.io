@@ -7,7 +7,7 @@ from dataclasses import replace
 
 from rocket_calibration import configuration
 from rocket_closed_loop import OBSERVATION_NAMES
-from rocket_expert_benchmark import benchmark
+from rocket_expert_benchmark import FINAL_SET, benchmark, final_feasibility_cases
 from rocket_expert_dataset import export_draft
 
 
@@ -69,6 +69,22 @@ class DatasetTests(unittest.TestCase):
                 groups.append(json.loads(path.read_text())['group'])
             self.assertEqual(len(set(groups)), 3)
             self.assertEqual(private.stat().st_mode & 0o077, 0)
+
+    def test_final_evaluation_cases_cannot_be_exported(self):
+        report = self.make_report(4.)
+        report['policies']['discrete_expert']['runs'][0]['case_id'] = FINAL_SET + ':case'
+        with tempfile.TemporaryDirectory() as tmp:
+            with self.assertRaisesRegex(ValueError, 'final evaluation'):
+                export_draft(report, Path(tmp) / 'draft')
+
+    def test_final_start_overlap_cannot_be_relabelled(self):
+        case = final_feasibility_cases()[0]
+        cases = [dict(case, case_id='renamed-final'),
+                 dict(case, case_id='other', initial=replace(case['initial'], x=case['initial'].x + 4.))]
+        report = benchmark(cases, ['discrete_expert'], max_time=.1)
+        with tempfile.TemporaryDirectory() as tmp:
+            with self.assertRaisesRegex(ValueError, 'overlap a final evaluation start'):
+                export_draft(report, Path(tmp) / 'draft')
 
     def test_near_duplicate_leakage_is_rejected(self):
         report = self.make_report(.005)

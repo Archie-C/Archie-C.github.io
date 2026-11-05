@@ -17,6 +17,7 @@ import numpy as np
 from rocket_closed_loop import OBSERVATION_NAMES, OBSERVATION_VERSION, make_observation
 from rocket_calibration import configuration
 from rocket_physics import State, clearance
+from rocket_expert_benchmark import FINAL_SET, final_feasibility_cases
 
 DATASET_VERSION = 'expert-draft-v0.2'
 # Componentwise near-duplicate tolerances in observation units.
@@ -88,6 +89,8 @@ def export_draft(report, output, *, seed=20261105, validation_fraction=.25, reco
     if private_output is not None and not 0 < private_fraction < 1:
         raise ValueError('private_fraction must be between zero and one')
     runs = report['policies']['discrete_expert']['runs']
+    if any(run['case_id'].startswith(FINAL_SET + ':') for run in runs):
+        raise ValueError('final evaluation cases cannot be exported as training data')
     episodes = []
     seen = set()
     for run in runs:
@@ -138,6 +141,10 @@ def export_draft(report, output, *, seed=20261105, validation_fraction=.25, reco
     splits = {name: [episode for episode in episodes if split_name(episode) == name] for name in names}
     observations = {name: [row['observation'] for episode in subset for row in episode['rows']]
                     for name, subset in splits.items()}
+    final_starts = [make_observation(case['initial'], 0., configuration(case['scenario'])[0]).tolist()
+                    for case in final_feasibility_cases()]
+    if any(_near_duplicate(values, final_starts) for values in observations.values()):
+        raise ValueError('dataset observations overlap a final evaluation start')
     for i, name in enumerate(names):
         for other in names[i+1:]:
             if _near_duplicate(observations[name], observations[other]):
