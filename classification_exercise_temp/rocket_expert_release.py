@@ -21,9 +21,10 @@ from rocket_expert_dataset import _near_duplicate
 from rocket_physics import Contact, State, discrete_command
 from rocket_scoring import aggregate, score_contact
 from rocket_server import Run
+from rocket_observation_scope import envelope_violations
 from rocket_softmax import read_csv
 
-RELEASE_VERSION = 'expert-data-v1.0'
+RELEASE_VERSION = 'expert-data-v1.1'
 
 
 def _hash(path):
@@ -121,6 +122,21 @@ def freeze_dataset(draft, private, final_report, sanity_report, output, *, sourc
     for observations, actions in ((train, labels), (validation, valid_labels), (agreement, agreement_labels)):
         if not np.all(np.isfinite(observations)) or np.any((actions < 0) | (actions > 9)):
             raise ValueError('nonfinite observation or invalid action in dataset')
+    private_rows = [json.loads(line) for line in (private / 'agreement_metadata.jsonl').read_text(encoding='utf-8').splitlines()]
+    if len(private_rows) != len(agreement):
+        raise ValueError('private agreement metadata does not match its data')
+    private_configs = {}
+    for observation, row in zip(agreement, private_rows):
+        if row['scenario'] not in private_configs:
+            p, _ = configuration(row['scenario'])
+            private_configs[row['scenario']] = (p, Run(row['scenario']).config['physics_config'])
+        p, config_id = private_configs[row['scenario']]
+        provenance = row['config']['closed_loop']['policy']
+        if (provenance['version'] != teacher.EXPERT_VERSION or
+                provenance['source_sha256'] != teacher.SOURCE_SHA256 or
+                row['config']['physics_config'] != config_id or
+                envelope_violations(observation, row['time'], p)):
+            raise ValueError('private agreement is outside scope or has incompatible provenance')
     if set(labels.tolist()) != set(range(10)):
         raise ValueError('training labels do not include every action')
     if _near_duplicate(train.tolist(), validation.tolist()):
@@ -136,6 +152,10 @@ def freeze_dataset(draft, private, final_report, sanity_report, output, *, sourc
     if (_near_duplicate(visible, private_starts + final_starts) or
             _near_duplicate(agreement.tolist(), private_starts + final_starts)):
         raise ValueError('evaluation starts overlap training or agreement observations')
+    for case, observation in zip(starts, private_starts):
+        p, _ = configuration(case['scenario'])
+        if envelope_violations(observation, 0., p):
+            raise ValueError('private evaluation start is outside the calibration envelope')
     if len(starts) != private_manifest['evaluation_count']:
         raise ValueError('private evaluation start count does not match its manifest')
     metadata_groups = []
@@ -190,7 +210,7 @@ def freeze_dataset(draft, private, final_report, sanity_report, output, *, sourc
                     final_manifest_sha256=_hash(frozen_path), final_report_sha256=_hash(final_report),
                     sanity_report_sha256=_hash(sanity_report),
                     private_evaluation='separate trusted-local directory; deployment access controls required',
-                    release_checks_version='expert-release-checks-v1.1', classifier_sanity=public_sanity,
+                    release_checks_version='expert-release-checks-v1.2', classifier_sanity=public_sanity,
                     label_audit=label_audit, source_archive_sha256=_hash(source_report))
     (output / 'manifest.json').write_text(json.dumps(manifest, indent=2, allow_nan=False)+'\n', encoding='utf-8')
     return manifest
