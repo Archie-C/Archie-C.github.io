@@ -1,6 +1,8 @@
 """NumPy-only deterministic multinomial logistic-regression sanity baseline."""
 import argparse
 import csv
+import hashlib
+from pathlib import Path
 import json
 
 import numpy as np
@@ -139,6 +141,9 @@ def sanity_check(directory, engineered=False, *, iterations=800, closed_loop=Tru
     confusion = np.zeros((10, 10), dtype=int)
     np.add.at(confusion, (valid_y, predictions), 1)
     result = dict(model_version=MODEL_VERSION, basis='engineered' if engineered else 'raw',
+                  dataset_sha256={name: hashlib.sha256((Path(directory) / name).read_bytes()).hexdigest()
+                                  for name in ('train.csv', 'validation.csv')},
+                  fit_settings=dict(iterations=iterations, learning_rate=.15, l2=.001),
                   held_out_agreement=float(np.mean(predictions == valid_y)),
                   confusion=confusion.tolist(), train_class_counts=np.bincount(y, minlength=10).tolist(),
                   validation_class_counts=np.bincount(valid_y, minlength=10).tolist(),

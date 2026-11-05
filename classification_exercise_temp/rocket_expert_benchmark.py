@@ -5,7 +5,9 @@ These are engineering trials, not a certified or hidden evaluation set.
 from collections import Counter
 from dataclasses import asdict, replace
 import argparse
+import hashlib
 import json
+from pathlib import Path
 import random
 
 from rocket_calibration import configuration
@@ -120,8 +122,21 @@ def main():
     args = parser.parse_args()
     cases = {'diagnostic': diagnostic_cases, 'feasibility': feasibility_cases,
              'final': final_feasibility_cases}[args.set]()
+    manifest_path = Path(__file__).resolve().parent / 'benchmarks' / 'feasibility-v1.0-manifest.json'
+    manifest_bytes = manifest_path.read_bytes() if args.set == 'final' else None
+    if manifest_bytes is not None:
+        frozen = json.loads(manifest_bytes)
+        actual = [dict(case_id=c['case_id'], scenario=c['scenario'], initial=asdict(c['initial'])) for c in cases]
+        if (frozen['cases'] != actual or frozen['target_success_rate'] != FINAL_SUCCESS_TARGET or
+                frozen['run_limit_seconds'] != args.max_time):
+            raise ValueError('final evaluation does not match its frozen manifest')
     report = benchmark(cases, args.policy, args.max_time)
     report['evaluated_set'] = args.set
+    if manifest_bytes is not None:
+        report['final_manifest_sha256'] = hashlib.sha256(manifest_bytes).hexdigest()
+        expert_report = report['policies'].get('discrete_expert')
+        report['final_target_met'] = (expert_report['metrics']['success_rate'] >= FINAL_SUCCESS_TARGET
+                                      if expert_report is not None else None)
     with open(args.output, 'w', encoding='utf-8') as target:
         json.dump(report, target, allow_nan=False, separators=(',', ':'))
     for name, result in report['policies'].items():
