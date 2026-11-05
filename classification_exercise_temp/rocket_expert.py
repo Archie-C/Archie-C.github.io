@@ -16,7 +16,7 @@ from rocket_scoring import score_contact
 
 # Freeze provenance at import, before a long-running evaluation begins.
 SOURCE_SHA256 = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
-EXPERT_VERSION = 'expert-prototype-v0.3'
+EXPERT_VERSION = 'expert-prototype-v0.4'
 
 
 def _state(observation):
@@ -48,6 +48,8 @@ def guidance(observation):
 def simple_discrete_guidance(observation):
     """Diagnostic only: quantize the continuous guidance, not an expert label."""
     desired = guidance(observation)
+    # Discrete steering needs a larger command to overcome the centre deadband.
+    desired = Command(desired.throttle, max(-1., min(1., 5. * desired.gimbal)))
     if desired.throttle == 0:
         return 0
     p, _ = configuration('centred_descent')
@@ -82,6 +84,7 @@ class DiscreteExpert:
                     density=lambda y, t=None: float(values[11]))
         fallback_id = simple_discrete_guidance(observation)
         desired = guidance(observation)
+        desired = Command(desired.throttle, max(-1., min(1., 5. * desired.gimbal)))
         costs, contacts = [], []
         try:
             for action in range(10):

@@ -120,6 +120,15 @@ class ClosedLoopTests(unittest.TestCase):
         self.assertEqual(policy['settings']['horizon_steps'], expert.horizon_steps)
         self.assertEqual(policy['source_sha256'], SOURCE_SHA256)
 
+    def test_predictive_expert_crosswind_touchdown(self):
+        case = feasibility_cases()[3]
+        p, _ = configuration(case['scenario'])
+        expert = DiscreteExpert()
+        result = evaluate_closed_loop(expert.predict_action, case['initial'], p, case['scenario'], max_time=20)
+        self.assertTrue(result['scoring']['success'], result['scoring'])
+        self.assertGreater(result['scoring']['score'], 80)
+        self.assertTrue(any(d['action'] in (1, 3, 4, 6, 7, 9) for d in result['decisions']))
+
     def test_continuous_mode_rejects_discrete_outputs(self):
         result = evaluate_closed_loop(lambda _: 0, self.initial, self.p, 'near_ground_contact',
                                       max_time=1, control_mode='continuous')

@@ -209,6 +209,6 @@ implementation. It does not certify that a perturbed state is recoverable.
 
 The separate [feasibility study summary](benchmarks/feasibility-study-v0.1-summary.json)
 records all 12 fixed-seed varied starts and their outcomes. The continuous
-predictive reference landed 12; the discrete expert landed 5, with 20 fallback
-decisions. All-off and fixed burn landed none. This is evidence of improvement
+predictive reference landed 12; discrete expert prototype v0.3 landed 5, with
+20 fallback decisions. All-off and fixed burn landed none. This is evidence of improvement
 on the exploratory set, not a final success target or a certified release set.
