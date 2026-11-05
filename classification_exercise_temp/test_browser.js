@@ -140,6 +140,15 @@ async function waitFor(fn, label, timeout=10000) {
   assert.deepEqual(await evaluate('view.state'),await evaluate('record.terminal.state'));
   await screenshot('rocket-contact.png');
   assert.equal(await evaluate(`(async()=>{const indexes=[0,Math.floor(record.snapshots.length/3),record.snapshots.length-1,1,Math.floor(record.snapshots.length/2),record.snapshots.length-1];const before=JSON.stringify(record);for(const i of indexes){await seek(i);const p=record.snapshots[i];if(view!==p||!$('telemetry').textContent.includes(fmt(p.state.x))||view.command.throttle!==p.command.throttle)return false;}return JSON.stringify(record)===before})()`),true,'replay seek must preserve exact snapshots and commands');
+  // Playback speed may change the selected frame, never the recorded flight.
+  const replayBefore=await evaluate('JSON.stringify(record)');
+  for(const rate of [.25,1,5]){
+    await evaluate(`(async()=>{await seek(0);$('replayspeed').value='${rate}';$('replay').click()})()`);
+    await waitFor(()=>evaluate('frame>0'),`replay advances at ${rate}x`);
+    await evaluate('playing=false;lastFrame=0');
+    assert.equal(await evaluate('JSON.stringify(record)'),replayBefore,`replay changed the record at ${rate}x`);
+    assert.equal(await evaluate('view===record.snapshots[frame]'),true,`replay frame is not recorded at ${rate}x`);
+  }
   await call('Emulation.setDeviceMetricsOverride',{width:1024,height:768,deviceScaleFactor:2,mobile:false});
   await sleep(300);assert.equal(await evaluate('canvas.width'),await evaluate('Math.round(canvas.clientWidth*devicePixelRatio)'));
   assert.ok(await evaluate('canvas.clientWidth>400 && canvas.clientHeight>300'));
