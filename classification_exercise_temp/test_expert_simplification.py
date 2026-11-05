@@ -59,6 +59,14 @@ class ExpertSimplificationTests(unittest.TestCase):
         bad = evaluate_closed_loop(lambda _: 10, s, p, 'near_ground_contact', max_time=.2)
         self.assertEqual(bad['replay']['status'], 'error')
 
+    def test_expert_contact_and_score_are_reproducible(self):
+        p, state = configuration('near_ground_contact')
+        expert = ExpertController(control_interval=p.control_interval)
+        first = evaluate_closed_loop(expert.predict_action, state, p, 'near_ground_contact', max_time=2)
+        second = evaluate_closed_loop(expert.predict_action, state, p, 'near_ground_contact', max_time=2)
+        self.assertEqual(first['replay']['terminal']['type'], 'contact')
+        self.assertEqual(first, second)
+
     def test_physics_timestep_is_independent_of_control_interval(self):
         p, state = configuration('near_ground_contact')
         p = replace(p, timestep=.005, control_interval=.05)
