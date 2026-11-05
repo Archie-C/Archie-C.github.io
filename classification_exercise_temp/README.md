@@ -14,6 +14,12 @@ The twelve observation columns are in SI units (angles in radians): pad-relative
 
 Start the interactive browser simulator with `python3 rocket_server.py` and open <http://127.0.0.1:8765>. The simulator can export its recordings and import existing `rocket-run-v1` JSON recordings for replay; controller source is not needed for replay.
 
+To try a controller, choose a trusted Python file in **Run a controller**. The local server creates its `Controller` class, calls `fit(X, y)` with the twelve observation columns and action labels from `landings.csv`, and evaluates a fresh copy of the fitted controller on each of the ten initial states and constant winds in `test_runs.csv`. It calls `predict_action(observation)` at each control interval and ends each flight at contact or after 20 seconds. The results include a replay for each of the first two runs. The uploaded Python runs with the server user's permissions, so only run code you trust; the separate process is not a security sandbox.
+
+The results show measured signed velocities, tilt, angular velocity and landing-foot midpoint offset at first contact, or at the time limit when there is no contact. The diagnostic score applies only at valid first contact: `100 * sum(weight / (1 + abs(measurement) / reference))`. The five weights are 0.30, 0.15, 0.20, 0.15 and 0.20 for vertical velocity, horizontal velocity, tilt, angular velocity and midpoint offset; the references are 3 m/s, 1.5 m/s, 4 degrees, 2 degrees/s and 33.672 m respectively. It provides a gradient for failed landings but does not assess contact geometry or encode the full pass criteria. The displayed mean excludes flights without a valid contact. The versioned `touchdown-v1.0` success and score remain unchanged.
+
+Action accuracy and macro F1 compare `predict_action` with expert action labels in `test_landings.csv`. Macro F1 weights each action present in the targets or predictions equally. The page reports test observations that exactly match training observations; overlapping data is not an independent evaluation. These metrics measure action agreement, not landing success.
+
 Run checks with:
 
 ```sh

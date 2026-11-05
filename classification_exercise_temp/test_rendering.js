@@ -10,6 +10,8 @@ global.window = {addEventListener() {}};
 const source = fs.readFileSync(__dirname + '/app.js', 'utf8');
 const beforeStart = source.slice(0, source.lastIndexOf('\npoll();setInterval'));
 eval(beforeStart + `
+showReplay(false);assert.equal($('replay-empty').hidden,false);assert.equal($('replay-view').hidden,true);assert.equal($('clock').hidden,true);
+showReplay(true);assert.equal($('replay-empty').hidden,true);assert.equal($('replay-view').hidden,false);assert.equal($('clock').hidden,false);
 const near=(a,b)=>assert.ok(Math.abs(a-b)<1e-10, a+' != '+b);
 let s={x:0,y:0,theta:0}; let nose=bodyPoint([0,3],s,[0,1]);
 near(nose[0],0);near(nose[1],2);

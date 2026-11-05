@@ -110,16 +110,7 @@ async function poll(){
    liveArrival=now;
   }
   lastPacket=newest.sequence;connected=true;lag=data.lag;
-  const accepted=[...liveRecord.commands,...(liveRecord.pending_commands||[])].at(-1);
-  if(accepted){seq=Math.max(seq,accepted.command_sequence);$('accepted').textContent=`Accepted #${accepted.command_sequence}: throttle ${fmt(accepted.throttle)}, gimbal ${fmt(accepted.gimbal)}${accepted.action===null?'':`, action ${accepted.action}`} · effective ${fmt(accepted.effective_time,3)} s`;}
-  if(fresh){
-   const current=accepted||newest.command;
-   $('throttle').value=current.throttle;$('gimbal').value=current.gimbal;
-   $('throttleout').textContent=fmt(current.throttle);$('gimbalout').textContent=fmt(current.gimbal);
-   $('mode').value=current.action===null?'manual':'discrete';
-   $('manual').hidden=current.action!==null;$('discrete').hidden=current.action===null;
-  }
-  if(!replayMode){record=liveRecord;frame=record.snapshots.length-1;view=newest;updateUI();if(fresh&&accepted?.action!==null&&accepted?.action!==undefined)$('action').value=accepted.action;}
+  if(!replayMode){record=liveRecord;frame=record.snapshots.length-1;view=newest;updateUI();}
   else if(replayFollowsLive&&record.config.run_id===liveId){
    for(let i=record.snapshots.length;i<liveRecord.snapshots.length;i++)record.snapshots.push(liveRecord.snapshots[i]);
    for(const key of ['commands','pending_commands','terminal','status','error'])record[key]=liveRecord[key];
@@ -127,21 +118,11 @@ async function poll(){
    updateUI();
   }
   if(liveRecord.error)statusNotice(liveRecord.error);else if(lag>.2)statusNotice('Simulation is '+fmt(lag)+' s behind requested speed; no steps are skipped.');else statusNotice('');
- }catch(e){connected=false;playing=false;statusNotice('Connection or packet error: '+e.message+'. Flight pauses when the heartbeat is lost.');if(record)updateUI();$('status').textContent='Disconnected';}
+ }catch(e){connected=false;playing=false;statusNotice('Connection or packet error: '+e.message+'. Flight pauses when the heartbeat is lost.');if(record)updateUI();}
  finally{polling=false;}
 }
-async function setRecord(r){validate(r);if(!await enterReplay())return false;replayFollowsLive=false;record=r;frame=0;view=record.snapshots[0];replayMode=true;playing=false;updateUI();return true;}
-async function control(operation,extra={}){try{if(!liveId)throw Error('No live connection');await post('/api/control',{run_id:liveId,operation,...extra});notice('');await poll();}catch(e){notice(e.message);}}
-async function sendDesired(){if(sending||!desired||!liveId)return;if(!connected||replayMode){desired=null;notice('Command not sent: return to a connected live session.');return;}sending=true;const request=desired;desired=null;try{let ack=await post('/api/command',{run_id:liveId,command_sequence:++seq,...request});$('accepted').textContent=`Accepted #${ack.command_sequence}: throttle ${fmt(ack.throttle)}, gimbal ${fmt(ack.gimbal)}${ack.action===null?'':`, action ${ack.action}`} · effective ${fmt(ack.effective_time,3)} s`;notice('');}catch(e){notice('Command rejected: '+e.message);}finally{sending=false;if(desired)setTimeout(sendDesired,220);}}
-function queueManual(){ $('throttleout').textContent=fmt(+$('throttle').value);$('gimbalout').textContent=fmt(+$('gimbal').value);desired={throttle:+$('throttle').value,gimbal:+$('gimbal').value};sendDesired();}
-$('throttle').oninput=$('gimbal').oninput=queueManual;
-$('mode').onchange=()=>{$('manual').hidden=$('mode').value!=='manual';$('discrete').hidden=$('mode').value!=='discrete';};
-$('sendaction').onclick=()=>{desired={action:+$('action').value};sendDesired();};
-$('start').onclick=()=>{if(record&&['contact','completed','error'].includes(record.status))resetRun();else control('start');};
-$('pause').onclick=()=>control('pause');$('speed').onchange=()=>control('speed',{speed:+$('speed').value});
-async function resetRun(){if(resetting)return;resetting=true;generation++;try{const r=await post('/api/reset',{scenario:$('scenario').value});notice('');liveId=r.config.run_id;liveRecord=null;lastPacket=-1;renderWindow=null;seq=0;desired=null;replayMode=false;replayFollowsLive=false;playing=false;$('throttle').value=0;$('gimbal').value=0;$('throttleout').textContent='0.00';$('gimbalout').textContent='0.00';$('accepted').textContent='Accepted: engine off';}catch(e){notice(e.message);}finally{resetting=false;poll();}}
-$('reset').onclick=resetRun;
-$('scenario').onchange=resetRun;
+function showReplay(loaded){$('replay-empty').hidden=loaded;$('replay-view').hidden=!loaded;$('clock').hidden=!loaded;}
+async function setRecord(r){validate(r);if(!await enterReplay())return false;replayFollowsLive=false;record=r;frame=0;view=record.snapshots[0];replayMode=true;playing=false;showReplay(true);updateUI();return true;}
 async function enterReplay(){
  if(replayMode)return true;
  if(replayTransition)return replayTransition;
@@ -159,34 +140,85 @@ async function enterReplay(){
  try{return await replayTransition;}finally{replayTransition=null;}
 }
 $('timeline').oninput=async()=>{const index=+$('timeline').value;if(!await enterReplay())return;playing=false;frame=Math.min(index,record.snapshots.length-1);view=record.snapshots[frame];updateUI();};
-function seekTime(t){if(!record)return;let lo=0,hi=record.snapshots.length-1;while(lo<hi){let mid=Math.floor((lo+hi+1)/2);if(record.snapshots[mid].time<=t)lo=mid;else hi=mid-1;}seek(lo);}
-$('backtime').onclick=()=>seekTime(view.time-1);$('forwardtime').onclick=()=>seekTime(view.time+1);
-$('begin').onclick=()=>seek(0);$('back').onclick=()=>seek(frame-1);$('forward').onclick=()=>seek(frame+1);$('terminal').onclick=()=>seek(record.snapshots.length-1);
+function seekTime(t){if(!record||!view)return;let lo=0,hi=record.snapshots.length-1;while(lo<hi){let mid=Math.floor((lo+hi+1)/2);if(record.snapshots[mid].time<=t)lo=mid;else hi=mid-1;}seek(lo);}
+$('backtime').onclick=()=>{if(view)seekTime(view.time-1);};$('forwardtime').onclick=()=>{if(view)seekTime(view.time+1);};
+$('begin').onclick=()=>seek(0);$('back').onclick=()=>seek(frame-1);$('forward').onclick=()=>seek(frame+1);$('terminal').onclick=()=>{if(record)seek(record.snapshots.length-1);};
 $('replay').onclick=async()=>{if(!record)return;if(!replayMode){if(!await enterReplay())return;frame=0;} if(frame>=record.snapshots.length-1)frame=0;playing=!playing;lastFrame=0;view=record.snapshots[frame];replayClock=view.time;updateUI();};
-function returnToLive(){replayMode=false;replayFollowsLive=false;playing=false;if(liveRecord){record=liveRecord;frame=record.snapshots.length-1;view=record.snapshots[frame];updateUI();}poll();}
-$('live').onclick=returnToLive;$('controlLive').onclick=returnToLive;
+function returnToLive(){replayMode=false;replayFollowsLive=false;playing=false;showReplay(false);notice('');if(liveRecord){record=liveRecord;frame=record.snapshots.length-1;view=record.snapshots[frame];updateUI();}poll();}
+$('live').onclick=returnToLive;
 async function seek(i){if(!record||!await enterReplay())return;playing=false;frame=Math.max(0,Math.min(record.snapshots.length-1,i));view=record.snapshots[frame];updateUI();}
 $('export').onclick=()=>{if(!record)return;const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(record)],{type:'application/json'}));a.download='rocket-'+record.config.run_id+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);};
 $('import').onchange=async e=>{try{let f=e.target.files[0];if(!f)return;if(f.size>64*1024*1024)throw Error('File exceeds 64 MB limit');if(await setRecord(JSON.parse(await f.text())))notice('Recording imported for read-only replay.');}catch(err){notice('Import error: '+err.message);}e.target.value='';};
-function metric(label,value){return `<div class="metric"><span>${label}</span><strong>${value}</strong></div>`;}
-function updateUI(){if(!record||!view)return;let s=view.state,d=view.diagnostics||{}, c=view.command, end=record.snapshots.at(-1), p=record.config.parameters;
- $('status').textContent=replayMode?'Replay':record.status;$('clock').textContent='T + '+fmt(view.time)+' s';$('timeline').max=record.snapshots.length-1;$('timeline').value=frame;$('replaytime').textContent=fmt(view.time)+' / '+fmt(end.time)+' s';$('replay').textContent=playing?'Pause replay':'Play replay';
- $('telemetry').innerHTML=metric('Position x / y',`${fmt(s.x)} / ${fmt(s.y)} m`)+metric('Velocity x / y',`${fmt(s.vx)} / ${fmt(s.vy)} m/s`)+metric('Speed',`${fmt(Math.hypot(s.vx,s.vy))} m/s`)+metric('Angle θ',`${fmt(s.theta*180/Math.PI)}°`)+metric('Angular rate',`${fmt(s.omega*180/Math.PI)} °/s`)+metric('Fuel',`${fmt(s.fuel)} kg`)+metric('Actual thrust',`${fmt(s.thrust)} N`)+metric('Actual gimbal',`${fmt(s.gimbal*180/Math.PI)}°`)+metric('Command',`${fmt(c.throttle)} / ${fmt(c.gimbal)}${c.action===null?'':` · action ${c.action}`}`)+metric('Mass (derived)',d.mass!==undefined?`${fmt(d.mass)} kg`:'not available')+metric('Inertia (derived)',d.inertia!==undefined?`${fmt(d.inertia)} kg m²`:'not available')+metric('Airspeed (derived)',d.airspeed!==undefined?`${fmt(d.airspeed)} m/s`:'not available')+metric('Calibration envelope',d.envelope_left?'Left envelope'+(d.envelope_violations?.length?': '+d.envelope_violations.join(', '):' earlier'):'Within envelope')+metric('Body centre of mass (derived)',`${fmt(view.centre[0])} / ${fmt(view.centre[1])} m`)+metric('Wind (derived)',Array.isArray(d.wind)?`${fmt(d.wind[0])} / ${fmt(d.wind[1])} m/s`:'not available')+metric('Aerodynamic torque (derived)',d.aero_torque!==undefined?`${fmt(d.aero_torque)} N m`:'not available')+metric('Aerodynamic force (derived)',Array.isArray(d.aero_force)?`${fmt(d.aero_force[0])} / ${fmt(d.aero_force[1])} N`:'not available');
- let initial=record.config.initial_state, event=record.terminal; $('notes').textContent='';for(const text of [record.config.parameter_status,`Scenario: ${record.config.scenario || 'recorded legacy scenario'}; atmosphere: ${record.config.atmosphere_model || 'recorded'} / ${record.config.wind_model || 'recorded'}.`,`Initial: x ${fmt(initial.x)} m, y ${fmt(initial.y)} m, vx ${fmt(initial.vx)} m/s, vy ${fmt(initial.vy)} m/s, θ ${fmt(initial.theta)} rad, ω ${fmt(initial.omega)} rad/s, fuel ${fmt(initial.fuel)} kg, thrust ${fmt(initial.thrust)} N, gimbal ${fmt(initial.gimbal)} rad.`,event?`${event.reason}${event.quality ? ' · '+event.quality : ''}; t = ${event.time} s${event.point?`; contact = (${event.point[0]}, ${event.point[1]}) m`:''}${event.scoring ? ` · score ${fmt(event.scoring.score)} / 100${event.scoring.reasons.length ? ' · '+event.scoring.reasons.join(', ') : ''}` : ''}`:`Run status: ${record.status}`,`Control interval: ${p.control_interval} s; physics step: ${p.timestep} s.`, `Configuration: ${record.config.physics_config}`]){const el=document.createElement('p');el.textContent=text;$('notes').appendChild(el);}
- const mapping=JSON.stringify(record.config.actions);
- if(actionsConfig!==mapping){let selected=$('action').value;$('action').textContent='';record.config.actions.forEach((a,i)=>{let o=document.createElement('option');o.value=i;o.textContent=`${i}: ${i===0?'off':['low','medium','high'][Math.floor((i-1)/3)]+' / '+['left','centre','right'][(i-1)%3]} (${a.throttle}, ${a.gimbal})`;$('action').appendChild(o);});if(selected)$('action').value=selected;actionsConfig=mapping;}
- const canCommand=!replayMode&&connected&&['ready','running','paused'].includes(record.status);
- const setDisabled=(id,disabled)=>{if($(id).disabled!==disabled)$(id).disabled=disabled;};
- for(const id of ['mode','throttle','gimbal','action','sendaction','speed','scenario'])setDisabled(id,!canCommand);
- const ended=['contact','completed','error'].includes(record.status);
- const startLabel=ended?'New flight':record.status==='paused'?'Resume flight':'Start flight';
- if($('start').textContent!==startLabel)$('start').textContent=startLabel;
- setDisabled('start',replayMode||!connected||!['ready','paused','contact','completed','error'].includes(record.status));
- setDisabled('pause',replayMode||!connected||record.status!=='running');
- if($('controlLive').hidden===replayMode)$('controlLive').hidden=!replayMode;
- const help=replayMode?'Replay is read-only. Select Return to live to use flight controls.':!connected?'Flight controls are unavailable while disconnected.':ended?'Flight ended. Select New flight to reset, then set your controls before starting. Export the recording first if you want to keep it.':record.status==='ready'?'Set throttle and gimbal before starting; the rocket begins falling as soon as the flight starts.':record.status==='paused'?'Flight paused. Adjust the controls, then select Resume flight.':'Flight running. Throttle and gimbal changes take effect at the next control boundary.';
- if($('flightHelp').textContent!==help)$('flightHelp').textContent=help;
-} 
+let selectedController=null, controllerReplays=[];
+function selectController(file){
+ if(!file)return;
+ if(!file.name.toLowerCase().endsWith('.py')||file.size>128*1024){$('controller-status').textContent='Choose a .py file no larger than 128 KB.';return;}
+ selectedController=file;$('upload-filename').textContent=file.name;$('upload-zone').hidden=true;$('upload-meta').hidden=false;$('controller-status').textContent='';
+}
+$('upload-zone').onclick=()=>$('controller-file').click();
+$('upload-zone').onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();$('controller-file').click();}};
+$('upload-zone').ondragover=e=>{e.preventDefault();$('upload-zone').classList.add('dragover');};
+$('upload-zone').ondragleave=()=>$('upload-zone').classList.remove('dragover');
+$('upload-zone').ondrop=e=>{e.preventDefault();$('upload-zone').classList.remove('dragover');selectController(e.dataTransfer.files[0]);};
+$('controller-file').onchange=e=>selectController(e.target.files[0]);
+$('upload-clear').onclick=()=>{selectedController=null;$('controller-file').value='';$('upload-zone').hidden=false;$('upload-meta').hidden=true;};
+function showControllerResults(result){
+ const s=result.summary;
+ const c=result.classification;
+ $('classification-summary').textContent=`Action accuracy: ${fmt(100*c.accuracy,1)}% · Macro F1: ${fmt(100*c.macro_f1,1)}% · ${c.sample_count} observations`;
+ $('classification-overlap').hidden=c.overlapping_observations===0;
+ $('classification-overlap').textContent=c.overlapping_observations ? `${c.overlapping_observations} / ${c.sample_count} test observations also occur in the training data; these results are not fully independent.` : '';
+ $('result-summary').textContent=`${s.successful_runs} / ${s.total_runs} successful (${fmt(100*s.success_rate,0)}%) · Mean diagnostic score: ${s.mean_diagnostic_score===null?'—':fmt(s.mean_diagnostic_score,1)+' / 100'} (${s.scored_contacts} contacts)`;
+ const body=$('result-rows');body.replaceChildren();controllerReplays=result.replays;
+ result.runs.forEach((run,i)=>{
+  const row=document.createElement('tr'), score=run.scoring, m=run.metrics, l=result.limits;
+  const degrees=n=>n*180/Math.PI, measurement=(n,limit)=>`${fmt(n)} / ${fmt(limit)}`;
+  const atContact=score.contact_time!==null;
+  const values=[
+   [run.run_id], [score.success?'Success':atContact?'Unsuccessful':'No contact'],
+   [run.diagnostic_score===null?'—':fmt(run.diagnostic_score,1)],
+   [measurement(m.vy,l.vy),m.vy>=-l.vy&&m.vy<=0],
+   [measurement(m.vx,l.vx),Math.abs(m.vx)<=l.vx],
+   [measurement(degrees(m.theta),l.theta),Math.abs(degrees(m.theta))<=l.theta],
+   [measurement(degrees(m.omega),l.omega),Math.abs(degrees(m.omega))<=l.omega],
+   [fmt(m.midpoint_offset)], [fmt(run.duration)]
+  ];
+  for(const [value,inRange] of values){
+   const cell=document.createElement('td');cell.textContent=value;
+   if(atContact&&inRange!==undefined){
+    cell.className=inRange?'in-range':'out-of-range';
+    cell.title=inRange?'In range':'Out of range';
+    cell.setAttribute('aria-label',`${value}: ${cell.title}`);
+   }
+   row.appendChild(cell);
+  }
+  const cell=document.createElement('td');
+  if(i<controllerReplays.length){const button=document.createElement('button');button.type='button';button.textContent='View flight';button.onclick=async()=>{if(await setRecord(controllerReplays[i])){notice(`Test run ${run.run_id} loaded. Use Play replay to watch it.`);$('scene').scrollIntoView({behavior:'smooth',block:'center'});}};cell.appendChild(button);}
+  else cell.textContent='—';row.appendChild(cell);body.appendChild(row);
+ });
+ $('controller-results').hidden=false;
+}
+$('controller-form').onsubmit=async e=>{
+ e.preventDefault();const file=selectedController, status=$('controller-status'), button=$('controller-run');
+ if(!file){status.textContent='Choose a Python controller file first.';return;}
+ button.disabled=true;$('controller-results').hidden=true;status.textContent='Training controller and evaluating 10 test runs…';
+ try{
+  const result=await post('/api/controller',{source:await file.text()});
+  showControllerResults(result);status.textContent='Evaluation complete. Select View flight to inspect either of the first two runs.';
+ }catch(err){status.textContent=err.message==='unknown run_id'
+   ? 'The simulator server may be running an older version. Stop it, restart rocket_server.py, and reload this page.'
+   : 'Controller error: '+err.message;}
+ finally{button.disabled=false;}
+};
+function updateUI(){
+ if(!record||!view)return;
+ const end=record.snapshots.at(-1);
+ $('clock').textContent=fmt(view.time)+' s';
+ $('timeline').max=record.snapshots.length-1;
+ $('timeline').value=frame;
+ $('replaytime').textContent=fmt(view.time)+' / '+fmt(end.time)+' s';
+ $('replay').textContent=playing?'Pause replay':'Play replay';
+}
 function line(a,b,color,width=1){ctx.strokeStyle=color;ctx.lineWidth=width;ctx.beginPath();ctx.moveTo(...screen(a));ctx.lineTo(...screen(b));ctx.stroke();}
 function dot(a,color,r=4){ctx.fillStyle=color;ctx.beginPath();ctx.arc(...screen(a),r,0,Math.PI*2);ctx.fill();}
 function draw(){let w=canvas.clientWidth,h=canvas.clientHeight,dpr=window.devicePixelRatio||1;if(canvas.width!==Math.round(w*dpr)||canvas.height!==Math.round(h*dpr)){canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);}ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);if(!view||!record)return;
@@ -194,43 +226,39 @@ function draw(){let w=canvas.clientWidth,h=canvas.clientHeight,dpr=window.device
  if(camera.auto){let ground=terrainHeight(p.terrain,s.x),targetX=s.x,targetY=(s.y+ground)/2, scale=Math.max(.2,Math.min(20,Math.min(w/40,h/Math.max(25,Math.abs(s.y-ground)+15))));const blend=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches?1:.06;camera.x+=(targetX-camera.x)*blend;camera.y+=(targetY-camera.y)*blend;camera.scale+=(scale-camera.scale)*blend;}
  const guideStep=Math.pow(10,Math.ceil(Math.log10(Math.max(1,50/camera.scale))));
  const bottom=camera.y-h/(2*camera.scale),top=camera.y+h/(2*camera.scale);
- ctx.font='10px system-ui';ctx.fillStyle='#78918a';ctx.strokeStyle='#89a69a1a';ctx.lineWidth=1;
+ ctx.font='10px JetBrains Mono, monospace';ctx.fillStyle='#6B6149';ctx.strokeStyle='#DCD2BC80';ctx.lineWidth=1;
  for(let altitude=Math.ceil(bottom/guideStep)*guideStep;altitude<=top;altitude+=guideStep){let y=screen([0,altitude])[1];ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();ctx.fillText(`${altitude} m`,8,y-4);}
- let left=camera.x-w/(2*camera.scale),right=camera.x+w/(2*camera.scale),terrain=p.terrain;let points=[[left,terrainHeight(terrain,left)],...terrain.filter(q=>q[0]>left&&q[0]<right),[right,terrainHeight(terrain,right)]];ctx.fillStyle='#253c35';ctx.beginPath();ctx.moveTo(...screen([left,camera.y-h/camera.scale]));for(let pt of points)ctx.lineTo(...screen(pt));ctx.lineTo(...screen([right,camera.y-h/camera.scale]));ctx.closePath();ctx.fill();for(let i=1;i<points.length;i++)line(points[i-1],points[i],'#84a693',2);
+ let left=camera.x-w/(2*camera.scale),right=camera.x+w/(2*camera.scale),terrain=p.terrain;let points=[[left,terrainHeight(terrain,left)],...terrain.filter(q=>q[0]>left&&q[0]<right),[right,terrainHeight(terrain,right)]];ctx.fillStyle='#DCD2BC';ctx.beginPath();ctx.moveTo(...screen([left,camera.y-h/camera.scale]));for(let pt of points)ctx.lineTo(...screen(pt));ctx.lineTo(...screen([right,camera.y-h/camera.scale]));ctx.closePath();ctx.fill();for(let i=1;i<points.length;i++)line(points[i-1],points[i],'#A09373',2);
  // Materials are painted on the same terrain used for collision, using recorded boundaries.
  // Background-only coastal vegetation and a proposed-size service pedestal.
- if(record.config.pad){for(const x of [-145,-120,-100,-80,82,103,126,150]){if(x>=left-4&&x<=right+4){const y=terrainHeight(terrain,x);line([x-2,y],[x,y+1.2],'#688c70',2);line([x,y+1.2],[x+2,y],'#688c70',2);}}const x=75,y=terrainHeight(terrain,x),a=screen([x,y+9.144]),b=screen([x+9.144,y]);ctx.fillStyle='#647b75';ctx.fillRect(a[0],a[1],b[0]-a[0],b[1]-a[1]);}
- if(record.config.pad){const edge=record.config.pad.concrete_edge, outer=record.config.pad.apron_edge; for(const [a,b,color] of [[-outer,-edge,'#b0a48c'],[-edge,edge,'#c6ccc3'],[edge,outer,'#b0a48c']]){let l=Math.max(left,a),r=Math.min(right,b);if(l<r)line([l,terrainHeight(terrain,l)],[r,terrainHeight(terrain,r)],color,6);}if(left<0&&right>0){line([-2,0],[2,0],'#e6dca9',3);line([0,0],[0,1.2],'#e6dca9',2);}}
- if($('trail').checked){let snaps=record.snapshots,endIndex=replayMode?frame:snaps.length-1,stride=Math.max(1,Math.ceil(endIndex/1000));ctx.beginPath();for(let i=0;i<=endIndex;i+=stride){let q=screen([snaps[i].state.x,snaps[i].state.y]);if(i===0)ctx.moveTo(...q);else ctx.lineTo(...q);}ctx.strokeStyle='#77b5a277';ctx.lineWidth=1;ctx.stroke();}
+ if(record.config.pad){for(const x of [-145,-120,-100,-80,82,103,126,150]){if(x>=left-4&&x<=right+4){const y=terrainHeight(terrain,x);line([x-2,y],[x,y+1.2],'#A09373',2);line([x,y+1.2],[x+2,y],'#A09373',2);}}const x=75,y=terrainHeight(terrain,x),a=screen([x,y+9.144]),b=screen([x+9.144,y]);ctx.fillStyle='#A09373';ctx.fillRect(a[0],a[1],b[0]-a[0],b[1]-a[1]);}
+ if(record.config.pad){const edge=record.config.pad.concrete_edge, outer=record.config.pad.apron_edge; for(const [a,b,color] of [[-outer,-edge,'#A09373'],[-edge,edge,'#ECE6D6'],[edge,outer,'#A09373']]){let l=Math.max(left,a),r=Math.min(right,b);if(l<r)line([l,terrainHeight(terrain,l)],[r,terrainHeight(terrain,r)],color,6);}if(left<0&&right>0){line([-2,0],[2,0],'#6B2C5C',3);line([0,0],[0,1.2],'#6B2C5C',2);}}
+ if($('trail').checked){let snaps=record.snapshots,endIndex=replayMode?frame:snaps.length-1,stride=Math.max(1,Math.ceil(endIndex/1000));ctx.beginPath();for(let i=0;i<=endIndex;i+=stride){let q=screen([snaps[i].state.x,snaps[i].state.y]);if(i===0)ctx.moveTo(...q);else ctx.lineTo(...q);}ctx.strokeStyle='#6B2C5C88';ctx.lineWidth=1;ctx.stroke();}
  const bp=q=>bodyPoint(q,s,c), engine=bp(p.engine);
  function rocket(){
   const hull=p.hull.map(bp);
   if(s.thrust>0){
    const v=thrustDirection(s.theta,s.gimbal),length=Math.min(5,.7+4*s.thrust/p.max_thrust),reduced=!visualQuality||window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-   ctx.save();if(!reduced){ctx.shadowColor='#ffad66';ctx.shadowBlur=12;}line(engine,[engine[0]-v[0]*length,engine[1]-v[1]*length],'#ffad66',Math.max(2,camera.scale*.35));
-   if(!reduced){for(let i=0;i<8;i++){const seed=Math.sin((view.sequence+1)*12.9898+i*78.233)*43758.5453,noise=seed-Math.floor(seed),along=length*(.25+.9*(i+noise)/8),side=(noise-.5)*.45;ctx.globalAlpha=.65*(1-i/10);dot([engine[0]-v[0]*along+v[1]*side,engine[1]-v[1]*along-v[0]*side],'#ffca87',Math.max(1,Math.min(3,camera.scale*.08)));}}
+   ctx.save();line(engine,[engine[0]-v[0]*length,engine[1]-v[1]*length],'#6B2C5C',Math.max(2,camera.scale*.35));
+   if(!reduced){for(let i=0;i<8;i++){const seed=Math.sin((view.sequence+1)*12.9898+i*78.233)*43758.5453,noise=seed-Math.floor(seed),along=length*(.25+.9*(i+noise)/8),side=(noise-.5)*.45;ctx.globalAlpha=.65*(1-i/10);dot([engine[0]-v[0]*along+v[1]*side,engine[1]-v[1]*along-v[0]*side],'#A76A98',Math.max(1,Math.min(3,camera.scale*.08)));}}
    ctx.restore();
   }
-  ctx.beginPath();hull.forEach((q,i)=>{let z=screen(q);i?ctx.lineTo(...z):ctx.moveTo(...z);});ctx.closePath();ctx.fillStyle='#e9eee5';ctx.fill();ctx.lineWidth=2;ctx.strokeStyle='#9db6ae';ctx.stroke();
-  for(const foot of p.feet){line(bp([foot[0]*.35,0]),bp(foot),'#c1d1c4',2);dot(bp(foot),'#dce8dc',2.5);}
-  const n=nozzleDirection(s.theta,s.gimbal);line(engine,[engine[0]+n[0]*.7,engine[1]+n[1]*.7],'#e6b78b',Math.max(2,camera.scale*.3));
+  ctx.beginPath();hull.forEach((q,i)=>{let z=screen(q);i?ctx.lineTo(...z):ctx.moveTo(...z);});ctx.closePath();ctx.fillStyle='#F6F1E7';ctx.fill();ctx.lineWidth=2;ctx.strokeStyle='#3D362A';ctx.stroke();
+  for(const foot of p.feet){line(bp([foot[0]*.35,0]),bp(foot),'#3D362A',2);dot(bp(foot),'#3D362A',2.5);}
+  const n=nozzleDirection(s.theta,s.gimbal);line(engine,[engine[0]+n[0]*.7,engine[1]+n[1]*.7],'#6B2C5C',Math.max(2,camera.scale*.3));
  }
  rocket();
- if($('axes').checked){line([s.x,s.y],bp([c[0]+2,c[1]]),'#eebc78',2);line([s.x,s.y],bp([c[0],c[1]+2]),'#b2e68a',2);}
- if($('centres').checked)dot([s.x,s.y],'#ffdc85');
  let d=view.diagnostics||{}, origin=[s.x,s.y];
- if($('pressure').checked&&Array.isArray(d.centre_of_pressure)){let q=bp(d.centre_of_pressure);dot(q,'#e884a1');ctx.fillStyle='#e884a1';ctx.font='11px system-ui';let v=screen(q);ctx.fillText('CP',v[0]+6,v[1]-5);}
- if($('velocityVector').checked)line(origin,[s.x+s.vx,s.y+s.vy],'#82c8f4',2);
- if($('thrustVector').checked&&d.thrust_vector)line(engine,[engine[0]+d.thrust_vector[0]/10,engine[1]+d.thrust_vector[1]/10],'#ffad66',2);
- if($('aeroVector').checked&&d.aero_force)line(origin,[s.x+d.aero_force[0]/10,s.y+d.aero_force[1]/10],'#e884a1',2);
- if($('velocityVector').checked||$('thrustVector').checked||$('aeroVector').checked){ctx.fillStyle='#d1e2dc';ctx.font='11px system-ui';ctx.fillText('Blue velocity · orange thrust · pink aerodynamic force',14,22);}
+ if($('velocityVector').checked)line(origin,[s.x+s.vx,s.y+s.vy],'#2C4A7A',2);
+ if($('thrustVector').checked&&d.thrust_vector)line(engine,[engine[0]+d.thrust_vector[0]/10,engine[1]+d.thrust_vector[1]/10],'#6B2C5C',2);
+ if($('velocityVector').checked||$('thrustVector').checked){ctx.fillStyle='#3D362A';ctx.font='11px JetBrains Mono, monospace';ctx.fillText('Blue velocity · purple thrust',14,22);}
  // A separately scaled detail keeps a distant vehicle legible without changing
  // the world camera or implying that the vehicle is larger in the scene.
  if(camera.scale*p.length<36 && w>300 && h>250){
-  const x=w-138,y=12,iw=124,ih=130;ctx.save();ctx.fillStyle='#172b32ee';ctx.strokeStyle='#6e8780';ctx.lineWidth=1;ctx.fillRect(x,y,iw,ih);ctx.strokeRect(x,y,iw,ih);ctx.beginPath();ctx.rect(x,y,iw,ih);ctx.clip();
-  const saved=camera, scale=Math.min(20,72/p.length);camera={x:s.x-(x+iw/2-w/2)/scale,y:s.y+(y+ih/2-h/2)/scale,scale,auto:false};rocket();camera=saved;ctx.fillStyle='#d1e2dc';ctx.font='10px system-ui';ctx.fillText('VEHICLE DETAIL',x+8,y+15);ctx.fillText('separate scale',x+8,y+ih-8);ctx.restore();
+  const x=w-138,y=12,iw=124,ih=130;ctx.save();ctx.fillStyle='#F6F1E7ee';ctx.strokeStyle='#A09373';ctx.lineWidth=1;ctx.fillRect(x,y,iw,ih);ctx.strokeRect(x,y,iw,ih);ctx.beginPath();ctx.rect(x,y,iw,ih);ctx.clip();
+  const saved=camera, scale=Math.min(20,72/p.length);camera={x:s.x-(x+iw/2-w/2)/scale,y:s.y+(y+ih/2-h/2)/scale,scale,auto:false};rocket();camera=saved;ctx.fillStyle='#3D362A';ctx.font='10px JetBrains Mono, monospace';ctx.fillText('Vehicle detail',x+8,y+15);ctx.fillText('separate scale',x+8,y+ih-8);ctx.restore();
  }
- if(view.contact&&$('contactMarker').checked)dot(view.contact.point,'#ffcf78',5);ctx.fillStyle='#b9ccc3';ctx.font='12px system-ui';let scaleMetres=Math.pow(10,Math.floor(Math.log10(100/camera.scale))),scaleLength=scaleMetres*camera.scale;ctx.fillRect(16,h-35,scaleLength,2);ctx.fillText(`${scaleMetres} m`,16,h-40);
+ if(view.contact&&$('contactMarker').checked)dot(view.contact.point,'#A82A20',5);ctx.fillStyle='#3D362A';ctx.font='12px JetBrains Mono, monospace';let scaleMetres=Math.pow(10,Math.floor(Math.log10(100/camera.scale))),scaleLength=scaleMetres*camera.scale;ctx.fillRect(16,h-35,scaleLength,2);ctx.fillText(`${scaleMetres} m`,16,h-40);
 }
 $('camera').onclick=()=>{camera.auto=true;};canvas.onpointerdown=e=>{dragging=[e.clientX,e.clientY];camera.auto=false;canvas.setPointerCapture(e.pointerId);};canvas.onpointermove=e=>{if(!dragging)return;camera.x-=(e.clientX-dragging[0])/camera.scale;camera.y+=(e.clientY-dragging[1])/camera.scale;dragging=[e.clientX,e.clientY];};canvas.onpointerup=canvas.onpointercancel=()=>{dragging=null;};canvas.onwheel=e=>{e.preventDefault();camera.auto=false;const rect=canvas.getBoundingClientRect(),px=e.clientX-rect.left-canvas.clientWidth/2,py=e.clientY-rect.top-canvas.clientHeight/2;const x=camera.x+px/camera.scale,y=camera.y-py/camera.scale;camera.scale=Math.max(.2,Math.min(100,camera.scale*Math.exp(-e.deltaY*.001)));camera.x=x-px/camera.scale;camera.y=y+py/camera.scale;};
 function updateVisualQuality(interval){
@@ -238,32 +266,6 @@ function updateVisualQuality(interval){
  else if(interval<=20){fastFrames++;slowFrames=0;if(fastFrames>=120)visualQuality=1;}
  else {slowFrames=0;fastFrames=0;}
 }
-function animate(now){if(lastPaint)updateVisualQuality(now-lastPaint);lastPaint=now;if(playing&&record){if(lastFrame){replayClock+=(now-lastFrame)/1000*(+$('replayspeed').value);while(frame+1<record.snapshots.length&&record.snapshots[frame+1].time<=replayClock)frame++;view=record.snapshots[frame];if(frame===record.snapshots.length-1)playing=false;updateUI();}lastFrame=now;}else lastFrame=0;if(!replayMode&&record&&record.status==='running'&&renderWindow){const u=Math.max(0,Math.min(1,(now-renderWindow.start)/renderWindow.duration));view=snapshotAt(record.snapshots,renderWindow.from+(renderWindow.to-renderWindow.from)*u,record.config.parameters);}draw();requestAnimationFrame(animate);}
-// Flight shortcuts work across the page. Text inputs, menus, the replay
-// timeline and unrelated buttons retain their native keyboard behavior.
-const steeringKeys=new Set();
-function releaseSteering(){if(!steeringKeys.size)return;steeringKeys.clear();$('gimbal').value=0;queueManual();}
-window.addEventListener('keydown',event=>{
- if(!['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(event.key)||event.altKey||event.ctrlKey||event.metaKey)return;
- const target=event.target, tag=target?.tagName?.toLowerCase();
- if(target?.isContentEditable||tag==='textarea'||tag==='select'||(tag==='input'&&!['throttle','gimbal'].includes(target.id)))return;
- if(event.key===' '&&tag==='button'&&!['start','pause'].includes(target.id))return;
- if(!record||replayMode||!connected||!['ready','running','paused'].includes(record.status))return;
- if(event.key!==' '&&$('mode').value!=='manual')return;
- event.preventDefault();
- if(event.key===' '){if(!event.repeat)control(record.status==='running'?'pause':'start');return;}
- if(event.key==='ArrowUp'||event.key==='ArrowDown'){
-  const direction=event.key==='ArrowUp'?1:-1;
-  $('throttle').value=Math.max(0,Math.min(1,+$('throttle').value+direction*.05));queueManual();
- }else if(!event.repeat){
-  steeringKeys.add(event.key);$('gimbal').value=steeringKeys.has('ArrowLeft')===steeringKeys.has('ArrowRight')?0:steeringKeys.has('ArrowLeft')?1:-1;queueManual();
- }
-});
-window.addEventListener('keyup',event=>{
- if(!steeringKeys.has(event.key))return;
- event.preventDefault();steeringKeys.delete(event.key);
- $('gimbal').value=steeringKeys.has('ArrowLeft')===steeringKeys.has('ArrowRight')?0:steeringKeys.has('ArrowLeft')?1:-1;queueManual();
-});
-canvas.addEventListener('blur',releaseSteering);window.addEventListener('blur',releaseSteering);
+function animate(now){if(lastPaint)updateVisualQuality(now-lastPaint);lastPaint=now;if(playing&&record){if(lastFrame){replayClock+=(now-lastFrame)/1000*(+$('replayspeed').value);while(frame+1<record.snapshots.length&&record.snapshots[frame+1].time<=replayClock)frame++;view=record.snapshots[frame];if(frame===record.snapshots.length-1)playing=false;updateUI();}lastFrame=now;}else lastFrame=0;if(!$('replay-view').hidden)draw();requestAnimationFrame(animate);}
 window.addEventListener('pagehide',()=>{if(liveId && liveRecord && liveRecord.status==='running')navigator.sendBeacon('/api/control',new Blob([JSON.stringify({run_id:liveId,operation:'pause'})],{type:'application/json'}));});
 poll();setInterval(poll,200);requestAnimationFrame(animate);

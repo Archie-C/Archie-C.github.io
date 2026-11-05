@@ -36,7 +36,7 @@ def make_observation(state, time, parameters):
     return observation
 
 
-def evaluate_closed_loop(policy, initial_state, parameters, scenario_id, *, max_time=30.0, control_mode="discrete", measure_time=False):
+def evaluate_closed_loop(policy, initial_state, parameters, scenario_id, *, max_time=30.0, control_mode="discrete", measure_time=False, constant_wind=None):
     """Run a trusted stateless policy at fixed simulation-time boundaries.
 
     The scenario must describe the supplied configuration, so replay metadata
@@ -49,12 +49,23 @@ def evaluate_closed_loop(policy, initial_state, parameters, scenario_id, *, max_
     if abs(max_time / parameters.control_interval - round(max_time / parameters.control_interval)) > 1e-9:
         raise ValueError('max_time must be a control boundary')
     run = Run(scenario_id)
-    if replace(parameters, control_interval=run.p.control_interval, timestep=run.p.timestep) != run.p:
+    if constant_wind is not None:
+        if len(constant_wind) != 2 or not all(math.isfinite(v) for v in constant_wind):
+            raise ValueError('constant_wind must contain two finite values')
+    if replace(parameters, control_interval=run.p.control_interval, timestep=run.p.timestep, wind=run.p.wind if constant_wind is not None else parameters.wind) != run.p:
         raise ValueError('parameters must match the named calibrated scenario except timing')
+    if constant_wind is not None:
+        wind = tuple(constant_wind)
+        parameters = replace(parameters, wind=lambda y, t: wind)
     run.p = parameters
     run.config['parameters']['control_interval'] = parameters.control_interval
     run.config['parameters']['timestep'] = parameters.timestep
-    definition = dict(parameters=run.config['parameters'], **__import__('rocket_calibration').metadata(scenario_id),
+    metadata = __import__('rocket_calibration').metadata(scenario_id)
+    if constant_wind is not None:
+        metadata['wind_model'] = 'constant-wind-v1'
+        metadata['environment']['wind'] = list(wind)
+        run.config.update(metadata)
+    definition = dict(parameters=run.config['parameters'], **metadata,
                       physics_engine_sha256=run.config['physics_engine_sha256'])
     run.config['physics_config'] = __import__('rocket_calibration').NAME + ':' + hashlib.sha256(
         json.dumps(definition, sort_keys=True).encode()).hexdigest()

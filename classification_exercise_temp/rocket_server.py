@@ -5,6 +5,10 @@ from pathlib import Path
 import hashlib
 import json
 import math
+import os
+import subprocess
+import sys
+import tempfile
 import threading
 import time
 import uuid
@@ -234,7 +238,7 @@ class Handler(BaseHTTPRequestHandler):
             except ValueError as exc:
                 self.reply(dict(error=str(exc)), 400)
             return
-        files = {'/': ('index.html', 'text/html; charset=utf-8'), '/app.js': ('app.js', 'text/javascript; charset=utf-8'), '/style.css': ('style.css', 'text/css; charset=utf-8')}
+        files = {'/': ('index.html', 'text/html; charset=utf-8'), '/app.js': ('app.js', 'text/javascript; charset=utf-8'), '/style.css': ('style.css', 'text/css; charset=utf-8'), '/design-system.css': ('../design_system/colors_and_type.css', 'text/css; charset=utf-8')}
         if path not in files:
             self.send_error(404); return
         name, content_type = files[path]
@@ -245,9 +249,23 @@ class Handler(BaseHTTPRequestHandler):
         global run, last_client
         try:
             length = int(self.headers.get('Content-Length', '0'))
-            if length < 0 or length > 16384: raise ValueError('invalid request size')
+            limit = 256 * 1024 if self.path == '/api/controller' else 16384
+            if length < 0 or length > limit: raise ValueError('invalid request size')
+            if self.path == '/api/controller':
+                host = self.headers.get('Host', '')
+                port = self.server.server_address[1]
+                if (host not in (f'127.0.0.1:{port}', f'localhost:{port}') or
+                        self.headers.get('Origin') != f'http://{host}' or
+                        self.headers.get_content_type() != 'application/json'):
+                    raise ValueError('controller requests must come from the local simulator page')
             data = json.loads(self.rfile.read(length) or b'{}', parse_constant=lambda x: (_ for _ in ()).throw(ValueError('non-finite JSON')))
             if not isinstance(data, dict): raise ValueError('object required')
+            if self.path == '/api/controller':
+                source = data.get('source')
+                if not isinstance(source, str) or not source.strip() or len(source.encode('utf-8')) > 128 * 1024:
+                    raise ValueError('controller source must be a nonempty Python file under 128 KB')
+                self.reply(run_controller(source))
+                return
             if self.path == '/api/offline':
                 actions = data.get('actions')
                 if not isinstance(actions, list) or len(actions) > 10000:
@@ -314,6 +332,28 @@ def offline(actions, scenario_name='demo_descent', initial_override=None):
     r.status = 'contact' if r.event else 'completed'
     if not r.event: r.event = dict(run_id=r.id, type='completed', time=r.snapshots[-1]['time'], reason='action sequence exhausted', scoring=rocket_scoring.score_contact(None, r.p))
     return r.record()
+
+
+def run_controller(source):
+    """Run user-selected, trusted Python in a separate process (not a sandbox)."""
+    with tempfile.TemporaryDirectory(prefix='rocket-controller-') as directory:
+        source_path = Path(directory) / 'controller.py'
+        result_path = Path(directory) / 'result.json'
+        source_path.write_text(source, encoding='utf-8')
+        env = dict(os.environ, OPENBLAS_NUM_THREADS='1', OMP_NUM_THREADS='1', MKL_NUM_THREADS='1')
+        try:
+            completed = subprocess.run(
+                [sys.executable, str(ROOT / 'run_uploaded_controller.py'), str(source_path),
+                 str(result_path)], cwd=ROOT, env=env,
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=120)
+        except subprocess.TimeoutExpired as exc:
+            raise ValueError('training or simulation exceeded 120 seconds') from exc
+        if not result_path.is_file():
+            raise ValueError(f'controller process failed (exit code {completed.returncode})')
+        result = json.loads(result_path.read_text(encoding='utf-8'))
+        if 'error' in result:
+            raise ValueError(result['error'])
+        return result
 
 
 if __name__ == '__main__':
