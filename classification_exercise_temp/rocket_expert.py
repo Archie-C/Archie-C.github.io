@@ -1,7 +1,7 @@
-"""Deterministic, observation-only prototype guidance and discrete shooting.
+"""Deterministic, observation-only guidance and bounded predictive shooting.
 
-This prototype is not certified and must not be used to release labelled data.
 All candidates use authoritative RK4/contact physics, with a fixed short horizon.
+A dataset must pass the documented acceptance gates before it is frozen.
 """
 from dataclasses import replace
 import hashlib
@@ -16,7 +16,7 @@ from rocket_scoring import score_contact
 
 # Freeze provenance at import, before a long-running evaluation begins.
 SOURCE_SHA256 = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
-EXPERT_VERSION = 'expert-prototype-v0.4'
+EXPERT_VERSION = 'expert-prototype-v0.5'
 
 
 def _state(observation):
@@ -136,7 +136,7 @@ class DiscreteExpert:
                                     predicted_contact=contacts[action],
                                     horizon_seconds=self.horizon_steps * p.control_interval)
             return action
-        except (ArithmeticError, ValueError, OverflowError) as exc:
+        except Exception as exc:
             self.diagnostics = dict(fallback=True, reason=f'{type(exc).__name__}: {exc}', predicted_safe=False)
             return fallback_id
 
@@ -150,7 +150,7 @@ class ContinuousReference:
     each control boundary. This bounded grid is a reference search, not proof of
     global optimality or feasibility.
     """
-    version = 'continuous-reference-prototype-v0.2'
+    version = 'continuous-reference-prototype-v0.3'
 
     def __init__(self, horizon_steps=3):
         if type(horizon_steps) is not int or not 1 <= horizon_steps <= 10:
@@ -216,6 +216,6 @@ class ContinuousReference:
                                     predicted_contact=contacts[chosen],
                                     horizon_seconds=self.horizon_steps*p.control_interval)
             return candidates[chosen]
-        except (ArithmeticError, ValueError, OverflowError) as exc:
+        except Exception as exc:
             self.diagnostics = dict(fallback=True, reason=f'{type(exc).__name__}: {exc}', predicted_safe=False)
             return fallback

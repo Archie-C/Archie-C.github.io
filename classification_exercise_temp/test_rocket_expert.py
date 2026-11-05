@@ -7,7 +7,7 @@ import numpy as np
 
 from rocket_calibration import configuration
 from rocket_closed_loop import OBSERVATION_NAMES, evaluate_closed_loop, make_observation
-from rocket_physics import discrete_command
+from rocket_physics import Command, discrete_command, step
 from rocket_expert import ContinuousReference, DiscreteExpert, SOURCE_SHA256, guidance, simple_discrete_guidance
 from rocket_expert_benchmark import (FINAL_SEED, FINAL_SET, FINAL_SUCCESS_TARGET, benchmark,
                                      diagnostic_cases, feasibility_cases, final_feasibility_cases)
@@ -25,6 +25,23 @@ class ClosedLoopTests(unittest.TestCase):
         self.assertEqual(observation.shape, (12,))
         self.assertEqual(len(OBSERVATION_NAMES), 12)
         np.testing.assert_allclose(observation, [2, 25, 3, -2, 0, 0, 4000, 400, .01, 0, 0, self.p.density(25, 0)])
+
+    def test_observation_tracks_crosswind_and_actual_actuators(self):
+        p, state = configuration('crosswind_diagnostics')
+        initial_fuel = state.fuel
+        for index in range(10):
+            state, contact = step(index * p.timestep, state, Command(1., 1.), p, p.timestep)
+            self.assertIsNone(contact)
+        observation = make_observation(state, p.control_interval, p)
+        np.testing.assert_allclose(observation[:9], state.values())
+        np.testing.assert_allclose(observation[9:11], p.wind(state.y, p.control_interval))
+        self.assertAlmostEqual(observation[11], p.density(state.y, p.control_interval))
+        self.assertLess(observation[6], initial_fuel)
+        self.assertGreater(observation[7], 0.)
+        self.assertLess(observation[7], p.max_thrust)
+        self.assertGreater(observation[8], 0.)
+        self.assertLess(observation[8], p.gimbal_max)
+        self.assertGreater(observation[9], 0.)
 
     def test_actions_and_contact_are_reproducible(self):
         times = []
@@ -157,6 +174,33 @@ class ClosedLoopTests(unittest.TestCase):
         self.assertEqual(fallback, guidance(observation))
         self.assertTrue(reference.diagnostics['fallback'])
         self.assertIn('injected failure', reference.diagnostics['reason'])
+
+    def test_timeout_and_unexpected_solver_failures_use_fallback(self):
+        observation = make_observation(self.initial, 0, self.p)
+        for failure in (TimeoutError('budget exceeded'), RuntimeError('solver failed')):
+            with self.subTest(failure=type(failure).__name__):
+                discrete = DiscreteExpert(horizon_steps=1)
+                reference = ContinuousReference(horizon_steps=1)
+                with patch('rocket_expert.step', side_effect=failure):
+                    first = discrete.predict_action(observation)
+                    self.assertEqual(first, discrete.predict_action(observation))
+                    self.assertEqual(reference.predict_command(observation), guidance(observation))
+                self.assertIn(first, range(10))
+                self.assertTrue(discrete.diagnostics['fallback'])
+                self.assertIn(type(failure).__name__, discrete.diagnostics['reason'])
+                self.assertTrue(reference.diagnostics['fallback'])
+                self.assertIn(type(failure).__name__, reference.diagnostics['reason'])
+
+    def test_timeout_is_recorded_in_benchmark_fallback_metrics(self):
+        case = dict(case_id='timeout-case', scenario='near_ground_contact', initial=self.initial)
+        with patch('rocket_expert.step', side_effect=TimeoutError('budget exceeded')):
+            report = benchmark([case], ['discrete_expert'], max_time=.1)
+        result = report['policies']['discrete_expert']
+        self.assertEqual(result['fallback_count'], 1)
+        self.assertEqual(result['fallback_frequency'], 1.)
+        decision = result['runs'][0]['replay']['decisions'][0]
+        self.assertTrue(decision['diagnostics']['fallback'])
+        self.assertIn('TimeoutError', decision['diagnostics']['reason'])
 
     def test_action_mapping(self):
         for action in range(10):
