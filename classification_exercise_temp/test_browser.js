@@ -45,9 +45,15 @@ async function waitFor(fn, label, timeout=10000) {
   await evaluate("$('pause').click()");
   await waitFor(()=>evaluate("record.status==='paused'"),'pause');
   let t=await evaluate('view.time');await sleep(500);assert.equal(await evaluate('view.time'),t,'pause must freeze simulation');
-  // A lost transport must visibly disconnect, then resume into a paused run.
+  // Entering replay during flight captures the final acknowledged pause frame.
   await evaluate("$('start').click()");
+  await waitFor(()=>evaluate("record.status==='running'"),'resume before replay');
+  await evaluate("$('begin').click()");
+  await waitFor(()=>evaluate("replayMode && record.status==='paused' && !replayFollowsLive"),'replay pause');
+  assert.equal(await evaluate('record.snapshots.length'),await evaluate('liveRecord.snapshots.length'));
+  await evaluate("$('live').click();$('start').click()");
   await waitFor(()=>evaluate("record.status==='running'"),'resume before disconnect');
+  // A lost transport must visibly disconnect, then resume into a paused run.
   await evaluate("window.savedFetch=window.fetch;window.fetch=()=>Promise.reject(new Error('test disconnect'))");
   await waitFor(()=>evaluate("$('status').textContent==='Disconnected'"),'disconnect notice');
   await sleep(2500);
@@ -77,6 +83,14 @@ async function waitFor(fn, label, timeout=10000) {
   await call('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
   await sleep(300);assert.ok(await evaluate('document.documentElement.scrollWidth<=window.innerWidth+1'),'mobile horizontal overflow');
   await screenshot('rocket-mobile.png');
+  // Exercise seeking and bounded trail drawing with a substantial recording.
+  const longLoad=await evaluate(`(()=>{const source=record;const base=source.snapshots[0];const frames=Array.from({length:20000},(_,i)=>({...base,sequence:i,time:i*.02}));const long={...source,status:'paused',terminal:null,commands:[],pending_commands:[],snapshots:frames};const started=performance.now();setRecord(long);seek(19999);return performance.now()-started})()`);
+  assert.equal(await evaluate('frame'),19999);
+  assert.equal(await evaluate('record.snapshots.length'),20000);
+  const frameTimes=await evaluate(`new Promise(resolve=>{let times=[],last=0;function tick(t){if(last)times.push(t-last);last=t;if(times.length===30)resolve(times);else requestAnimationFrame(tick)}requestAnimationFrame(tick)})`);
+  const median=frameTimes.slice().sort((a,b)=>a-b)[15];
+  assert.ok(median<80,`long-recording median frame interval: ${median} ms`);
+  console.log(`20,000-frame recording loaded in ${longLoad.toFixed(0)} ms; median frame interval ${median.toFixed(1)} ms`);
   const oldId=await evaluate('record.config.run_id');
   await evaluate("$('reset').click()");
   await waitFor(()=>evaluate(`record?.config.run_id!==${JSON.stringify(oldId)} && record.status==='ready'`),'reset after contact');

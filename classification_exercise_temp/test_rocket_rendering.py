@@ -107,6 +107,9 @@ class AdapterTests(unittest.TestCase):
         a, b = Run(), Run()
         self.assertNotEqual(a.id, b.id)
         self.assertEqual(a.initial, b.initial)
+        self.assertEqual(a.config['physics_config'], b.config['physics_config'])
+        self.assertEqual(a.config['environment']['lift_coefficient'], 'sin(alpha)')
+        self.assertEqual(len(a.config['physics_engine_sha256']), 64)
         for payload in ({'command_sequence': 1, 'action': True}, {'command_sequence': 1, 'throttle': True, 'gimbal': 0}, {'command_sequence': 1, 'throttle': 2, 'gimbal': 0}, {'command_sequence': 1, 'throttle': 10**400, 'gimbal': 0}):
             with self.assertRaises(ValueError): a.queue(payload)
 

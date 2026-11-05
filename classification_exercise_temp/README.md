@@ -44,7 +44,7 @@ All JSON uses SI units and radians. `GET /api/run` returns `{record, lag}`; retr
 - `/api/control`: `operation` is `start`, `pause`, or `speed`; the latter also requires `speed` of 0.25, 0.5, 1, 2 or 5.
 - `/api/reset`: creates a new ready run. `/api/offline` accepts the current `run_id` and an `actions` array (maximum 10,000), and returns a separate record generated with `simulate()`.
 
-The worker uses fixed physics steps and simulation-time control boundaries. Wall-clock speed affects pacing only. It accumulates debt rather than skipping steps, and pauses after two seconds without a client heartbeat. Errors are reported explicitly. This is a local, single-user development server, not an authenticated public service. Configuration identifiers cover the serialized numerical parameters and the named illustrative environment. The Python module's event tolerance and numerical limitations described above also apply to rendered contact.
+The worker uses fixed physics steps and simulation-time control boundaries. Wall-clock speed affects pacing only. It accumulates debt rather than skipping steps, and pauses after two seconds without a client heartbeat. Errors are reported explicitly. This is a local, single-user development server, not an authenticated public service. Configuration identifiers cover the serialized numerical parameters, explicit illustrative environment and coefficient definitions, and a SHA-256 hash of the physics module. The Python module's event tolerance and numerical limitations described above also apply to rendered contact.
 
 ### Rendering checks
 

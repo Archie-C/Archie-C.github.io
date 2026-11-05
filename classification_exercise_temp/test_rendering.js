@@ -31,6 +31,6 @@ let a={...packet,diagnostics:{clearance:10}},b={...packet,sequence:1,time:1,stat
 let middle=snapshotAt([a,b],.5,recording.config.parameters);near(middle.state.x,1);near(middle.state.theta,.2);
 let unsafe={...b,diagnostics:{clearance:0}};assert.equal(snapshotAt([a,unsafe],.5,recording.config.parameters),a);
 let switched={...b,command:{throttle:1,gimbal:0,action:null}};assert.equal(snapshotAt([a,switched],.5,recording.config.parameters),a);
-assert.ok(validate(recording));assert.throws(()=>validate({...recording,config:{...recording.config,actions:[]}}));assert.throws(()=>validate({...recording,config:{...recording.config,parameters:{...recording.config.parameters,length:Infinity}}}));assert.throws(()=>validate({...recording,snapshots:[recording.snapshots[1],packet]}));
+assert.ok(validate(recording));assert.throws(()=>validate({...recording,status:'contact',terminal:null}));assert.throws(()=>validate({...recording,config:{...recording.config,actions:[]}}));assert.throws(()=>validate({...recording,config:{...recording.config,parameters:{...recording.config.parameters,length:Infinity}}}));assert.throws(()=>validate({...recording,snapshots:[recording.snapshots[1],packet]}));
 `);
 console.log('Rendering geometry and packet checks passed');

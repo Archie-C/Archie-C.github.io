@@ -3,7 +3,7 @@
 const $ = id => document.getElementById(id);
 const canvas=$('scene'), ctx=canvas.getContext('2d');
 const stateKeys=['x','y','vx','vy','theta','omega','fuel','thrust','gimbal'];
-let record=null, liveRecord=null, view=null, replayMode=false, playing=false, frame=0, lastFrame=0, seq=0;
+let record=null, liveRecord=null, view=null, replayMode=false, replayFollowsLive=false, playing=false, frame=0, lastFrame=0, seq=0;
 let camera={x:0,y:25,scale:5,auto:true}, dragging=null, connected=false, sending=false, desired=null;
 let lastPacket=-1, liveId=null, liveArrival=0, renderWindow=null, lag=0, replayClock=0, polling=false, resetting=false, generation=0;
 const fmt=(n,d=2)=>Number(n).toFixed(d);
@@ -61,6 +61,11 @@ function validate(r){
   commandSequence=command.command_sequence;commandTime=command.effective_time;
  }
  if(r.terminal&&(!['contact','completed','error'].includes(r.terminal.type)||!Number.isFinite(r.terminal.time)||typeof r.terminal.reason!=='string'||r.terminal.type==='contact'&&(!Array.isArray(r.terminal.point)||r.terminal.point.length!==2||!r.terminal.point.every(Number.isFinite))))throw Error('Invalid terminal event');
+ if(['contact','completed','error'].includes(r.status)&&(!r.terminal||r.terminal.type!==r.status))throw Error('Terminal status and event disagree');
+ if(r.terminal?.type==='contact'){
+  const last=r.snapshots.at(-1),event=r.terminal;
+  if(!last.contact||last.time!==event.time||last.contact.time!==event.time||event.point.some((v,i)=>v!==last.contact.point[i])||!event.state||!stateKeys.every(k=>event.state[k]===last.state[k]))throw Error('Terminal contact does not match the final snapshot');
+ }
  return r;
 }
 async function post(path,data={}){let res=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});let json=await res.json();if(!res.ok)throw Error(json.error||'Request failed');return json;}
@@ -82,6 +87,7 @@ async function poll(){
   }else{
    if(incoming.config?.run_id!==liveId || incoming.schema!=='rocket-run-v1' || !Array.isArray(incoming.snapshots))throw Error('Unknown run or invalid snapshot batch');
    let previous=liveRecord.snapshots.at(-1);
+   validate({...incoming,snapshots:[previous,...incoming.snapshots]});
    for(const packet of incoming.snapshots){
     if(!validPacket(packet,liveId)||packet.sequence!==previous.sequence+1||packet.time<previous.time)throw Error('Stale or out-of-order state packet');
     previous=packet;
@@ -101,11 +107,17 @@ async function poll(){
   const accepted=[...liveRecord.commands,...(liveRecord.pending_commands||[])].at(-1);
   if(accepted){seq=Math.max(seq,accepted.command_sequence);$('accepted').textContent=`Accepted #${accepted.command_sequence}: throttle ${fmt(accepted.throttle)}, gimbal ${fmt(accepted.gimbal)}${accepted.action===null?'':`, action ${accepted.action}`} · effective ${fmt(accepted.effective_time,3)} s`;}
   if(!replayMode){record=liveRecord;frame=record.snapshots.length-1;view=newest;updateUI();}
+  else if(replayFollowsLive&&record.config.run_id===liveId){
+   for(let i=record.snapshots.length;i<liveRecord.snapshots.length;i++)record.snapshots.push(liveRecord.snapshots[i]);
+   for(const key of ['commands','pending_commands','terminal','status','error'])record[key]=liveRecord[key];
+   if(liveRecord.status!=='running')replayFollowsLive=false;
+   updateUI();
+  }
   if(liveRecord.error)notice(liveRecord.error);else if(lag>.2)notice('Simulation is '+fmt(lag)+' s behind requested speed; no steps are skipped.');else notice('');
  }catch(e){connected=false;playing=false;notice('Connection or packet error: '+e.message+'. Flight pauses when the heartbeat is lost.');$('status').textContent='Disconnected';$('start').disabled=true;$('pause').disabled=true;}
  finally{polling=false;}
 }
-function setRecord(r){validate(r);enterReplay();record=r;frame=0;view=record.snapshots[0];replayMode=true;playing=false;updateUI();}
+function setRecord(r){validate(r);enterReplay();replayFollowsLive=false;record=r;frame=0;view=record.snapshots[0];replayMode=true;playing=false;updateUI();}
 async function control(operation,extra={}){try{if(!liveId)throw Error('No live connection');await post('/api/control',{run_id:liveId,operation,...extra});await poll();}catch(e){notice(e.message);}}
 async function sendDesired(){if(sending||!desired||!liveId)return;if(!connected||replayMode){desired=null;notice('Command not sent: return to a connected live session.');return;}sending=true;const request=desired;desired=null;try{let ack=await post('/api/command',{run_id:liveId,command_sequence:++seq,...request});$('accepted').textContent=`Accepted #${ack.command_sequence}: throttle ${fmt(ack.throttle)}, gimbal ${fmt(ack.gimbal)}${ack.action===null?'':`, action ${ack.action}`} · effective ${fmt(ack.effective_time,3)} s`;notice('');}catch(e){notice('Command rejected: '+e.message);}finally{sending=false;if(desired)setTimeout(sendDesired,220);}}
 function queueManual(){ $('throttleout').textContent=fmt(+$('throttle').value);$('gimbalout').textContent=fmt(+$('gimbal').value);desired={throttle:+$('throttle').value,gimbal:+$('gimbal').value};sendDesired();}
@@ -114,13 +126,13 @@ $('mode').onchange=()=>{$('manual').hidden=$('mode').value!=='manual';$('discret
 $('sendaction').onclick=()=>{desired={action:+$('action').value};sendDesired();};
 $('start').onclick=()=>control('start');$('pause').onclick=()=>control('pause');$('speed').onchange=()=>control('speed',{speed:+$('speed').value});
 $('reset').onclick=async()=>{if(resetting)return;resetting=true;generation++;try{const r=await post('/api/reset');liveId=r.config.run_id;liveRecord=null;lastPacket=-1;renderWindow=null;seq=0;desired=null;replayMode=false;playing=false;$('throttle').value=0;$('gimbal').value=0;$('throttleout').textContent='0.00';$('gimbalout').textContent='0.00';$('accepted').textContent='Accepted: engine off';}catch(e){notice(e.message);}finally{resetting=false;poll();}};
-function enterReplay(){if(!replayMode && record){if(record.status==='running')control('pause');record={...record,snapshots:record.snapshots.slice(),commands:record.commands.slice()};}replayMode=true;}
+function enterReplay(){if(!replayMode && record){replayFollowsLive=record.status==='running';if(replayFollowsLive)control('pause');record={...record,snapshots:record.snapshots.slice(),commands:record.commands.slice()};}replayMode=true;}
 $('timeline').oninput=()=>{enterReplay();playing=false;frame=+$('timeline').value;view=record.snapshots[frame];updateUI();};
 function seekTime(t){if(!record)return;let lo=0,hi=record.snapshots.length-1;while(lo<hi){let mid=Math.floor((lo+hi+1)/2);if(record.snapshots[mid].time<=t)lo=mid;else hi=mid-1;}seek(lo);}
 $('backtime').onclick=()=>seekTime(view.time-1);$('forwardtime').onclick=()=>seekTime(view.time+1);
 $('begin').onclick=()=>seek(0);$('back').onclick=()=>seek(frame-1);$('forward').onclick=()=>seek(frame+1);$('terminal').onclick=()=>seek(record.snapshots.length-1);
 $('replay').onclick=()=>{if(!record)return;if(!replayMode){enterReplay();frame=0;} if(frame>=record.snapshots.length-1)frame=0;playing=!playing;lastFrame=0;view=record.snapshots[frame];replayClock=view.time;updateUI();};
-$('live').onclick=()=>{replayMode=false;playing=false;if(liveRecord){record=liveRecord;frame=record.snapshots.length-1;view=record.snapshots[frame];updateUI();}poll();};
+$('live').onclick=()=>{replayMode=false;replayFollowsLive=false;playing=false;if(liveRecord){record=liveRecord;frame=record.snapshots.length-1;view=record.snapshots[frame];updateUI();}poll();};
 function seek(i){if(!record)return;enterReplay();playing=false;frame=Math.max(0,Math.min(record.snapshots.length-1,i));view=record.snapshots[frame];updateUI();}
 $('export').onclick=()=>{if(!record)return;const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(record)],{type:'application/json'}));a.download='rocket-'+record.config.run_id+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);};
 $('import').onchange=async e=>{try{let f=e.target.files[0];if(!f)return;if(f.size>20*1024*1024)throw Error('File exceeds 20 MB limit');setRecord(JSON.parse(await f.text()));notice('Recording imported for read-only replay.');}catch(err){notice('Import error: '+err.message);}e.target.value='';};

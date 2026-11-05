@@ -10,6 +10,7 @@ import time
 import uuid
 from urllib.parse import parse_qs, urlsplit
 
+import rocket_physics
 from rocket_physics import Command, Parameters, State, clearance, discrete_command, forces, mass_properties, simulate, step
 
 ROOT = Path(__file__).resolve().parent
@@ -69,10 +70,15 @@ class Run:
         self.last_wall = time.monotonic()
         self.tick = 0
         numeric = {k:v for k,v in asdict(self.p).items() if not callable(v)}
-        identity = hashlib.sha256(json.dumps(numeric, sort_keys=True).encode()).hexdigest()
+        environment = dict(gravity='9.81 m/s² constant', density='0.02 kg/m³ constant',
+            wind='(0, 0) m/s', drag_coefficient='1', lift_coefficient='sin(alpha)',
+            centre_of_pressure='(0, 2) m in body coordinates')
+        engine_hash = hashlib.sha256(Path(rocket_physics.__file__).read_bytes()).hexdigest()
+        definition = dict(parameters=numeric, environment=environment, physics_engine_sha256=engine_hash)
+        identity = hashlib.sha256(json.dumps(definition, sort_keys=True).encode()).hexdigest()
         self.config = dict(schema=SCHEMA, run_id=self.id, physics_config='illustrative-v1:'+identity,
             parameter_status='Uncalibrated illustrative test parameters', parameters=numeric,
-            environment='constant gravity 9.81 m/s², density 0.02 kg/m³, zero wind; illustrative coefficients',
+            environment=environment, physics_engine_sha256=engine_hash,
             units='SI; angles in radians', initial_state=asdict(self.initial),
             actions=[asdict(discrete_command(i, self.p)) for i in range(10)], pad=None)
         self.snapshots = [state_packet(self, 0, self.state, self.command.copy(), 0)]
