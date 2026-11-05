@@ -154,3 +154,17 @@ frequency. Solver time is measured outside replay records and varies by runtime.
 The fixed-seed feasibility set is exploratory: a continuous safe contact is
 only evidence for a candidate case, and no success target or certification has
 been assigned. The diagnostic benchmark can take several minutes.
+
+An exploratory report can be converted into a **draft only** dataset:
+
+```sh
+python3 classification_exercise_temp/rocket_expert_dataset.py /tmp/diagnostic.json /tmp/expert-draft
+```
+
+The exporter takes decisions from recorded discrete-expert runs, groups identical
+initial conditions into one split, and rejects componentwise near-duplicates
+across train and validation. Observation columns and action labels are in CSV;
+episode, time, policy, scoring and solver details are in separate JSONL files.
+It rejects an existing nonempty destination. The resulting manifest explicitly
+marks the files as experimental: the hidden sets, recovery sampling, classifier
+sanity checks and release gates remain unfinished.
