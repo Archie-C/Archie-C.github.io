@@ -295,3 +295,20 @@ frozen feasibility set and do not imply every preset is recoverable.
 The matching [diagnostic baseline report](benchmarks/diagnostic-baselines-summary.json)
 includes the all-off, fixed-burn and continuous-guidance cases; their complete
 replays are retained in the corresponding compressed report.
+
+The frozen `expert-data-v1.0` labels came from `expert-prototype-v0.4`; its
+exact source is retained under `versions/expert-prototype-v0.4/` and selected
+by version and SHA-256 for historical reproduction. The current discrete
+expert is v0.5: it additionally falls back deterministically on unexpected
+solver exceptions and timeouts. Existing reports identify the version that
+actually generated them.
+
+To independently verify every frozen label against its archived flight or
+re-query the exact recorded teacher on a recovery state:
+
+```sh
+python3 classification_exercise_temp/rocket_expert_audit.py classification_exercise_temp/datasets/expert-data-v1.0 classification_exercise_temp/benchmarks/feasibility-study-expert-v0.4-full-report.json.gz
+```
+
+The current freeze command also requires that archived source report, so it
+can run the same label audit before writing a new dataset.

@@ -15,6 +15,7 @@ import numpy as np
 from rocket_calibration import configuration
 from rocket_closed_loop import OBSERVATION_NAMES, evaluate_closed_loop, make_observation
 from rocket_expert_versions import load_expert
+from rocket_expert_audit import audit_labels
 from rocket_expert_benchmark import FINAL_SET, FINAL_SEED, FINAL_SUCCESS_TARGET, final_feasibility_cases
 from rocket_expert_dataset import _near_duplicate
 from rocket_physics import Contact, State, discrete_command
@@ -33,13 +34,15 @@ def _canonical(value):
     return json.dumps(value, sort_keys=True, separators=(',', ':'), allow_nan=False)
 
 
-def freeze_dataset(draft, private, final_report, sanity_report, output):
+def freeze_dataset(draft, private, final_report, sanity_report, output, *, source_report=None):
     """Freeze only when documented trajectory, split and sanity gates pass."""
     draft, private, output = Path(draft), Path(private), Path(output)
     if output.exists():
         raise ValueError('release output must not already exist')
     if (private.stat().st_mode & 0o077) != 0:
         raise ValueError('private directory must have owner-only permissions')
+    if source_report is None:
+        raise ValueError('an archived source report is required for the label audit')
     draft_manifest = json.loads((draft / 'manifest.json').read_text(encoding='utf-8'))
     private_manifest = json.loads((private / 'manifest.json').read_text(encoding='utf-8'))
     with open(final_report, encoding='utf-8') as source:
@@ -159,6 +162,7 @@ def freeze_dataset(draft, private, final_report, sanity_report, output):
             raise ValueError('classifier report is missing or refers to different data')
     if sanity['engineered']['held_out_agreement'] <= sanity['raw']['held_out_agreement']:
         raise ValueError('engineered features do not improve held-out agreement')
+    label_audit = audit_labels(draft, source_report)
     # Verify exact action, first-contact, score and complete replay determinism on
     # a recorded final case, using the same fixed version and solver settings.
     recorded = expert['runs'][0]
@@ -184,7 +188,8 @@ def freeze_dataset(draft, private, final_report, sanity_report, output):
                     final_manifest_sha256=_hash(frozen_path), final_report_sha256=_hash(final_report),
                     sanity_report_sha256=_hash(sanity_report),
                     private_evaluation='separate trusted-local directory; deployment access controls required',
-                    release_checks_version='expert-release-checks-v1.0', classifier_sanity=public_sanity)
+                    release_checks_version='expert-release-checks-v1.1', classifier_sanity=public_sanity,
+                    label_audit=label_audit, source_archive_sha256=_hash(source_report))
     (output / 'manifest.json').write_text(json.dumps(manifest, indent=2, allow_nan=False)+'\n', encoding='utf-8')
     return manifest
 
@@ -192,9 +197,10 @@ def freeze_dataset(draft, private, final_report, sanity_report, output):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('draft'); parser.add_argument('private'); parser.add_argument('final_report')
-    parser.add_argument('sanity_report'); parser.add_argument('output')
+    parser.add_argument('sanity_report'); parser.add_argument('source_report'); parser.add_argument('output')
     args = parser.parse_args()
-    manifest = freeze_dataset(args.draft, args.private, args.final_report, args.sanity_report, args.output)
+    manifest = freeze_dataset(args.draft, args.private, args.final_report, args.sanity_report, args.output,
+                              source_report=args.source_report)
     print('Frozen:', manifest['dataset_version'], 'at', args.output)
 
 
