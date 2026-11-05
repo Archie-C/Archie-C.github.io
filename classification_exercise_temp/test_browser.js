@@ -81,6 +81,7 @@ async function waitFor(fn, label, timeout=10000) {
   assert.equal(await evaluate('view.time'),await evaluate('record.terminal.time'));
   assert.deepEqual(await evaluate('view.state'),await evaluate('record.terminal.state'));
   await screenshot('rocket-contact.png');
+  assert.equal(await evaluate(`(()=>{const indexes=[0,Math.floor(record.snapshots.length/3),record.snapshots.length-1,1,Math.floor(record.snapshots.length/2),record.snapshots.length-1];const before=JSON.stringify(record);for(const i of indexes){seek(i);const p=record.snapshots[i];if(view!==p||!$('telemetry').textContent.includes(fmt(p.state.x))||view.command.throttle!==p.command.throttle)return false;}return JSON.stringify(record)===before})()`),true,'replay seek must preserve exact snapshots and commands');
   await call('Emulation.setDeviceMetricsOverride',{width:1024,height:768,deviceScaleFactor:2,mobile:false});
   await sleep(300);assert.equal(await evaluate('canvas.width'),await evaluate('Math.round(canvas.clientWidth*devicePixelRatio)'));
   assert.ok(await evaluate('canvas.clientWidth>400 && canvas.clientHeight>300'));
@@ -96,6 +97,19 @@ async function waitFor(fn, label, timeout=10000) {
   const median=frameTimes.slice().sort((a,b)=>a-b)[15];
   assert.ok(median<80,`long-recording median frame interval: ${median} ms`);
   console.log(`20,000-frame recording loaded in ${longLoad.toFixed(0)} ms; median frame interval ${median.toFixed(1)} ms`);
+  // Replay a pre-scheduled flight while the browser paints at different rates.
+  // Paint scheduling is replaced only in the page; the Python stepper is unchanged.
+  let baseline;
+  for(const fps of [30,60,120]){
+    const previous=await evaluate('liveId');
+    await evaluate(`window.requestAnimationFrame=callback=>setTimeout(()=>callback(performance.now()),${1000/fps});$('reset').click()`);
+    await waitFor(()=>evaluate(`liveId!==${JSON.stringify(previous)} && record?.status==='ready'`),'fresh flight');
+    await evaluate(`(async()=>{for(const [i,action] of [1,5,0,9,0].entries())await post('/api/command',{run_id:liveId,command_sequence:i+1,action,effective_time:i*.2});await post('/api/control',{run_id:liveId,operation:'speed',speed:5});await post('/api/control',{run_id:liveId,operation:'start'});})()`);
+    await waitFor(()=>evaluate("liveRecord.status==='contact'"),`contact at ${fps} fps`,20000);
+    const flight=await evaluate(`({states:liveRecord.snapshots.map(p=>({time:p.time,state:p.state,command:p.command})),event:{time:liveRecord.terminal.time,point:liveRecord.terminal.point,state:liveRecord.terminal.state}})`);
+    if(baseline)assert.deepEqual(flight,baseline,`trajectory changed at ${fps} fps`);else baseline=flight;
+  }
+  console.log('Scheduled flight matched exactly at 30, 60 and 120 paint callbacks per second.');
   const oldId=await evaluate('record.config.run_id');
   await evaluate("$('reset').click()");
   await waitFor(()=>evaluate(`record?.config.run_id!==${JSON.stringify(oldId)} && record.status==='ready'`),'reset after contact');

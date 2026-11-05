@@ -3,6 +3,7 @@ from unittest.mock import patch
 
 from rocket_physics import Command, discrete_command, simulate
 from rocket_server import Run, offline
+from test_rocket_physics import parameters, state
 
 
 class AdapterTests(unittest.TestCase):
@@ -131,6 +132,20 @@ class AdapterTests(unittest.TestCase):
         self.assertEqual(len(first['snapshots']), 1)
         self.assertEqual(first['snapshots'] + delta['snapshots'], r.record()['snapshots'])
         self.assertEqual(r.record(after=12)['snapshots'], [])
+
+    def test_grazing_terrain_contact_is_recorded_at_engine_pose(self):
+        p = parameters(gravity=lambda y: 0, feet=(),
+            hull=((-0.1, 0), (0.1, 0), (0.1, 1), (-0.1, 1)),
+            terrain=((-10, 0), (-0.1, 0), (0, 1), (0.1, 0), (10, 0)))
+        initial = state(x=-4, y=2, vx=20, fuel=0)
+        with patch('rocket_server.scenario', return_value=(p, initial)):
+            recording = offline([0, 0])
+        event = recording['terminal']; final = recording['snapshots'][-1]
+        self.assertEqual(recording['status'], 'contact')
+        self.assertAlmostEqual(event['time'], .195, places=8)
+        self.assertEqual(event['point'], final['contact']['point'])
+        self.assertEqual(event['state'], final['state'])
+        self.assertGreaterEqual(final['diagnostics']['clearance'], 0)
 
     def test_contact_terminates_and_matches_snapshot(self):
         r = Run(); r.status = 'running'
