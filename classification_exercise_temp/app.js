@@ -30,10 +30,39 @@ function snapshotAt(snapshots,t,p){
  for(const k of stateKeys)state[k]=a.state[k]+(b.state[k]-a.state[k])*u;
  return {...a,time:t,state,centre:a.centre.map((v,i)=>v+(b.centre[i]-v)*u),interpolated:true};
 }
-function validPacket(p,id){return p && p.run_id===id && Number.isInteger(p.sequence) && p.sequence>=0 && Number.isFinite(p.time) && p.time>=0 && p.state && stateKeys.every(k=>Number.isFinite(p.state[k])) && Array.isArray(p.centre) && p.centre.length===2 && p.centre.every(Number.isFinite) && p.command && Number.isFinite(p.command.throttle) && p.command.throttle>=0 && p.command.throttle<=1 && Number.isFinite(p.command.gimbal) && Math.abs(p.command.gimbal)<=1 && (p.command.action===null || (Number.isInteger(p.command.action) && p.command.action>=0 && p.command.action<=9)) && (!p.contact || (Array.isArray(p.contact.point) && p.contact.point.length===2 && p.contact.point.every(Number.isFinite))); }
-function validate(r){if(!r||r.schema!=='rocket-run-v1'||!r.config||r.config.schema!==r.schema||typeof r.config.run_id!=='string'||!r.config.parameters||!Array.isArray(r.snapshots)||!r.snapshots.length||!Array.isArray(r.commands)) throw Error('Unsupported or incomplete rocket-run-v1 recording');
- const p=r.config.parameters; if(!['hull','feet','terrain','engine'].every(k=>Array.isArray(p[k]))||p.hull.length<3||p.terrain.length<1||![...p.hull,...p.feet,...p.terrain,p.engine].every(x=>Array.isArray(x)&&x.length===2&&x.every(Number.isFinite))) throw Error('Invalid geometry');
- let time=-1, sequence=-1; for(const s of r.snapshots){if(!validPacket(s,r.config.run_id)||s.sequence<=sequence||s.time<time) throw Error('Invalid or out-of-order state packet'); time=s.time;sequence=s.sequence;} return r;}
+function allNumbersFinite(value){if(typeof value==='number')return Number.isFinite(value);if(value&&typeof value==='object')return Object.values(value).every(allNumbersFinite);return true;}
+function validPacket(p,id){return p && allNumbersFinite(p) && p.run_id===id && Number.isInteger(p.sequence) && p.sequence>=0 && Number.isFinite(p.time) && p.time>=0 && p.state && stateKeys.every(k=>Number.isFinite(p.state[k])) && Array.isArray(p.centre) && p.centre.length===2 && p.centre.every(Number.isFinite) && p.command && Number.isFinite(p.command.throttle) && p.command.throttle>=0 && p.command.throttle<=1 && Number.isFinite(p.command.gimbal) && Math.abs(p.command.gimbal)<=1 && (p.command.action===null || (Number.isInteger(p.command.action) && p.command.action>=0 && p.command.action<=9)) && (!p.contact || (Array.isArray(p.contact.point) && p.contact.point.length===2 && p.contact.point.every(Number.isFinite))) && (!p.diagnostics || ['wind','thrust_vector','aero_force','centre_of_pressure'].every(k=>p.diagnostics[k]===undefined||p.diagnostics[k]===null||(Array.isArray(p.diagnostics[k])&&p.diagnostics[k].length===2&&p.diagnostics[k].every(Number.isFinite)))); }
+function validate(r){
+ // JSON cannot represent IEEE NaN or Infinity by design, but very large numeric
+ // literals parse to Infinity. Reject them anywhere before using an imported run.
+ let seen=0;
+ function finiteTree(value,depth=0){
+  if(++seen>3000000||depth>32)throw Error('Recording is too complex');
+  if(typeof value==='number'&&!Number.isFinite(value))throw Error('Recording contains a non-finite value');
+  if(value && typeof value==='object')for(const v of Object.values(value))finiteTree(v,depth+1);
+ }
+ finiteTree(r);
+ if(!r||r.schema!=='rocket-run-v1'||!r.config||r.config.schema!==r.schema||typeof r.config.run_id!=='string'||!r.config.run_id||typeof r.config.physics_config!=='string'||typeof r.config.units!=='string'||!r.config.parameters||!Array.isArray(r.snapshots)||!r.snapshots.length||!Array.isArray(r.commands)||!['ready','running','paused','contact','completed','error'].includes(r.status))throw Error('Unsupported or incomplete rocket-run-v1 recording');
+ const config=r.config,p=config.parameters,initial=config.initial_state;
+ if(!initial||!stateKeys.every(k=>Number.isFinite(initial[k])))throw Error('Invalid initial state');
+ if(!Array.isArray(config.actions)||config.actions.length!==10||!config.actions.every(c=>c&&Number.isFinite(c.throttle)&&c.throttle>=0&&c.throttle<=1&&Number.isFinite(c.gimbal)&&Math.abs(c.gimbal)<=1))throw Error('Invalid discrete-action mapping');
+ if(!['hull','feet','terrain','engine'].every(k=>Array.isArray(p[k]))||p.hull.length<3||p.terrain.length<1||![...p.hull,...p.feet,...p.terrain,p.engine].every(x=>Array.isArray(x)&&x.length===2&&x.every(Number.isFinite)))throw Error('Invalid geometry');
+ if(p.terrain.some((q,i)=>i>0&&q[0]<=p.terrain[i-1][0])||!['length','max_thrust','timestep','control_interval','event_tolerance'].every(k=>Number.isFinite(p[k])&&p[k]>0))throw Error('Invalid terrain or numerical settings');
+ let time=-1,sequence=-1;
+ for(const packet of r.snapshots){
+  if(!validPacket(packet,config.run_id)||packet.sequence<=sequence||packet.time<time)throw Error('Invalid or out-of-order state packet');
+  const d=packet.diagnostics;
+  if(d!==undefined&&(!d||typeof d!=='object'||['wind','thrust_vector','aero_force','centre_of_pressure'].some(k=>d[k]!==undefined&&d[k]!==null&&(!Array.isArray(d[k])||d[k].length!==2||!d[k].every(Number.isFinite)))))throw Error('Invalid diagnostics');
+  time=packet.time;sequence=packet.sequence;
+ }
+ let commandSequence=-1,commandTime=-1;
+ for(const command of [...r.commands,...(r.pending_commands||[])]){
+  if(!command||!Number.isInteger(command.command_sequence)||command.command_sequence<=commandSequence||!Number.isFinite(command.effective_time)||command.effective_time<commandTime||!Number.isFinite(command.throttle)||command.throttle<0||command.throttle>1||!Number.isFinite(command.gimbal)||Math.abs(command.gimbal)>1||!(command.action===null||Number.isInteger(command.action)&&command.action>=0&&command.action<=9))throw Error('Invalid command history');
+  commandSequence=command.command_sequence;commandTime=command.effective_time;
+ }
+ if(r.terminal&&(!['contact','completed','error'].includes(r.terminal.type)||!Number.isFinite(r.terminal.time)||typeof r.terminal.reason!=='string'||r.terminal.type==='contact'&&(!Array.isArray(r.terminal.point)||r.terminal.point.length!==2||!r.terminal.point.every(Number.isFinite))))throw Error('Invalid terminal event');
+ return r;
+}
 async function post(path,data={}){let res=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});let json=await res.json();if(!res.ok)throw Error(json.error||'Request failed');return json;}
 function notice(s){$('message').textContent=s||'';}
 async function poll(){
@@ -76,7 +105,7 @@ async function poll(){
  }catch(e){connected=false;playing=false;notice('Connection or packet error: '+e.message+'. Flight pauses when the heartbeat is lost.');$('status').textContent='Disconnected';}
  finally{polling=false;}
 }
-function setRecord(r){enterReplay();record=validate(r);frame=0;view=record.snapshots[0];replayMode=true;playing=false;updateUI();}
+function setRecord(r){validate(r);enterReplay();record=r;frame=0;view=record.snapshots[0];replayMode=true;playing=false;updateUI();}
 async function control(operation,extra={}){try{if(!liveId)throw Error('No live connection');await post('/api/control',{run_id:liveId,operation,...extra});await poll();}catch(e){notice(e.message);}}
 async function sendDesired(){if(sending||!desired||!liveId)return;sending=true;const request=desired;desired=null;try{let ack=await post('/api/command',{run_id:liveId,command_sequence:++seq,...request});$('accepted').textContent=`Accepted #${ack.command_sequence}: throttle ${fmt(ack.throttle)}, gimbal ${fmt(ack.gimbal)}${ack.action===null?'':`, action ${ack.action}`} · effective ${fmt(ack.effective_time,3)} s`;notice('');}catch(e){notice('Command rejected: '+e.message);}finally{sending=false;if(desired)setTimeout(sendDesired,220);}}
 function queueManual(){ $('throttleout').textContent=fmt(+$('throttle').value);$('gimbalout').textContent=fmt(+$('gimbal').value);desired={throttle:+$('throttle').value,gimbal:+$('gimbal').value};sendDesired();}
@@ -136,5 +165,28 @@ function draw(){let w=canvas.clientWidth,h=canvas.clientHeight,dpr=window.device
 }
 $('camera').onclick=()=>{camera.auto=true;};canvas.onpointerdown=e=>{dragging=[e.clientX,e.clientY];camera.auto=false;canvas.setPointerCapture(e.pointerId);};canvas.onpointermove=e=>{if(!dragging)return;camera.x-=(e.clientX-dragging[0])/camera.scale;camera.y+=(e.clientY-dragging[1])/camera.scale;dragging=[e.clientX,e.clientY];};canvas.onpointerup=canvas.onpointercancel=()=>{dragging=null;};canvas.onwheel=e=>{e.preventDefault();camera.auto=false;camera.scale=Math.max(.2,Math.min(100,camera.scale*Math.exp(-e.deltaY*.001)));};
 function animate(now){if(playing&&record){if(lastFrame){replayClock+=(now-lastFrame)/1000*(+$('replayspeed').value);while(frame+1<record.snapshots.length&&record.snapshots[frame+1].time<=replayClock)frame++;view=record.snapshots[frame];if(frame===record.snapshots.length-1)playing=false;updateUI();}lastFrame=now;}else lastFrame=0;if(!replayMode&&record&&record.status==='running'&&renderWindow){const u=Math.max(0,Math.min(1,(now-renderWindow.start)/renderWindow.duration));view=snapshotAt(record.snapshots,renderWindow.from+(renderWindow.to-renderWindow.from)*u,record.config.parameters);}draw();requestAnimationFrame(animate);}
+// Shortcuts apply only while the flight canvas has focus; form controls keep
+// their native keyboard behavior. Steering is momentary and released on blur.
+const steeringKeys=new Set();
+function releaseSteering(){if(!steeringKeys.size)return;steeringKeys.clear();$('gimbal').value=0;queueManual();}
+canvas.addEventListener('keydown',event=>{
+ if(!['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(event.key))return;
+ event.preventDefault();
+ if(!record||replayMode||!connected||!['ready','running','paused'].includes(record.status))return;
+ if(event.key===' '){if(!event.repeat)control(record.status==='running'?'pause':'start');return;}
+ if($('mode').value!=='manual')return;
+ if(event.key==='ArrowUp'||event.key==='ArrowDown'){
+  const direction=event.key==='ArrowUp'?1:-1;
+  $('throttle').value=Math.max(0,Math.min(1,+$('throttle').value+direction*.05));queueManual();
+ }else if(!event.repeat){
+  steeringKeys.add(event.key);$('gimbal').value=steeringKeys.has('ArrowLeft')===steeringKeys.has('ArrowRight')?0:steeringKeys.has('ArrowLeft')?1:-1;queueManual();
+ }
+});
+window.addEventListener('keyup',event=>{
+ if(!steeringKeys.has(event.key))return;
+ event.preventDefault();steeringKeys.delete(event.key);
+ $('gimbal').value=steeringKeys.has('ArrowLeft')===steeringKeys.has('ArrowRight')?0:steeringKeys.has('ArrowLeft')?1:-1;queueManual();
+});
+canvas.addEventListener('blur',releaseSteering);window.addEventListener('blur',releaseSteering);
 window.addEventListener('pagehide',()=>{if(liveId && record && record.status==='running')navigator.sendBeacon('/api/control',new Blob([JSON.stringify({run_id:liveId,operation:'pause'})],{type:'application/json'}));});
 poll();setInterval(poll,200);requestAnimationFrame(animate);

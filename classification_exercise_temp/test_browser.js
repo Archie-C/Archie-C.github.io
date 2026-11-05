@@ -33,6 +33,10 @@ async function waitFor(fn, label, timeout=10000) {
   await waitFor(()=>evaluate("document.getElementById('status')?.textContent==='ready'"),'ready');
   const screenshot=async name=>{const {data}=await call('Page.captureScreenshot',{format:'png'});fs.writeFileSync(path.join(os.tmpdir(),name),Buffer.from(data,'base64'));};
   await screenshot('rocket-desktop.png');
+  assert.equal(await evaluate(`canvas.focus(); const keyEvent=new KeyboardEvent('keydown',{key:'ArrowLeft',bubbles:true,cancelable:true}); canvas.dispatchEvent(keyEvent); keyEvent.defaultPrevented`),true);
+  await waitFor(()=>evaluate("$('accepted').textContent.includes('gimbal 1.00')"),'keyboard steering');
+  await evaluate("canvas.blur()");
+  await waitFor(()=>evaluate("$('accepted').textContent.includes('gimbal 0.00')"),'steering release on blur');
   await evaluate(`$('throttle').value='.3';$('throttle').dispatchEvent(new Event('input'));$('throttle').value='.6';$('throttle').dispatchEvent(new Event('input'));`);
   await waitFor(()=>evaluate("$('accepted').textContent.includes('0.60')"),'last command acknowledgement');
   await evaluate("$('start').click()");
@@ -42,6 +46,9 @@ async function waitFor(fn, label, timeout=10000) {
   await waitFor(()=>evaluate("record.status==='paused'"),'pause');
   let t=await evaluate('view.time');await sleep(500);assert.equal(await evaluate('view.time'),t,'pause must freeze simulation');
   let end=await evaluate('record.snapshots.length-1');assert.ok(end>2);
+  assert.equal(await evaluate(`(()=>{const saved=JSON.parse(JSON.stringify(record));setRecord(saved);return record.snapshots.length})()`),end+1);
+  assert.equal(await evaluate(`(()=>{let before=record;try{setRecord({schema:'bad'})}catch(_){}return before===record})()`),true);
+
   await evaluate("$('begin').click()");assert.equal(await evaluate('view.time'),0);
   await evaluate("$('forward').click()");assert.ok(await evaluate('view.time>0'));
   await evaluate("$('terminal').click()");assert.equal(await evaluate('frame'),end);
