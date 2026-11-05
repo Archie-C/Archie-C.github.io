@@ -16,7 +16,7 @@ from rocket_scoring import score_contact
 
 # Freeze provenance at import, before a long-running evaluation begins.
 SOURCE_SHA256 = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
-EXPERT_VERSION = 'expert-prototype-v0.5'
+EXPERT_VERSION = 'expert-closed-loop-v1.0'
 
 
 def _state(observation):

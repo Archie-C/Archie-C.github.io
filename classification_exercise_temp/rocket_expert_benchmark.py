@@ -13,7 +13,13 @@ import random
 from rocket_calibration import configuration
 from rocket_closed_loop import evaluate_closed_loop
 from rocket_evaluation import CASES, SCENARIO_SET
-from rocket_expert import ContinuousReference, DiscreteExpert, guidance, simple_discrete_guidance
+# Historical experiment: retain its exact archived controller implementation.
+from rocket_expert_versions import load_expert
+from hashlib import sha256
+_archive = Path(__file__).resolve().parent / 'versions/expert-prototype-v0.5/rocket_expert.py'
+_legacy = load_expert('expert-prototype-v0.5', sha256(_archive.read_bytes()).hexdigest())
+ContinuousReference, DiscreteExpert = _legacy.ContinuousReference, _legacy.DiscreteExpert
+guidance, simple_discrete_guidance = _legacy.guidance, _legacy.simple_discrete_guidance
 from rocket_scoring import aggregate
 
 FEASIBILITY_SET = 'expert-feasibility-study-v0.1'

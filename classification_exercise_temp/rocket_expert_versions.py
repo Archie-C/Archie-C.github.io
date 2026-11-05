@@ -16,7 +16,7 @@ _ARCHIVES = {
 
 def load_expert(version, source_sha256):
     """Return only an exact current or locally archived expert implementation."""
-    if version in (rocket_expert.EXPERT_VERSION, rocket_expert.ContinuousReference.version) and source_sha256 == rocket_expert.SOURCE_SHA256:
+    if version == rocket_expert.EXPERT_VERSION and source_sha256 == rocket_expert.SOURCE_SHA256:
         return rocket_expert
     path = _ARCHIVES.get(version)
     if path is None or not path.is_file() or hashlib.sha256(path.read_bytes()).hexdigest() != source_sha256:
