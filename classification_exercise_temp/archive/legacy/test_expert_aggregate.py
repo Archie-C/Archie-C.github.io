@@ -8,7 +8,7 @@ from rocket_expert_aggregate import summarize_reports
 
 class AggregateTests(unittest.TestCase):
     def test_complete_report_and_inconsistent_metrics(self):
-        root = Path(__file__).parent / 'benchmarks'
+        root = Path(__file__).resolve().parents[2] / 'benchmarks'
         with gzip.open(root / 'diagnostic-controllers-v0.5-full-report.json.gz', 'rt') as source:
             diagnostic = json.load(source)
         with gzip.open(root / 'feasibility-v1.0-controllers-v0.5-full-report.json.gz', 'rt') as source:

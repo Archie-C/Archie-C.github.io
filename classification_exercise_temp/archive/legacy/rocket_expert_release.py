@@ -57,7 +57,7 @@ def freeze_dataset(draft, private, final_report, sanity_report, output, *, sourc
     if private_manifest['agreement_seed'] == private_manifest['evaluation_seed']:
         raise ValueError('private agreement and evaluation seeds must differ')
     expected = final_feasibility_cases()
-    frozen_path = Path(__file__).resolve().parent / 'benchmarks' / 'feasibility-v1.0-manifest.json'
+    frozen_path = Path(__file__).resolve().parents[2] / 'benchmarks' / 'feasibility-v1.0-manifest.json'
     frozen = json.loads(frozen_path.read_text(encoding='utf-8'))
     frozen_cases = [dict(case_id=case['case_id'], scenario=case['scenario'], initial=asdict(case['initial']))
                     for case in expected]

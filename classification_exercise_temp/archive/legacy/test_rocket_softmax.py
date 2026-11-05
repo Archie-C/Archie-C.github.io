@@ -51,7 +51,7 @@ class SoftmaxTests(unittest.TestCase):
 
     def test_recorded_models_reproduce_closed_loop_replays(self):
         for version in ('v1.0', 'v1.1'):
-            archive = Path(__file__).parent / 'benchmarks' / f'classifier-{version}-full-report.json.gz'
+            archive = Path(__file__).resolve().parents[2] / 'benchmarks' / f'classifier-{version}-full-report.json.gz'
             with gzip.open(archive, 'rt', encoding='utf-8') as source:
                 report = json.load(source)
             for name in ('raw', 'engineered'):
@@ -59,7 +59,7 @@ class SoftmaxTests(unittest.TestCase):
                     result = report[name]
                     recorded = result['closed_loop']['runs'][0]['replay']
                     config = recorded['config']
-                    archived_source = Path(__file__).parent / 'versions' / 'rocket-softmax-v0.2' / 'rocket_softmax.py'
+                    archived_source = Path(__file__).resolve().parents[2] / 'versions' / 'rocket-softmax-v0.2' / 'rocket_softmax.py'
                     self.assertEqual(hashlib.sha256(archived_source.read_bytes()).hexdigest(),
                                      config['closed_loop']['policy']['source_sha256'])
                     p, _ = configuration(config['scenario'])

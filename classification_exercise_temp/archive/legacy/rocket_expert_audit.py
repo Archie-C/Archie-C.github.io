@@ -78,7 +78,7 @@ def audit_labels(dataset, report_path):
 
 def audit_private_agreement(path):
     """Recheck the historical agreement labels against their frozen teacher."""
-    archive = Path(__file__).resolve().parent / 'versions/expert-prototype-v0.5/rocket_expert.py'
+    archive = Path(__file__).resolve().parents[2] / 'versions/expert-prototype-v0.5/rocket_expert.py'
     digest = hashlib.sha256(archive.read_bytes()).hexdigest()
     expert = load_expert('expert-prototype-v0.5', digest).DiscreteExpert()
     count = fallbacks = 0

@@ -15,7 +15,7 @@ from rocket_expert_dataset import _near_duplicate
 
 class ReleaseArtifactTests(unittest.TestCase):
     def test_frozen_schema_splits_and_archived_evidence(self):
-        root = Path(__file__).parent
+        root = Path(__file__).resolve().parents[2]
         data = root / 'datasets' / 'expert-data-v1.1'
         manifest = json.loads((data / 'manifest.json').read_text(encoding='utf-8'))
         audit = json.loads((root / 'benchmarks' / 'expert-data-v1.1-label-audit.json').read_text(encoding='utf-8'))
