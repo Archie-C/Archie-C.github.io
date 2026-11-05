@@ -334,3 +334,7 @@ without combining the two success rates. It identifies continuous-only
 candidate cases, discrete successes and failures separately; the source
 archives retain each full replay. Rebuild it with `rocket_expert_aggregate.py`
 and the diagnostic and feasibility controller archives.
+The exact `rocket-softmax-v0.2` source is retained under `versions/` alongside
+the expert sources. Its recorded weights and scaler can be restored with
+`SoftmaxPolicy.from_settings`; both archived classifier variants have been
+checked by reproducing their closed-loop replays.
