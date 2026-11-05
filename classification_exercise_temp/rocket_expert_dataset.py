@@ -40,13 +40,12 @@ def _near_duplicate(left, right):
 
 def _recovery_rows(run, count, seed):
     """Query the matching expert on deterministic, in-envelope perturbations."""
-    from rocket_expert import DiscreteExpert, SOURCE_SHA256
+    from rocket_expert_versions import load_expert
     from rocket_server import Run
     policy = run['replay']['config']['closed_loop']['policy']
     settings = policy.get('settings') or {}
-    expert = DiscreteExpert(horizon_steps=settings.get('horizon_steps', 5))
-    if policy.get('version') != expert.version or policy.get('source_sha256') != SOURCE_SHA256:
-        raise ValueError('recovery sampling requires the exact recorded expert version and source')
+    teacher = load_expert(policy.get('version'), policy.get('source_sha256'))
+    expert = teacher.DiscreteExpert(horizon_steps=settings.get('horizon_steps', 5))
     current = Run(run['scenario'])
     if current.config['physics_config'] != run['replay']['config']['physics_config']:
         raise ValueError('recovery sampling requires the recorded physics configuration')

@@ -14,7 +14,7 @@ import numpy as np
 
 from rocket_calibration import configuration
 from rocket_closed_loop import OBSERVATION_NAMES, evaluate_closed_loop, make_observation
-from rocket_expert import DiscreteExpert, SOURCE_SHA256
+from rocket_expert_versions import load_expert
 from rocket_expert_benchmark import FINAL_SET, FINAL_SEED, FINAL_SUCCESS_TARGET, final_feasibility_cases
 from rocket_expert_dataset import _near_duplicate
 from rocket_physics import Contact, State, discrete_command
@@ -49,9 +49,7 @@ def freeze_dataset(draft, private, final_report, sanity_report, output):
     hashes = {name: _hash(draft / name) for name in ('train.csv', 'validation.csv')}
     if private_manifest['student_file_sha256'] != hashes:
         raise ValueError('private evaluation does not match the draft dataset')
-    if (private_manifest['expert_version'] != DiscreteExpert.version or
-            private_manifest['expert_source_sha256'] != SOURCE_SHA256):
-        raise ValueError('private agreement labels use a different expert')
+    teacher = load_expert(private_manifest['expert_version'], private_manifest['expert_source_sha256'])
     if private_manifest['agreement_seed'] == private_manifest['evaluation_seed']:
         raise ValueError('private agreement and evaluation seeds must differ')
     expected = final_feasibility_cases()
@@ -99,7 +97,7 @@ def freeze_dataset(draft, private, final_report, sanity_report, output):
         raise ValueError('discrete expert did not improve on both fixed baselines')
     for run in expert['runs']:
         provenance = run['replay']['config']['closed_loop']['policy']
-        if provenance['version'] != DiscreteExpert.version or provenance['source_sha256'] != SOURCE_SHA256:
+        if provenance['version'] != teacher.DiscreteExpert.version or provenance['source_sha256'] != teacher.SOURCE_SHA256:
             raise ValueError('final expert provenance does not match the release expert')
         p, _ = configuration(run['scenario'])
         decisions = run['replay']['decisions']
@@ -150,7 +148,7 @@ def freeze_dataset(draft, private, final_report, sanity_report, output):
         actual_counts = Counter((labels if split == 'train' else valid_labels).tolist())
         if any(draft_manifest['class_counts'][split][str(i)] != actual_counts[i] for i in range(10)):
             raise ValueError('dataset class counts do not match manifest')
-        if any(row['policy']['version'] != DiscreteExpert.version or row['policy']['source_sha256'] != SOURCE_SHA256 for row in rows):
+        if any(row['policy']['version'] != teacher.DiscreteExpert.version or row['policy']['source_sha256'] != teacher.SOURCE_SHA256 for row in rows):
             raise ValueError('dataset labels use a different expert')
     if not {'expert flight', 'perturbed recovery state'} <= provenances:
         raise ValueError('ordinary and recovery samples are both required')
@@ -165,7 +163,7 @@ def freeze_dataset(draft, private, final_report, sanity_report, output):
     # a recorded final case, using the same fixed version and solver settings.
     recorded = expert['runs'][0]
     p, _ = configuration(recorded['scenario'])
-    policy = DiscreteExpert(**{'horizon_steps': recorded['replay']['config']['closed_loop']['policy']['settings']['horizon_steps']})
+    policy = teacher.DiscreteExpert(**{'horizon_steps': recorded['replay']['config']['closed_loop']['policy']['settings']['horizon_steps']})
     replay = evaluate_closed_loop(policy.predict_action, State(**recorded['initial']), p,
                                   recorded['scenario'], max_time=final['max_time'])['replay']
     if _canonical(replay) != _canonical(recorded['replay']):
