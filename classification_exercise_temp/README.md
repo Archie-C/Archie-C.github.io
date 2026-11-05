@@ -128,3 +128,12 @@ In an initial centred-descent trial it did not touch down within 15 seconds.
 Continuous predictive control, the feasibility study, acceptance gates,
 dataset generation and classifier evaluation are still outstanding. No data
 should be released until those gates are met.
+
+`guidance` is a continuous braking-curve baseline; use the same runner with
+`control_mode='continuous'` to evaluate it. `simple_discrete_guidance` is a
+quantized diagnostic baseline, not an expert or a source of labels. On the
+centred-descent preset both reach candidate-safe first contact under the
+existing touchdown scoring: approximately 98.57 for continuous guidance and
+95.36 for the discrete baseline. These single cases do not establish robustness
+or certify the predictive expert; the other diagnostic and feasibility cases
+still need evaluation.

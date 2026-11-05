@@ -6,7 +6,7 @@ import math
 
 import numpy as np
 
-from rocket_physics import clearance
+from rocket_physics import Command, clearance
 from rocket_scoring import CONFIG, score_contact
 from rocket_server import Run, state_packet
 
@@ -33,12 +33,14 @@ def make_observation(state, time, parameters):
     return observation
 
 
-def evaluate_closed_loop(policy, initial_state, parameters, scenario_id, *, max_time=30.0):
+def evaluate_closed_loop(policy, initial_state, parameters, scenario_id, *, max_time=30.0, control_mode="discrete"):
     """Run a trusted stateless policy at fixed simulation-time boundaries.
 
     The scenario must describe the supplied configuration, so replay metadata
     remains meaningful. Invalid policy outputs terminate explicitly.
     """
+    if control_mode not in ('discrete', 'continuous'):
+        raise ValueError('control_mode must be discrete or continuous')
     if not math.isfinite(max_time) or max_time <= 0:
         raise ValueError('max_time must be positive and finite')
     if abs(max_time / parameters.control_interval - round(max_time / parameters.control_interval)) > 1e-9:
@@ -48,11 +50,11 @@ def evaluate_closed_loop(policy, initial_state, parameters, scenario_id, *, max_
         raise ValueError('parameters must match the named calibrated scenario')
     run.initial = run.state = initial_state
     run.config['initial_state'] = asdict(initial_state)
-    identity = json.dumps([run.config['physics_config'], asdict(initial_state), max_time], sort_keys=True)
+    identity = json.dumps([run.config['physics_config'], asdict(initial_state), max_time, control_mode], sort_keys=True)
     run.id = hashlib.sha256(identity.encode()).hexdigest()[:32]
     run.config['run_id'] = run.id
     run.config['observation_version'] = OBSERVATION_VERSION
-    run.config['closed_loop'] = dict(max_time=max_time, policy=getattr(policy, '__qualname__', type(policy).__name__))
+    run.config['closed_loop'] = dict(max_time=max_time, control_mode=control_mode, policy=getattr(policy, '__qualname__', type(policy).__name__))
     run.snapshots = [state_packet(run, 0, initial_state, run.command.copy(), 0)]
     decisions = []
     run.status = 'running'
@@ -67,10 +69,16 @@ def evaluate_closed_loop(policy, initial_state, parameters, scenario_id, *, max_
             break
         obs = make_observation(run.state, run.t, parameters)
         try:
-            action = policy(obs.copy())
-            if isinstance(action, np.integer):
-                action = int(action)
-            run.queue(dict(command_sequence=len(decisions), action=action, effective_time=run.t))
+            output = policy(obs.copy())
+            if control_mode == 'continuous':
+                if not isinstance(output, Command):
+                    raise ValueError('continuous policy must return a Command')
+                action = None
+                payload = asdict(output)
+            else:
+                action = int(output) if isinstance(output, np.integer) else output
+                payload = dict(action=action)
+            run.queue(dict(command_sequence=len(decisions), effective_time=run.t, **payload))
         except Exception as exc:
             run.status = 'error'
             run.error = f'Policy error ({type(exc).__name__}): {exc}'
@@ -78,7 +86,7 @@ def evaluate_closed_loop(policy, initial_state, parameters, scenario_id, *, max_
                              reason=run.error, scoring=score_contact(None, parameters))
             break
         diagnostics = getattr(getattr(policy, '__self__', None), 'diagnostics', None)
-        decisions.append(dict(time=run.t, observation=obs.tolist(), action=action,
+        decisions.append(dict(time=run.t, observation=obs.tolist(), action=action, command=payload,
                               diagnostics=diagnostics.copy() if diagnostics else None))
         boundary = (len(decisions)) * parameters.control_interval
         while run.status == 'running' and run.t < boundary - 1e-10:

@@ -6,7 +6,7 @@ import numpy as np
 from rocket_calibration import configuration
 from rocket_closed_loop import OBSERVATION_NAMES, evaluate_closed_loop, make_observation
 from rocket_physics import discrete_command
-from rocket_expert import DiscreteExpert, guidance
+from rocket_expert import DiscreteExpert, guidance, simple_discrete_guidance
 from unittest.mock import patch
 
 
@@ -52,6 +52,27 @@ class ClosedLoopTests(unittest.TestCase):
         self.assertIn(fallback, range(10))
         self.assertTrue(expert.diagnostics['fallback'])
         self.assertTrue(0 <= guidance(observation).throttle <= 1)
+
+    def test_guidance_centred_touchdowns(self):
+        p, initial = configuration('centred_descent')
+        for policy, mode in ((guidance, 'continuous'), (simple_discrete_guidance, 'discrete')):
+            with self.subTest(mode=mode):
+                result = evaluate_closed_loop(policy, initial, p, 'centred_descent',
+                                              max_time=20, control_mode=mode)
+                self.assertTrue(result['scoring']['success'], result['scoring'])
+                self.assertGreater(result['scoring']['score'], 80)
+                self.assertEqual(result['replay']['terminal']['type'], 'contact')
+                if mode == 'continuous':
+                    self.assertTrue(all(d['action'] is None for d in result['decisions']))
+                    self.assertTrue(all('throttle' in d['command'] for d in result['decisions']))
+                else:
+                    self.assertTrue(all(d['action'] in range(10) for d in result['decisions']))
+
+    def test_continuous_mode_rejects_discrete_outputs(self):
+        result = evaluate_closed_loop(lambda _: 0, self.initial, self.p, 'near_ground_contact',
+                                      max_time=1, control_mode='continuous')
+        self.assertEqual(result['replay']['terminal']['type'], 'error')
+        self.assertIn('continuous policy', result['termination_reason'])
 
     def test_action_mapping(self):
         for action in range(10):

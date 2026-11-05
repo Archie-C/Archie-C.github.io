@@ -28,19 +28,28 @@ def guidance(observation):
     p, _ = configuration('centred_descent')
     mass, _, _ = mass_properties(s.fuel, p)
     height = max(0., clearance(s, p)[0])
-    # Approximate ignition delay and a shallow terminal descent target.
+    # Track a braking curve and use feed-forward acceleration. Because enabled
+    # minimum thrust exceeds weight, switch the engine fully off below the
+    # ignition threshold instead of pretending it can hover continuously.
     braking = max(.1, p.max_thrust / mass - p.g0)
-    stopping = max(0., -s.vy)**2 / (2 * braking) + max(0., -s.vy) * .35
-    desired_vy = -min(30., max(1., math.sqrt(max(0., 2 * braking * height)) * .6))
-    acceleration = p.g0 + .8 * (desired_vy - s.vy)
-    throttle = (mass * acceleration - p.min_thrust) / (p.max_thrust - p.min_thrust)
-    if height > stopping * 1.15 or s.fuel <= 0:
-        throttle = 0.
-    else:
-        throttle = min(1., max(.01, throttle))
+    desired_vy = -max(1., .65 * math.sqrt(2 * braking * height))
+    acceleration = max(-p.g0, min(braking, 3. * (desired_vy - s.vy) + braking * .65**2))
+    throttle = (mass * (p.g0 + acceleration) - p.min_thrust) / (p.max_thrust - p.min_thrust)
+    throttle = 0. if throttle <= .15 or s.fuel <= 0 else min(1., max(.01, throttle))
     desired_theta = max(-.12, min(.12, .003 * s.x + .035 * s.vx))
     gimbal = max(-1., min(1., 4. * (s.theta - desired_theta) + 12. * s.omega)) if throttle else 0.
     return Command(throttle, gimbal)
+
+
+def simple_discrete_guidance(observation):
+    """Diagnostic only: quantize the continuous guidance, not an expert label."""
+    desired = guidance(observation)
+    if desired.throttle == 0:
+        return 0
+    p, _ = configuration('centred_descent')
+    return min(range(1, 10), key=lambda i: (
+        abs(discrete_command(i, p).throttle - desired.throttle)
+        + .1 * abs(discrete_command(i, p).gimbal - desired.gimbal), i))
 
 
 class DiscreteExpert:
