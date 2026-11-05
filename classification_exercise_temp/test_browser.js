@@ -30,9 +30,36 @@ async function waitFor(fn, label, timeout=10000) {
   const evaluate=async expression=>{const r=await call('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(r.exceptionDetails)throw Error(r.exceptionDetails.text);return r.result.value;};
   await call('Page.enable');await call('Runtime.enable');
   await call('Emulation.setDeviceMetricsOverride',{width:1440,height:900,deviceScaleFactor:1,mobile:false});
-  await waitFor(()=>evaluate("document.getElementById('status')?.textContent==='ready'"),'ready');
+  try{await waitFor(()=>evaluate("document.getElementById('status')?.textContent==='ready'"),'ready');}catch(error){console.error('Page state:',await evaluate("({url:location.href,status:document.getElementById('status')?.textContent,message:document.getElementById('message')?.textContent,title:document.title})"));throw error;}
   const screenshot=async name=>{const {data}=await call('Page.captureScreenshot',{format:'png'});fs.writeFileSync(path.join(os.tmpdir(),name),Buffer.from(data,'base64'));};
   await screenshot('rocket-desktop.png');
+  // Exercise actual pointer input rather than setting control values in script.
+  async function pointerClick(selector, fraction=.5){
+    const point=await evaluate(`(()=>{const r=document.querySelector(${JSON.stringify(selector)}).getBoundingClientRect();return {x:r.left+r.width*${fraction},y:r.top+r.height/2}})()`);
+    await call('Input.dispatchMouseEvent',{type:'mouseMoved',x:point.x,y:point.y});
+    await call('Input.dispatchMouseEvent',{type:'mousePressed',x:point.x,y:point.y,button:'left',clickCount:1});
+    await call('Input.dispatchMouseEvent',{type:'mouseReleased',x:point.x,y:point.y,button:'left',clickCount:1});
+  }
+  await pointerClick('#throttle',.2);
+  const slider=await evaluate(`(()=>{const r=$('throttle').getBoundingClientRect();return {left:r.left,right:r.right,y:r.top+r.height/2}})()`);
+  await call('Input.dispatchMouseEvent',{type:'mouseMoved',x:slider.left+(slider.right-slider.left)*.2,y:slider.y});
+  await call('Input.dispatchMouseEvent',{type:'mousePressed',x:slider.left+(slider.right-slider.left)*.2,y:slider.y,button:'left',buttons:1,clickCount:1});
+  for(const fraction of [.3,.4,.6,.8]){
+    await call('Input.dispatchMouseEvent',{type:'mouseMoved',x:slider.left+(slider.right-slider.left)*fraction,y:slider.y,button:'left',buttons:1});
+    await sleep(250);
+  }
+  await call('Input.dispatchMouseEvent',{type:'mouseReleased',x:slider.left+(slider.right-slider.left)*.8,y:slider.y,button:'left',buttons:0,clickCount:1});
+  await waitFor(()=>evaluate("+$('throttle').value>.7 && liveRecord.pending_commands.some(c=>c.throttle>.7)"),'pointer throttle');
+  await pointerClick('#gimbal',.8);
+  await waitFor(()=>evaluate("+$('gimbal').value>.4 && liveRecord.pending_commands.some(c=>c.gimbal>.4)"),'pointer gimbal');
+  await pointerClick('#start');
+  await waitFor(()=>evaluate("record.status==='running' && view.state.thrust>0 && view.state.gimbal>0"),'pointer start and actuators');
+  await pointerClick('#throttle',.25);await pointerClick('#gimbal',.2);
+  await waitFor(()=>evaluate("record.status==='running' && liveRecord.snapshots.at(-1).command.throttle<.35 && liveRecord.snapshots.at(-1).command.gimbal<-.4 && liveRecord.snapshots.at(-1).state.gimbal<0"),'live pointer commands and actuator response');
+  await pointerClick('#pause');
+  await waitFor(()=>evaluate("record.status==='paused'"),'pointer pause');
+  const pointerRun=await evaluate('liveId');await pointerClick('#reset');
+  await waitFor(()=>evaluate(`liveId!==${JSON.stringify(pointerRun)} && record?.status==='ready'`),'pointer reset');
   const initialCamera=await evaluate('({...camera})');
   const zoomPixels=await evaluate(`(()=>{const q=screen([view.state.x,view.state.y]),r=canvas.getBoundingClientRect();canvas.dispatchEvent(new WheelEvent('wheel',{clientX:r.left+q[0],clientY:r.top+q[1],deltaY:-350,cancelable:true}));return {before:q,after:screen([view.state.x,view.state.y])}})()`);
   assert.ok(await evaluate('camera.scale')>initialCamera.scale,'wheel must zoom');
@@ -64,7 +91,8 @@ async function waitFor(fn, label, timeout=10000) {
   await evaluate("$('begin').click()");
   await waitFor(()=>evaluate("replayMode && record.status==='paused' && !replayFollowsLive"),'replay pause');
   assert.equal(await evaluate('record.snapshots.length'),await evaluate('liveRecord.snapshots.length'));
-  await evaluate("$('live').click();$('start').click()");
+  assert.equal(await evaluate("$('controlLive').hidden"),false);
+  await evaluate("$('controlLive').click();$('start').click()");
   await waitFor(()=>evaluate("record.status==='running'"),'resume before disconnect');
   // A lost transport must visibly disconnect, then resume into a paused run.
   await evaluate("window.savedFetch=window.fetch;window.fetch=()=>Promise.reject(new Error('test disconnect'))");
@@ -119,8 +147,13 @@ async function waitFor(fn, label, timeout=10000) {
   }
   console.log('Scheduled flight matched exactly at 30, 60 and 120 paint callbacks per second.');
   const oldId=await evaluate('record.config.run_id');
-  await evaluate("$('reset').click()");
-  await waitFor(()=>evaluate(`record?.config.run_id!==${JSON.stringify(oldId)} && record.status==='ready'`),'reset after contact');
+  await call('Emulation.setDeviceMetricsOverride',{width:1440,height:900,deviceScaleFactor:1,mobile:false});
+  await evaluate("$('start').scrollIntoView({block:'center'})");
+  assert.equal(await evaluate("$('start').textContent"),'New flight');
+  assert.equal(await evaluate("$('start').disabled"),false);
+  await pointerClick('#start');
+  await waitFor(()=>evaluate(`record?.config.run_id!==${JSON.stringify(oldId)} && record.status==='ready'`),'new flight after contact');
   assert.equal(await evaluate('view.time'),0);assert.equal(await evaluate('record.snapshots.length'),1);
+  assert.equal(await evaluate("$('throttle').disabled"),false);
   console.log('Chrome verified commands, live/pause, replay, contact, responsive layout and high DPI. Screenshots: '+os.tmpdir());
 })().catch(error=>{console.error(error);process.exitCode=1;}).finally(()=>{if(socket)socket.close();if(chrome)chrome.kill();});

@@ -137,8 +137,10 @@ function queueManual(){ $('throttleout').textContent=fmt(+$('throttle').value);$
 $('throttle').oninput=$('gimbal').oninput=queueManual;
 $('mode').onchange=()=>{$('manual').hidden=$('mode').value!=='manual';$('discrete').hidden=$('mode').value!=='discrete';};
 $('sendaction').onclick=()=>{desired={action:+$('action').value};sendDesired();};
-$('start').onclick=()=>control('start');$('pause').onclick=()=>control('pause');$('speed').onchange=()=>control('speed',{speed:+$('speed').value});
-$('reset').onclick=async()=>{if(resetting)return;resetting=true;generation++;try{const r=await post('/api/reset');notice('');liveId=r.config.run_id;liveRecord=null;lastPacket=-1;renderWindow=null;seq=0;desired=null;replayMode=false;playing=false;$('throttle').value=0;$('gimbal').value=0;$('throttleout').textContent='0.00';$('gimbalout').textContent='0.00';$('accepted').textContent='Accepted: engine off';}catch(e){notice(e.message);}finally{resetting=false;poll();}};
+$('start').onclick=()=>{if(record&&['contact','completed','error'].includes(record.status))resetRun();else control('start');};
+$('pause').onclick=()=>control('pause');$('speed').onchange=()=>control('speed',{speed:+$('speed').value});
+async function resetRun(){if(resetting)return;resetting=true;generation++;try{const r=await post('/api/reset');notice('');liveId=r.config.run_id;liveRecord=null;lastPacket=-1;renderWindow=null;seq=0;desired=null;replayMode=false;replayFollowsLive=false;playing=false;$('throttle').value=0;$('gimbal').value=0;$('throttleout').textContent='0.00';$('gimbalout').textContent='0.00';$('accepted').textContent='Accepted: engine off';}catch(e){notice(e.message);}finally{resetting=false;poll();}}
+$('reset').onclick=resetRun;
 async function enterReplay(){
  if(replayMode)return true;
  if(replayTransition)return replayTransition;
@@ -160,7 +162,8 @@ function seekTime(t){if(!record)return;let lo=0,hi=record.snapshots.length-1;whi
 $('backtime').onclick=()=>seekTime(view.time-1);$('forwardtime').onclick=()=>seekTime(view.time+1);
 $('begin').onclick=()=>seek(0);$('back').onclick=()=>seek(frame-1);$('forward').onclick=()=>seek(frame+1);$('terminal').onclick=()=>seek(record.snapshots.length-1);
 $('replay').onclick=async()=>{if(!record)return;if(!replayMode){if(!await enterReplay())return;frame=0;} if(frame>=record.snapshots.length-1)frame=0;playing=!playing;lastFrame=0;view=record.snapshots[frame];replayClock=view.time;updateUI();};
-$('live').onclick=()=>{replayMode=false;replayFollowsLive=false;playing=false;if(liveRecord){record=liveRecord;frame=record.snapshots.length-1;view=record.snapshots[frame];updateUI();}poll();};
+function returnToLive(){replayMode=false;replayFollowsLive=false;playing=false;if(liveRecord){record=liveRecord;frame=record.snapshots.length-1;view=record.snapshots[frame];updateUI();}poll();}
+$('live').onclick=returnToLive;$('controlLive').onclick=returnToLive;
 async function seek(i){if(!record||!await enterReplay())return;playing=false;frame=Math.max(0,Math.min(record.snapshots.length-1,i));view=record.snapshots[frame];updateUI();}
 $('export').onclick=()=>{if(!record)return;const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(record)],{type:'application/json'}));a.download='rocket-'+record.config.run_id+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);};
 $('import').onchange=async e=>{try{let f=e.target.files[0];if(!f)return;if(f.size>64*1024*1024)throw Error('File exceeds 64 MB limit');if(await setRecord(JSON.parse(await f.text())))notice('Recording imported for read-only replay.');}catch(err){notice('Import error: '+err.message);}e.target.value='';};
@@ -172,8 +175,17 @@ function updateUI(){if(!record||!view)return;let s=view.state,d=view.diagnostics
  const mapping=JSON.stringify(record.config.actions);
  if(actionsConfig!==mapping){let selected=$('action').value;$('action').textContent='';record.config.actions.forEach((a,i)=>{let o=document.createElement('option');o.value=i;o.textContent=`${i}: ${i===0?'off':['low','medium','high'][Math.floor((i-1)/3)]+' / '+['left','centre','right'][(i-1)%3]} (${a.throttle}, ${a.gimbal})`;$('action').appendChild(o);});if(selected)$('action').value=selected;actionsConfig=mapping;}
  const canCommand=!replayMode&&connected&&['ready','running','paused'].includes(record.status);
- for(const id of ['mode','throttle','gimbal','action','sendaction','speed'])$(id).disabled=!canCommand;
- $('start').disabled=replayMode||!connected||!['ready','paused'].includes(record.status);$('pause').disabled=replayMode||!connected||record.status!=='running';} 
+ const setDisabled=(id,disabled)=>{if($(id).disabled!==disabled)$(id).disabled=disabled;};
+ for(const id of ['mode','throttle','gimbal','action','sendaction','speed'])setDisabled(id,!canCommand);
+ const ended=['contact','completed','error'].includes(record.status);
+ const startLabel=ended?'New flight':record.status==='paused'?'Resume flight':'Start flight';
+ if($('start').textContent!==startLabel)$('start').textContent=startLabel;
+ setDisabled('start',replayMode||!connected||!['ready','paused','contact','completed','error'].includes(record.status));
+ setDisabled('pause',replayMode||!connected||record.status!=='running');
+ if($('controlLive').hidden===replayMode)$('controlLive').hidden=!replayMode;
+ const help=replayMode?'Replay is read-only. Select Return to live to use flight controls.':!connected?'Flight controls are unavailable while disconnected.':ended?'Flight ended. Select New flight to reset, then set your controls before starting. Export the recording first if you want to keep it.':record.status==='ready'?'Set throttle and gimbal before starting; the rocket begins falling as soon as the flight starts.':record.status==='paused'?'Flight paused. Adjust the controls, then select Resume flight.':'Flight running. Throttle and gimbal changes take effect at the next control boundary.';
+ if($('flightHelp').textContent!==help)$('flightHelp').textContent=help;
+} 
 function line(a,b,color,width=1){ctx.strokeStyle=color;ctx.lineWidth=width;ctx.beginPath();ctx.moveTo(...screen(a));ctx.lineTo(...screen(b));ctx.stroke();}
 function dot(a,color,r=4){ctx.fillStyle=color;ctx.beginPath();ctx.arc(...screen(a),r,0,Math.PI*2);ctx.fill();}
 function draw(){let w=canvas.clientWidth,h=canvas.clientHeight,dpr=window.devicePixelRatio||1;if(canvas.width!==Math.round(w*dpr)||canvas.height!==Math.round(h*dpr)){canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);}ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);if(!view||!record)return;
