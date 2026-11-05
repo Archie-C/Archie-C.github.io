@@ -234,16 +234,19 @@ function updateVisualQuality(interval){
  else {slowFrames=0;fastFrames=0;}
 }
 function animate(now){if(lastPaint)updateVisualQuality(now-lastPaint);lastPaint=now;if(playing&&record){if(lastFrame){replayClock+=(now-lastFrame)/1000*(+$('replayspeed').value);while(frame+1<record.snapshots.length&&record.snapshots[frame+1].time<=replayClock)frame++;view=record.snapshots[frame];if(frame===record.snapshots.length-1)playing=false;updateUI();}lastFrame=now;}else lastFrame=0;if(!replayMode&&record&&record.status==='running'&&renderWindow){const u=Math.max(0,Math.min(1,(now-renderWindow.start)/renderWindow.duration));view=snapshotAt(record.snapshots,renderWindow.from+(renderWindow.to-renderWindow.from)*u,record.config.parameters);}draw();requestAnimationFrame(animate);}
-// Shortcuts apply only while the flight canvas has focus; form controls keep
-// their native keyboard behavior. Steering is momentary and released on blur.
+// Flight shortcuts work across the page. Text inputs, menus, the replay
+// timeline and unrelated buttons retain their native keyboard behavior.
 const steeringKeys=new Set();
 function releaseSteering(){if(!steeringKeys.size)return;steeringKeys.clear();$('gimbal').value=0;queueManual();}
-canvas.addEventListener('keydown',event=>{
- if(!['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(event.key))return;
- event.preventDefault();
+window.addEventListener('keydown',event=>{
+ if(!['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(event.key)||event.altKey||event.ctrlKey||event.metaKey)return;
+ const target=event.target, tag=target?.tagName?.toLowerCase();
+ if(target?.isContentEditable||tag==='textarea'||tag==='select'||(tag==='input'&&!['throttle','gimbal'].includes(target.id)))return;
+ if(event.key===' '&&tag==='button'&&!['start','pause'].includes(target.id))return;
  if(!record||replayMode||!connected||!['ready','running','paused'].includes(record.status))return;
+ if(event.key!==' '&&$('mode').value!=='manual')return;
+ event.preventDefault();
  if(event.key===' '){if(!event.repeat)control(record.status==='running'?'pause':'start');return;}
- if($('mode').value!=='manual')return;
  if(event.key==='ArrowUp'||event.key==='ArrowDown'){
   const direction=event.key==='ArrowUp'?1:-1;
   $('throttle').value=Math.max(0,Math.min(1,+$('throttle').value+direction*.05));queueManual();

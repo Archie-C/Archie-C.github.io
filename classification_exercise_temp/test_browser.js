@@ -54,6 +54,28 @@ async function waitFor(fn, label, timeout=10000) {
   await waitFor(()=>evaluate("+$('gimbal').value>.4 && liveRecord.pending_commands.some(c=>c.gimbal>.4)"),'pointer gimbal');
   await pointerClick('#start');
   await waitFor(()=>evaluate("record.status==='running' && view.state.thrust>0 && view.state.gimbal>0"),'pointer start and actuators');
+  // Real keyboard events must work after a button click, without canvas focus.
+  await evaluate("$('pause').focus()");
+  const beforeKeyThrottle=await evaluate("+$('throttle').value");
+  await call('Input.dispatchKeyEvent',{type:'keyDown',key:'ArrowUp',code:'ArrowUp',windowsVirtualKeyCode:38});
+  await call('Input.dispatchKeyEvent',{type:'keyUp',key:'ArrowUp',code:'ArrowUp',windowsVirtualKeyCode:38});
+  assert.ok(await evaluate("+$('throttle').value")>beforeKeyThrottle,'ArrowUp must adjust throttle after button focus');
+  await call('Input.dispatchKeyEvent',{type:'keyDown',key:'ArrowLeft',code:'ArrowLeft',windowsVirtualKeyCode:37});
+  await waitFor(()=>evaluate("$('accepted').textContent.includes('gimbal 1.00')"),'keyboard gimbal after button focus');
+  await call('Input.dispatchKeyEvent',{type:'keyUp',key:'ArrowLeft',code:'ArrowLeft',windowsVirtualKeyCode:37});
+  await waitFor(()=>evaluate("$('accepted').textContent.includes('gimbal 0.00')"),'keyboard gimbal release');
+  await call('Input.dispatchKeyEvent',{type:'keyDown',key:' ',code:'Space',windowsVirtualKeyCode:32});
+  await call('Input.dispatchKeyEvent',{type:'keyUp',key:' ',code:'Space',windowsVirtualKeyCode:32});
+  await waitFor(()=>evaluate("record.status==='paused'"),'space pauses after button focus');
+  await call('Input.dispatchKeyEvent',{type:'keyDown',key:' ',code:'Space',windowsVirtualKeyCode:32});
+  await call('Input.dispatchKeyEvent',{type:'keyUp',key:' ',code:'Space',windowsVirtualKeyCode:32});
+  await waitFor(()=>evaluate("record.status==='running'"),'space resumes');
+  await evaluate("$('throttle').focus()");
+  await call('Input.dispatchKeyEvent',{type:'keyDown',key:'ArrowRight',code:'ArrowRight',windowsVirtualKeyCode:39});
+  await waitFor(()=>evaluate("$('accepted').textContent.includes('gimbal -1.00')"),'keyboard gimbal while slider is focused');
+  await call('Input.dispatchKeyEvent',{type:'keyUp',key:'ArrowRight',code:'ArrowRight',windowsVirtualKeyCode:39});
+  await waitFor(()=>evaluate("$('accepted').textContent.includes('gimbal 0.00')"),'slider-focused steering release');
+  assert.equal(await evaluate(`(()=>{const e=new KeyboardEvent('keydown',{key:'ArrowDown',bubbles:true,cancelable:true});$('speed').dispatchEvent(e);return e.defaultPrevented})()`),false,'select menus retain their arrow keys');
   await pointerClick('#throttle',.25);await pointerClick('#gimbal',.2);
   await waitFor(()=>evaluate("record.status==='running' && liveRecord.snapshots.at(-1).command.throttle<.35 && liveRecord.snapshots.at(-1).command.gimbal<-.4 && liveRecord.snapshots.at(-1).state.gimbal<0"),'live pointer commands and actuator response');
   await pointerClick('#pause');
