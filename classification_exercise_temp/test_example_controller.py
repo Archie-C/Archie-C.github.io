@@ -1,15 +1,72 @@
 import unittest
+import csv
 from copy import deepcopy
+from dataclasses import asdict
+from pathlib import Path
+import tempfile
 
 import numpy as np
 
 from example_controller import Controller
 from rocket_calibration import configuration
 from rocket_closed_loop import evaluate_closed_loop
-from run_uploaded_controller import classification_metrics, landing_diagnostics
+from generate_dataset import COLUMNS
+from rocket_closed_loop import make_observation
+from run_uploaded_controller import classification_metrics, landing_diagnostics, read_test_runs
 
 
 class ControllerTests(unittest.TestCase):
+    def test_reads_generated_test_run_initial_states(self):
+        parameters, state = configuration('centred_descent')
+        observation = make_observation(state, 0, parameters).tolist()
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / 'test_runs.csv'
+            with path.open('w', newline='') as target:
+                writer = csv.writer(target)
+                writer.writerow(COLUMNS)
+                for run_id in range(10):
+                    writer.writerow((run_id, 0, *observation, 0, 1))
+                    writer.writerow((run_id, 1, *observation, 0, 1))
+            cases = read_test_runs(path)
+        self.assertEqual([case['run_id'] for case in cases], list(map(str, range(10))))
+        for case in cases:
+            self.assertEqual(case['scenario'], 'centred_descent')
+            self.assertEqual({key: float(case[key]) for key in asdict(state)}, asdict(state))
+
+    def test_reads_saved_test_run_initial_states_and_rejects_duplicates(self):
+        _, state = configuration('centred_descent')
+        cases = [dict(run_id=str(i), scenario='centred_descent', **asdict(state),
+                      wind_x=4.5, wind_y=-1.2) for i in range(10)]
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / 'test_runs.csv'
+            for duplicate in (False, True):
+                if duplicate:
+                    cases[-1]['run_id'] = '0'
+                with path.open('w', newline='') as target:
+                    writer = csv.DictWriter(target, fieldnames=list(cases[0]))
+                    writer.writeheader()
+                    writer.writerows(cases)
+                if duplicate:
+                    with self.assertRaisesRegex(ValueError, '10 distinct initial runs'):
+                        read_test_runs(path)
+                else:
+                    loaded = read_test_runs(path)
+                    self.assertEqual(len(loaded), 10)
+                    self.assertEqual(float(loaded[0]['wind_x']), 4.5)
+
+    def test_generated_test_runs_require_initial_row_for_every_run(self):
+        parameters, state = configuration('centred_descent')
+        observation = make_observation(state, 0, parameters).tolist()
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / 'test_runs.csv'
+            with path.open('w', newline='') as target:
+                writer = csv.writer(target)
+                writer.writerow(COLUMNS)
+                for run_id in range(10):
+                    writer.writerow((run_id, 1 if run_id == 9 else 0, *observation, 0, 1))
+            with self.assertRaisesRegex(ValueError, 'step=0 row for every run'):
+                read_test_runs(path)
+
     def test_classification_metrics_and_training_overlap(self):
         class Policy:
             def predict_action(self, observation):

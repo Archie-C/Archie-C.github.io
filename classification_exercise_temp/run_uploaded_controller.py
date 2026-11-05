@@ -34,6 +34,37 @@ def read_sequence_metadata(path):
     return np.array([row['run_id'] for row in rows]), np.array([int(row['step']) for row in rows])
 
 
+def read_test_runs(path):
+    """Accept saved initial states or step-zero rows from a generated dataset."""
+    with path.open(newline='', encoding='utf-8') as f:
+        reader = csv.DictReader(f)
+        columns = set(reader.fieldnames or ())
+        rows = list(reader)
+    initial_columns = {'run_id', 'scenario', *State.__dataclass_fields__, 'wind_x', 'wind_y'}
+    dataset_columns = {'run_id', 'step', *OBSERVATION_COLUMNS}
+    if initial_columns <= columns:
+        cases = rows
+    elif dataset_columns <= columns:
+        cases = []
+        for row in rows:
+            if int(row['step']) != 0:
+                continue
+            # Generated observations use pad-relative position and CSV actuator names.
+            cases.append(dict(row, scenario='centred_descent',
+                              x=float(row['x']) + (CONFIG.pad_left + CONFIG.pad_right) / 2,
+                              y=float(row['y']) + CONFIG.pad_height,
+                              fuel=row['fuel_mass'], thrust=row['actual_thrust'],
+                              gimbal=row['actual_gimbal']))
+        if {case['run_id'] for case in cases} != {row['run_id'] for row in rows}:
+            raise ValueError('test_runs.csv must have one step=0 row for every run')
+    else:
+        raise ValueError('test_runs.csv must contain saved initial states or a generated dataset with step=0 rows')
+    if len(cases) != 10 or len({case['run_id'] for case in cases}) != 10:
+        raise ValueError(f'test_runs.csv must contain 10 distinct initial runs; found {len(cases)} initial rows '
+                         f'for {len({case["run_id"] for case in cases})} distinct runs')
+    return cases
+
+
 def classification_metrics(controller, X_test, y_test, X_train, run_ids=None, steps=None):
     """Accuracy and macro F1 over labels present in predictions or targets."""
     policy = copy.deepcopy(controller)
@@ -82,6 +113,7 @@ def landing_diagnostics(result, parameters):
 
 
 def main(source_path):
+    cases = read_test_runs(Path(__file__).with_name('test_runs.csv'))
     spec = importlib.util.spec_from_file_location('uploaded_controller', source_path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
@@ -100,10 +132,6 @@ def main(source_path):
     X_test, y_test = read_observations(test_path)
     test_ids, test_steps = read_sequence_metadata(test_path)
     classification = classification_metrics(controller, X_test, y_test, X, test_ids, test_steps)
-    with Path(__file__).with_name('test_runs.csv').open(newline='', encoding='utf-8') as f:
-        cases = list(csv.DictReader(f))
-    if len(cases) != 10 or len({case['run_id'] for case in cases}) != 10:
-        raise ValueError('test_runs.csv must contain 10 distinct runs')
     runs, replays = [], []
     for case in cases:
         scenario = case['scenario']
