@@ -33,6 +33,16 @@ async function waitFor(fn, label, timeout=10000) {
   await waitFor(()=>evaluate("document.getElementById('status')?.textContent==='ready'"),'ready');
   const screenshot=async name=>{const {data}=await call('Page.captureScreenshot',{format:'png'});fs.writeFileSync(path.join(os.tmpdir(),name),Buffer.from(data,'base64'));};
   await screenshot('rocket-desktop.png');
+  const initialCamera=await evaluate('({...camera})');
+  const rocketPixel=await evaluate('screen([view.state.x,view.state.y])');
+  await evaluate(`{const q=screen([view.state.x,view.state.y]),r=canvas.getBoundingClientRect();canvas.dispatchEvent(new WheelEvent('wheel',{clientX:r.left+q[0],clientY:r.top+q[1],deltaY:-350,cancelable:true}));}`);
+  assert.ok(await evaluate('camera.scale')>initialCamera.scale,'wheel must zoom');
+  const zoomPixel=await evaluate('screen([view.state.x,view.state.y])');
+  assert.ok(Math.abs(rocketPixel[0]-zoomPixel[0])<1e-6 && Math.abs(rocketPixel[1]-zoomPixel[1])<1e-6,'zoom should preserve the point under the pointer');
+  await screenshot('rocket-zoom.png');
+  await evaluate(`canvas.setPointerCapture=()=>{};canvas.onpointerdown({clientX:50,clientY:50,pointerId:1});canvas.onpointermove({clientX:75,clientY:60});canvas.onpointerup()`);
+  assert.notEqual(await evaluate('camera.x'),initialCamera.x,'drag must pan');
+  await evaluate("$('camera').click()");assert.equal(await evaluate('camera.auto'),true);
   await evaluate("desired={throttle:3,gimbal:0};sendDesired()");
   await waitFor(()=>evaluate("$('message').textContent.includes('Command rejected')"),'invalid-command error');
   await sleep(500);assert.ok(await evaluate("$('message').textContent.includes('Command rejected')"),'error must remain inspectable');
