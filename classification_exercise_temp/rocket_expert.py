@@ -4,7 +4,9 @@ This prototype is not certified and must not be used to release labelled data.
 All candidates use authoritative RK4/contact physics, with a fixed short horizon.
 """
 from dataclasses import replace
+import hashlib
 import math
+from pathlib import Path
 
 import numpy as np
 
@@ -12,6 +14,8 @@ from rocket_calibration import configuration
 from rocket_physics import Command, State, clearance, discrete_command, mass_properties, step
 from rocket_scoring import score_contact
 
+# Freeze provenance at import, before a long-running evaluation begins.
+SOURCE_SHA256 = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
 EXPERT_VERSION = 'expert-prototype-v0.3'
 
 

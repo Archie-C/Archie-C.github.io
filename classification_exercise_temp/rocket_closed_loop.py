@@ -58,10 +58,14 @@ def evaluate_closed_loop(policy, initial_state, parameters, scenario_id, *, max_
         source = inspect.getsourcefile(policy)
     except TypeError:
         source = inspect.getsourcefile(type(policy))
+    module = inspect.getmodule(policy)
+    source_hash = getattr(module, 'SOURCE_SHA256', None)
+    if source_hash is None and source and Path(source).is_file():
+        source_hash = hashlib.sha256(Path(source).read_bytes()).hexdigest()
     provenance = dict(name=getattr(policy, '__qualname__', type(policy).__name__),
                       version=getattr(owner, 'version', None),
                       settings=getattr(owner, 'solver_settings', None),
-                      source_sha256=hashlib.sha256(Path(source).read_bytes()).hexdigest() if source and Path(source).is_file() else None)
+                      source_sha256=source_hash)
     identity = json.dumps([run.config['physics_config'], asdict(initial_state), max_time, control_mode, provenance], sort_keys=True)
     run.id = hashlib.sha256(identity.encode()).hexdigest()[:32]
     run.config['run_id'] = run.id

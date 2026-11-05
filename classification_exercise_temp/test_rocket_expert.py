@@ -6,7 +6,7 @@ import numpy as np
 from rocket_calibration import configuration
 from rocket_closed_loop import OBSERVATION_NAMES, evaluate_closed_loop, make_observation
 from rocket_physics import discrete_command
-from rocket_expert import ContinuousReference, DiscreteExpert, guidance, simple_discrete_guidance
+from rocket_expert import ContinuousReference, DiscreteExpert, SOURCE_SHA256, guidance, simple_discrete_guidance
 from rocket_expert_benchmark import benchmark, diagnostic_cases, feasibility_cases
 from unittest.mock import patch
 
@@ -118,13 +118,22 @@ class ClosedLoopTests(unittest.TestCase):
         policy = result['replay']['config']['closed_loop']['policy']
         self.assertEqual(policy['version'], expert.version)
         self.assertEqual(policy['settings']['horizon_steps'], expert.horizon_steps)
-        self.assertEqual(len(policy['source_sha256']), 64)
+        self.assertEqual(policy['source_sha256'], SOURCE_SHA256)
 
     def test_continuous_mode_rejects_discrete_outputs(self):
         result = evaluate_closed_loop(lambda _: 0, self.initial, self.p, 'near_ground_contact',
                                       max_time=1, control_mode='continuous')
         self.assertEqual(result['replay']['terminal']['type'], 'error')
         self.assertIn('continuous policy', result['termination_reason'])
+
+    def test_continuous_reference_fallback_is_explicit(self):
+        observation = make_observation(self.initial, 0, self.p)
+        reference = ContinuousReference(horizon_steps=1)
+        with patch('rocket_expert.step', side_effect=ArithmeticError('injected failure')):
+            fallback = reference.predict_command(observation)
+        self.assertEqual(fallback, guidance(observation))
+        self.assertTrue(reference.diagnostics['fallback'])
+        self.assertIn('injected failure', reference.diagnostics['reason'])
 
     def test_action_mapping(self):
         for action in range(10):
