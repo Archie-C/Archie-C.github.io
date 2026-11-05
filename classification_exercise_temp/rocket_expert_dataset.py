@@ -162,6 +162,9 @@ def export_draft(report, output, *, seed=20261105, validation_fraction=.25, reco
     path.mkdir(parents=True, exist_ok=True)
     if private_path is not None:
         private_path.mkdir(parents=True, mode=0o700)
+        if private_path.stat().st_mode & 0o077:
+            private_path.rmdir()
+            raise ValueError('filesystem does not support owner-only private directory permissions')
     counts = {}
     for name, subset in splits.items():
         counts[name] = Counter()

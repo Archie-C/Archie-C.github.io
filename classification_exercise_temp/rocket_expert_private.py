@@ -44,9 +44,11 @@ def prepare_private(public_dataset, output, *, agreement_seed, evaluation_seed,
         return [make_observation(case['initial'], 0., configuration(case['scenario'])[0]).tolist() for case in cases]
     agreement_starts, evaluation_starts = observations(agreement_cases), observations(evaluation_cases)
     final_starts = observations(final_feasibility_cases())
+    exploratory_starts = observations(feasibility_cases(count=6, seed=42018))
+    reserved_starts = final_starts + exploratory_starts
     if (_near_duplicate(visible, agreement_starts) or _near_duplicate(visible, evaluation_starts)
             or _near_duplicate(agreement_starts, evaluation_starts)
-            or _near_duplicate(final_starts, agreement_starts + evaluation_starts)):
+            or _near_duplicate(reserved_starts, agreement_starts + evaluation_starts)):
         raise ValueError('private starts overlap visible data or one another')
     expert = DiscreteExpert()
     records, hidden_labels = [], []
@@ -58,9 +60,12 @@ def prepare_private(public_dataset, output, *, agreement_seed, evaluation_seed,
         records.append(result)
         hidden_labels.extend(d['observation'] for d in result['decisions'])
     if (_near_duplicate(visible, hidden_labels) or _near_duplicate(hidden_labels, evaluation_starts)
-            or _near_duplicate(hidden_labels, final_starts)):
+            or _near_duplicate(hidden_labels, reserved_starts)):
         raise ValueError('private agreement observations overlap visible data or evaluation starts')
     target.mkdir(parents=True, mode=0o700)
+    if target.stat().st_mode & 0o077:
+        target.rmdir()
+        raise ValueError('filesystem does not support owner-only private directory permissions')
     (target / 'replays').mkdir(mode=0o700)
     for index, result in enumerate(records):
         payload = json.dumps(result['replay'], allow_nan=False, separators=(',', ':')).encode()
