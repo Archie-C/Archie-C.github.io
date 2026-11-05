@@ -5,7 +5,7 @@ const canvas=$('scene'), ctx=canvas.getContext('2d');
 const stateKeys=['x','y','vx','vy','theta','omega','fuel','thrust','gimbal'];
 let record=null, liveRecord=null, view=null, replayMode=false, replayFollowsLive=false, playing=false, frame=0, lastFrame=0, seq=0;
 let camera={x:0,y:25,scale:5,auto:true}, dragging=null, connected=false, sending=false, desired=null;
-let lastPacket=-1, liveId=null, liveArrival=0, renderWindow=null, lag=0, replayClock=0, polling=false, resetting=false, generation=0, actionsConfig=null, localNotice='', visualQuality=1, slowFrames=0, fastFrames=0, lastPaint=0;
+let lastPacket=-1, liveId=null, liveArrival=0, renderWindow=null, lag=0, replayClock=0, polling=false, resetting=false, generation=0, actionsConfig=null, localNotice='', replayTransition=null, visualQuality=1, slowFrames=0, fastFrames=0, lastPaint=0;
 const fmt=(n,d=2)=>Number(n).toFixed(d);
 function bodyPoint(point,s,c){const x=point[0]-c[0], y=point[1]-c[1], a=s.theta;return [s.x+x*Math.cos(a)-y*Math.sin(a),s.y+x*Math.sin(a)+y*Math.cos(a)];}
 function thrustDirection(theta,gimbal){return [-Math.sin(theta+gimbal),Math.cos(theta+gimbal)];}
@@ -130,7 +130,7 @@ async function poll(){
  }catch(e){connected=false;playing=false;statusNotice('Connection or packet error: '+e.message+'. Flight pauses when the heartbeat is lost.');if(record)updateUI();$('status').textContent='Disconnected';}
  finally{polling=false;}
 }
-function setRecord(r){validate(r);enterReplay();replayFollowsLive=false;record=r;frame=0;view=record.snapshots[0];replayMode=true;playing=false;updateUI();}
+async function setRecord(r){validate(r);if(!await enterReplay())return;replayFollowsLive=false;record=r;frame=0;view=record.snapshots[0];replayMode=true;playing=false;updateUI();}
 async function control(operation,extra={}){try{if(!liveId)throw Error('No live connection');await post('/api/control',{run_id:liveId,operation,...extra});notice('');await poll();}catch(e){notice(e.message);}}
 async function sendDesired(){if(sending||!desired||!liveId)return;if(!connected||replayMode){desired=null;notice('Command not sent: return to a connected live session.');return;}sending=true;const request=desired;desired=null;try{let ack=await post('/api/command',{run_id:liveId,command_sequence:++seq,...request});$('accepted').textContent=`Accepted #${ack.command_sequence}: throttle ${fmt(ack.throttle)}, gimbal ${fmt(ack.gimbal)}${ack.action===null?'':`, action ${ack.action}`} · effective ${fmt(ack.effective_time,3)} s`;notice('');}catch(e){notice('Command rejected: '+e.message);}finally{sending=false;if(desired)setTimeout(sendDesired,220);}}
 function queueManual(){ $('throttleout').textContent=fmt(+$('throttle').value);$('gimbalout').textContent=fmt(+$('gimbal').value);desired={throttle:+$('throttle').value,gimbal:+$('gimbal').value};sendDesired();}
@@ -139,16 +139,31 @@ $('mode').onchange=()=>{$('manual').hidden=$('mode').value!=='manual';$('discret
 $('sendaction').onclick=()=>{desired={action:+$('action').value};sendDesired();};
 $('start').onclick=()=>control('start');$('pause').onclick=()=>control('pause');$('speed').onchange=()=>control('speed',{speed:+$('speed').value});
 $('reset').onclick=async()=>{if(resetting)return;resetting=true;generation++;try{const r=await post('/api/reset');notice('');liveId=r.config.run_id;liveRecord=null;lastPacket=-1;renderWindow=null;seq=0;desired=null;replayMode=false;playing=false;$('throttle').value=0;$('gimbal').value=0;$('throttleout').textContent='0.00';$('gimbalout').textContent='0.00';$('accepted').textContent='Accepted: engine off';}catch(e){notice(e.message);}finally{resetting=false;poll();}};
-function enterReplay(){if(!replayMode && record){replayFollowsLive=record.status==='running';if(replayFollowsLive)control('pause');record={...record,snapshots:record.snapshots.slice(),commands:record.commands.slice()};}replayMode=true;}
-$('timeline').oninput=()=>{enterReplay();playing=false;frame=+$('timeline').value;view=record.snapshots[frame];updateUI();};
+async function enterReplay(){
+ if(replayMode)return true;
+ if(replayTransition)return replayTransition;
+ const expectedGeneration=generation;
+ replayTransition=(async()=>{
+  if(record&&liveRecord?.status==='running'&&connected){
+   try{await post('/api/control',{run_id:liveId,operation:'pause'});}
+   catch(e){notice('Could not pause for replay: '+e.message);return false;}
+   if(expectedGeneration!==generation)return false;
+  }
+  if(record){replayFollowsLive=connected&&liveRecord?.status==='running';record={...record,snapshots:record.snapshots.slice(),commands:record.commands.slice()};}
+  replayMode=true;
+  return true;
+ })();
+ try{return await replayTransition;}finally{replayTransition=null;}
+}
+$('timeline').oninput=async()=>{const index=+$('timeline').value;if(!await enterReplay())return;playing=false;frame=Math.min(index,record.snapshots.length-1);view=record.snapshots[frame];updateUI();};
 function seekTime(t){if(!record)return;let lo=0,hi=record.snapshots.length-1;while(lo<hi){let mid=Math.floor((lo+hi+1)/2);if(record.snapshots[mid].time<=t)lo=mid;else hi=mid-1;}seek(lo);}
 $('backtime').onclick=()=>seekTime(view.time-1);$('forwardtime').onclick=()=>seekTime(view.time+1);
 $('begin').onclick=()=>seek(0);$('back').onclick=()=>seek(frame-1);$('forward').onclick=()=>seek(frame+1);$('terminal').onclick=()=>seek(record.snapshots.length-1);
-$('replay').onclick=()=>{if(!record)return;if(!replayMode){enterReplay();frame=0;} if(frame>=record.snapshots.length-1)frame=0;playing=!playing;lastFrame=0;view=record.snapshots[frame];replayClock=view.time;updateUI();};
+$('replay').onclick=async()=>{if(!record)return;if(!replayMode){if(!await enterReplay())return;frame=0;} if(frame>=record.snapshots.length-1)frame=0;playing=!playing;lastFrame=0;view=record.snapshots[frame];replayClock=view.time;updateUI();};
 $('live').onclick=()=>{replayMode=false;replayFollowsLive=false;playing=false;if(liveRecord){record=liveRecord;frame=record.snapshots.length-1;view=record.snapshots[frame];updateUI();}poll();};
-function seek(i){if(!record)return;enterReplay();playing=false;frame=Math.max(0,Math.min(record.snapshots.length-1,i));view=record.snapshots[frame];updateUI();}
+async function seek(i){if(!record||!await enterReplay())return;playing=false;frame=Math.max(0,Math.min(record.snapshots.length-1,i));view=record.snapshots[frame];updateUI();}
 $('export').onclick=()=>{if(!record)return;const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(record)],{type:'application/json'}));a.download='rocket-'+record.config.run_id+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);};
-$('import').onchange=async e=>{try{let f=e.target.files[0];if(!f)return;if(f.size>64*1024*1024)throw Error('File exceeds 64 MB limit');setRecord(JSON.parse(await f.text()));notice('Recording imported for read-only replay.');}catch(err){notice('Import error: '+err.message);}e.target.value='';};
+$('import').onchange=async e=>{try{let f=e.target.files[0];if(!f)return;if(f.size>64*1024*1024)throw Error('File exceeds 64 MB limit');await setRecord(JSON.parse(await f.text()));notice('Recording imported for read-only replay.');}catch(err){notice('Import error: '+err.message);}e.target.value='';};
 function metric(label,value){return `<div class="metric"><span>${label}</span><strong>${value}</strong></div>`;}
 function updateUI(){if(!record||!view)return;let s=view.state,d=view.diagnostics||{}, c=view.command, end=record.snapshots.at(-1), p=record.config.parameters;
  $('status').textContent=replayMode?'Replay':record.status;$('clock').textContent='T + '+fmt(view.time)+' s';$('timeline').max=record.snapshots.length-1;$('timeline').value=frame;$('replaytime').textContent=fmt(view.time)+' / '+fmt(end.time)+' s';$('replay').textContent=playing?'Pause replay':'Play replay';

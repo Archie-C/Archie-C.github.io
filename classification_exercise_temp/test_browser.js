@@ -73,8 +73,8 @@ async function waitFor(fn, label, timeout=10000) {
   await evaluate("window.fetch=window.savedFetch");
   await waitFor(()=>evaluate("record.status==='paused' && $('message').textContent.includes('Connection lost')"),'heartbeat pause');
   let end=await evaluate('record.snapshots.length-1');assert.ok(end>2);
-  assert.equal(await evaluate(`(()=>{const saved=JSON.parse(JSON.stringify(record));setRecord(saved);return record.snapshots.length})()`),end+1);
-  assert.equal(await evaluate(`(()=>{let before=record;try{setRecord({schema:'bad'})}catch(_){}return before===record})()`),true);
+  assert.equal(await evaluate(`(async()=>{const saved=JSON.parse(JSON.stringify(record));await setRecord(saved);return record.snapshots.length})()`),end+1);
+  assert.equal(await evaluate(`(async()=>{let before=record;try{await setRecord({schema:'bad'})}catch(_){}return before===record})()`),true);
 
   await evaluate("$('begin').click()");assert.equal(await evaluate('view.time'),0);
   await evaluate("$('forward').click()");assert.equal(await evaluate('view.time'),0);assert.equal(await evaluate('view.command.throttle'),.6);
@@ -89,7 +89,7 @@ async function waitFor(fn, label, timeout=10000) {
   assert.equal(await evaluate('view.time'),await evaluate('record.terminal.time'));
   assert.deepEqual(await evaluate('view.state'),await evaluate('record.terminal.state'));
   await screenshot('rocket-contact.png');
-  assert.equal(await evaluate(`(()=>{const indexes=[0,Math.floor(record.snapshots.length/3),record.snapshots.length-1,1,Math.floor(record.snapshots.length/2),record.snapshots.length-1];const before=JSON.stringify(record);for(const i of indexes){seek(i);const p=record.snapshots[i];if(view!==p||!$('telemetry').textContent.includes(fmt(p.state.x))||view.command.throttle!==p.command.throttle)return false;}return JSON.stringify(record)===before})()`),true,'replay seek must preserve exact snapshots and commands');
+  assert.equal(await evaluate(`(async()=>{const indexes=[0,Math.floor(record.snapshots.length/3),record.snapshots.length-1,1,Math.floor(record.snapshots.length/2),record.snapshots.length-1];const before=JSON.stringify(record);for(const i of indexes){await seek(i);const p=record.snapshots[i];if(view!==p||!$('telemetry').textContent.includes(fmt(p.state.x))||view.command.throttle!==p.command.throttle)return false;}return JSON.stringify(record)===before})()`),true,'replay seek must preserve exact snapshots and commands');
   await call('Emulation.setDeviceMetricsOverride',{width:1024,height:768,deviceScaleFactor:2,mobile:false});
   await sleep(300);assert.equal(await evaluate('canvas.width'),await evaluate('Math.round(canvas.clientWidth*devicePixelRatio)'));
   assert.ok(await evaluate('canvas.clientWidth>400 && canvas.clientHeight>300'));
@@ -98,7 +98,7 @@ async function waitFor(fn, label, timeout=10000) {
   await sleep(300);assert.ok(await evaluate('document.documentElement.scrollWidth<=window.innerWidth+1'),'mobile horizontal overflow');
   await screenshot('rocket-mobile.png');
   // Exercise seeking and bounded trail drawing with a substantial recording.
-  const longLoad=await evaluate(`(()=>{const source=record;const base=source.snapshots[0];const frames=Array.from({length:20000},(_,i)=>({...base,sequence:i,time:i*.02}));const long={...source,status:'paused',terminal:null,commands:[],pending_commands:[],snapshots:frames};const started=performance.now();setRecord(long);seek(19999);return performance.now()-started})()`);
+  const longLoad=await evaluate(`(async()=>{const source=record;const base=source.snapshots[0];const frames=Array.from({length:20000},(_,i)=>({...base,sequence:i,time:i*.02}));const long={...source,status:'paused',terminal:null,commands:[],pending_commands:[],snapshots:frames};const started=performance.now();await setRecord(long);await seek(19999);return performance.now()-started})()`);
   assert.equal(await evaluate('frame'),19999);
   assert.equal(await evaluate('record.snapshots.length'),20000);
   const frameTimes=await evaluate(`new Promise(resolve=>{let times=[],last=0;function tick(t){if(last)times.push(t-last);last=t;if(times.length===30)resolve(times);else requestAnimationFrame(tick)}requestAnimationFrame(tick)})`);
