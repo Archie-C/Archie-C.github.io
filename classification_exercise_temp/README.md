@@ -245,3 +245,11 @@ in the [v0.4 diagnostic](benchmarks/diagnostic-expert-v0.4-summary.json) and
 The [classifier study](benchmarks/classifier-expert-v0.4-summary.json) records
 class counts, confusion matrices, agreement and exploratory landing results for
 a draft with recovery samples. It is not a release dataset.
+
+`rocket_expert_private.py` prepares a separate trusted-local expert-agreement
+set and independent closed-loop starts from caller-supplied private seeds. It
+checks both against the student files and frozen feasibility starts, stores
+agreement replays and provenance, and creates a separate owner-only directory
+where supported. Keep that directory and its seeds outside the student
+publication. It is local preparation only; a future student-upload service
+must enforce its own sandbox and access controls.
