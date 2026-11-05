@@ -77,3 +77,20 @@ Run `python3 classification_exercise_temp/calibration_trials.py` to reproduce fi
 A separate centred diagnostic with full thrust initiated at approximately 2.96 s produces a concrete foot first contact around 8.90 s and -0.65 m/s in the 0.01 s integration (the numerical command switch occurs on the next step). Refining the same timed burn from 0.010 to 0.005 s gives 8.899482 s at both steps and vertical velocities differing by less than 0.001 m/s. This illustrates available deceleration, not robust control or structural safety. In the fixed trials peak aerodynamic force reached roughly 31–157 kN powered (the largest value occurs after near-ground exits the envelope); peak aerodynamic moment reached roughly 0–113 kN m. A 5° gimbal at 845 kN and the initial centre of mass produces a clockwise torque of roughly 1.24 MN m. Realism outside the stated envelope is not claimed.
 
 [S1] [SpaceX Falcon 9](https://www.spacex.com/vehicles/falcon-9/); [S2] [USSF environmental assessment](https://www.vandenberg.spaceforce.mil/Portals/18/documents/Environmental/SpaceX_Falcon%209%20Cadence%20Increase%20Draft%20SEA%20for%20Public%20Review_COMBINED_REDUCED1.pdf); [S3] [Falcon User’s Guide (2021)](https://www.spacex.com/media/falcon-users-guide-2021-09.pdf); [S4] [NASA-hosted historical data sheet](https://sma.nasa.gov/LaunchVehicle/assets/spacex-falcon-9-data-sheet.pdf); [S5] [US Standard Atmosphere 1976](https://ntrs.nasa.gov/api/citations/19760003955/downloads/19760003955.pdf); [S6] [FAA SLC-40 public meeting script](https://www.faa.gov/media/92771).
+
+## Touchdown scoring and evaluation
+
+Every terminal recording includes `scoring`: success, failure reasons, contact time and surface, first geometry, transformed feet, signed foot-midpoint offset, contact-state centre-of-mass velocities and angles, first-foot velocity, normalized errors and a 0–100 score. A missing contact scores zero. Foot velocity includes rotation and is diagnostic only. The recording configuration contains `touchdown-v1.0` and its pad geometry, thresholds, weights and centre reference; these provisional limits describe first contact, not post-impact stability or survivability. The live flight notes show the score and failure reasons. Exported recordings retain all diagnostics.
+
+`rocket_scoring.score_contact(contact, parameters)` scores the authoritative physics event, not a sampled frame. `ScoringConfig` allows an alternative reference or other rules only under a different version identifier; assign a new, unique identifier whenever changing any rule and retain that configuration with results.
+
+Evaluate a fixed set of 12 deterministic cases (the four calibrated scenarios, each at three horizontal offsets) using one discrete-action sequence for all cases:
+
+```sh
+printf '[0, 0, 0]' > /tmp/actions.json
+python3 classification_exercise_temp/rocket_evaluation.py run /tmp/actions.json /tmp/evaluation.json --name example
+python3 classification_exercise_temp/rocket_evaluation.py leaderboard /tmp/evaluation.json
+python3 classification_exercise_temp/rocket_evaluation.py leaderboard --sort mean_successful_quality /tmp/evaluation.json
+```
+
+Pass multiple evaluation JSON files to the leaderboard to compare submissions. Its default ordering is success rate, then mean successful quality; the alternative sorts by successful quality, then success rate. With no successes quality is `N/A`. Each saved evaluation contains the scenario-set and scoring versions, aggregate metrics, and each case's result with its complete replay in `runs[].replay`. Save a replay object as a JSON file to import it into the flight lab. An exhausted action sequence is a no-contact failure. Evaluation is of the supplied open-loop sequence; it is not a controller benchmark.

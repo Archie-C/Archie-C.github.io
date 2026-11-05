@@ -5,7 +5,7 @@ from dataclasses import replace
 import rocket_calibration as calibration
 from rocket_physics import Contact, mass_properties, relative_point
 from rocket_scoring import CONFIG, ScoringConfig, aggregate, score_contact
-from rocket_evaluation import leaderboard
+from rocket_evaluation import evaluate, leaderboard
 from rocket_server import offline
 
 
@@ -28,6 +28,9 @@ class ScoringTests(unittest.TestCase):
                 with self.subTest(field=field, factor=factor):
                     self.assertEqual(score_contact(self.contact(**{field: sign*limit*factor}), self.p)['success'], expected)
         self.assertFalse(score_contact(self.contact(vy=1e-9), self.p)['success'])
+        for field, limit in [('vx', 1.5), ('theta', math.pi/45), ('omega', math.pi/90)]:
+            for factor, expected in [(1-1e-7, True), (1, True), (1+1e-7, False)]:
+                self.assertEqual(score_contact(self.contact(**{field: -limit*factor}), self.p)['success'], expected)
 
     def test_geometry_and_missing(self):
         self.assertFalse(score_contact(None, self.p)['success'])
@@ -35,6 +38,10 @@ class ScoringTests(unittest.TestCase):
             self.assertFalse(score_contact(self.contact(x=x), self.p)['success'])
         c = self.contact()
         self.assertFalse(score_contact(replace(c, point=(0, c.point[1])), self.p)['success'])
+        hull_first = replace(self.p, feet=tuple((x, y+3) for x, y in self.p.feet))
+        self.assertFalse(score_contact(c, hull_first)['success'])
+        for offset, expected in [(CONFIG.pad_right - 9, True), (CONFIG.pad_right - 9 - 1e-6, True), (CONFIG.pad_right - 9 + 1e-6, False)]:
+            self.assertEqual(score_contact(self.contact(x=offset), self.p)['success'], expected)
         self.assertFalse(score_contact(self.contact(), replace(self.p, feet=()))['success'])
 
     def test_monotonic_and_foot_velocity(self):
@@ -47,6 +54,13 @@ class ScoringTests(unittest.TestCase):
         self.assertAlmostEqual(r['foot_velocity'][0], c.state.vx - c.state.omega*(y-c.state.y))
         self.assertAlmostEqual(r['foot_velocity'][1], c.state.vy + c.state.omega*(x-c.state.x))
         self.assertEqual(r, score_contact(c, self.p))
+
+    def test_fixed_evaluation_is_reproducible(self):
+        first, second = evaluate([]), evaluate([])
+        self.assertEqual(len(first['runs']), 12)
+        self.assertEqual(first['metrics'], second['metrics'])
+        self.assertEqual([r['result'] for r in first['runs']], [r['result'] for r in second['runs']])
+        self.assertTrue(all(r['replay']['terminal']['scoring'] == r['result'] for r in first['runs']))
 
     def test_record_aggregation_and_version(self):
         record = offline([])
