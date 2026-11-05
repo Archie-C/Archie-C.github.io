@@ -70,6 +70,19 @@ class DatasetTests(unittest.TestCase):
             self.assertEqual(len(set(groups)), 3)
             self.assertEqual(private.stat().st_mode & 0o077, 0)
 
+    def test_out_of_envelope_flight_decision_is_excluded_and_counted(self):
+        report = self.make_report(4.)
+        run = report['policies']['discrete_expert']['runs'][0]
+        invalid = dict(run['replay']['decisions'][0])
+        invalid['observation'] = list(invalid['observation'])
+        invalid['observation'][3] = 5.  # Upward relative airflow gives tail-first alpha near pi.
+        run['replay']['decisions'].append(invalid)
+        with tempfile.TemporaryDirectory() as tmp:
+            manifest = export_draft(report, Path(tmp) / 'draft')
+            self.assertEqual(manifest['excluded_flight_observations'],
+                             {'angle of attack': 1, 'observations': 1})
+            self.assertEqual(sum(sum(c.values()) for c in manifest['class_counts'].values()), 2)
+
     def test_final_evaluation_cases_cannot_be_exported(self):
         report = self.make_report(4.)
         report['policies']['discrete_expert']['runs'][0]['case_id'] = FINAL_SET + ':case'

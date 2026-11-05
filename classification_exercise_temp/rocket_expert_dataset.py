@@ -18,8 +18,10 @@ from rocket_closed_loop import OBSERVATION_NAMES, OBSERVATION_VERSION, make_obse
 from rocket_calibration import configuration
 from rocket_physics import State, clearance
 from rocket_expert_benchmark import FINAL_SET, final_feasibility_cases
+from rocket_observation_scope import envelope_violations
+from rocket_server import Run
 
-DATASET_VERSION = 'expert-draft-v0.2'
+DATASET_VERSION = 'expert-draft-v0.3'
 # Componentwise near-duplicate tolerances in observation units.
 LEAKAGE_TOLERANCES = np.array([.01, .01, .01, .01, .0001, .0001, .1, 1., .0001, .01, .01, .0001])
 
@@ -91,6 +93,7 @@ def export_draft(report, output, *, seed=20261105, validation_fraction=.25, reco
     if any(run['case_id'].startswith(FINAL_SET + ':') for run in runs):
         raise ValueError('final evaluation cases cannot be exported as training data')
     episodes = []
+    excluded = Counter()
     seen = set()
     for run in runs:
         replay = run['replay']
@@ -100,6 +103,10 @@ def export_draft(report, output, *, seed=20261105, validation_fraction=.25, reco
                 config['closed_loop']['control_mode'] != 'discrete' or
                 not str(policy.get('version', '')).startswith('expert-') or not policy.get('source_sha256')):
             raise ValueError('expected versioned recorded discrete expert decisions')
+        current = Run(run['scenario'])
+        if current.config['physics_config'] != config['physics_config']:
+            raise ValueError('dataset sampling requires the recorded physics configuration')
+        parameters, _ = configuration(run['scenario'])
         initial = json.dumps(run['initial'], sort_keys=True, separators=(',', ':'))
         # Repeated initial conditions belong to the same episode group.
         group = hashlib.sha256(initial.encode()).hexdigest()
@@ -113,6 +120,11 @@ def export_draft(report, output, *, seed=20261105, validation_fraction=.25, reco
             action = decision['action']
             if obs.shape != (12,) or not np.all(np.isfinite(obs)) or type(action) is not int or not 0 <= action <= 9:
                 raise ValueError('invalid expert decision')
+            violations = envelope_violations(obs, decision['time'], parameters)
+            if violations:
+                excluded.update(violations)
+                excluded['observations'] += 1
+                continue
             rows.append(dict(observation=obs.tolist(), action=action, time=decision['time'],
                              diagnostics=decision.get('diagnostics'), provenance='expert flight'))
         if rows and recovery_per_episode:
@@ -191,6 +203,7 @@ def export_draft(report, output, *, seed=20261105, validation_fraction=.25, reco
                                         altitude_m=[0, 1000], airspeed_m_per_s=130, angle_of_attack_degrees=35,
                                         min_clearance_m=.1),
                     grouping='identical initial state', leakage_tolerances=LEAKAGE_TOLERANCES.tolist(),
+                    excluded_flight_observations=dict(sorted(excluded.items())),
                     source_schema=report['schema'],
                     scenario_sets=sorted({name for name in (report['diagnostic_scenario_set'], report['feasibility_set'])
                                           if any(episode['episode_id'].startswith(name + ':') for episode in episodes)}),

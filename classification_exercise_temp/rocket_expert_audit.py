@@ -4,15 +4,14 @@ import csv
 import gzip
 import hashlib
 import json
-import math
 from pathlib import Path
 
 import numpy as np
 
 from rocket_calibration import configuration
-from rocket_closed_loop import OBSERVATION_NAMES, make_observation
+from rocket_closed_loop import OBSERVATION_NAMES
 from rocket_expert_versions import load_expert
-from rocket_physics import State, clearance
+from rocket_observation_scope import envelope_violations
 
 
 def audit_labels(dataset, report_path):
@@ -51,6 +50,10 @@ def audit_labels(dataset, report_path):
                         info['scoring'] != run['result']):
                     raise ValueError('episode provenance differs from archived benchmark')
                 groups.add(info['group'])
+                p, _ = configuration(run['scenario'])
+                violations = envelope_violations(obs, info['time'], p)
+                if violations:
+                    raise ValueError('label outside the calibrated envelope: ' + ', '.join(violations))
                 kind = info['provenance']
                 if kind == 'expert flight':
                     expected = decisions[case_id][info['time']]
@@ -62,18 +65,6 @@ def audit_labels(dataset, report_path):
                     if key not in policies:
                         module = load_expert(key[0], key[1])
                         policies[key] = module.DiscreteExpert(horizon_steps=key[2])
-                    state = State(*map(float, obs[:9]))
-                    p, _ = configuration(run['scenario'])
-                    if not np.allclose(make_observation(state, info['time'], p), obs, rtol=1e-12, atol=1e-12):
-                        raise ValueError('recovery atmosphere differs from recorded configuration')
-                    wind = p.wind(state.y, info['time'])
-                    air = (state.vx - wind[0], state.vy - wind[1])
-                    speed = math.hypot(*air)
-                    tail = (math.sin(state.theta), -math.cos(state.theta))
-                    alpha = math.atan2(tail[0]*air[1] - tail[1]*air[0], tail[0]*air[0] + tail[1]*air[1]) if speed else 0.
-                    if not (0 <= state.y <= 1000 and speed <= 130 and abs(alpha) <= math.radians(35)
-                            and clearance(state, p)[0] > .1):
-                        raise ValueError('recovery state is outside the documented envelope')
                     if policies[key].predict_action(obs) != action:
                         raise ValueError('recovery label differs from the recorded expert')
                 else:
@@ -90,15 +81,21 @@ def audit_private_agreement(path):
     from rocket_expert import DiscreteExpert
     expert = DiscreteExpert()
     count = fallbacks = 0
-    with Path(path).open(newline='', encoding='utf-8') as source:
+    path = Path(path)
+    metadata_path = path.with_name(path.stem + '_metadata.jsonl')
+    with path.open(newline='', encoding='utf-8') as source, metadata_path.open(encoding='utf-8') as metadata:
         reader = csv.reader(source)
         if next(reader) != [*OBSERVATION_NAMES, 'action']:
             raise ValueError('unexpected private agreement schema')
-        for row in reader:
+        for row, line in zip(reader, metadata, strict=True):
+            info = json.loads(line)
             obs = np.asarray([float(value) for value in row[:-1]], dtype=np.float64)
             action = int(row[-1])
             if obs.shape != (12,) or not np.all(np.isfinite(obs)) or not 0 <= action <= 9:
                 raise ValueError('invalid private agreement observation or action')
+            p, _ = configuration(info['scenario'])
+            if envelope_violations(obs, info['time'], p):
+                raise ValueError('private agreement label is outside the calibrated envelope')
             if expert.predict_action(obs) != action:
                 raise ValueError('private agreement label differs from the current expert')
             count += 1

@@ -37,6 +37,27 @@ class LabelAuditTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'flight label'):
                 audit_labels(dataset, archive)
 
+    def test_rejects_flight_label_outside_envelope(self):
+        _, initial = configuration('centred_descent')
+        cases = [dict(case_id=f'case-{i}', scenario='centred_descent',
+                      initial=replace(initial, x=4. * i)) for i in range(2)]
+        report = benchmark(cases, ['discrete_expert'], max_time=.1)
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            archive = root / 'source.json.gz'
+            with gzip.open(archive, 'wt', encoding='utf-8') as target:
+                json.dump(report, target, allow_nan=False)
+            dataset = root / 'draft'
+            export_draft(report, dataset)
+            path = dataset / 'train.csv'
+            with path.open(newline='', encoding='utf-8') as source:
+                rows = list(csv.reader(source))
+            rows[1][3] = '5.0'
+            with path.open('w', newline='', encoding='utf-8') as target:
+                csv.writer(target).writerows(rows)
+            with self.assertRaisesRegex(ValueError, 'outside the calibrated envelope'):
+                audit_labels(dataset, archive)
+
 
 if __name__ == '__main__':
     unittest.main()

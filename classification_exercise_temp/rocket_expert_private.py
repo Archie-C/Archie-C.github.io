@@ -4,6 +4,7 @@ The output directory is not a sandbox or a public upload service. Keep it out
 of the student distribution and apply the deployment's access controls.
 """
 import argparse
+from collections import Counter
 import csv
 from dataclasses import asdict
 import gzip
@@ -13,7 +14,8 @@ from pathlib import Path
 
 from rocket_calibration import configuration
 from rocket_closed_loop import OBSERVATION_NAMES, make_observation, evaluate_closed_loop
-from rocket_expert import DiscreteExpert
+from rocket_expert_versions import load_expert
+from rocket_observation_scope import envelope_violations
 from rocket_expert_benchmark import feasibility_cases, final_feasibility_cases
 from rocket_expert_dataset import _near_duplicate
 from rocket_softmax import read_csv
@@ -38,6 +40,17 @@ def prepare_private(public_dataset, output, *, agreement_seed, evaluation_seed,
     train, _ = read_csv(public / 'train.csv')
     validation, _ = read_csv(public / 'validation.csv')
     visible = train.tolist() + validation.tolist()
+    policies = []
+    for split, samples in (('train', train), ('validation', validation)):
+        rows = [json.loads(line) for line in (public / f'{split}_metadata.jsonl').read_text(encoding='utf-8').splitlines()]
+        if len(rows) != len(samples):
+            raise ValueError('student metadata does not match the data')
+        policies.extend(row['policy'] for row in rows)
+    if not policies or any(policy != policies[0] for policy in policies):
+        raise ValueError('student data must have one recorded teacher')
+    recorded = policies[0]
+    teacher = load_expert(recorded['version'], recorded['source_sha256'])
+    expert = teacher.DiscreteExpert(horizon_steps=recorded['settings']['horizon_steps'])
     agreement_cases = feasibility_cases(count=agreement_count, seed=agreement_seed)
     evaluation_cases = feasibility_cases(count=evaluation_count, seed=evaluation_seed)
     def observations(cases):
@@ -50,15 +63,25 @@ def prepare_private(public_dataset, output, *, agreement_seed, evaluation_seed,
             or _near_duplicate(agreement_starts, evaluation_starts)
             or _near_duplicate(reserved_starts, agreement_starts + evaluation_starts)):
         raise ValueError('private starts overlap visible data or one another')
-    expert = DiscreteExpert()
-    records, hidden_labels = [], []
+    records, hidden_labels, selected, excluded = [], [], [], Counter()
     for case in agreement_cases:
         p, _ = configuration(case['scenario'])
         result = evaluate_closed_loop(expert.predict_action, case['initial'], p, case['scenario'], max_time=max_time)
         if result['replay']['terminal']['type'] == 'error':
             raise ValueError(f"agreement policy failed: {result['termination_reason']}")
         records.append(result)
-        hidden_labels.extend(d['observation'] for d in result['decisions'])
+        kept = []
+        for decision in result['decisions']:
+            violations = envelope_violations(decision['observation'], decision['time'], p)
+            if violations:
+                excluded.update(violations)
+                excluded['observations'] += 1
+            else:
+                kept.append(decision)
+                hidden_labels.append(decision['observation'])
+        selected.append(kept)
+    if not hidden_labels:
+        raise ValueError('no in-envelope private agreement observations')
     if (_near_duplicate(visible, hidden_labels) or _near_duplicate(hidden_labels, evaluation_starts)
             or _near_duplicate(hidden_labels, reserved_starts)):
         raise ValueError('private agreement observations overlap visible data or evaluation starts')
@@ -74,8 +97,8 @@ def prepare_private(public_dataset, output, *, agreement_seed, evaluation_seed,
          (target / 'agreement_metadata.jsonl').open('w', encoding='utf-8') as metadata:
         writer = csv.writer(data)
         writer.writerow([*OBSERVATION_NAMES, 'action'])
-        for index, (case, result) in enumerate(zip(agreement_cases, records)):
-            for decision in result['decisions']:
+        for index, (case, result, kept) in enumerate(zip(agreement_cases, records, selected)):
+            for decision in kept:
                 writer.writerow([*decision['observation'], decision['action']])
                 metadata.write(json.dumps(dict(case_id=case['case_id'], scenario=case['scenario'],
                     time=decision['time'], diagnostics=decision['diagnostics'], replay=f'replays/{index+1:02}.json.gz',
@@ -87,6 +110,7 @@ def prepare_private(public_dataset, output, *, agreement_seed, evaluation_seed,
     manifest = dict(schema='rocket-private-evaluation-v0.1', agreement_seed=agreement_seed,
                     evaluation_seed=evaluation_seed, agreement_count=agreement_count,
                     evaluation_count=evaluation_count, max_time=max_time,
+                    excluded_agreement_observations=dict(sorted(excluded.items())),
                     expert_version=expert.version, expert_settings=expert.solver_settings,
                     expert_source_sha256=records[0]['replay']['config']['closed_loop']['policy']['source_sha256'],
                     student_file_sha256={name: hashlib.sha256((public / name).read_bytes()).hexdigest()
