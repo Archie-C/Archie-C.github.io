@@ -1,0 +1,63 @@
+import unittest
+from unittest.mock import patch
+
+from rocket_physics import Command, discrete_command, simulate
+from rocket_server import Run, offline
+
+
+class AdapterTests(unittest.TestCase):
+    def test_mapping_and_boundaries(self):
+        r = Run()
+        for action in range(10):
+            ack = r.queue({'command_sequence': action, 'action': action})
+            self.assertEqual((ack['throttle'], ack['gimbal']), (discrete_command(action, r.p).throttle, discrete_command(action, r.p).gimbal))
+            self.assertGreaterEqual(ack['effective_time'] + 1e-9, r.t)
+            while r.pending:
+                r.advance()
+        with self.assertRaises(ValueError): r.queue({'command_sequence': 10, 'action': 10})
+        with self.assertRaises(ValueError): r.queue({'command_sequence': 10, 'throttle': float('nan'), 'gimbal': 0})
+
+    def test_pause_and_pacing(self):
+        outputs = []
+        for speed in (.25, 1, 5):
+            r = Run(); r.queue({'command_sequence': 1, 'throttle': .3, 'gimbal': .2})
+            r.status = 'running'; r.speed = speed
+            while r.t < 1-1e-8:
+                r.wall_tick(r.last_wall + .02/speed)
+            r.status = 'paused'; before = (r.t, r.state, len(r.snapshots))
+            r.wall_tick(r.last_wall + .2)
+            self.assertEqual(before, (r.t, r.state, len(r.snapshots)))
+            outputs.append(r.snapshots)
+        # Ignore run identities; physics and simulation times remain identical.
+        self.assertEqual([[ (p['time'], p['state']) for p in o] for o in outputs][0], [(p['time'], p['state']) for p in outputs[1]])
+        self.assertEqual([(p['time'], p['state']) for p in outputs[0]], [(p['time'], p['state']) for p in outputs[2]])
+
+    def test_record_read_is_pure_and_offline_matches_simulate(self):
+        r = Run(); actions = [1, 5, 0, 9]
+        with patch('rocket_server.step', side_effect=AssertionError('unexpected step')):
+            self.assertEqual(r.record()['snapshots'], r.record()['snapshots'])
+        recording = offline(actions)
+        expected = list(simulate(r.initial, actions, r.p))
+        self.assertEqual([p['time'] for p in recording['snapshots']], [t for t, _, _ in expected])
+        self.assertEqual([tuple(p['state'].values()) for p in recording['snapshots']], [s.values() for _, s, _ in expected])
+        self.assertEqual(recording['terminal']['reason'], 'action sequence exhausted')
+
+    def test_contact_terminates_and_matches_snapshot(self):
+        r = Run(); r.status = 'running'
+        while r.status == 'running': r.advance()
+        self.assertEqual(r.status, 'contact')
+        last = r.snapshots[-1]
+        self.assertEqual(last['time'], r.event['time'])
+        self.assertEqual(last['state'], r.event['state'])
+        self.assertEqual(last['contact']['point'], r.event['point'])
+        self.assertEqual([p['sequence'] for p in r.snapshots], list(range(len(r.snapshots))))
+
+    def test_unique_reset_and_command_validation(self):
+        a, b = Run(), Run()
+        self.assertNotEqual(a.id, b.id)
+        self.assertEqual(a.initial, b.initial)
+        for payload in ({'command_sequence': 1, 'action': True}, {'command_sequence': 1, 'throttle': True, 'gimbal': 0}, {'command_sequence': 1, 'throttle': 2, 'gimbal': 0}):
+            with self.assertRaises(ValueError): a.queue(payload)
+
+
+if __name__ == '__main__': unittest.main()

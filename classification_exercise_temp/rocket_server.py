@@ -181,6 +181,12 @@ class Handler(BaseHTTPRequestHandler):
                 if self.path == '/api/reset':
                     run = Run(); self.reply(run.record()); return
                 if data.get('run_id') != run.id: raise ValueError('unknown run_id')
+                if self.path == '/api/offline':
+                    actions = data.get('actions')
+                    if not isinstance(actions, list) or len(actions) > 10000:
+                        raise ValueError('actions must be a list of at most 10000 entries')
+                    for action in actions: discrete_command(action, run.p)
+                    self.reply(offline(actions)); return
                 if self.path == '/api/command':
                     self.reply(run.queue(data)); return
                 if self.path == '/api/control':
@@ -212,7 +218,7 @@ def offline(actions):
         r.snapshots.append(state_packet(r, t, s, command, len(r.snapshots), contact))
         if contact:
             r.event = dict(type='contact', time=contact.time, point=contact.point, state=asdict(contact.state), reason='first ground contact')
-    r.commands = [dict(command_sequence=i, effective_time=i*r.p.control_interval, action=a, **asdict(discrete_command(a, r.p))) for i,a in enumerate(actions)]
+    r.commands = [dict(command_sequence=i, effective_time=i*r.p.control_interval, action=a, **asdict(discrete_command(a, r.p))) for i,a in enumerate(actions) if i*r.p.control_interval < r.snapshots[-1]['time']]
     r.status = 'contact' if r.event else 'completed'
     if not r.event: r.event = dict(type='completed', time=r.snapshots[-1]['time'], reason='action sequence exhausted')
     return r.record()

@@ -23,3 +23,25 @@ The centre of mass, moment of inertia, force application arms, and forces are re
 First ground contact terminates the flight; there is no post-impact model. Fuel and actuator crossings are bracketed and located to `event_tolerance` in time. For ground contact, a cubic continuous extension of the RK4 step is searched from the beginning of the step, including for brief or grazing contacts between endpoints. Bounds on hull motion, centre-of-mass shift and terrain slope reject only intervals that cannot contact the terrain on that interpolated trajectory. An unresolved interval at the time tolerance is treated conservatively as contact at its nonpenetrating start: an extremely close near miss can therefore stop the simulation early within that numerical resolution. Event tolerance is a time tolerance, not a spatial one. Like any numerical integration, the interpolated trajectory approximates the continuous equations; choose a timestep appropriate to the dynamics and verify event-time convergence by refinement. The module raises errors for invalid initial states, non-finite derivatives, invalid environmental quantities, and unresolved boundary overshoot; it does not use state clamps to conceal such errors.
 
 The verification suite covers the specified V-01–V-15 cases, action mapping, actuator response, terrain-corner, transient and grazing contacts, coupled refinement, and a control transition. The frame-rate check verifies the physics API's independence from snapshot consumption; no rendering system is included.
+
+## Flight interface
+
+Start the local server with Python 3.10 or newer:
+
+```sh
+python3 classification_exercise_temp/rocket_server.py
+```
+
+Open <http://127.0.0.1:8765/>. The server binds only to localhost and has one shared flight session. The scenario uses **illustrative, uncalibrated** values; it is not a flight-hardware model. Start, pause and reset the flight with the buttons. Throttle and gimbal are normalized commands; actual actuator values appear in telemetry. Discrete actions and their hold interval come from the active configuration. Drag the canvas to pan, scroll to zoom, and use Reset camera to restore automatic framing. All critical controls are keyboard operable. The trail and vectors are visual aids; vectors use 1 metre per 10 newtons, and velocity uses a one-second scale. Positive angle and gimbal rotate the applied thrust left; the nozzle points the opposite way.
+
+The replay timeline selects authoritative recorded frames. Play, step, and seek do not advance physics. Export saves a `rocket-run-v1` JSON recording; import accepts that schema up to 20 MB for read-only inspection. Replay uses exact recorded frames; the live scene interpolates between received states, and contact is shown at the exact recorded pose. Closing the page or losing the heartbeat pauses the live flight. Reset starts a new run and discards the previous live recording, so export it first if needed.
+
+### Local HTTP interface
+
+All JSON uses SI units and radians. `GET /api/run` returns `{record, lag}`; retrieving it never advances physics. A `rocket-run-v1` record contains a configuration snapshot and identifier, initial state, ordered snapshots, accepted control changes, and any terminal event. Each snapshot includes the run ID, sequence, simulation time, full physics state, current command, centre of mass and read-only diagnostics. `lag` is accumulated simulation-time debt in seconds. Commands and controls are `POST` requests containing the current `run_id`:
+
+- `/api/command`: `command_sequence` (strictly increasing) and either `action` (0–9) or normalized `throttle` and `gimbal`. The response acknowledges accepted values and effective simulation time. Only one command may await a control boundary; another is rejected explicitly.
+- `/api/control`: `operation` is `start`, `pause`, or `speed`; the latter also requires `speed` of 0.25, 0.5, 1, 2 or 5.
+- `/api/reset`: creates a new ready run. `/api/offline` accepts the current `run_id` and an `actions` array (maximum 10,000), and returns a separate record generated with `simulate()`.
+
+The worker uses fixed physics steps and simulation-time control boundaries. Wall-clock speed affects pacing only. It accumulates debt rather than skipping steps, and pauses after two seconds without a client heartbeat. Errors are reported explicitly. This is a local, single-user development server, not an authenticated public service. Configuration identifiers cover the serialized numerical parameters and the named illustrative environment. The Python module's event tolerance and numerical limitations described above also apply to rendered contact.

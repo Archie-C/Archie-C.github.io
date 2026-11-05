@@ -5,7 +5,7 @@ const canvas=$('scene'), ctx=canvas.getContext('2d');
 const stateKeys=['x','y','vx','vy','theta','omega','fuel','thrust','gimbal'];
 let record=null, view=null, replayMode=false, playing=false, frame=0, lastFrame=0, seq=0;
 let camera={x:0,y:25,scale:5,auto:true}, dragging=null, connected=false, sending=false, desired=null;
-let lastPacket=-1, liveId=null, liveArrival=0, lag=0, replayClock=0;
+let lastPacket=-1, liveId=null, liveArrival=0, lag=0, replayClock=0, polling=false;
 const fmt=(n,d=2)=>Number(n).toFixed(d);
 function bodyPoint(point,s,c){const x=point[0]-c[0], y=point[1]-c[1], a=s.theta;return [s.x+x*Math.cos(a)-y*Math.sin(a),s.y+x*Math.sin(a)+y*Math.cos(a)];}
 function screen(point){return [canvas.clientWidth/2+(point[0]-camera.x)*camera.scale,canvas.clientHeight/2-(point[1]-camera.y)*camera.scale];}
@@ -15,13 +15,13 @@ function validate(r){if(!r||r.schema!=='rocket-run-v1'||!r.config||r.config.sche
  let time=-1, sequence=-1; for(const s of r.snapshots){if(!validPacket(s,r.config.run_id)||s.sequence<=sequence||s.time<time) throw Error('Invalid or out-of-order state packet'); time=s.time;sequence=s.sequence;} return r;}
 async function post(path,data={}){let res=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});let json=await res.json();if(!res.ok)throw Error(json.error||'Request failed');return json;}
 function notice(s){$('message').textContent=s||'';}
-async function poll(){try{let response=await fetch('/api/run',{cache:'no-store'});if(!response.ok)throw Error('Server returned '+response.status);let data=await response.json(), incoming=validate(data.record), id=incoming.config.run_id, newest=incoming.snapshots.at(-1);
+async function poll(){if(polling)return;polling=true;try{let response=await fetch('/api/run',{cache:'no-store'});if(!response.ok)throw Error('Server returned '+response.status);let data=await response.json(), incoming=validate(data.record), id=incoming.config.run_id, newest=incoming.snapshots.at(-1);
  if(liveId && id!==liveId){if(replayMode)return; liveId=id;lastPacket=-1;}
  if(newest.sequence<lastPacket)throw Error('Stale or out-of-order state packet');
  liveId=id;lastPacket=newest.sequence;connected=true;lag=data.lag;liveArrival=performance.now();
  if(!replayMode){record=incoming;frame=record.snapshots.length-1;view=newest;updateUI();}
  if(incoming.error)notice(incoming.error); else if(lag>.2)notice('Simulation is '+fmt(lag)+' s behind requested speed; no steps are skipped.'); else notice('');
- }catch(e){connected=false;playing=false;notice('Connection or packet error: '+e.message+'. Flight pauses when the heartbeat is lost.');$('status').textContent='Disconnected';} }
+ }catch(e){connected=false;playing=false;notice('Connection or packet error: '+e.message+'. Flight pauses when the heartbeat is lost.');$('status').textContent='Disconnected';}finally{polling=false;} }
 function setRecord(r){enterReplay();record=validate(r);frame=0;view=record.snapshots[0];replayMode=true;playing=false;updateUI();}
 async function control(operation,extra={}){try{if(!liveId)throw Error('No live connection');await post('/api/control',{run_id:liveId,operation,...extra});await poll();}catch(e){notice(e.message);}}
 async function sendDesired(){if(sending||!desired||!liveId)return;sending=true;const request=desired;desired=null;try{let ack=await post('/api/command',{run_id:liveId,command_sequence:++seq,...request});$('accepted').textContent=`Accepted #${ack.command_sequence}: throttle ${fmt(ack.throttle)}, gimbal ${fmt(ack.gimbal)}${ack.action===null?'':`, action ${ack.action}`} · effective ${fmt(ack.effective_time,3)} s`;notice('');}catch(e){notice('Command rejected: '+e.message);}finally{sending=false;if(desired)setTimeout(sendDesired,220);}}
@@ -51,7 +51,7 @@ function dot(a,color,r=4){ctx.fillStyle=color;ctx.beginPath();ctx.arc(...screen(
 function draw(){let w=canvas.clientWidth,h=canvas.clientHeight,dpr=window.devicePixelRatio||1;if(canvas.width!==Math.round(w*dpr)||canvas.height!==Math.round(h*dpr)){canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);}ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);if(!view||!record)return;
  let s=view.state,p=record.config.parameters,c=view.centre;
  if(camera.auto){let targetX=s.x/2,targetY=(s.y+2)/2, scale=Math.max(1,Math.min(20,Math.min(w/Math.max(40,Math.abs(s.x)+30),h/Math.max(25,Math.abs(s.y)+15))));camera.x+=(targetX-camera.x)*.06;camera.y+=(targetY-camera.y)*.06;camera.scale+=(scale-camera.scale)*.06;}
- let left=camera.x-w/(2*camera.scale),right=camera.x+w/(2*camera.scale),terrain=p.terrain,points=[[left,terrain[0][1]],...terrain,[right,terrain.at(-1)[1]]];ctx.fillStyle='#253c35';ctx.beginPath();ctx.moveTo(...screen([left,camera.y-h/camera.scale]));for(let pt of points)ctx.lineTo(...screen(pt));ctx.lineTo(...screen([right,camera.y-h/camera.scale]));ctx.closePath();ctx.fill();for(let i=1;i<points.length;i++)line(points[i-1],points[i],'#84a693',2);
+ let left=camera.x-w/(2*camera.scale),right=camera.x+w/(2*camera.scale),terrain=p.terrain;const terrainHeight=x=>{if(x<=terrain[0][0])return terrain[0][1];for(let i=1;i<terrain.length;i++){let a=terrain[i-1],b=terrain[i];if(x<=b[0])return a[1]+(b[1]-a[1])*(x-a[0])/(b[0]-a[0]);}return terrain.at(-1)[1];};let points=[[left,terrainHeight(left)],...terrain.filter(q=>q[0]>left&&q[0]<right),[right,terrainHeight(right)]];ctx.fillStyle='#253c35';ctx.beginPath();ctx.moveTo(...screen([left,camera.y-h/camera.scale]));for(let pt of points)ctx.lineTo(...screen(pt));ctx.lineTo(...screen([right,camera.y-h/camera.scale]));ctx.closePath();ctx.fill();for(let i=1;i<points.length;i++)line(points[i-1],points[i],'#84a693',2);
  if($('trail').checked){let snaps=record.snapshots,endIndex=replayMode?frame:snaps.length-1,stride=Math.max(1,Math.ceil(endIndex/1000));ctx.beginPath();for(let i=0;i<=endIndex;i+=stride){let q=screen([snaps[i].state.x,snaps[i].state.y]);if(i===0)ctx.moveTo(...q);else ctx.lineTo(...q);}ctx.strokeStyle='#77b5a277';ctx.lineWidth=1;ctx.stroke();}
  const bp=q=>bodyPoint(q,s,c), hull=p.hull.map(bp),engine=bp(p.engine);if(s.thrust>0){let a=s.theta+s.gimbal, length=Math.min(5,.7+4*s.thrust/p.max_thrust);line(engine,[engine[0]+Math.sin(a)*length,engine[1]-Math.cos(a)*length],'#ffad66',Math.max(2,camera.scale*.35));}
  ctx.beginPath();hull.forEach((q,i)=>{let z=screen(q);i?ctx.lineTo(...z):ctx.moveTo(...z);});ctx.closePath();ctx.fillStyle='#e9eee5';ctx.fill();ctx.lineWidth=2;ctx.strokeStyle='#9db6ae';ctx.stroke();for(const foot of p.feet){line(bp([foot[0]*.35,0]),bp(foot),'#c1d1c4',2);dot(bp(foot),'#dce8dc',2.5);}let a=s.theta-s.gimbal;line(engine,[engine[0]+Math.sin(a)*.7,engine[1]-Math.cos(a)*.7],'#e6b78b',Math.max(2,camera.scale*.3));
