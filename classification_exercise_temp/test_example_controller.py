@@ -41,6 +41,38 @@ class ControllerTests(unittest.TestCase):
         model = Controller(learning_rate=0.2, epochs=200).fit(X, y)
         np.testing.assert_array_equal(model.predict(X), y)
 
+    def test_history_features_and_reset_at_flight_boundaries(self):
+        X = np.zeros((4, 12))
+        X[:, 1] = 400
+        X[:, 6] = 9000
+        X[:, 3] = [-40, -41, -70, -71]
+        model = Controller(epochs=2).fit(X, np.array([0, 1, 0, 1]),
+                                         run_ids=[0, 0, 1, 1], steps=[0, 1, 0, 1])
+        previous = np.vstack((X[0], X[0], X[2], X[2]))
+        basis = model._basis_functions(X, previous)
+        np.testing.assert_allclose(basis[:, -4], [0, -10, 0, -10])
+        np.testing.assert_allclose(model.basis_mean_, basis.mean(axis=0))
+        model.predict_action(X[0])
+        model.predict_action(X[1])
+        self.assertEqual(len(model.history), 2)
+        model.reset()
+        self.assertEqual(len(model.history), 0)
+        model.predict_action(X[2])
+        np.testing.assert_array_equal(model.history[0], X[2])
+
+    def test_classification_resets_policy_between_runs(self):
+        class Policy:
+            def __init__(self): self.count = 0
+            def reset(self): self.count = 0
+            def predict_action(self, observation):
+                self.count += 1
+                return self.count - 1
+
+        X = np.zeros((4, 12))
+        metrics = classification_metrics(Policy(), X, np.array([0, 1, 0, 1]), X,
+                                         run_ids=[0, 0, 1, 1], steps=[0, 1, 0, 1])
+        self.assertEqual(metrics['accuracy'], 1)
+
     def test_closed_loop_accepts_policy(self):
         model = Controller(epochs=1).fit(np.zeros((1, 12)), np.array([0]))
         parameters, state = configuration('centred_descent')

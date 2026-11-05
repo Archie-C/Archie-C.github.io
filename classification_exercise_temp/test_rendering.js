@@ -13,6 +13,18 @@ eval(beforeStart + `
 showReplay(false);assert.equal($('replay-empty').hidden,false);assert.equal($('replay-view').hidden,true);assert.equal($('clock').hidden,true);
 showReplay(true);assert.equal($('replay-empty').hidden,true);assert.equal($('replay-view').hidden,false);assert.equal($('clock').hidden,false);
 const near=(a,b)=>assert.ok(Math.abs(a-b)<1e-10, a+' != '+b);
+assert.deepEqual(thrustDisplayVector([0,0],100,50),[0,0]);
+assert.deepEqual(thrustDisplayVector([30,40],100,50),[15,20]);
+assert.deepEqual(thrustDisplayVector([0,200],100,50),[0,50]);
+for(const angle of [0,Math.PI/4,Math.PI/2]){
+ const state={x:100,y:450,theta:angle}, centre=[0,20], params={hull:[[-2,0],[2,0],[2,49],[-2,49]],feet:[[-9,0],[9,0]]};
+ const cam=rocketCamera(state,centre,params,300,380);
+ for(const point of [...params.hull,...params.feet]){
+  const [x,y]=bodyPoint(point,state,centre);
+  assert.ok(Math.abs(x-cam.x)*cam.scale<=150);
+  assert.ok(Math.abs(y-cam.y)*cam.scale<=190);
+ }
+}
 let s={x:0,y:0,theta:0}; let nose=bodyPoint([0,3],s,[0,1]);
 near(nose[0],0);near(nose[1],2);
 s.theta=Math.PI/2;nose=bodyPoint([0,3],s,[0,1]);near(nose[0],-2);near(nose[1],0);

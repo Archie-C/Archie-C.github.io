@@ -2,6 +2,7 @@
 import importlib.util
 import csv
 import copy
+import inspect
 import json
 import math
 from pathlib import Path
@@ -27,13 +28,22 @@ def read_observations(path):
     return X, y
 
 
-def classification_metrics(controller, X_test, y_test, X_train):
+def read_sequence_metadata(path):
+    with path.open(newline='', encoding='utf-8') as f:
+        rows = list(csv.DictReader(f))
+    return np.array([row['run_id'] for row in rows]), np.array([int(row['step']) for row in rows])
+
+
+def classification_metrics(controller, X_test, y_test, X_train, run_ids=None, steps=None):
     """Accuracy and macro F1 over labels present in predictions or targets."""
     policy = copy.deepcopy(controller)
     if hasattr(policy, 'reset'):
         policy.reset()
     predictions = []
-    for observation in X_test:
+    for index, observation in enumerate(X_test):
+        if index and run_ids is not None and (run_ids[index] != run_ids[index-1] or
+                (steps is not None and steps[index] != steps[index-1] + 1)) and hasattr(policy, 'reset'):
+            policy.reset()
         action = policy.predict_action(observation.copy())
         if isinstance(action, (bool, np.bool_)) or not isinstance(action, (int, np.integer)) or not 0 <= action <= 9:
             raise ValueError('predict_action must return an integer action from 0 to 9')
@@ -76,10 +86,20 @@ def main(source_path):
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     controller = module.Controller()
-    X, y = read_observations(Path(__file__).with_name('landings.csv'))
-    controller.fit(X, y)
-    X_test, y_test = read_observations(Path(__file__).with_name('test_landings.csv'))
-    classification = classification_metrics(controller, X_test, y_test, X)
+    train_path = Path(__file__).with_name('landings.csv')
+    test_path = Path(__file__).with_name('test_landings.csv')
+    X, y = read_observations(train_path)
+    run_ids, steps = read_sequence_metadata(train_path)
+    fit_parameters = inspect.signature(controller.fit).parameters
+    extra = {}
+    if 'run_ids' in fit_parameters:
+        extra['run_ids'] = run_ids
+    if 'steps' in fit_parameters:
+        extra['steps'] = steps
+    controller.fit(X, y, **extra)
+    X_test, y_test = read_observations(test_path)
+    test_ids, test_steps = read_sequence_metadata(test_path)
+    classification = classification_metrics(controller, X_test, y_test, X, test_ids, test_steps)
     with Path(__file__).with_name('test_runs.csv').open(newline='', encoding='utf-8') as f:
         cases = list(csv.DictReader(f))
     if len(cases) != 10 or len({case['run_id'] for case in cases}) != 10:

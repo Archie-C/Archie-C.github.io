@@ -1,4 +1,5 @@
 import numpy as np
+from collections import deque
 
 class Controller():
     """Multinomial logistic regression on nonlinear observation features."""
@@ -8,6 +9,11 @@ class Controller():
         self.weights = None
         self.bias = None
         self.loss_history = []
+        self.history = deque(maxlen=5)
+
+    def reset(self):
+        """Start a new flight without carrying observations over from the last."""
+        self.history.clear()
     
     @staticmethod
     def _softmax(scores):
@@ -31,7 +37,13 @@ class Controller():
         observation = np.asarray(observation, dtype=float)
         if observation.shape != (12,):
             raise ValueError("Expected one observation with 12 values.")
-        return int(self.predict(observation.reshape(1, -1))[0])
+        if self.weights is None:
+            raise ValueError("Model has not been trained yet.")
+        previous = self.history[-1] if self.history else observation
+        features = self.create_design_matrix(observation[None, :], previous[None, :])
+        action = int(self.classes_[np.argmax(features @ self.weights + self.bias, axis=1)[0]])
+        self.history.append(observation.copy())
+        return action
     
     def cross_entropy_loss(self, y_true, y_pred):
         eps = 1e-12
@@ -39,19 +51,39 @@ class Controller():
         correct = y_pred[np.arange(len(y_true)), y_true]
         return -np.mean(np.log(correct))
     
-    def _basis_functions(self, X):
+    def _basis_functions(self, X, previous=None):
         # Normalize raw observations before forming powers and interactions.
         z = (np.asarray(X, dtype=float) - self.mean_) / self.scale_
         i, j = np.triu_indices(z.shape[1])
         # Quadratic interactions model effects such as position × velocity and
         # tilt × angular velocity; magnitudes capture symmetric responses.
-        return np.column_stack((z, np.abs(z), z * np.abs(z), z[:, i] * z[:, j]))
+        basis = [z, np.abs(z), z * np.abs(z), z[:, i] * z[:, j]]
+        if z.shape[1] == 12:
+            # Approximate clearance on a flat pad from the fuel-dependent COM.
+            fuel = np.maximum(X[:, 6], 0)
+            mass = 28000.0 + fuel
+            centre = (28000.0 * 23.0 + fuel * (5.0 + 39.0 * fuel / 822000.0)) / mass
+            height = np.maximum(X[:, 1] - centre * np.cos(X[:, 4]) - 9.0 * np.abs(np.sin(X[:, 4])), 1.0)
+            down_speed = np.maximum(-X[:, 3], 0.0)
+            braking = np.maximum(845000.0 * np.maximum(np.cos(X[:, 4]), 0.0) / mass - 9.80665, 0.1)
+            stopping_distance = down_speed ** 2 / (2.0 * braking)
+            time_to_ground = np.minimum(height / np.maximum(down_speed, 1.0), 30.0)
+            basis.append(np.column_stack((height, down_speed, braking, stopping_distance,
+                stopping_distance - height, stopping_distance / height,
+                time_to_ground, X[:, 0] + X[:, 2] * time_to_ground,
+                X[:, 4] + X[:, 5] * time_to_ground)))
+            # Differences estimate acceleration and actuator changes over 0.1 s.
+            if previous is None:
+                previous = X
+            basis.append((X[:, [2, 3, 5, 7, 8]] - previous[:, [2, 3, 5, 7, 8]]) / 0.1)
+        return np.column_stack(basis)
 
-    def create_design_matrix(self, X):
-        features = self._basis_functions(X)
+    def create_design_matrix(self, X, previous=None):
+        X = np.asarray(X, dtype=float)
+        features = self._basis_functions(X, previous)
         return (features - self.basis_mean_) / self.basis_scale_
     
-    def fit(self, X, y):
+    def fit(self, X, y, run_ids=None, steps=None):
         X = np.asarray(X, dtype=float)
         y = np.asarray(y)
         if X.ndim != 2 or not X.shape[0] or not X.shape[1]:
@@ -66,14 +98,26 @@ class Controller():
             raise ValueError("learning_rate must be positive and finite.")
         if not isinstance(self.epochs, (int, np.integer)) or self.epochs <= 0:
             raise ValueError("epochs must be a positive integer.")
+        previous = X.copy()
+        if run_ids is not None:
+            run_ids = np.asarray(run_ids)
+            if run_ids.shape != (len(X),):
+                raise ValueError("run_ids must contain one ID per observation.")
+            consecutive = run_ids[1:] == run_ids[:-1]
+            if steps is not None:
+                steps = np.asarray(steps)
+                if steps.shape != (len(X),):
+                    raise ValueError("steps must contain one step per observation.")
+                consecutive &= steps[1:] == steps[:-1] + 1
+            previous[1:][consecutive] = X[:-1][consecutive]
         self.mean_ = X.mean(axis=0)
         self.scale_ = X.std(axis=0)
         self.scale_[self.scale_ == 0] = 1.0
-        basis = self._basis_functions(X)
+        basis = self._basis_functions(X, previous)
         self.basis_mean_ = basis.mean(axis=0)
         self.basis_scale_ = basis.std(axis=0)
         self.basis_scale_[self.basis_scale_ < 1e-12] = 1.0
-        X = self.create_design_matrix(X)
+        X = self.create_design_matrix(X, previous)
         n_samples, n_features = X.shape
         self.classes_, labels = np.unique(y, return_inverse=True)
         n_classes = len(self.classes_)
@@ -84,6 +128,7 @@ class Controller():
         )
         self.bias = np.zeros(n_classes)
         self.loss_history = []
+        self.reset()
 
         for _ in range(self.epochs):
             probabilities = self._softmax(X @ self.weights + self.bias)

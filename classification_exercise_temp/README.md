@@ -20,6 +20,8 @@ The results show measured signed velocities, tilt, angular velocity and landing-
 
 Action accuracy and macro F1 compare `predict_action` with expert action labels in `test_landings.csv`. Macro F1 weights each action present in the targets or predictions equally. The page reports test observations that exactly match training observations; overlapping data is not an independent evaluation. These metrics measure action agreement, not landing success.
 
+Controllers may implement `reset()` to clear flight history. Evaluation calls it at the start of each flight and at run or step boundaries in the test CSV. If a controller's `fit` method explicitly accepts `run_ids` or `steps`, the evaluator supplies those training CSV columns. The example controller uses them to construct consecutive-observation features without crossing flight boundaries; without run IDs, training treats each observation as a separate first step. Its history differences assume the simulator's 0.1-second control interval. `predict_action` maintains history, whereas batch `predict` treats each row as a first observation.
+
 Run checks with:
 
 ```sh

@@ -8,7 +8,20 @@ let camera={x:0,y:25,scale:5,auto:true}, dragging=null, connected=false, sending
 let lastPacket=-1, liveId=null, liveArrival=0, renderWindow=null, lag=0, replayClock=0, polling=false, resetting=false, generation=0, actionsConfig=null, localNotice='', replayTransition=null, visualQuality=1, slowFrames=0, fastFrames=0, lastPaint=0;
 const fmt=(n,d=2)=>Number(n).toFixed(d);
 function bodyPoint(point,s,c){const x=point[0]-c[0], y=point[1]-c[1], a=s.theta;return [s.x+x*Math.cos(a)-y*Math.sin(a),s.y+x*Math.sin(a)+y*Math.cos(a)];}
+function rocketCamera(s,centre,parameters,width,height){
+ const points=[...parameters.hull,...parameters.feet].map(point=>bodyPoint(point,s,centre));
+ const xs=points.map(point=>point[0]),ys=points.map(point=>point[1]);
+ const left=Math.min(...xs),right=Math.max(...xs),bottom=Math.min(...ys),top=Math.max(...ys);
+ const scale=Math.min(20,width/Math.max(1,(right-left)*1.5),height/Math.max(1,(top-bottom)*1.5));
+ return {x:(left+right)/2,y:(bottom+top)/2,scale,auto:true};
+}
 function thrustDirection(theta,gimbal){return [-Math.sin(theta+gimbal),Math.cos(theta+gimbal)];}
+function thrustDisplayVector(vector,maxThrust,rocketLength){
+ const magnitude=Math.hypot(...vector);
+ if(magnitude===0)return [0,0];
+ const length=rocketLength*Math.min(1,magnitude/maxThrust);
+ return vector.map(component=>component/magnitude*length);
+}
 function nozzleDirection(theta,gimbal){return [Math.sin(theta+gimbal),-Math.cos(theta+gimbal)];}
 function terrainHeight(terrain,x){
  if(x<=terrain[0][0])return terrain[0][1];
@@ -223,7 +236,7 @@ function line(a,b,color,width=1){ctx.strokeStyle=color;ctx.lineWidth=width;ctx.b
 function dot(a,color,r=4){ctx.fillStyle=color;ctx.beginPath();ctx.arc(...screen(a),r,0,Math.PI*2);ctx.fill();}
 function draw(){let w=canvas.clientWidth,h=canvas.clientHeight,dpr=window.devicePixelRatio||1;if(canvas.width!==Math.round(w*dpr)||canvas.height!==Math.round(h*dpr)){canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);}ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);if(!view||!record)return;
  let s=view.state,p=record.config.parameters,c=view.centre;
- if(camera.auto){let ground=terrainHeight(p.terrain,s.x),targetX=s.x,targetY=(s.y+ground)/2, scale=Math.max(.2,Math.min(20,Math.min(w/40,h/Math.max(25,Math.abs(s.y-ground)+15))));const blend=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches?1:.06;camera.x+=(targetX-camera.x)*blend;camera.y+=(targetY-camera.y)*blend;camera.scale+=(scale-camera.scale)*blend;}
+ if(camera.auto)camera=rocketCamera(s,c,p,w,h);
  const guideStep=Math.pow(10,Math.ceil(Math.log10(Math.max(1,50/camera.scale))));
  const bottom=camera.y-h/(2*camera.scale),top=camera.y+h/(2*camera.scale);
  ctx.font='10px JetBrains Mono, monospace';ctx.fillStyle='#6B6149';ctx.strokeStyle='#DCD2BC80';ctx.lineWidth=1;
@@ -250,7 +263,7 @@ function draw(){let w=canvas.clientWidth,h=canvas.clientHeight,dpr=window.device
  rocket();
  let d=view.diagnostics||{}, origin=[s.x,s.y];
  if($('velocityVector').checked)line(origin,[s.x+s.vx,s.y+s.vy],'#2C4A7A',2);
- if($('thrustVector').checked&&d.thrust_vector)line(engine,[engine[0]+d.thrust_vector[0]/10,engine[1]+d.thrust_vector[1]/10],'#6B2C5C',2);
+ if($('thrustVector').checked&&d.thrust_vector){const vector=thrustDisplayVector(d.thrust_vector,p.max_thrust,p.length);line(engine,[engine[0]+vector[0],engine[1]+vector[1]],'#6B2C5C',2);}
  if($('velocityVector').checked||$('thrustVector').checked){ctx.fillStyle='#3D362A';ctx.font='11px JetBrains Mono, monospace';ctx.fillText('Blue velocity · purple thrust',14,22);}
  // A separately scaled detail keeps a distant vehicle legible without changing
  // the world camera or implying that the vehicle is larger in the scene.
