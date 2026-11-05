@@ -17,6 +17,9 @@ class ReleaseTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'owner-only'):
                 freeze_dataset(root / 'draft', private, root / 'report', root / 'sanity', root / 'release')
             self.assertFalse((root / 'release').exists())
+            private.chmod(0o700)
+            with self.assertRaisesRegex(ValueError, 'source report'):
+                freeze_dataset(root / 'draft', private, root / 'report', root / 'sanity', root / 'release')
 
 
 if __name__ == '__main__':

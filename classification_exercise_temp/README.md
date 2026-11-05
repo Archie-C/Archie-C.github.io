@@ -250,7 +250,7 @@ must enforce its own sandbox and access controls.
 
 ## Frozen student data and evaluation evidence
 
-The local [expert-data-v1.0 dataset](datasets/expert-data-v1.0/manifest.json)
+The local [expert-data-v1.1 dataset](datasets/expert-data-v1.1/manifest.json)
 contains `train.csv` and `validation.csv` with the twelve observation columns
 and integer action, plus separate per-row metadata. It has nine training and
 three validation episodes; all ten actions occur in training. Controlled
@@ -262,8 +262,8 @@ The frozen [feasibility-v1.0 results](benchmarks/feasibility-v1.0-summary.json)
 met the predeclared 9/12 target: the discrete expert and continuous reference
 each achieved 12 candidate-safe contacts, while all-off and fixed burn each
 achieved zero. The expert's mean successful quality was 95.73. On the frozen
-data, raw and engineered NumPy softmax models reached 71.3% and 74.2% validation
-agreement respectively; they landed 0/6 and 3/6 separate exploratory starts.
+data, raw and engineered NumPy softmax models reached 71.9% and 76.2% validation
+agreement respectively; they landed 0/6 and 2/6 separate exploratory starts.
 Agreement is not a substitute for closed-loop performance.
 
 The full compressed benchmark and classifier reports in `benchmarks/` retain
@@ -296,7 +296,7 @@ The matching [diagnostic baseline report](benchmarks/diagnostic-baselines-summar
 includes the all-off, fixed-burn and continuous-guidance cases; their complete
 replays are retained in the corresponding compressed report.
 
-The frozen `expert-data-v1.0` labels came from `expert-prototype-v0.4`; its
+The frozen `expert-data-v1.1` labels came from `expert-prototype-v0.4`; its
 exact source is retained under `versions/expert-prototype-v0.4/` and selected
 by version and SHA-256 for historical reproduction. The current discrete
 expert is v0.5: it additionally falls back deterministically on unexpected
@@ -307,7 +307,7 @@ To independently verify every frozen label against its archived flight or
 re-query the exact recorded teacher on a recovery state:
 
 ```sh
-python3 classification_exercise_temp/rocket_expert_audit.py classification_exercise_temp/datasets/expert-data-v1.0 classification_exercise_temp/benchmarks/feasibility-study-expert-v0.4-full-report.json.gz
+python3 classification_exercise_temp/rocket_expert_audit.py classification_exercise_temp/datasets/expert-data-v1.1 classification_exercise_temp/benchmarks/feasibility-study-expert-v0.4-full-report.json.gz
 ```
 
 The current freeze command also requires that archived source report, so it
@@ -321,7 +321,7 @@ archive. All twelve runs for both controllers matched the preceding versions'
 observations, decisions, states, contacts and scores; a successful v0.5 replay
 was independently reproduced exactly. The [updated diagnostic report](benchmarks/diagnostic-controllers-v0.5-summary.json)
 retains the six discrete and seven continuous successes as well as all failures.
-The [label audit](benchmarks/expert-data-v1.0-label-audit.json) records the
+The [label audit](benchmarks/expert-data-v1.1-label-audit.json) records the
 verification of all frozen flight and recovery labels.
 The same audit accepts `--private-agreement /secure/path/agreement.csv` and
 reports only aggregate counts while checking that every private agreement label
@@ -351,3 +351,11 @@ python3 classification_exercise_temp/rocket_expert_release.py \
 
 `OUTPUT_DIR` must not already exist. The checker does not publish anything or
 create a student-upload service.
+
+The earlier `expert-data-v1.0` is superseded: a later scope audit found 54
+flight observations outside the calibrated 35° angle-of-attack envelope.
+The v1.1 exporter excludes and counts those observations, checks all retained
+public and private labels against the recorded atmosphere and envelope, and
+keeps the earlier files only for historical provenance. The corrected
+[classifier report](benchmarks/classifier-v1.1-full-report.json.gz) contains
+the fitted models, confusion matrices and complete exploratory replays.

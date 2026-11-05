@@ -7,16 +7,18 @@ import unittest
 
 import numpy as np
 
+from rocket_calibration import configuration
 from rocket_closed_loop import OBSERVATION_NAMES
+from rocket_observation_scope import envelope_violations
 from rocket_expert_dataset import _near_duplicate
 
 
 class ReleaseArtifactTests(unittest.TestCase):
     def test_frozen_schema_splits_and_archived_evidence(self):
         root = Path(__file__).parent
-        data = root / 'datasets' / 'expert-data-v1.0'
+        data = root / 'datasets' / 'expert-data-v1.1'
         manifest = json.loads((data / 'manifest.json').read_text(encoding='utf-8'))
-        audit = json.loads((root / 'benchmarks' / 'expert-data-v1.0-label-audit.json').read_text(encoding='utf-8'))
+        audit = json.loads((root / 'benchmarks' / 'expert-data-v1.1-label-audit.json').read_text(encoding='utf-8'))
         groups, observations = [], []
         for split in ('train', 'validation'):
             path = data / f'{split}.csv'
@@ -35,13 +37,16 @@ class ReleaseArtifactTests(unittest.TestCase):
             self.assertEqual(hashlib.sha256(metadata_path.read_bytes()).hexdigest(), audit['dataset_files'][metadata_path.name])
             metadata = [json.loads(line) for line in metadata_path.read_text(encoding='utf-8').splitlines()]
             self.assertEqual(len(rows), len(metadata))
+            for value, item in zip(values, metadata):
+                p, _ = configuration(item['scenario'])
+                self.assertEqual(envelope_violations(value, item['time'], p), [])
             groups.append({item['group'] for item in metadata})
             observations.append(values.tolist())
         self.assertFalse(groups[0] & groups[1])
         self.assertFalse(_near_duplicate(*observations))
-        self.assertEqual(audit['counts'], {'expert flight': 1455, 'perturbed recovery state': 180})
+        self.assertEqual(audit['counts'], {'expert flight': 1401, 'perturbed recovery state': 180})
         for key, name in (('final_report_sha256', 'feasibility-v1.0-full-report.json.gz'),
-                          ('sanity_report_sha256', 'classifier-v1.0-full-report.json.gz')):
+                          ('sanity_report_sha256', 'classifier-v1.1-full-report.json.gz')):
             digest = hashlib.sha256()
             with gzip.open(root / 'benchmarks' / name, 'rb') as source:
                 for block in iter(lambda: source.read(1024 * 1024), b''):
