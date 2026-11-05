@@ -6,6 +6,8 @@ import numpy as np
 from rocket_calibration import configuration
 from rocket_closed_loop import OBSERVATION_NAMES, evaluate_closed_loop, make_observation
 from rocket_physics import discrete_command
+from rocket_expert import DiscreteExpert, guidance
+from unittest.mock import patch
 
 
 class ClosedLoopTests(unittest.TestCase):
@@ -37,6 +39,19 @@ class ClosedLoopTests(unittest.TestCase):
         self.assertEqual(result['replay']['terminal']['type'], 'error')
         self.assertIn('action', result['termination_reason'])
         self.assertEqual(result['decisions'], [])
+
+    def test_prototype_is_deterministic_and_falls_back(self):
+        observation = make_observation(self.initial, 0, self.p)
+        expert = DiscreteExpert(horizon_steps=1)
+        first = expert.predict_action(observation)
+        self.assertEqual(first, expert.predict_action(observation))
+        self.assertIn(first, range(10))
+        self.assertFalse(expert.diagnostics['fallback'])
+        with patch('rocket_expert.step', side_effect=ArithmeticError('injected failure')):
+            fallback = expert.predict_action(observation)
+        self.assertIn(fallback, range(10))
+        self.assertTrue(expert.diagnostics['fallback'])
+        self.assertTrue(0 <= guidance(observation).throttle <= 1)
 
     def test_action_mapping(self):
         for action in range(10):

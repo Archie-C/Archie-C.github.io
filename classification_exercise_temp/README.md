@@ -94,3 +94,37 @@ python3 classification_exercise_temp/rocket_evaluation.py leaderboard --sort mea
 ```
 
 Pass multiple evaluation JSON files to the leaderboard to compare submissions. Its default ordering is success rate, then mean successful quality; the alternative sorts by successful quality, then success rate. With no successes quality is `N/A`. Each saved evaluation contains the scenario-set and scoring versions, aggregate metrics, and each case's result with its complete replay in `runs[].replay`. Save a replay object as a JSON file to import it into the flight lab. An exhausted action sequence is a no-contact failure. Evaluation is of the supplied open-loop sequence; it is not a controller benchmark.
+
+## Closed-loop controller prototype
+
+The trusted local closed-loop runner requires NumPy (`pip install -r
+classification_exercise_temp/requirements.txt`). It calls a policy once per
+0.1 s simulation boundary and records its observations, actions and any policy
+errors in a `rocket-run-v1` replay. For example:
+
+```python
+from rocket_calibration import configuration
+from rocket_closed_loop import evaluate_closed_loop
+from rocket_expert import DiscreteExpert
+
+parameters, initial = configuration('centred_descent')
+expert = DiscreteExpert()
+result = evaluate_closed_loop(expert.predict_action, initial, parameters,
+                              'centred_descent')
+```
+
+`observation-v1.0` contains, in order: pad-relative COM x and height (m),
+world vx and vy (m/s), angle (rad), angular rate (rad/s), fuel (kg), actual
+thrust (N), actual gimbal (rad), wind x and y (m/s), and density (kg/m³).
+Upward velocity, anticlockwise angle and leftward thrust deflection are positive.
+The pad and vehicle configuration are fixed to the calibrated profile. The
+runner rejects configurations that do not match the named scenario.
+
+The short-horizon shooting controller is **experimental**, not a validated
+expert. It holds observed wind and density fixed in predicted trajectories,
+tries each discrete command over a bounded horizon, and records costs and
+fallback use. It is not an acceptance benchmark or a source of student labels.
+In an initial centred-descent trial it did not touch down within 15 seconds.
+Continuous predictive control, the feasibility study, acceptance gates,
+dataset generation and classifier evaluation are still outstanding. No data
+should be released until those gates are met.
