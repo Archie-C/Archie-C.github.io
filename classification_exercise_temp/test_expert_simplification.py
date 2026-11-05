@@ -59,6 +59,17 @@ class ExpertSimplificationTests(unittest.TestCase):
         bad = evaluate_closed_loop(lambda _: 10, s, p, 'near_ground_contact', max_time=.2)
         self.assertEqual(bad['replay']['status'], 'error')
 
+    def test_physics_timestep_is_independent_of_control_interval(self):
+        p, state = configuration('near_ground_contact')
+        p = replace(p, timestep=.005, control_interval=.05)
+        result = evaluate_closed_loop(lambda _: 0, state, p, 'near_ground_contact', max_time=.1)
+        replay = result['replay']
+        self.assertEqual(replay['config']['parameters']['timestep'], .005)
+        self.assertEqual([round(d['time'], 2) for d in result['decisions']], [0, .05])
+        times = [s['time'] for s in replay['snapshots']]
+        self.assertAlmostEqual(times[-1], .1)
+        self.assertEqual(sum(times[i] > times[i-1] for i in range(1, len(times))), 20)
+
     def test_evaluation_writes_failed_replay_and_metrics(self):
         _, s = configuration('near_ground_contact')
         case = dict(case_id='test', tier='test', scenario='near_ground_contact', initial=s)
