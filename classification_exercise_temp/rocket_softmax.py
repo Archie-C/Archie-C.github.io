@@ -5,9 +5,10 @@ import json
 
 import numpy as np
 
-from rocket_closed_loop import OBSERVATION_NAMES, evaluate_closed_loop
+from rocket_closed_loop import OBSERVATION_NAMES, evaluate_closed_loop, make_observation
 from rocket_calibration import configuration
 from rocket_expert_benchmark import feasibility_cases
+from rocket_expert_dataset import _near_duplicate
 from rocket_scoring import aggregate
 
 MODEL_VERSION = 'rocket-softmax-v0.1'
@@ -115,7 +116,11 @@ def sanity_check(directory, engineered=False, *, iterations=800, closed_loop=Tru
     if closed_loop:
         runs = []
         # Separate exploratory starts, not a hidden or certified test set.
-        for case in feasibility_cases(count=6, seed=42018):
+        cases = feasibility_cases(count=6, seed=42018)
+        starts = [make_observation(case['initial'], 0., configuration(case['scenario'])[0]).tolist() for case in cases]
+        if _near_duplicate(x.tolist() + valid_x.tolist(), starts):
+            raise ValueError('closed-loop starts overlap the training or validation observations')
+        for case in cases:
             parameters, _ = configuration(case['scenario'])
             run = evaluate_closed_loop(model.predict_action, case['initial'], parameters, case['scenario'], max_time=20.)
             runs.append(dict(case_id=case['case_id'], scoring=run['scoring'], replay=run['replay']))
