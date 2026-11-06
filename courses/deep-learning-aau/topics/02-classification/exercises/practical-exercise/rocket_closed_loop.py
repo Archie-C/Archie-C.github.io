@@ -11,7 +11,7 @@ import numpy as np
 
 from rocket_physics import Command, clearance
 from rocket_scoring import CONFIG, score_contact
-from rocket_server import Run, state_packet
+from rocket_runtime import Run, state_packet
 
 OBSERVATION_VERSION = 'observation-v1.0'
 OBSERVATION_NAMES = ('x_relative', 'height_relative', 'velocity_x', 'velocity_y',

@@ -86,105 +86,69 @@ function validate(r){
  }
  return r;
 }
-async function post(path,data={}){let res=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});let json=await res.json();if(!res.ok)throw Error(json.error||'Request failed');return json;}
+let worker=null, requestId=0, cancelEvaluation=null;
+function evaluateController(source, weights, weightsName){return new Promise((resolve,reject)=>{
+ const id=++requestId;
+ worker=new Worker('./rocket-worker.js');
+ cancelEvaluation=()=>{worker.terminate();worker=null;cancelEvaluation=null;reject(Error('Evaluation cancelled.'));};
+ worker.onmessage=({data})=>{
+  if(data.id!==id)return;
+  if(data.progress){$('controller-status').textContent=data.progress;return;}
+  worker.terminate();worker=null;cancelEvaluation=null;
+  if(data.error)reject(Error(data.error));else resolve(data.result);
+ };
+ worker.onerror=event=>{worker.terminate();worker=null;cancelEvaluation=null;reject(Error(event.message || 'Python worker failed'));};
+ worker.postMessage({id,source,weights,weightsName},weights ? [weights] : []);
+});}
 function notice(s){localNotice=s||'';$('message').textContent=localNotice;}
-function statusNotice(s){$('message').textContent=localNotice||(s||'');}
-async function poll(){
- if(polling||resetting)return;
- polling=true;const pollGeneration=generation;
- try{
-  const cursor=liveRecord ? `?run_id=${encodeURIComponent(liveRecord.config.run_id)}&after=${lastPacket}` : '';
-  const response=await fetch('/api/run'+cursor,{cache:'no-store'});
-  const data=await response.json();
-  if(pollGeneration!==generation)return;
-  if(!response.ok)throw Error(data.error||'Server returned '+response.status);
-  let incoming=data.record;
-  const fresh=!liveRecord, previousNewest=liveRecord?.snapshots.at(-1);
-  if(!liveRecord){
-   validate(incoming);
-   liveRecord=incoming;liveId=incoming.config.run_id;
-  }else{
-   if(incoming.config?.run_id!==liveId || incoming.schema!=='rocket-run-v1' || !Array.isArray(incoming.snapshots))throw Error('Unknown run or invalid snapshot batch');
-   let previous=liveRecord.snapshots.at(-1);
-   validate({...incoming,snapshots:[previous,...incoming.snapshots]});
-   for(const packet of incoming.snapshots){
-    if(!validPacket(packet,liveId)||packet.sequence!==previous.sequence+1||packet.time<previous.time)throw Error('Stale or out-of-order state packet');
-    previous=packet;
-   }
-   for(const packet of incoming.snapshots)liveRecord.snapshots.push(packet);
-   for(const key of ['commands','pending_commands','terminal','status','error'])liveRecord[key]=incoming[key];
-  }
-  const newest=liveRecord.snapshots.at(-1);
-  if(newest.sequence>lastPacket){
-   const now=performance.now();
-   if(previousNewest && incoming.status==='running' && !newest.contact){
-    renderWindow={from:previousNewest.time,to:newest.time,start:now,duration:Math.max(1,Math.min(500,now-liveArrival||200))};
-   }else renderWindow=null;
-   liveArrival=now;
-  }
-  lastPacket=newest.sequence;connected=true;lag=data.lag;
-  if(!replayMode){record=liveRecord;frame=record.snapshots.length-1;view=newest;updateUI();}
-  else if(replayFollowsLive&&record.config.run_id===liveId){
-   for(let i=record.snapshots.length;i<liveRecord.snapshots.length;i++)record.snapshots.push(liveRecord.snapshots[i]);
-   for(const key of ['commands','pending_commands','terminal','status','error'])record[key]=liveRecord[key];
-   if(liveRecord.status!=='running')replayFollowsLive=false;
-   updateUI();
-  }
-  if(liveRecord.error)statusNotice(liveRecord.error);else if(lag>.2)statusNotice('Simulation is '+fmt(lag)+' s behind requested speed; no steps are skipped.');else statusNotice('');
- }catch(e){connected=false;playing=false;statusNotice('Connection or packet error: '+e.message+'. Flight pauses when the heartbeat is lost.');if(record)updateUI();}
- finally{polling=false;}
-}
 function showReplay(loaded){$('replay-empty').hidden=loaded;$('replay-view').hidden=!loaded;$('clock').hidden=!loaded;}
 async function setRecord(r){validate(r);if(!await enterReplay())return false;replayFollowsLive=false;record=r;frame=0;view=record.snapshots[0];replayMode=true;playing=false;showReplay(true);updateUI();return true;}
-async function enterReplay(){
- if(replayMode)return true;
- if(replayTransition)return replayTransition;
- const expectedGeneration=generation;
- replayTransition=(async()=>{
-  if(record&&liveRecord?.status==='running'&&connected){
-   try{await post('/api/control',{run_id:liveId,operation:'pause'});}
-   catch(e){notice('Could not pause for replay: '+e.message);return false;}
-   if(expectedGeneration!==generation)return false;
-  }
-  if(record){replayFollowsLive=connected&&liveRecord?.status==='running';record={...record,snapshots:record.snapshots.slice(),commands:record.commands.slice()};}
-  replayMode=true;
-  return true;
- })();
- try{return await replayTransition;}finally{replayTransition=null;}
-}
+async function enterReplay(){replayMode=true;return true;}
 $('timeline').oninput=async()=>{const index=+$('timeline').value;if(!await enterReplay())return;playing=false;frame=Math.min(index,record.snapshots.length-1);view=record.snapshots[frame];updateUI();};
 function seekTime(t){if(!record||!view)return;let lo=0,hi=record.snapshots.length-1;while(lo<hi){let mid=Math.floor((lo+hi+1)/2);if(record.snapshots[mid].time<=t)lo=mid;else hi=mid-1;}seek(lo);}
 $('backtime').onclick=()=>{if(view)seekTime(view.time-1);};$('forwardtime').onclick=()=>{if(view)seekTime(view.time+1);};
 $('begin').onclick=()=>seek(0);$('back').onclick=()=>seek(frame-1);$('forward').onclick=()=>seek(frame+1);$('terminal').onclick=()=>{if(record)seek(record.snapshots.length-1);};
 $('replay').onclick=async()=>{if(!record)return;if(!replayMode){if(!await enterReplay())return;frame=0;} if(frame>=record.snapshots.length-1)frame=0;playing=!playing;lastFrame=0;view=record.snapshots[frame];replayClock=view.time;updateUI();};
-function returnToLive(){replayMode=false;replayFollowsLive=false;playing=false;showReplay(false);notice('');if(liveRecord){record=liveRecord;frame=record.snapshots.length-1;view=record.snapshots[frame];updateUI();}poll();}
-$('live').onclick=returnToLive;
+$('live').onclick=()=>{record=null;view=null;playing=false;replayMode=false;showReplay(false);notice('');};
 async function seek(i){if(!record||!await enterReplay())return;playing=false;frame=Math.max(0,Math.min(record.snapshots.length-1,i));view=record.snapshots[frame];updateUI();}
 $('export').onclick=()=>{if(!record)return;const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(record)],{type:'application/json'}));a.download='rocket-'+record.config.run_id+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);};
 $('import').onchange=async e=>{try{let f=e.target.files[0];if(!f)return;if(f.size>64*1024*1024)throw Error('File exceeds 64 MB limit');if(await setRecord(JSON.parse(await f.text())))notice('Recording imported for read-only replay.');}catch(err){notice('Import error: '+err.message);}e.target.value='';};
-let selectedController=null, controllerReplays=[];
+let selectedController=null, selectedWeights=null;
 function selectController(file){
  if(!file)return;
- if(!file.name.toLowerCase().endsWith('.py')||file.size>128*1024){$('controller-status').textContent='Choose a .py file no larger than 128 KB.';return;}
- selectedController=file;$('upload-filename').textContent=file.name;$('upload-zone').hidden=true;$('upload-meta').hidden=false;$('controller-status').textContent='';
+ if(!file.name.toLowerCase().endsWith('.py') || !file.size || file.size>128*1024){
+  $('controller-status').textContent='Choose a nonempty .py file no larger than 128 KB.';return;
+ }
+ selectedController=file;$('upload-filename').textContent=file.name;$('upload-meta').hidden=false;$('controller-status').textContent='';
 }
-$('upload-zone').onclick=()=>$('controller-file').click();
-$('upload-zone').onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();$('controller-file').click();}};
-$('upload-zone').ondragover=e=>{e.preventDefault();$('upload-zone').classList.add('dragover');};
-$('upload-zone').ondragleave=()=>$('upload-zone').classList.remove('dragover');
-$('upload-zone').ondrop=e=>{e.preventDefault();$('upload-zone').classList.remove('dragover');selectController(e.dataTransfer.files[0]);};
-$('controller-file').onchange=e=>selectController(e.target.files[0]);
-$('upload-clear').onclick=()=>{selectedController=null;$('controller-file').value='';$('upload-zone').hidden=false;$('upload-meta').hidden=true;};
-function showControllerResults(result){
- const s=result.summary;
- const c=result.classification;
- $('classification-summary').textContent=`Action accuracy: ${fmt(100*c.accuracy,1)}% · Macro F1: ${fmt(100*c.macro_f1,1)}% · ${c.sample_count} observations`;
- $('classification-overlap').hidden=c.overlapping_observations===0;
- $('classification-overlap').textContent=c.overlapping_observations===null ? 'Training data for this saved model is unknown; test data independence cannot be checked.' : c.overlapping_observations ? `${c.overlapping_observations} / ${c.sample_count} test observations also occur in the training data; these results are not fully independent.` : '';
- $('result-summary').textContent=`${s.successful_runs} / ${s.total_runs} successful (${fmt(100*s.success_rate,0)}%) · Mean score: ${s.mean_diagnostic_score===null?'—':fmt(s.mean_diagnostic_score,1)+' / 100'} (${s.scored_contacts} contacts)`;
- const body=$('result-rows');body.replaceChildren();controllerReplays=result.replays;
- result.runs.forEach((run,i)=>{
-  const row=document.createElement('tr'), score=run.scoring, m=run.metrics, l=result.limits;
+function selectWeights(file){
+ if(!file)return;
+ if(!file.size || file.size>20*1024*1024){
+  $('controller-status').textContent='Choose a nonempty weights file no larger than 20 MB.';return;
+ }
+ selectedWeights=file;$('weights-filename').textContent=file.name;$('weights-meta').hidden=false;
+ $('controller-run').textContent='Evaluate saved model';$('controller-status').textContent='';
+}
+function bindUpload(zoneId, inputId, select){
+ const zone=$(zoneId), input=$(inputId);
+ zone.onclick=()=>input.click();
+ zone.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();input.click();}};
+ zone.ondragover=e=>{e.preventDefault();zone.classList.add('dragover');};
+ zone.ondragleave=()=>zone.classList.remove('dragover');
+ zone.ondrop=e=>{e.preventDefault();zone.classList.remove('dragover');select(e.dataTransfer.files[0]);};
+ input.onchange=()=>select(input.files[0]);
+}
+bindUpload('upload-zone','controller-file',selectController);
+bindUpload('weights-zone','weights-file',selectWeights);
+$('upload-clear').onclick=()=>{selectedController=null;$('controller-file').value='';$('upload-meta').hidden=true;};
+$('weights-clear').onclick=()=>{selectedWeights=null;$('weights-file').value='';$('weights-meta').hidden=true;$('controller-run').textContent='Train and evaluate';};
+
+function renderFlightSet(flightSet, label, bodyId, summaryId, limits, includeExperts) {
+ const s=flightSet.summary;
+ $(summaryId).textContent=`${s.successful_runs} / ${s.total_runs} successful (${fmt(100*s.success_rate,0)}%) · Mean score: ${s.mean_diagnostic_score===null?'—':fmt(s.mean_diagnostic_score,1)+' / 100'} (${s.scored_contacts} contacts)`;
+ const body=$(bodyId);body.replaceChildren();
+ flightSet.runs.forEach((run,i)=>{
+  const row=document.createElement('tr'), score=run.scoring, m=run.metrics, l=limits;
   const degrees=n=>n*180/Math.PI, measurement=(n,limit)=>`${fmt(n)} / ${fmt(limit)}`;
   const atContact=score.contact_time!==null;
   const values=[
@@ -206,32 +170,83 @@ function showControllerResults(result){
    row.appendChild(cell);
   }
   const cell=document.createElement('td');
-  if(i<controllerReplays.length){const button=document.createElement('button');button.type='button';button.textContent='View flight';button.onclick=async()=>{if(await setRecord(controllerReplays[i])){notice(`Validation run ${run.run_id} loaded. Use Play replay to watch it.`);$('scene').scrollIntoView({behavior:'smooth',block:'center'});}};cell.appendChild(button);}
+  if(i<flightSet.replays.length){const button=document.createElement('button');button.type='button';button.textContent='View flight';button.onclick=async()=>{if(await setRecord(flightSet.replays[i])){notice(`${label} run ${run.run_id} loaded. Use Play replay to watch it.`);$('scene').scrollIntoView({behavior:'smooth',block:'center'});}};cell.appendChild(button);}
   else cell.textContent='—';row.appendChild(cell);
-  const expertCell=document.createElement('td'), expertReplay=result.expert_replays?.[i];
-  if(expertReplay){const button=document.createElement('button');button.type='button';button.textContent='View expert flight';button.onclick=async()=>{if(await setRecord(expertReplay)){notice(`Expert validation run ${run.run_id} loaded. Use Play replay to watch it.`);$('scene').scrollIntoView({behavior:'smooth',block:'center'});}};expertCell.appendChild(button);}
-  else {expertCell.textContent='Not provided';expertCell.title='Generate expert replay JSON files in expert_replays to enable this replay.';}
-  row.appendChild(expertCell);body.appendChild(row);
+  if (includeExperts) {
+   const expertCell=document.createElement('td'), expertReplay=flightSet.expert_replays?.[i];
+   if(expertReplay){const button=document.createElement('button');button.type='button';button.textContent='View expert flight';button.onclick=async()=>{if(await setRecord(expertReplay)){notice(`Expert validation run ${run.run_id} loaded. Use Play replay to watch it.`);$('scene').scrollIntoView({behavior:'smooth',block:'center'});}};expertCell.appendChild(button);}
+   else {expertCell.textContent='Not provided';}
+   row.appendChild(expertCell);
+  }
+  body.appendChild(row);
  });
+}
+function showControllerResults(result){
+ renderFlightSet(result.validation,'Validation','result-rows','result-summary',result.limits,true);
  $('controller-results').hidden=false;
 }
-$('weights-file').onchange=()=>{$('controller-run').textContent=$('weights-file').files.length?'Evaluate saved model':'Train and evaluate';};
-function fileAsBase64(file){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result.split(',')[1]);reader.onerror=()=>reject(Error('Could not read saved weights.'));reader.readAsDataURL(file);});}
+
+let evaluationVersion = 0, currentClassification = null, currentLanding = null;
+const scoreEndpoint = 'https://sjoybqjjvhafnsobouzl.supabase.co/functions/v1/score-rocket';
+function showSubmittedTestResults(classification, landing, result) {
+ const validMetrics = result.sample_count === classification.sample_count &&
+  Number.isFinite(result.accuracy) && result.accuracy >= 0 && result.accuracy <= 1 &&
+  Number.isFinite(result.macro_f1) && result.macro_f1 >= 0 && result.macro_f1 <= 1;
+ $('classification-summary').textContent = validMetrics
+  ? `Action accuracy: ${fmt(100*result.accuracy,1)}% · Macro F1: ${fmt(100*result.macro_f1,1)}% · ${result.sample_count} observations`
+  : 'Action agreement results are unavailable.';
+ $('classification-overlap').hidden=!classification.overlapping_observations;
+ $('classification-overlap').textContent=classification.overlapping_observations
+  ? `${classification.overlapping_observations} / ${classification.sample_count} test observations also occur in the training data; these results are not fully independent.` : '';
+ $('test-result-summary').textContent=`${landing.successful_runs} / ${landing.total_runs} successful (${fmt(100*landing.successful_runs/landing.total_runs,0)}%) · Mean score: ${landing.score===null?'—':fmt(landing.score,1)+' / 100'} (${landing.scored_contacts} contacts)`;
+ $('test-results').hidden=false;
+}
+function getBrowserId() {
+ let id = localStorage.getItem('browser_id');
+ if (!id) { id = crypto.randomUUID(); localStorage.setItem('browser_id', id); }
+ return id;
+}
+$('leaderboard-form').onsubmit = async event => {
+ event.preventDefault();
+ const status = $('leaderboard-submit-status'), button = $('leaderboard-submit');
+ const name = $('student-name').value.trim(), classification = currentClassification, landing = currentLanding, version = evaluationVersion;
+ if (!name || name.length > 50) { status.textContent = 'Enter a name of up to 50 characters.'; return; }
+ if (!classification || !landing) { status.textContent = 'Evaluate a controller first.'; return; }
+ button.disabled = true; status.textContent = 'Submitting your predictions…';
+ try {
+  const response = await fetch(scoreEndpoint, {method:'POST', headers:{'Content-Type':'application/json'},
+   body:JSON.stringify({dataset_id:classification.dataset_id, predictions:classification.predictions,
+    browser_id:getBrowserId(), name, task_name:'rocket', landing})});
+  const result = await response.json();
+  if (version !== evaluationVersion) return;
+  if (!response.ok) throw Error(result.error || 'Submission failed');
+  if (result.flight_set !== 'test-v1') {
+   status.textContent = 'The deployed scoring function needs updating. This submission is not marked as a test flight; update the function and submit again.';
+   return;
+  }
+  if (result.saved !== true) throw Error(result.message || 'Submission was not saved');
+  showSubmittedTestResults(classification, landing, result);
+  status.textContent = result.message || 'Submission saved.';
+  if (typeof window.loadRocketLeaderboard === 'function') await window.loadRocketLeaderboard();
+ } catch (error) { if (version === evaluationVersion) status.textContent = 'Submission failed: ' + error.message; }
+ finally { button.disabled = false; }
+};
+$('controller-cancel').onclick=()=>cancelEvaluation?.();
 $('controller-form').onsubmit=async e=>{
  e.preventDefault();const file=selectedController, status=$('controller-status'), button=$('controller-run');
  if(!file){status.textContent='Choose a Python controller file first.';return;}
- const weights=$('weights-file').files[0];
+ const weights=selectedWeights;
  if(weights && (!weights.size || weights.size>20*1024*1024)){status.textContent='Choose a nonempty weights file no larger than 20 MB.';return;}
- button.disabled=true;$('controller-results').hidden=true;status.textContent=weights?'Loading saved model and evaluating 10 validation runs…':'Training controller and evaluating 10 validation runs…';
+ ++evaluationVersion; currentClassification=null; currentLanding=null; $('test-results').hidden=true; $('leaderboard-submit-status').textContent='';
+ button.disabled=true;$('controller-cancel').hidden=false;$('controller-results').hidden=true;status.textContent=weights?'Loading saved model and evaluating validation and test flights…':'Training controller and evaluating validation and test flights…';
  try{
-  const payload={source:await file.text()};
-  if(weights){payload.weights=await fileAsBase64(weights);payload.weights_name=weights.name;}
-  const result=await post('/api/controller',payload);
-  showControllerResults(result);status.textContent='Evaluation complete. Select View flight to inspect a validation run.';
- }catch(err){status.textContent=err.message==='unknown run_id'
-   ? 'The simulator server may be running an older version. Stop it, restart rocket_server.py, and reload this page.'
-   : 'Controller error: '+err.message;}
- finally{button.disabled=false;}
+  const result=await evaluateController(await file.text(), weights ? await weights.arrayBuffer() : null, weights?.name);
+  currentClassification=result.classification;
+  currentLanding={flight_set:'test-v1', successful_runs:result.test.summary.successful_runs, total_runs:result.test.summary.total_runs,
+   score:result.test.summary.mean_diagnostic_score, scored_contacts:result.test.summary.scored_contacts};
+  showControllerResults(result);status.textContent='Evaluation complete. Select View flight to inspect a validation run, or submit to see test results.';
+ }catch(err){status.textContent='Controller error: '+err.message;}
+ finally{button.disabled=false;$('controller-cancel').hidden=true;}
 };
 function updateUI(){
  if(!record||!view)return;
@@ -290,5 +305,4 @@ function updateVisualQuality(interval){
  else {slowFrames=0;fastFrames=0;}
 }
 function animate(now){if(lastPaint)updateVisualQuality(now-lastPaint);lastPaint=now;if(playing&&record){if(lastFrame){replayClock+=(now-lastFrame)/1000*(+$('replayspeed').value);while(frame+1<record.snapshots.length&&record.snapshots[frame+1].time<=replayClock)frame++;view=record.snapshots[frame];if(frame===record.snapshots.length-1)playing=false;updateUI();}lastFrame=now;}else lastFrame=0;if(!$('replay-view').hidden)draw();requestAnimationFrame(animate);}
-window.addEventListener('pagehide',()=>{if(liveId && liveRecord && liveRecord.status==='running')navigator.sendBeacon('/api/control',new Blob([JSON.stringify({run_id:liveId,operation:'pause'})],{type:'application/json'}));});
-poll();setInterval(poll,200);requestAnimationFrame(animate);
+requestAnimationFrame(animate);

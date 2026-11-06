@@ -1,8 +1,9 @@
-"""Train and run a user-selected controller in a separate local process."""
+"""Train a controller and evaluate separate validation and test flights."""
 import importlib.util
 import csv
 import copy
 import inspect
+import hashlib
 import json
 import math
 from pathlib import Path
@@ -20,18 +21,40 @@ OBSERVATION_COLUMNS = ('x', 'y', 'vx', 'vy', 'theta', 'omega', 'fuel_mass', 'act
 
 
 def read_observations(path):
-    data = np.genfromtxt(path, delimiter=',', names=True, dtype=None, encoding='utf-8')
-    X = np.column_stack([np.atleast_1d(data[name]) for name in OBSERVATION_COLUMNS])
-    y = np.atleast_1d(data['action']).astype(int)
-    if not len(y):
+    # Read only numeric columns needed by the model; parsing a structured array
+    # of every CSV field creates large temporary copies in browser memory.
+    with path.open(newline='', encoding='utf-8') as source:
+        header = next(csv.reader(source), [])
+        try:
+            columns = [header.index(name) for name in (*OBSERVATION_COLUMNS, 'action')]
+        except ValueError as exc:
+            raise ValueError(f'{path.name} is missing an observation or action column') from exc
+        data = np.loadtxt(source, delimiter=',', usecols=columns, ndmin=2)
+    if not data.size:
         raise ValueError(f'{path.name} must contain observations')
-    return X, y
+    return data[:, :-1], data[:, -1].astype(int)
+
+
+def read_test_observations(path):
+    with path.open(newline='', encoding='utf-8') as source:
+        header = next(csv.reader(source), [])
+        try:
+            columns = [header.index(name) for name in OBSERVATION_COLUMNS]
+        except ValueError as exc:
+            raise ValueError(f'{path.name} is missing an observation column') from exc
+        observations = np.loadtxt(source, delimiter=',', usecols=columns, ndmin=2)
+    if not observations.size:
+        raise ValueError(f'{path.name} must contain observations')
+    return observations
 
 
 def read_sequence_metadata(path):
-    with path.open(newline='', encoding='utf-8') as f:
-        rows = list(csv.DictReader(f))
-    return np.array([row['run_id'] for row in rows]), np.array([int(row['step']) for row in rows])
+    run_ids, steps = [], []
+    with path.open(newline='', encoding='utf-8') as source:
+        for row in csv.DictReader(source):
+            run_ids.append(row['run_id'])
+            steps.append(int(row['step']))
+    return np.asarray(run_ids), np.asarray(steps)
 
 
 def read_validation_runs(path):
@@ -56,17 +79,17 @@ def read_validation_runs(path):
                               fuel=row['fuel_mass'], thrust=row['actual_thrust'],
                               gimbal=row['actual_gimbal']))
         if {case['run_id'] for case in cases} != {row['run_id'] for row in rows}:
-            raise ValueError('validation_runs.csv must have one step=0 row for every run')
+            raise ValueError(f'{path.name} must have one step=0 row for every run')
     else:
-        raise ValueError('validation_runs.csv must contain saved initial states or a generated dataset with step=0 rows')
+        raise ValueError(f'{path.name} must contain saved initial states or a generated dataset with step=0 rows')
     if len(cases) != 10 or len({case['run_id'] for case in cases}) != 10:
-        raise ValueError(f'validation_runs.csv must contain 10 distinct initial runs; found {len(cases)} initial rows '
+        raise ValueError(f'{path.name} must contain 10 distinct initial runs; found {len(cases)} initial rows '
                          f'for {len({case["run_id"] for case in cases})} distinct runs')
     return cases
 
 
-def classification_metrics(controller, X_test, y_test, X_train, run_ids=None, steps=None):
-    """Accuracy and macro F1 over labels present in predictions or targets."""
+def test_predictions(controller, X_test, X_train, run_ids=None, steps=None):
+    """Predict test actions without accessing their private expert labels."""
     policy = copy.deepcopy(controller)
     if hasattr(policy, 'reset'):
         policy.reset()
@@ -79,19 +102,16 @@ def classification_metrics(controller, X_test, y_test, X_train, run_ids=None, st
         if isinstance(action, (bool, np.bool_)) or not isinstance(action, (int, np.integer)) or not 0 <= action <= 9:
             raise ValueError('predict_action must return an integer action from 0 to 9')
         predictions.append(int(action))
-    predictions = np.asarray(predictions)
-    f1_scores = []
-    for label in np.union1d(y_test, predictions):
-        tp = np.sum((predictions == label) & (y_test == label))
-        fp = np.sum((predictions == label) & (y_test != label))
-        fn = np.sum((predictions != label) & (y_test == label))
-        f1_scores.append(float(2 * tp / (2 * tp + fp + fn)))
     overlap = None
     if X_train is not None:
-        train_observations = {tuple(row) for row in X_train}
-        overlap = sum(tuple(row) in train_observations for row in X_test)
-    return dict(accuracy=float(np.mean(predictions == y_test)), macro_f1=float(np.mean(f1_scores)),
-                sample_count=len(y_test), overlapping_observations=overlap)
+        test_observations = {tuple(row) for row in X_test}
+        matches = set()
+        for row in X_train:
+            key = tuple(row)
+            if key in test_observations:
+                matches.add(key)
+        overlap = sum(tuple(row) in matches for row in X_test)
+    return dict(predictions=predictions, sample_count=len(predictions), overlapping_observations=overlap)
 
 
 def landing_diagnostics(result, parameters):
@@ -114,15 +134,62 @@ def landing_diagnostics(result, parameters):
     return dict(metrics=metrics, diagnostic_score=diagnostic_score)
 
 
+def evaluate_flights(controller, cases, *, include_experts=False, include_details=True):
+    """Run each start with a fresh controller; expert replays apply only to validation."""
+    runs, replays, expert_replays = [], [], []
+    scores, diagnostic_scores = [], []
+    for case in cases:
+        scenario = case['scenario']
+        parameters, _ = configuration(scenario)
+        initial = State(**{key: float(case[key]) for key in State.__dataclass_fields__})
+        run_controller = copy.deepcopy(controller)
+        result = evaluate_closed_loop(run_controller.predict_action, initial, parameters, scenario,
+                                      max_time=None, constant_wind=(float(case['wind_x']), float(case['wind_y'])))
+        if result['replay']['status'] == 'error':
+            raise ValueError(f"Run {case['run_id']}: {result['termination_reason']}")
+        diagnostic = landing_diagnostics(result, parameters)
+        scores.append(result['scoring'])
+        if diagnostic['diagnostic_score'] is not None:
+            diagnostic_scores.append(diagnostic['diagnostic_score'])
+        if not include_details:
+            continue
+        runs.append({'run_id': case['run_id'], 'description': case.get('description', ''), 'scoring': result['scoring'],
+                     **diagnostic,
+                     'termination_reason': result['termination_reason'],
+                     'duration': result['replay']['terminal']['time']})
+        replays.append(result['replay'])
+        replay_path = Path(__file__).with_name('expert_replays') / f"run_{case['run_id']}.json"
+        if include_experts and replay_path.is_file():
+            expert_replay = json.loads(replay_path.read_text(encoding='utf-8'))
+            config = expert_replay.get('config', {})
+            initial_recorded = config.get('initial_state', {})
+            wind_recorded = config.get('environment', {}).get('wind')
+            if (any(not math.isclose(initial_recorded.get(key, float('inf')), getattr(initial, key), rel_tol=1e-9, abs_tol=1e-9)
+                    for key in State.__dataclass_fields__) or wind_recorded is None or
+                    any(not math.isclose(a, float(b), rel_tol=1e-9, abs_tol=1e-9)
+                        for a, b in zip(wind_recorded, (case['wind_x'], case['wind_y']))) or len(wind_recorded) != 2):
+                raise ValueError(f"Expert replay for run {case['run_id']} does not match validation_runs.csv")
+            expert_replays.append(expert_replay)
+        else:
+            expert_replays.append(None)
+    summary = aggregate(scores)
+    summary['mean_diagnostic_score'] = sum(diagnostic_scores) / len(diagnostic_scores) if diagnostic_scores else None
+    summary['scored_contacts'] = len(diagnostic_scores)
+    if not include_details:
+        return {'summary': summary}
+    return {'runs': runs, 'summary': summary, 'replays': replays,
+            'expert_replays': expert_replays}
+
+
 def main(source_path, weights_path=None):
     validation_path = Path(__file__).with_name('validation_runs.csv')
-    cases = read_validation_runs(validation_path)
+    validation_cases = read_validation_runs(validation_path)
     spec = importlib.util.spec_from_file_location('uploaded_controller', source_path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     controller = module.Controller()
     train_path = Path(__file__).with_name('landings.csv')
-    test_path = Path(__file__).with_name('test_landings.csv')
+    test_path = Path(__file__).with_name('X_test.csv')
     X = None
     if weights_path is not None:
         if not callable(getattr(controller, 'load', None)):
@@ -138,43 +205,14 @@ def main(source_path, weights_path=None):
         if 'steps' in fit_parameters:
             extra['steps'] = steps
         controller.fit(X, y, **extra)
-    X_test, y_test = read_observations(test_path)
+    X_test = read_test_observations(test_path)
     test_ids, test_steps = read_sequence_metadata(test_path)
-    classification = classification_metrics(controller, X_test, y_test, X, test_ids, test_steps)
-    runs, replays, expert_replays = [], [], []
-    for case in cases:
-        scenario = case['scenario']
-        parameters, _ = configuration(scenario)
-        initial = State(**{key: float(case[key]) for key in State.__dataclass_fields__})
-        run_controller = copy.deepcopy(controller)
-        result = evaluate_closed_loop(run_controller.predict_action, initial, parameters, scenario,
-                                      max_time=None, constant_wind=(float(case['wind_x']), float(case['wind_y'])))
-        if result['replay']['status'] == 'error':
-            raise ValueError(f"Run {case['run_id']}: {result['termination_reason']}")
-        runs.append({'run_id': case['run_id'], 'description': case.get('description', ''), 'scoring': result['scoring'],
-                     **landing_diagnostics(result, parameters),
-                     'termination_reason': result['termination_reason'],
-                     'duration': result['replay']['terminal']['time']})
-        replays.append(result['replay'])
-        replay_path = Path(__file__).with_name('expert_replays') / f"run_{case['run_id']}.json"
-        if replay_path.is_file():
-            expert_replay = json.loads(replay_path.read_text(encoding='utf-8'))
-            config = expert_replay.get('config', {})
-            initial_recorded = config.get('initial_state', {})
-            wind_recorded = config.get('environment', {}).get('wind')
-            if (any(not math.isclose(initial_recorded.get(key, float('inf')), getattr(initial, key), rel_tol=1e-9, abs_tol=1e-9)
-                    for key in State.__dataclass_fields__) or wind_recorded is None or
-                    any(not math.isclose(a, float(b), rel_tol=1e-9, abs_tol=1e-9)
-                        for a, b in zip(wind_recorded, (case['wind_x'], case['wind_y']))) or len(wind_recorded) != 2):
-                raise ValueError(f"Expert replay for run {case['run_id']} does not match validation_runs.csv")
-            expert_replays.append(expert_replay)
-        else:
-            expert_replays.append(None)
-    summary = aggregate([run['scoring'] for run in runs])
-    diagnostic_scores = [run['diagnostic_score'] for run in runs if run['diagnostic_score'] is not None]
-    summary['mean_diagnostic_score'] = sum(diagnostic_scores) / len(diagnostic_scores) if diagnostic_scores else None
-    summary['scored_contacts'] = len(diagnostic_scores)
-    return {'runs': runs, 'summary': summary, 'classification': classification, 'replays': replays, 'expert_replays': expert_replays,
+    classification = test_predictions(controller, X_test, X, test_ids, test_steps)
+    classification['dataset_id'] = hashlib.sha256(test_path.read_bytes()).hexdigest()
+    test_cases = read_validation_runs(test_path)
+    validation = evaluate_flights(controller, validation_cases, include_experts=True)
+    test = evaluate_flights(controller, test_cases, include_details=False)
+    return {'validation': validation, 'test': test, 'classification': classification,
             'limits': dict(vy=CONFIG.max_descent, vx=CONFIG.max_horizontal_speed,
                            theta=math.degrees(CONFIG.max_tilt), omega=math.degrees(CONFIG.max_angular_rate),
                            midpoint_offset=CONFIG.d_ref)}

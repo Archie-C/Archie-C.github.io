@@ -1,1056 +1,145 @@
-<!DOCTYPE html>
-<html lang="en" data-palette="paper">
-<head>
-<meta charset="utf-8"/>
-<title>Vectorised Classification | Deep Learning</title>
-  <meta name="description" content="Implement and evaluate a vectorised classification model using NumPy."/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<link rel="icon" href="../../../../../../design_system/assets/favicon.svg"/>
-<link rel="stylesheet" href="../../../../../../design_system/colors_and_type.css"/>
-<link rel="stylesheet" href="../../../../../../design_system/charts.css"/>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"/>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-<script src="https://cdn.jsdelivr.net/pyodide/v0.29.4/full/pyodide.js"></script>
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
-  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
-<style>
-  :root { --page-w: 1180px; }
-
-  body { background: var(--bg-2); }
-
-  .frame {
-    max-width: var(--page-w);
-    margin: 0 auto;
-    background: var(--bg);
-    min-height: 100vh;
-  }
-
-  .topbar {
-    padding: 20px 32px;
-    display: flex;
-    align-items: baseline;
-    gap: 22px;
-    border-bottom: 1px solid var(--rule);
-  }
-
-  .topbar .mark {
-    font-family: var(--font-mono);
-    font-weight: 700;
-    font-size: 22px;
-    letter-spacing: -0.02em;
-    color: var(--fg);
-    text-decoration: none;
-  }
-
-  .topbar .mark .dot { color: var(--accent); }
-
-  .topbar .crumb {
-    font-family: var(--font-mono);
-    font-size: 13px;
-    color: var(--fg-2);
-  }
-
-  .topbar .crumb a {
-    color: var(--fg-3);
-    text-decoration: none;
-  }
-
-  .topbar .crumb a:hover { color: var(--fg); }
-
-  .topbar .crumb .sep {
-    color: var(--fg-4);
-    margin: 0 8px;
-  }
-
-  .topbar nav {
-    margin-left: auto;
-    display: flex;
-    gap: 16px;
-    flex-wrap: wrap;
-  }
-
-  .topbar nav a {
-    font-family: var(--font-mono);
-    font-size: 13px;
-    color: var(--fg-2);
-    text-decoration: none;
-  }
-
-  .topbar nav a:hover,
-  .topbar nav a.active {
-    color: var(--accent);
-  }
-
-  .lecture {
-    padding: 40px 32px 80px;
-    display: grid;
-    grid-template-columns: 240px 1fr;
-    gap: 56px;
-  }
-
-  .lecture aside {
-    font-family: var(--font-sans);
-    font-size: 13px;
-    color: var(--fg-3);
-    position: sticky;
-    top: 24px;
-    align-self: start;
-    line-height: 1.5;
-  }
-
-  .lecture aside .h {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--fg-4);
-    display: block;
-    margin: 16px 0 6px;
-  }
-
-  .lecture aside .h:first-child { margin-top: 0; }
-
-  .lecture aside .nav-group {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--fg-2);
-    margin-top: 10px;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    padding-bottom: 4px;
-  }
-
-  .lecture aside .nav-list {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .lecture aside .nav-list a {
-    font-family: var(--font-mono);
-    font-size: 13px;
-    color: var(--fg-2);
-    text-decoration: none;
-    padding: 4px 0 4px 12px;
-    border-left: 2px solid transparent;
-  }
-
-  .lecture aside .nav-list a:hover { color: var(--fg); }
-
-  .lecture aside .nav-list a.current {
-    color: var(--fg);
-    border-left-color: var(--accent);
-    background: var(--accent-soft);
-  }
-
-  .lecture aside .nav-list a.done { color: var(--fg-4); }
-
-  .lecture article { max-width: 62ch; }
-
-  .lecture article p,
-  .lecture article ul,
-  .lecture article ol,
-  .lecture article pre,
-  .lecture article .note,
-  .lecture article .exercise {
-    max-width: none;
-  }
-
-  .lecture article .crumb {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--accent);
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    margin-bottom: 10px;
-  }
-
-  .lecture article .crumb a {
-    color: var(--fg-3);
-    text-decoration: none;
-  }
-
-  .lecture article .crumb a:hover { color: var(--fg); }
-
-  .lecture article .crumb .sep {
-    color: var(--fg-4);
-    margin: 0 6px;
-  }
-
-  .lecture article h1 {
-    font-family: var(--font-mono);
-    font-weight: 700;
-    font-size: 30px;
-    line-height: 1.12;
-    letter-spacing: -0.015em;
-    margin: 0 0 8px;
-  }
-
-  .lecture article .standfirst {
-    font-family: var(--font-serif);
-    font-style: italic;
-    font-size: 17px;
-    color: var(--fg-2);
-    margin-bottom: 28px;
-    max-width: 50ch;
-    line-height: 1.5;
-  }
-
-  .body {
-    font-family: var(--font-serif);
-    font-size: 17px;
-    line-height: 1.65;
-    color: var(--fg);
-  }
-
-  .body p { margin: 0 0 1em; }
-
-  .chart-card {
-    border: 1px solid var(--rule);
-    border-radius: 8px;
-    background: var(--bg);
-    padding: 18px 18px 16px;
-    margin: 1.4em 0;
-  }
-
-  .chart-card .eyebrow {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    font-weight: 500;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--fg-3);
-    margin-bottom: 4px;
-  }
-
-  .chart-card h3 {
-    font-family: var(--font-mono);
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--fg);
-    letter-spacing: -0.005em;
-    margin: 0 0 12px;
-  }
-
-  .chart-card .chart-legend {
-    margin: 4px 0 10px;
-  }
-
-  .chart-frame {
-    height: 260px;
-  }
-
-  .chart-frame canvas {
-    width: 100%;
-    height: 100%;
-  }
-
-  .body ul,
-  .body ol {
-    list-style: none;
-    margin: 1.1em 0 1.4em;
-    padding: 0;
-    border-top: 1px solid var(--rule);
-    border-bottom: 1px solid var(--rule);
-    counter-reset: note-list;
-  }
-
-  .body li {
-    counter-increment: note-list;
-    display: grid;
-    grid-template-columns: 44px 1fr;
-    column-gap: 14px;
-    align-items: baseline;
-    padding: 8px 0;
-    border-top: 1px dashed var(--rule);
-    font-family: var(--font-sans);
-    font-size: 14.5px;
-    line-height: 1.5;
-    color: var(--fg-2);
-  }
-
-  .body li:first-child { border-top: 0; }
-
-  .body li::before {
-    content: counter(note-list, decimal-leading-zero);
-    font-family: var(--font-mono);
-    font-size: 11.5px;
-    color: var(--fg-4);
-    letter-spacing: 0.04em;
-  }
-
-  .body ul li::before { content: counter(note-list, decimal-leading-zero); }
-
-  .body li a {
-    color: var(--fg);
-    text-decoration: none;
-  }
-
-  .body li a:hover { color: var(--accent); }
-
-  .body h2 {
-    font-family: var(--font-mono);
-    font-size: 18px;
-    font-weight: 600;
-    letter-spacing: -0.005em;
-    margin: 1.8em 0 0.5em;
-  }
-
-  .body code {
-    font-family: var(--font-mono);
-    font-size: 0.9em;
-    background: var(--bg-sunk);
-    padding: 0.1em 0.36em;
-    border-radius: 3px;
-  }
-
-  .body pre {
-    font-family: var(--font-mono);
-    background: var(--bg-sunk);
-    border: 1px solid var(--rule);
-    border-radius: 8px;
-    padding: 14px 18px;
-    font-size: 13px;
-    line-height: 1.5;
-    overflow-x: auto;
-    margin: 1.4em 0;
-  }
-
-  .body pre code {
-    background: none;
-    padding: 0;
-  }
-
-  .exercise {
-    border: 1px solid var(--rule);
-    border-left: 3px solid var(--accent);
-    border-radius: 4px;
-    padding: 14px 18px;
-    background: var(--bg-2);
-    margin: 1.4em 0;
-  }
-
-  .exercise .tag {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--accent);
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    font-weight: 600;
-  }
-
-  .exercise .tag b {
-    color: var(--fg);
-    margin-left: 6px;
-  }
-
-  .exercise p {
-    margin: 6px 0 0;
-    font-family: var(--font-sans);
-    font-size: 14.5px;
-    color: var(--fg);
-  }
-
-  .note {
-    border: 1px solid var(--rule);
-    border-left: 3px solid var(--fg-4);
-    border-radius: 4px;
-    padding: 14px 18px;
-    background: var(--bg-sunk);
-    margin: 1.4em 0;
-  }
-
-  .note .tag {
-    display: block;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--fg-3);
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    font-weight: 600;
-    margin-bottom: 6px;
-  }
-
-  .note p {
-    margin: 0;
-    font-family: var(--font-sans);
-    font-size: 14.5px;
-    line-height: 1.55;
-    color: var(--fg);
-  }
-
-  .note.important {
-    border-left-color: var(--accent);
-    background: var(--accent-soft);
-  }
-
-  .note.important .tag { color: var(--accent); }
-
-  .endbar {
-    display: flex;
-    justify-content: space-between;
-    gap: 16px;
-    margin-top: 40px;
-    padding-top: 16px;
-    border-top: 1px solid var(--rule);
-    font-family: var(--font-mono);
-    font-size: 12px;
-  }
-
-  .endbar a {
-    color: var(--accent);
-    text-decoration: none;
-  }
-
-  .endbar a:hover { text-decoration: underline; }
-
-  @media (max-width: 820px) {
-    .topbar {
-      align-items: flex-start;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .topbar nav { margin-left: 0; }
-
-    .lecture {
-      display: block;
-      padding: 36px 24px 64px;
-    }
-
-    .lecture aside {
-      position: static;
-      margin-bottom: 34px;
-    }
-  }
-
-  @media (max-width: 640px) {
-    .topbar { padding: 18px 20px; }
-    .lecture article h1 { font-size: 27px; }
-    .endbar { flex-direction: column; }
-  }
-
-  /* Syntax highlighting — built on design system tokens */
-  .hljs { color: var(--fg); background: transparent; }
-  .hljs-comment, .hljs-quote { color: var(--fg-3); font-style: italic; }
-  .hljs-keyword, .hljs-selector-tag { color: var(--accent); font-weight: 600; }
-  .hljs-built_in, .hljs-builtin-name { color: var(--warning); }
-  .hljs-string, .hljs-attr, .hljs-addition { color: var(--info); }
-  .hljs-number, .hljs-literal { color: var(--success); }
-  .hljs-title, .hljs-class .hljs-title, .hljs-type { color: var(--warning); }
-  .hljs-variable, .hljs-template-variable { color: var(--fg-2); }
-  .hljs-params { color: var(--fg-2); }
-  .hljs-deletion { color: var(--danger); }
-  .hljs-emphasis { font-style: italic; }
-  .hljs-strong { font-weight: 700; }
-
-  /* Problem card */
-  .problem-card {
-    border: 1px solid var(--rule);
-    border-left: 3px solid var(--fg-4);
-    border-radius: 4px;
-    padding: 20px 22px;
-    background: var(--bg-sunk);
-    margin: 0.8em 0 1.4em;
-  }
-
-  .problem-card .problem-eyebrow {
-    display: block;
-    font-family: var(--font-mono);
-    font-size: 10px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--fg-4);
-    margin-bottom: 10px;
-  }
-
-  .problem-card .problem-body {
-    font-family: var(--font-sans);
-    font-size: 14.5px;
-    line-height: 1.6;
-    color: var(--fg-2);
-    margin: 0;
-  }
-
-  /* Upload zone */
-  .upload-zone {
-    border: 1.5px dashed var(--rule);
-    border-radius: 8px;
-    padding: 40px 24px;
-    text-align: center;
-    background: var(--bg-sunk);
-    cursor: pointer;
-    transition: border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
-    margin: 0.8em 0 0;
-  }
-
-  .upload-zone:hover,
-  .upload-zone.dragover {
-    border-color: var(--accent);
-    background: var(--accent-soft);
-  }
-
-  .upload-icon {
-    display: block;
-    margin: 0 auto 12px;
-    color: var(--fg-4);
-  }
-
-  .upload-zone.dragover .upload-icon { color: var(--accent); }
-
-  .upload-label {
-    font-family: var(--font-mono);
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--fg);
-    margin: 0 0 4px;
-  }
-
-  .upload-sub {
-    font-family: var(--font-sans);
-    font-size: 13px;
-    color: var(--fg-3);
-    margin: 0 0 8px;
-  }
-
-  .upload-link {
-    color: var(--accent);
-    cursor: pointer;
-    text-decoration: underline;
-    text-decoration-thickness: 1px;
-  }
-
-  .upload-accepted {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--fg-4);
-    letter-spacing: 0.04em;
-    margin: 0;
-  }
-
-  .upload-input { display: none; }
-
-  .upload-meta {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 14px;
-    border: 1px solid var(--rule);
-    border-radius: 6px;
-    margin-top: 8px;
-    background: var(--bg-sunk);
-  }
-
-  .upload-meta[hidden] { display: none; }
-
-  .upload-filename {
-    font-family: var(--font-mono);
-    font-size: 12px;
-    color: var(--fg);
-    flex: 1;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .upload-clear {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--fg-3);
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 0;
-    letter-spacing: 0.04em;
-  }
-
-  .upload-clear:hover { color: var(--danger); }
-
-  .submit-btn {
-    font-family: var(--font-mono);
-    font-size: 13px;
-    font-weight: 600;
-    letter-spacing: 0.02em;
-    background: var(--accent);
-    color: var(--bg);
-    border: none;
-    border-radius: 6px;
-    padding: 10px 22px;
-    cursor: pointer;
-    margin-top: 10px;
-    display: block;
-    transition: background var(--dur-fast) var(--ease);
-  }
-
-  .submit-btn:hover { background: var(--accent-hover); }
-
-  /* Leaderboard */
-  .leaderboard {
-    margin: 0.8em 0 1.4em;
-    border: 1px solid var(--rule);
-    border-radius: 8px;
-    overflow: hidden;
-  }
-
-  .leaderboard table {
-    width: 100%;
-    border-collapse: collapse;
-    font-family: var(--font-mono);
-    font-size: 13px;
-  }
-
-  .leaderboard thead th {
-    font-size: 10px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--fg-4);
-    font-weight: 500;
-    text-align: left;
-    padding: 10px 16px;
-    border-bottom: 1px solid var(--rule);
-    background: var(--bg-sunk);
-  }
-
-  .leaderboard tbody tr { border-top: 1px dashed var(--rule); }
-  .leaderboard tbody tr:first-child { border-top: 0; }
-
-  .leaderboard tbody td {
-    padding: 10px 16px;
-    color: var(--fg-2);
-    vertical-align: middle;
-  }
-
-  .leaderboard .col-place { color: var(--fg-4); width: 60px; }
-  .leaderboard .col-name  { color: var(--fg); font-weight: 500; }
-  .leaderboard .col-score { color: var(--fg); width: 100px; }
-  .leaderboard .col-accuracy { color: var(--fg-2); width: 100px; }
-  .leaderboard .col-submitted { color: var(--fg-3); font-size: 12px; }
-
-  .leaderboard tbody tr.own { background: var(--accent-soft); }
-  .leaderboard tbody tr.own .col-place,
-  .leaderboard tbody tr.own .col-score { color: var(--accent); }
-
-  .own-badge {
-    display: inline-block;
-    font-family: var(--font-mono);
-    font-size: 9px;
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    background: var(--accent);
-    color: var(--bg);
-    padding: 1px 5px;
-    border-radius: 3px;
-    vertical-align: middle;
-    margin-left: 6px;
-    line-height: 1.5;
-  }
-</style>
-  <!-- Cloudflare Web Analytics -->
-  <script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "f63b2ef074b74a5e8e78014b83a4071d"}'></script>
-  <!-- End Cloudflare Web Analytics -->
-</head>
+<!doctype html>
+<html lang="en" data-palette="paper"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Rocket control | Classification | Deep Learning</title><link rel="icon" href="../../../../../../design_system/assets/favicon.svg"><link rel="stylesheet" href="../../../../../../design_system/colors_and_type.css"><link rel="stylesheet" href="./style.css"></head>
 <body>
-<div class="frame">
-  <div class="topbar">
-    <a href="../../../../../../" class="mark">a<span class="dot">.</span>c</a>
-    <span class="crumb">
-      <a href="../../../../">Deep Learning</a><span class="sep">&rsaquo;</span>
-      <a href="../../">02 classification</a><span class="sep">&rsaquo;</span>
-      <a href="../">exercises</a>
-    </span>
-    <nav aria-label="Course navigation">
-      <a href="../../../../" class="active">syllabus</a>
-    
-      <a href="/contact/">contact</a>
+<div class="course-frame">
+  <div class="course-topbar">
+    <a href="../../../../../../" class="course-mark" aria-label="Archie Carpenter home">a<span>.</span>c</a>
+    <nav class="course-crumb" aria-label="Breadcrumb">
+      <a href="../../../../">Deep Learning</a><span aria-hidden="true">›</span>
+      <a href="../../">02 classification</a><span aria-hidden="true">›</span>
+      <a href="../">exercises</a><span aria-hidden="true">›</span>
+      <span aria-current="page">rocket control</span>
+    </nav>
+    <nav class="course-links" aria-label="Course navigation">
+      <a href="../../../../" class="active">syllabus</a><a href="../../../../../../contact/">contact</a>
     </nav>
   </div>
-
-  <div class="lecture">
-    <aside>
-      <span class="h">course</span>
-      Deep Learning &middot; Winter 2026
-
-      <span class="h">topic</span>
-      <div class="nav-group">02 &middot; classification</div>
-      <div class="nav-list">
-        <a class="done" href="../../linear-classifiers-and-decision-boundaries/">2.1 &middot; linear classifiers and decision boundaries</a>
-        <a class="done" href="../../logistic-regression/">2.2 &middot; logistic regression</a>
-        <a class="done" href="../../maximum-likelihood-and-binary-cross-entropy/">2.3 &middot; maximum likelihood and binary cross-entropy</a>
-        <a class="done" href="../../nonlinear-classification-with-basis-functions/">2.4 &middot; nonlinear classification with basis functions</a>
-        <a class="done" href="../../multiclass-classification-and-softmax/">2.5 &middot; multiclass classification and softmax</a>
-        <a class="done" href="../">2.6 &middot; exercises</a>
-        <a class="current" href="./">Practical exercise</a>
-      </div>
-
-    </aside>
-
-    <article>
-      <div class="crumb">
-        <a href="../../../../">syllabus</a><span class="sep">&rsaquo;</span>
-        <a href="../../">topic 02</a><span class="sep">&rsaquo;</span>
+  <div class="course-layout">
+    <aside class="course-sidebar" aria-label="Classification topic navigation">
+      <span class="course-sidebar-label">course</span>
+      <p>Deep Learning · Winter 2026</p>
+      <span class="course-sidebar-label">topic</span>
+      <div class="course-nav-group">02 · classification</div>
+      <nav class="course-nav-list" aria-label="Classification sections">
+        <a href="../../linear-classifiers-and-decision-boundaries/">2.1 · linear classifiers and decision boundaries</a>
+        <a href="../../logistic-regression/">2.2 · logistic regression</a>
+        <a href="../../maximum-likelihood-and-binary-cross-entropy/">2.3 · maximum likelihood and binary cross-entropy</a>
+        <a href="../../nonlinear-classification-with-basis-functions/">2.4 · nonlinear classification with basis functions</a>
+        <a href="../../multiclass-classification-and-softmax/">2.5 · multiclass classification and softmax</a>
+        <a href="../../evaluating-classifiers/">2.6 · evaluating classifiers</a>
         <a href="../">exercises</a>
-      </div>
-      <h1>Practical exercise 2026</h1>
-      <p class="standfirst">Implement and evaluate a vectorised binary classification model using the supplied data.</p>
-
-      <div class="body">
-        <h2>The problem</h2>
-        <div class="problem-card">
-            <span class="problem-eyebrow">practical exercise</span>
-
-            <p class="problem-body">Implement a binary classification model from scratch using only NumPy.</p>
-            </br>
-            <p class="problem-body">In the data there are several input variables labelled $x_1, x_2, \ldots, x_7$ and a binary target variable $y \in \{0, 1\}$. Your task is to implement a classification model to predict the target variable from the inputs. It should be vectorised (i.e. operate on the entire dataset at once) and can use as many bias functions (or none at all) as you like.</p>
-            </br>
-            <p class="problem-body">Your class must be named <code>Classification</code> and must implement <code>fit(self, X, y)</code> and <code>predict(self, X)</code>, where <code>X</code> and <code>y</code> are NumPy arrays. <code>predict</code> must return hard class labels (<code>0</code> or <code>1</code>), not probabilities.</p>
-            </br>
-            <p class="problem-body">Download the training data <a href="./data_train.csv" download="data_train.csv">here</a> and the scaffold code <a href="./scaffold.py" download="scaffold.py">here</a>. Once you are happy with a model you can upload the <code>scaffold.py</code> file here for evaluation.</p>
-            </br>
-            <p class="problem-body"><strong>TIP:</strong> Just like in the regression exercise, I recommend inspecting the data first to try to find patterns or relationships and also splitting the data into training and validation sets. Check the class balance too, since accuracy alone can be misleading. Good luck!</p>
-        </div>
-
-        <h2>Submit</h2>
-        <p>
-            Upload your solution as a <code>.py</code> file. Your model will be fitted on the public training data and evaluated against a hidden validation set. The leaderboard is ranked by F1 score (on the positive class, <code>1</code>) and also shows accuracy. It is for benchmarking; only your best score from this browser will be shown.
-        </p>
-        <label for="studentName" class="upload-label">Name (it will be displayed on the leaderboard so I would recommend using a nickname or handle)</label>
-        <input
-          type="text"
-          id="studentName"
-          maxlength="30"
-          placeholder="Enter your name"
-          style="width:100%;box-sizing:border-box;margin:8px 0 14px;padding:10px 12px;border:1px solid var(--rule);border-radius:6px;background:var(--bg-sunk);color:var(--fg);font-family:var(--font-mono);"
-        />
-        <div class="upload-zone" id="uploadZone" role="button" tabindex="0" aria-label="Upload solution file">
-          <svg class="upload-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-            <polyline points="17 8 12 3 7 8"/>
-            <line x1="12" y1="3" x2="12" y2="15"/>
-          </svg>
-          <p class="upload-label">Drop your file here</p>
-          <p class="upload-sub">or <label for="fileInput" class="upload-link">browse to upload</label></p>
-          <p class="upload-accepted">accepted: .py</p>
-          <input type="file" id="fileInput" class="upload-input" accept=".py" aria-label="Choose file">
-        </div>
-        <div class="upload-meta" id="uploadMeta" hidden>
-          <span class="upload-filename" id="uploadFilename"></span>
-          <button type="button" class="upload-clear" id="uploadClear">remove</button>
-        </div>
-        <button type="button" class="submit-btn" id="submitBtn">Submit</button>
-        <pre id="submissionStatus" style="white-space:pre-wrap;margin-top:12px;"></pre>
-
-        <h2>Leaderboard</h2>
-        <div class="leaderboard">
-          <table>
-            <thead>
-              <tr>
-                <th class="col-place">place</th>
-                <th class="col-name">name</th>
-                <th class="col-score">F1</th>
-                <th class="col-accuracy">accuracy</th>
-                <th class="col-submitted">last submitted</th>
-              </tr>
-            </thead>
-            <tbody id="leaderboardBody">
-              <tr>
-                <td colspan="5">Loading leaderboard...</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="endbar">
-        <span><a href="../../../../">back to syllabus</a></span>
-        <span><a href="../">classification exercises &rarr;</a></span>
-      </div>
-    </article>
+        <a href="./" class="current" aria-current="page">Rocket Control</a>
+      </nav>
+    </aside>
+    <div class="course-content">
+      <header><div><h1>Practical exercise 2026: Rocket Control</h1><p>Train a classifier to guide a rocket to a safe landing.</p></div></header>
+<main><section class="panel controller-panel" aria-labelledby="controller-title">
+<h2 id="task">Task</h2>
+<div class="problem-card">
+<span class="problem-eyebrow">practical exercise</span>
+<p class="problem-body">
+  Implement a multi-class classification from scratch using only NumPy.
+</p>
+<p class="problem-body">
+  In the data there are 10 classes (0-9) representing the actions the rocket can take, and 12 observations you can use as input variables.
+  The data is generated from a simulation of 1000 landings using an Model Predictive Control (MPC) "expert" controller. This is not a perfect controller so some landings are unsuccessful.
+</p>
+<p class="problem-body">
+  Your class must be named <code>Controller</code> and must implement a <code>fit(X, y)</code> 
+  method, a <code>predict(X)</code> method and a <code>predict_action(observation)</code> method.
+</p>
+<p class="problem-body">
+  The model will be scored in 4 dimensions: landing success, landing score, action F1 and action accuracy. 
+  I do not provide the simulator code but you can upload your controller to this page to inspect the simulations on 10 validation initial conditions.
+  Again the test set is private and the leaderboard is based on the test set, not the validation set.
+</p>
+<p class="problem-body">
+  Download the <a href="./landings.csv" download>training data</a>, <a href="./scaffold.py" download>starter controller</a> and <a href="train.ipynb" download>training notebook</a>.
+  Once you are happy with your controller, you can upload it here to run the validation flights and submit to the leaderboard. 
+</p>
+<p class="problem-body">
+  For those of you who are looking for a good score you may find <a href="./physics.pdf" download>the physics behind the simulation</a>, informative for basis functions.
+</p>
+<p class="problem-body">
+  <strong>IMPORTANT:</strong> The moodle pdf outlines the exact submission requirements.
+</p>
+</div>
+<h2 id="controller-title">Run a controller</h2>
+<p class="hint">
+  Initially, everything runs in your browser. Note that training may take a while and use substantial memory.
+  To avoid that you can upload a pre-trained model weights file to skip training.
+</p>
+<details class="exercise-help">
+<summary>Controller and dataset guide</summary>
+<p>Each row of the training CSV contains observations and an action at that timestep. There are 12 basic features, use <code>action</code> as the label <code>y</code>.</p>
+<div class="result-table"><table><thead><tr><th>Column</th><th>Meaning</th><th>Units</th></tr></thead><tbody>
+<tr><td><code>x</code></td><td>Horizontal position relative to the pad centre</td><td>m</td></tr>
+<tr><td><code>y</code></td><td>Centre-of-mass height relative to the pad</td><td>m</td></tr>
+<tr><td><code>vx</code>, <code>vy</code></td><td>Horizontal and vertical velocity; upward is positive</td><td>m/s</td></tr>
+<tr><td><code>theta</code>, <code>omega</code></td><td>Tilt and angular velocity; anticlockwise is positive</td><td>rad, rad/s</td></tr>
+<tr><td><code>fuel_mass</code></td><td>Remaining fuel</td><td>kg</td></tr>
+<tr><td><code>actual_thrust</code>, <code>actual_gimbal</code></td><td>Current engine thrust and gimbal angle</td><td>N, rad</td></tr>
+<tr><td><code>wind_x</code>, <code>wind_y</code></td><td>Horizontal and vertical wind velocity</td><td>m/s</td></tr>
+<tr><td><code>air_density</code></td><td>Air density at the rocket</td><td>kg/m³</td></tr>
+</tbody></table></div>
+<p>Additionally, <code>run_id</code> and <code>step</code> identify the landing number and the order of decisions. 
+  The <code>success</code> column indicates the final outcome of each landing, not a feature to be used in training. The <code>success</code> is the eventual flight outcome, not an input: using it as a feature would leak information unavailable to the controller in flight.</p>
+<p>The simulator calls <code>predict_action(observation)</code> every 0.1 seconds. 
+  Return a single integer from 0 to 9. Action 0 turns the engine off. 
+  Actions 1–3 use low thrust, 4–6 medium thrust, and 7–9 high thrust; within each group the gimbal is left, centred, then right.
+</p>
+<p>After training, the page runs separate validation and test flights in your browser. When you submit, predicted actions are sent to the cloud for comparison with private expert labels. The leaderboard uses the test flights. Action agreement and landing success measure different things. Test observations are public; the expert test labels are stored separately.</p>
+</details>
+<form id="controller-form">
+<div class="upload-grid">
+  <div class="upload-field">
+    <div class="upload-zone" id="upload-zone" role="button" tabindex="0" aria-label="Choose or drop a Python controller file">
+      <svg class="upload-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4m-4 4 4-4 4 4"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
+      <p class="upload-label">Python controller</p><p class="upload-sub">Drop your file here or <span class="upload-link">browse</span></p><p class="upload-accepted">.py · up to 128 KB</p>
+    </div>
+    <input id="controller-file" class="upload-input" type="file" accept=".py,text/x-python" aria-label="Choose Python controller" tabindex="-1">
+    <div id="upload-meta" class="upload-meta" hidden><span id="upload-filename"></span><button type="button" id="upload-clear" aria-label="Remove Python controller">remove</button></div>
+  </div>
+  <div class="upload-field">
+    <div class="upload-zone" id="weights-zone" role="button" tabindex="0" aria-label="Choose or drop saved weights, optional">
+      <svg class="upload-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4m-4 4 4-4 4 4"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
+      <p class="upload-label">Saved weights <span class="upload-optional">(optional)</span></p><p class="upload-sub">Drop your file here or <span class="upload-link">browse</span></p><p class="upload-accepted">any format · up to 20 MB</p>
+    </div>
+    <input id="weights-file" class="upload-input" type="file" aria-label="Choose saved weights" tabindex="-1">
+    <div id="weights-meta" class="upload-meta" hidden><span id="weights-filename"></span><button type="button" id="weights-clear" aria-label="Remove saved weights">remove</button></div>
   </div>
 </div>
-<script>
-  const LEADERBOARD_FUNCTION_URL = "https://sjoybqjjvhafnsobouzl.supabase.co/functions/v1/leaderboard";
-  const SUBMIT_FUNCTION_URL      = "https://sjoybqjjvhafnsobouzl.supabase.co/functions/v1/submit-classification";
-  const TASK_NAME                = "classification";
-  const X_VALID_PATH             = "./X_valid.csv";
-  const DATA_TRAIN_PATH          = "./data_train.csv";
+<button class="primary" id="controller-run" type="submit">Train and evaluate</button> <button id="controller-cancel" type="button" hidden>Cancel</button></form>
+<p id="controller-status" class="hint" role="status" aria-live="polite"></p>
+<div id="controller-results" hidden>
+<form id="leaderboard-form" class="leaderboard-submit">
+<label for="student-name">Name for the leaderboard</label>
+<input id="student-name" type="text" maxlength="50" autocomplete="nickname" placeholder="Nickname or handle" required>
+<button type="submit" id="leaderboard-submit">Submit to leaderboard</button>
+<p id="leaderboard-submit-status" class="hint" role="status" aria-live="polite"></p>
+</form>
+<div id="test-results" hidden>
+<h2>Test action agreement</h2><p id="classification-summary"></p><p id="classification-overlap" class="message" role="status" hidden></p>
+<h2>Test flights</h2><p class="hint">These flights start from the test dataset; their results are used for the leaderboard.</p><p id="test-result-summary"></p>
+</div>
+<h2>Validation flights</h2><p class="hint">These fixed flights are for development and are not used for the leaderboard.</p><p id="result-summary"></p>
+<p class="range-legend"><span class="in-range">● In range</span><span class="out-of-range">● Out of range</span></p>
+<div class="result-table"><table><thead><tr><th>Run</th><th>Result</th><th>Score</th><th>Vertical m/s</th><th>Horizontal m/s</th><th>Tilt °</th><th>Rotation °/s</th><th>Centre offset m</th><th>Time s</th><th>Controller replay</th><th>Expert replay</th></tr></thead><tbody id="result-rows"></tbody></table></div></div>
+</section>
+<section class="flight"><div class="scenehead"><h2>Flight window</h2><div class="row"><span id="clock" hidden>0.00 s</span><label class="file">Import JSON<input id="import" type="file" accept="application/json,.json"></label></div></div><div id="replay-empty" class="replay-empty"><div class="replay-empty-icon" aria-hidden="true">▶</div><h3>No replay loaded</h3><p>Choose a validation flight or import a recording to view it here.</p></div><div id="replay-view" hidden><div class="canvaswrap"><canvas id="scene" tabindex="0" aria-label="Rocket flight view. Drag to pan and use the mouse wheel to zoom."></canvas><div class="canvasnote">Drag to pan · Scroll to zoom</div></div><div class="scenefoot"><button id="camera">Reset camera</button><label><input type="checkbox" id="trail" checked> Trail</label><label><input type="checkbox" id="thrustVector"> Thrust</label><label><input type="checkbox" id="velocityVector"> Velocity</label><label><input type="checkbox" id="contactMarker" checked> Contact marker</label><span>Thrust: rocket length at maximum; velocity: 1 s</span></div>
+<div class="playback"><div class="playhead"><div><span class="eyebrow">Flight recording</span><h2>Replay & inspect</h2></div><span id="replaytime">0.00 / 0.00 s</span></div><input id="timeline" type="range" min="0" max="0" value="0" step="1" aria-label="Replay frame"><div class="row"><button id="begin">|◀</button><button id="backtime">−1 s</button><button id="back">◀ Frame</button><button id="replay">Play replay</button><button id="forward">Frame ▶</button><button id="forwardtime">+1 s</button><button id="terminal">Terminal event</button><label>Speed <select id="replayspeed"><option>.25</option><option>.5</option><option selected>1</option><option>2</option><option>5</option></select>×</label><button id="live">Close replay</button><button id="export">Export JSON</button></div></div></div><p id="message" role="status" class="message flight-message"></p></section>
 
-  const zone            = document.getElementById("uploadZone");
-  const input           = document.getElementById("fileInput");
-  const meta            = document.getElementById("uploadMeta");
-  const fname           = document.getElementById("uploadFilename");
-  const clearBtn        = document.getElementById("uploadClear");
-  const submitBtn       = document.getElementById("submitBtn");
-  const statusEl        = document.getElementById("submissionStatus");
-  const leaderboardBody = document.getElementById("leaderboardBody");
-
-  let selectedFile  = null;
-  let pyodide       = null;
-  let pyodideReady  = false;
-
-  function getBrowserId() {
-    let id = localStorage.getItem("browser_id");
-    if (!id) {
-      id = crypto.randomUUID();
-      localStorage.setItem("browser_id", id);
-    }
-    return id;
-  }
-
-  function escapeHtml(str) {
-    return String(str)
-      .replaceAll("&", "&amp;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;")
-      .replaceAll('"', "&quot;")
-      .replaceAll("'", "&#039;");
-  }
-
-  function setStatus(message) {
-    statusEl.textContent = message;
-  }
-
-  async function initPyodideRuntime() {
-    submitBtn.disabled = true;
-    setStatus("Loading Python runtime...");
-    try {
-      pyodide = await loadPyodide();
-      await pyodide.loadPackage(["numpy", "pandas", "scikit-learn"]);
-      pyodideReady = true;
-      setStatus("Python ready.");
-    } catch (err) {
-      console.error(err);
-      setStatus("Failed to load Python runtime. Please refresh the page.");
-    } finally {
-      submitBtn.disabled = false;
-    }
-  }
-
-  // Upload behaviour
-  zone.addEventListener("click", (e) => { if (!e.target.closest("label")) input.click(); });
-  zone.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") input.click(); });
-  zone.addEventListener("dragover", (e) => { e.preventDefault(); zone.classList.add("dragover"); });
-  zone.addEventListener("dragleave", () => zone.classList.remove("dragover"));
-  zone.addEventListener("drop", (e) => {
-    e.preventDefault();
-    zone.classList.remove("dragover");
-    const file = e.dataTransfer.files[0];
-    if (file) showFile(file);
-  });
-
-  input.addEventListener("change", () => { if (input.files[0]) showFile(input.files[0]); });
-
-  function showFile(file) {
-    if (!file.name.endsWith(".py")) {
-      setStatus("Please upload a .py file.");
-      return;
-    }
-    selectedFile = file;
-    fname.textContent = file.name;
-    zone.hidden = true;
-    meta.hidden = false;
-  }
-
-  clearBtn.addEventListener("click", () => {
-    selectedFile = null;
-    input.value = "";
-    fname.textContent = "";
-    zone.hidden = false;
-    meta.hidden = true;
-  });
-
-  async function generatePredictions(userCode, trainCsv, xCsv) {
-    pyodide.globals.set("USER_CODE", userCode);
-    pyodide.globals.set("TRAIN_CSV", trainCsv);
-    pyodide.globals.set("X_CSV", xCsv);
-
-    const predictionsJson = await pyodide.runPythonAsync(`
-import io
-import json
-import pandas as pd
-import numpy as np
-
-namespace = {}
-exec(USER_CODE, namespace)
-
-if "Classification" not in namespace:
-    raise ValueError("Your file must define a class called Classification")
-
-ModelClass = namespace["Classification"]
-
-train   = pd.read_csv(io.StringIO(TRAIN_CSV))
-X_train = train.drop(columns=["y"]).to_numpy(dtype=float)
-y_train = train["y"].to_numpy(dtype=float)
-
-X_valid = pd.read_csv(io.StringIO(X_CSV)).to_numpy(dtype=float)
-
-model = ModelClass()
-model.fit(X_train, y_train)
-preds = model.predict(X_valid)
-
-if hasattr(preds, "tolist"):
-    preds = preds.tolist()
-
-if not isinstance(preds, list):
-    raise ValueError("predict() must return a list, numpy array, or pandas Series")
-
-if len(preds) != len(X_valid):
-    raise ValueError(f"predict() returned {len(preds)} values but expected {len(X_valid)}")
-
-# Hard binary labels only: accept 0/1, 0.0/1.0 and booleans, reject anything else
-clean = []
-for p in preds:
-    if isinstance(p, list):
-        raise ValueError("predict() must return a flat 1-D array of labels, not a 2-D array")
-    if p not in (0, 1):
-        raise ValueError("predict() must return hard class labels (0 or 1), not probabilities or other values")
-    clean.append(int(p))
-
-json.dumps(clean)
-    `);
-
-    return JSON.parse(predictionsJson);
-  }
-
-  async function submitPredictions(name, predictions) {
-    const res = await fetch(SUBMIT_FUNCTION_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        browser_id: getBrowserId(),
-        name,
-        predictions,
-        task_name: TASK_NAME,
-      }),
-    });
-
-    const text = await res.text();
-    let parsed;
-    try {
-      parsed = JSON.parse(text);
-    } catch {
-      throw new Error(text || "Submission failed");
-    }
-
-    if (!res.ok) {
-      throw new Error(parsed.error || "Submission failed");
-    }
-    return parsed;
-  }
-
-  submitBtn.addEventListener("click", async () => {
-    const name = document.getElementById("studentName").value.trim();
-
-    if (!name) { setStatus("Please enter your name."); return; }
-    if (name.length > 30) { setStatus("Name must be 30 characters or fewer."); return; }
-    if (!selectedFile) { setStatus("Please upload a .py file."); return; }
-    if (!pyodideReady) { setStatus("Python runtime is still loading. Try again shortly."); return; }
-
-    submitBtn.disabled = true;
-    try {
-      setStatus("Reading uploaded file...");
-      const userCode = await selectedFile.text();
-
-      setStatus("Loading training and validation data...");
-      const [trainCsv, xCsv] = await Promise.all([
-        fetch(DATA_TRAIN_PATH).then((r) => {
-          if (!r.ok) throw new Error("Could not load data_train.csv");
-          return r.text();
-        }),
-        fetch(X_VALID_PATH).then((r) => {
-          if (!r.ok) throw new Error("Could not load X_valid.csv");
-          return r.text();
-        }),
-      ]);
-
-      setStatus("Running your model...");
-      const predictions = await generatePredictions(userCode, trainCsv, xCsv);
-
-      setStatus("Submitting predictions...");
-      const result = await submitPredictions(name, predictions);
-
-      let scoreText = "Submission completed.";
-      if (typeof result.f1 === "number" && typeof result.accuracy === "number") {
-        scoreText = `F1: ${result.f1.toFixed(4)}\nAccuracy: ${result.accuracy.toFixed(4)}`;
-      }
-      const messageText = result.message ? `\n${result.message}` : "";
-      setStatus(`${scoreText}${messageText}`);
-
-      await loadLeaderboard();
-    } catch (err) {
-      console.error(err);
-      setStatus(`Error: ${err.message}`);
-    } finally {
-      submitBtn.disabled = false;
-    }
-  });
-
-  async function loadLeaderboard(limit = 100) {
-    const url = new URL(LEADERBOARD_FUNCTION_URL);
-    url.searchParams.set("task", TASK_NAME);
-    url.searchParams.set("browser_id", getBrowserId());
-    url.searchParams.set("limit", String(limit));
-
-    const res = await fetch(url);
-    if (!res.ok) {
-      leaderboardBody.innerHTML = `<tr><td colspan="5">Could not load leaderboard.</td></tr>`;
-      return;
-    }
-
-    const data = await res.json();
-    renderLeaderboard(data.leaderboard || [], data.current_user_best || null);
-  }
-
-  function relativeTime(isoString) {
-    const diff  = Date.now() - new Date(isoString).getTime();
-    const mins  = Math.floor(diff / 60_000);
-    const hours = Math.floor(diff / 3_600_000);
-    const days  = Math.floor(diff / 86_400_000);
-    if (mins  <  1) return "just now";
-    if (mins  < 60) return `${mins} min ago`;
-    if (hours < 24) return `${hours} hr${hours === 1 ? "" : "s"} ago`;
-    return `${days} day${days === 1 ? "" : "s"} ago`;
-  }
-
-  function renderLeaderboard(rows, currentUserBest) {
-    if (!rows.length) {
-      leaderboardBody.innerHTML = `<tr><td colspan="5">No submissions yet.</td></tr>`;
-      return;
-    }
-
-    const currentScore =
-      currentUserBest && typeof currentUserBest.score === "number"
-        ? currentUserBest.score
-        : null;
-
-    leaderboardBody.innerHTML = rows
-      .map((row, i) => {
-        const isOwn =
-          currentScore !== null &&
-          Number(row.score) === Number(currentScore) &&
-          row.name === currentUserBest.name;
-
-        const place     = String(i + 1).padStart(2, "0");
-        const name      = escapeHtml(row.name);
-        const f1        = Number(row.score).toFixed(4);
-        const accuracy  = row.accuracy == null ? "–" : Number(row.accuracy).toFixed(4);
-        const submitted = relativeTime(row.created_at);
-
-        return `
-          <tr class="${isOwn ? "own" : ""}">
-            <td class="col-place">${place}</td>
-            <td class="col-name">${name}${isOwn ? ' <span class="own-badge">you</span>' : ""}</td>
-            <td class="col-score">${f1}</td>
-            <td class="col-accuracy">${accuracy}</td>
-            <td class="col-submitted">${submitted}</td>
-          </tr>`;
-      })
-      .join("");
-  }
-
-  initPyodideRuntime();
-  loadLeaderboard();
-</script>
-</body>
-</html>
+<section class="panel controller-panel" aria-labelledby="leaderboard-title">
+<h2 id="leaderboard-title">Rocket leaderboard</h2>
+<label class="leaderboard-order" for="leaderboard-order">Filter by best
+<select id="leaderboard-order"><option value="score">Landing score</option><option value="landing_success_pct">Landing success</option><option value="macro_f1">Action macro F1</option><option value="accuracy">Action accuracy</option></select></label>
+<div class="result-table"><table><thead><tr><th>Place</th><th>Name</th><th>Score</th><th>Landing success</th><th>Action F1</th><th>Action accuracy</th></tr></thead><tbody id="leaderboard-body"><tr><td colspan="6">Loading leaderboard…</td></tr></tbody></table></div>
+</section>
+</main>
+      <nav class="course-endbar" aria-label="Exercise navigation">
+        <a href="../">← Classification exercises</a>
+        <a href="../../">Classification topic guide →</a>
+      </nav>
+    </div>
+  </div>
+</div><script src="./app.js"></script><script src="./leaderboard.js"></script></body></html>
