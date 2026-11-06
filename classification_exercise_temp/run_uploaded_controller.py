@@ -34,7 +34,7 @@ def read_sequence_metadata(path):
     return np.array([row['run_id'] for row in rows]), np.array([int(row['step']) for row in rows])
 
 
-def read_test_runs(path):
+def read_validation_runs(path):
     """Accept saved initial states or step-zero rows from a generated dataset."""
     with path.open(newline='', encoding='utf-8') as f:
         reader = csv.DictReader(f)
@@ -56,11 +56,11 @@ def read_test_runs(path):
                               fuel=row['fuel_mass'], thrust=row['actual_thrust'],
                               gimbal=row['actual_gimbal']))
         if {case['run_id'] for case in cases} != {row['run_id'] for row in rows}:
-            raise ValueError('test_runs.csv must have one step=0 row for every run')
+            raise ValueError('validation_runs.csv must have one step=0 row for every run')
     else:
-        raise ValueError('test_runs.csv must contain saved initial states or a generated dataset with step=0 rows')
+        raise ValueError('validation_runs.csv must contain saved initial states or a generated dataset with step=0 rows')
     if len(cases) != 10 or len({case['run_id'] for case in cases}) != 10:
-        raise ValueError(f'test_runs.csv must contain 10 distinct initial runs; found {len(cases)} initial rows '
+        raise ValueError(f'validation_runs.csv must contain 10 distinct initial runs; found {len(cases)} initial rows '
                          f'for {len({case["run_id"] for case in cases})} distinct runs')
     return cases
 
@@ -86,8 +86,10 @@ def classification_metrics(controller, X_test, y_test, X_train, run_ids=None, st
         fp = np.sum((predictions == label) & (y_test != label))
         fn = np.sum((predictions != label) & (y_test == label))
         f1_scores.append(float(2 * tp / (2 * tp + fp + fn)))
-    train_observations = {tuple(row) for row in X_train}
-    overlap = sum(tuple(row) in train_observations for row in X_test)
+    overlap = None
+    if X_train is not None:
+        train_observations = {tuple(row) for row in X_train}
+        overlap = sum(tuple(row) in train_observations for row in X_test)
     return dict(accuracy=float(np.mean(predictions == y_test)), macro_f1=float(np.mean(f1_scores)),
                 sample_count=len(y_test), overlapping_observations=overlap)
 
@@ -112,47 +114,67 @@ def landing_diagnostics(result, parameters):
     return dict(metrics=metrics, diagnostic_score=diagnostic_score)
 
 
-def main(source_path):
-    cases = read_test_runs(Path(__file__).with_name('test_runs.csv'))
+def main(source_path, weights_path=None):
+    validation_path = Path(__file__).with_name('validation_runs.csv')
+    cases = read_validation_runs(validation_path)
     spec = importlib.util.spec_from_file_location('uploaded_controller', source_path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     controller = module.Controller()
     train_path = Path(__file__).with_name('landings.csv')
     test_path = Path(__file__).with_name('test_landings.csv')
-    X, y = read_observations(train_path)
-    run_ids, steps = read_sequence_metadata(train_path)
-    fit_parameters = inspect.signature(controller.fit).parameters
-    extra = {}
-    if 'run_ids' in fit_parameters:
-        extra['run_ids'] = run_ids
-    if 'steps' in fit_parameters:
-        extra['steps'] = steps
-    controller.fit(X, y, **extra)
+    X = None
+    if weights_path is not None:
+        if not callable(getattr(controller, 'load', None)):
+            raise ValueError('Controller must implement load(path) to use saved weights')
+        controller.load(weights_path)
+    else:
+        X, y = read_observations(train_path)
+        run_ids, steps = read_sequence_metadata(train_path)
+        fit_parameters = inspect.signature(controller.fit).parameters
+        extra = {}
+        if 'run_ids' in fit_parameters:
+            extra['run_ids'] = run_ids
+        if 'steps' in fit_parameters:
+            extra['steps'] = steps
+        controller.fit(X, y, **extra)
     X_test, y_test = read_observations(test_path)
     test_ids, test_steps = read_sequence_metadata(test_path)
     classification = classification_metrics(controller, X_test, y_test, X, test_ids, test_steps)
-    runs, replays = [], []
+    runs, replays, expert_replays = [], [], []
     for case in cases:
         scenario = case['scenario']
         parameters, _ = configuration(scenario)
         initial = State(**{key: float(case[key]) for key in State.__dataclass_fields__})
         run_controller = copy.deepcopy(controller)
         result = evaluate_closed_loop(run_controller.predict_action, initial, parameters, scenario,
-                                      max_time=20.0, constant_wind=(float(case['wind_x']), float(case['wind_y'])))
+                                      max_time=None, constant_wind=(float(case['wind_x']), float(case['wind_y'])))
         if result['replay']['status'] == 'error':
             raise ValueError(f"Run {case['run_id']}: {result['termination_reason']}")
-        runs.append({'run_id': case['run_id'], 'scoring': result['scoring'],
+        runs.append({'run_id': case['run_id'], 'description': case.get('description', ''), 'scoring': result['scoring'],
                      **landing_diagnostics(result, parameters),
                      'termination_reason': result['termination_reason'],
                      'duration': result['replay']['terminal']['time']})
-        if len(replays) < 2:
-            replays.append(result['replay'])
+        replays.append(result['replay'])
+        replay_path = Path(__file__).with_name('expert_replays') / f"run_{case['run_id']}.json"
+        if replay_path.is_file():
+            expert_replay = json.loads(replay_path.read_text(encoding='utf-8'))
+            config = expert_replay.get('config', {})
+            initial_recorded = config.get('initial_state', {})
+            wind_recorded = config.get('environment', {}).get('wind')
+            if (any(not math.isclose(initial_recorded.get(key, float('inf')), getattr(initial, key), rel_tol=1e-9, abs_tol=1e-9)
+                    for key in State.__dataclass_fields__) or wind_recorded is None or
+                    any(not math.isclose(a, float(b), rel_tol=1e-9, abs_tol=1e-9)
+                        for a, b in zip(wind_recorded, (case['wind_x'], case['wind_y']))) or len(wind_recorded) != 2):
+                raise ValueError(f"Expert replay for run {case['run_id']} does not match validation_runs.csv")
+            expert_replays.append(expert_replay)
+        else:
+            expert_replays.append(None)
     summary = aggregate([run['scoring'] for run in runs])
     diagnostic_scores = [run['diagnostic_score'] for run in runs if run['diagnostic_score'] is not None]
     summary['mean_diagnostic_score'] = sum(diagnostic_scores) / len(diagnostic_scores) if diagnostic_scores else None
     summary['scored_contacts'] = len(diagnostic_scores)
-    return {'runs': runs, 'summary': summary, 'classification': classification, 'replays': replays,
+    return {'runs': runs, 'summary': summary, 'classification': classification, 'replays': replays, 'expert_replays': expert_replays,
             'limits': dict(vy=CONFIG.max_descent, vx=CONFIG.max_horizontal_speed,
                            theta=math.degrees(CONFIG.max_tilt), omega=math.degrees(CONFIG.max_angular_rate),
                            midpoint_offset=CONFIG.d_ref)}
@@ -160,7 +182,7 @@ def main(source_path):
 
 if __name__ == '__main__':
     try:
-        result = main(sys.argv[1])
+        result = main(sys.argv[1], sys.argv[3] if len(sys.argv) > 3 else None)
     except Exception as exc:
         result = {'error': f'{type(exc).__name__}: {exc}'}
     Path(sys.argv[2]).write_text(json.dumps(result, allow_nan=False), encoding='utf-8')

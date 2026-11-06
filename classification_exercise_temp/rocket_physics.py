@@ -4,7 +4,7 @@ Body coordinates are (right, nose). The state position is the instantaneous
 centre of mass. Angular acceleration uses the specified effective exhaust-flux
 closure I * omega_dot = torque, not d(I*omega)/dt = torque.
 """
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from functools import lru_cache
 from math import atan2, cos, hypot, isfinite, sin
 from typing import Callable
@@ -88,8 +88,11 @@ class Parameters:
     centre_of_pressure: Callable[[float], Vector]
     # Piecewise-linear terrain, extended horizontally beyond its endpoints.
     terrain: tuple[Vector, ...]
+    actuator_delay: bool = True
 
     def __post_init__(self):
+        if type(self.actuator_delay) is not bool:
+            raise ValueError('actuator_delay must be a boolean')
         positive = (self.dry_mass, self.dry_inertia, self.fuel_capacity,
                     self.tank_height, self.tank_radius, self.length, self.isp,
                     self.g0, self.thrust_tau, self.thrust_rate, self.gimbal_tau,
@@ -125,6 +128,15 @@ def _discrete_command(action: int, throttle_levels: tuple[float, float, float]) 
         return Command(0, 0)
     i = action - 1
     return Command(throttle_levels[i // 3], (1, 0, -1)[i % 3])
+
+
+def apply_actuators(s: State, command: Command, p: Parameters) -> State:
+    """Apply a command at the boundary when actuator response is instantaneous."""
+    if p.actuator_delay:
+        return s
+    thrust = (p.min_thrust + command.throttle * (p.max_thrust - p.min_thrust)
+              if command.throttle > 0 and s.fuel > 0 else 0.0)
+    return replace(s, thrust=thrust, gimbal=command.gimbal * p.gimbal_max)
 
 
 def mass_properties(fuel: float, p: Parameters) -> tuple[float, Vector, float]:
@@ -197,8 +209,8 @@ def derivative(t: float, s: State, command: Command, p: Parameters, *, _powered:
     if not isfinite(g) or g < 0:
         raise ValueError('gravity must be finite and nonnegative')
     target = 0.0 if command.throttle == 0 else p.min_thrust + command.throttle * (p.max_thrust - p.min_thrust)
-    dt = clip((target - s.thrust) / p.thrust_tau, -p.thrust_rate, p.thrust_rate) if powered else 0.0
-    dg = clip((command.gimbal * p.gimbal_max - s.gimbal) / p.gimbal_tau, -p.gimbal_rate, p.gimbal_rate)
+    dt = clip((target - s.thrust) / p.thrust_tau, -p.thrust_rate, p.thrust_rate) if powered and p.actuator_delay else 0.0
+    dg = clip((command.gimbal * p.gimbal_max - s.gimbal) / p.gimbal_tau, -p.gimbal_rate, p.gimbal_rate) if p.actuator_delay else 0.0
     result = State(s.vx, s.vy, (ft[0] + fd[0] + fl[0]) / mass,
                    (ft[1] + fd[1] + fl[1]) / mass - g, s.omega,
                    (torque + aero_torque) / inertia,
@@ -340,6 +352,7 @@ def step(t: float, s: State, command: Command, p: Parameters, h: float) -> tuple
         if distance < 0:
             raise ValueError('initial hull penetrates terrain')
         return s, Contact(t, s, point)
+    s = apply_actuators(s, command, p)
     end = t + h
     if not isfinite(end) or end <= t:
         raise ValueError('step is not representable at the current time')

@@ -44,10 +44,11 @@ def evaluate_closed_loop(policy, initial_state, parameters, scenario_id, *, max_
     """
     if control_mode not in ('discrete', 'continuous'):
         raise ValueError('control_mode must be discrete or continuous')
-    if not math.isfinite(max_time) or max_time <= 0:
-        raise ValueError('max_time must be positive and finite')
-    if abs(max_time / parameters.control_interval - round(max_time / parameters.control_interval)) > 1e-9:
-        raise ValueError('max_time must be a control boundary')
+    if max_time is not None:
+        if not math.isfinite(max_time) or max_time <= 0:
+            raise ValueError('max_time must be positive and finite, or None')
+        if abs(max_time / parameters.control_interval - round(max_time / parameters.control_interval)) > 1e-9:
+            raise ValueError('max_time must be a control boundary')
     run = Run(scenario_id)
     if constant_wind is not None:
         if len(constant_wind) != 2 or not all(math.isfinite(v) for v in constant_wind):
@@ -99,7 +100,7 @@ def evaluate_closed_loop(policy, initial_state, parameters, scenario_id, *, max_
     if clearance(initial_state, parameters)[0] <= 0:
         run.advance()  # same authoritative contact handling and replay format
     while run.status == 'running':
-        if run.t >= max_time - 1e-10:
+        if max_time is not None and run.t >= max_time - 1e-10:
             run.status = 'completed'
             run.event = dict(run_id=run.id, type='completed', time=run.t,
                              reason='run time limit', scoring=score_contact(None, parameters))

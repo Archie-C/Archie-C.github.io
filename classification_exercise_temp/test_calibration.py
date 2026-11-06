@@ -71,6 +71,8 @@ class CalibrationTests(unittest.TestCase):
         results = []
         for h in (.01, .005):
             p, s = c.configuration('centred_descent')
+            # This ignition timing was calibrated for the delayed actuators.
+            p = replace(p, actuator_delay=True)
             for n in range(int(15/h)):
                 t = n*h
                 s, contact = step(t, s, Command(1 if t >= 2.96-1e-9 else 0, 0), p, h)
@@ -82,6 +84,30 @@ class CalibrationTests(unittest.TestCase):
         self.assertAlmostEqual(results[0].time, results[1].time, delta=2e-5)
         self.assertAlmostEqual(results[0].state.vy, results[1].state.vy, delta=1e-3)
         self.assertEqual(__import__('rocket_server').contact_quality(results[0], p), 'candidate safe first contact')
+
+    def test_actuator_delay_is_configurable(self):
+        p, s = c.configuration('centred_descent')
+        self.assertFalse(p.actuator_delay)
+        command = Command(1, 1)
+        instant, _ = step(0, s, command, p, .01)
+        delayed, _ = step(0, s, command, replace(p, actuator_delay=True), .01)
+        self.assertEqual(instant.thrust, p.max_thrust)
+        self.assertEqual(instant.gimbal, p.gimbal_max)
+        self.assertLess(delayed.thrust, instant.thrust)
+        self.assertLess(delayed.gimbal, instant.gimbal)
+        exhausted, _ = step(0, replace(s, fuel=0), command, p, .01)
+        self.assertEqual(exhausted.thrust, 0)
+
+    def test_instant_actuators_recorded_at_command_boundary(self):
+        r = Run('centred_descent')
+        r.queue({'command_sequence': 0, 'action': 8})
+        r.advance()
+        transition = r.snapshots[1]
+        self.assertEqual(transition['time'], 0)
+        self.assertEqual(transition['state']['thrust'], r.p.max_thrust)
+        self.assertEqual(transition['state']['gimbal'], 0)
+        replay = offline([8], 'centred_descent')
+        self.assertEqual(replay['snapshots'][1]['state']['thrust'], r.p.max_thrust)
 
     def test_envelope_and_replay(self):
         r = Run('crosswind_diagnostics')

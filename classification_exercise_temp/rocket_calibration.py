@@ -7,7 +7,9 @@ import math
 from rocket_physics import Parameters, State
 
 NAME = 'falcon9_coastal_landing_v1'
-REVISION = '1.0'
+REVISION = '1.1'
+# Set to True to restore the original rate-limited thrust and gimbal.
+ACTUATOR_DELAY = False
 COEFFICIENT_MODEL = 'effective-periodic-v1'
 ATMOSPHERE_MODEL = 'exponential-8500m-v1'
 LANDING_ZONE_MODEL = 'faa-proposed-slc40-cross-section-v1'
@@ -63,7 +65,8 @@ def configuration(name='demo_descent'):
         gimbal_rate=math.radians(10.), cmq=.60, speed_epsilon=1., throttle_levels=(.12, .55, 1.),
         control_interval=.10, timestep=.010, event_tolerance=1e-5, gravity=gravity,
         density=density, wind=wind, drag_coefficient=drag_coefficient,
-        lift_coefficient=lift_coefficient, centre_of_pressure=centre_of_pressure, terrain=TERRAIN)
+        lift_coefficient=lift_coefficient, centre_of_pressure=centre_of_pressure, terrain=TERRAIN,
+        actuator_delay=ACTUATOR_DELAY)
     x, y, vx, vy, theta, omega, fuel, thrust, gimbal = SCENARIOS[name]
     return p, State(x, y, vx, vy, math.radians(theta), math.radians(omega), fuel, thrust, gimbal)
 

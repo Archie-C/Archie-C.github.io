@@ -44,6 +44,9 @@ aside { display: grid; gap: 16px; align-content: start; }
 .upload-input { position: absolute; width: 1px; height: 1px; opacity: 0; }
 .upload-meta { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border: 1px solid var(--rule); border-radius: 6px; background: var(--bg-2); }
 .upload-meta span { flex: 1; overflow-wrap: anywhere; font: 12px var(--font-mono); }
+.weights-upload { margin-top: 16px; }
+.weights-upload label { display: block; margin-bottom: 6px; font-weight: 600; }
+.weights-upload input { max-width: 100%; }
 .controller-panel form > button { margin-top: 12px; }
 #controller-results { margin-top: 24px; }
 .result-table { overflow-x: auto; margin-top: 12px; }

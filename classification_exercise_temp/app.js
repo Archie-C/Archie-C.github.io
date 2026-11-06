@@ -180,15 +180,15 @@ function showControllerResults(result){
  const c=result.classification;
  $('classification-summary').textContent=`Action accuracy: ${fmt(100*c.accuracy,1)}% · Macro F1: ${fmt(100*c.macro_f1,1)}% · ${c.sample_count} observations`;
  $('classification-overlap').hidden=c.overlapping_observations===0;
- $('classification-overlap').textContent=c.overlapping_observations ? `${c.overlapping_observations} / ${c.sample_count} test observations also occur in the training data; these results are not fully independent.` : '';
- $('result-summary').textContent=`${s.successful_runs} / ${s.total_runs} successful (${fmt(100*s.success_rate,0)}%) · Mean diagnostic score: ${s.mean_diagnostic_score===null?'—':fmt(s.mean_diagnostic_score,1)+' / 100'} (${s.scored_contacts} contacts)`;
+ $('classification-overlap').textContent=c.overlapping_observations===null ? 'Training data for this saved model is unknown; test data independence cannot be checked.' : c.overlapping_observations ? `${c.overlapping_observations} / ${c.sample_count} test observations also occur in the training data; these results are not fully independent.` : '';
+ $('result-summary').textContent=`${s.successful_runs} / ${s.total_runs} successful (${fmt(100*s.success_rate,0)}%) · Mean score: ${s.mean_diagnostic_score===null?'—':fmt(s.mean_diagnostic_score,1)+' / 100'} (${s.scored_contacts} contacts)`;
  const body=$('result-rows');body.replaceChildren();controllerReplays=result.replays;
  result.runs.forEach((run,i)=>{
   const row=document.createElement('tr'), score=run.scoring, m=run.metrics, l=result.limits;
   const degrees=n=>n*180/Math.PI, measurement=(n,limit)=>`${fmt(n)} / ${fmt(limit)}`;
   const atContact=score.contact_time!==null;
   const values=[
-   [run.run_id], [score.success?'Success':atContact?'Unsuccessful':'No contact'],
+   [run.description ? `${run.run_id} · ${run.description}` : run.run_id], [score.success?'Success':atContact?'Unsuccessful':`No contact (${run.termination_reason})`],
    [run.diagnostic_score===null?'—':fmt(run.diagnostic_score,1)],
    [measurement(m.vy,l.vy),m.vy>=-l.vy&&m.vy<=0],
    [measurement(m.vx,l.vx),Math.abs(m.vx)<=l.vx],
@@ -206,18 +206,28 @@ function showControllerResults(result){
    row.appendChild(cell);
   }
   const cell=document.createElement('td');
-  if(i<controllerReplays.length){const button=document.createElement('button');button.type='button';button.textContent='View flight';button.onclick=async()=>{if(await setRecord(controllerReplays[i])){notice(`Test run ${run.run_id} loaded. Use Play replay to watch it.`);$('scene').scrollIntoView({behavior:'smooth',block:'center'});}};cell.appendChild(button);}
-  else cell.textContent='—';row.appendChild(cell);body.appendChild(row);
+  if(i<controllerReplays.length){const button=document.createElement('button');button.type='button';button.textContent='View flight';button.onclick=async()=>{if(await setRecord(controllerReplays[i])){notice(`Validation run ${run.run_id} loaded. Use Play replay to watch it.`);$('scene').scrollIntoView({behavior:'smooth',block:'center'});}};cell.appendChild(button);}
+  else cell.textContent='—';row.appendChild(cell);
+  const expertCell=document.createElement('td'), expertReplay=result.expert_replays?.[i];
+  if(expertReplay){const button=document.createElement('button');button.type='button';button.textContent='View expert flight';button.onclick=async()=>{if(await setRecord(expertReplay)){notice(`Expert validation run ${run.run_id} loaded. Use Play replay to watch it.`);$('scene').scrollIntoView({behavior:'smooth',block:'center'});}};expertCell.appendChild(button);}
+  else {expertCell.textContent='Not provided';expertCell.title='Generate expert replay JSON files in expert_replays to enable this replay.';}
+  row.appendChild(expertCell);body.appendChild(row);
  });
  $('controller-results').hidden=false;
 }
+$('weights-file').onchange=()=>{$('controller-run').textContent=$('weights-file').files.length?'Evaluate saved model':'Train and evaluate';};
+function fileAsBase64(file){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result.split(',')[1]);reader.onerror=()=>reject(Error('Could not read saved weights.'));reader.readAsDataURL(file);});}
 $('controller-form').onsubmit=async e=>{
  e.preventDefault();const file=selectedController, status=$('controller-status'), button=$('controller-run');
  if(!file){status.textContent='Choose a Python controller file first.';return;}
- button.disabled=true;$('controller-results').hidden=true;status.textContent='Training controller and evaluating 10 test runs…';
+ const weights=$('weights-file').files[0];
+ if(weights && (!weights.size || weights.size>20*1024*1024)){status.textContent='Choose a nonempty weights file no larger than 20 MB.';return;}
+ button.disabled=true;$('controller-results').hidden=true;status.textContent=weights?'Loading saved model and evaluating 10 validation runs…':'Training controller and evaluating 10 validation runs…';
  try{
-  const result=await post('/api/controller',{source:await file.text()});
-  showControllerResults(result);status.textContent='Evaluation complete. Select View flight to inspect either of the first two runs.';
+  const payload={source:await file.text()};
+  if(weights){payload.weights=await fileAsBase64(weights);payload.weights_name=weights.name;}
+  const result=await post('/api/controller',payload);
+  showControllerResults(result);status.textContent='Evaluation complete. Select View flight to inspect a validation run.';
  }catch(err){status.textContent=err.message==='unknown run_id'
    ? 'The simulator server may be running an older version. Stop it, restart rocket_server.py, and reload this page.'
    : 'Controller error: '+err.message;}
@@ -257,7 +267,7 @@ function draw(){let w=canvas.clientWidth,h=canvas.clientHeight,dpr=window.device
    ctx.restore();
   }
   ctx.beginPath();hull.forEach((q,i)=>{let z=screen(q);i?ctx.lineTo(...z):ctx.moveTo(...z);});ctx.closePath();ctx.fillStyle='#F6F1E7';ctx.fill();ctx.lineWidth=2;ctx.strokeStyle='#3D362A';ctx.stroke();
-  for(const foot of p.feet){line(bp([foot[0]*.35,0]),bp(foot),'#3D362A',2);dot(bp(foot),'#3D362A',2.5);}
+  for(const foot of p.feet){line(bp([foot[0]*.35,0]),bp(foot),'#3D362A',Math.max(1,Math.min(2,camera.scale*.2)));}
   const n=nozzleDirection(s.theta,s.gimbal);line(engine,[engine[0]+n[0]*.7,engine[1]+n[1]*.7],'#6B2C5C',Math.max(2,camera.scale*.3));
  }
  rocket();

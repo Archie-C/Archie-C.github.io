@@ -16,7 +16,7 @@ from rocket_scoring import score_contact
 
 # Freeze provenance at import, before a long-running evaluation begins.
 SOURCE_SHA256 = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
-EXPERT_VERSION = 'expert-closed-loop-v1.1'
+EXPERT_VERSION = 'expert-closed-loop-v1.2'
 
 
 def _state(observation):
@@ -76,11 +76,14 @@ class ExpertController:
     """
     version = EXPERT_VERSION
 
-    def __init__(self, horizon_steps=5, control_interval=.10):
+    def __init__(self, horizon_steps=5, control_interval=.10, actuator_delay=None):
         if type(horizon_steps) is not int or not 1 <= horizon_steps <= 10:
             raise ValueError('horizon_steps must be an integer from 1 to 10')
         if not math.isfinite(control_interval) or control_interval <= 0:
             raise ValueError('control_interval must be positive and finite')
+        if actuator_delay is not None and type(actuator_delay) is not bool:
+            raise ValueError('actuator_delay must be a boolean or None')
+        self.actuator_delay = actuator_delay
         self.horizon_steps = horizon_steps
         self.control_interval = control_interval
         self.reset()
@@ -95,7 +98,8 @@ class ExpertController:
         s = _state(observation)
         values = np.asarray(observation, dtype=np.float64)
         p, _ = configuration('centred_descent')
-        p = replace(p, control_interval=self.control_interval, wind=lambda y, t: (float(values[9]), float(values[10])),
+        p = replace(p, actuator_delay=p.actuator_delay if self.actuator_delay is None else self.actuator_delay,
+                    control_interval=self.control_interval, wind=lambda y, t: (float(values[9]), float(values[10])),
                     density=lambda y, t=None: float(values[11]))
         fallback_id = simple_discrete_guidance(observation)
         desired = guidance(observation)

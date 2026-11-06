@@ -1,15 +1,46 @@
 import numpy as np
 from collections import deque
 
+FEATURE_VERSION = 3
+
 class Controller():
     """Multinomial logistic regression on nonlinear observation features."""
-    def __init__(self, learning_rate=0.01, epochs=1000):
+    def __init__(self, learning_rate=0.1, epochs=1000):
         self.learning_rate = learning_rate
         self.epochs = epochs
         self.weights = None
         self.bias = None
         self.loss_history = []
         self.history = deque(maxlen=5)
+
+    def save(self, path):
+        """Save trained parameters for later evaluation (NumPy .npz format)."""
+        if self.weights is None:
+            raise ValueError("Model has not been trained yet.")
+        with open(path, "wb") as target:
+            np.savez_compressed(target, feature_version=FEATURE_VERSION, weights=self.weights, bias=self.bias,
+                                classes=self.classes_, mean=self.mean_, scale=self.scale_,
+                                basis_mean=self.basis_mean_, basis_scale=self.basis_scale_,
+                                learning_rate=self.learning_rate, epochs=self.epochs,
+                                loss_history=self.loss_history)
+
+    def load(self, path):
+        """Restore a saved model and start with an empty flight history."""
+        with np.load(path, allow_pickle=False) as saved:
+            if 'feature_version' not in saved or int(saved['feature_version']) != FEATURE_VERSION:
+                raise ValueError('Saved weights use an incompatible feature version; retrain and save the model again.')
+            self.weights = saved["weights"]
+            self.bias = saved["bias"]
+            self.classes_ = saved["classes"]
+            self.mean_ = saved["mean"]
+            self.scale_ = saved["scale"]
+            self.basis_mean_ = saved["basis_mean"]
+            self.basis_scale_ = saved["basis_scale"]
+            self.learning_rate = float(saved["learning_rate"])
+            self.epochs = int(saved["epochs"])
+            self.loss_history = saved["loss_history"].tolist()
+        self.reset()
+        return self
 
     def reset(self):
         """Start a new flight without carrying observations over from the last."""
@@ -72,6 +103,31 @@ class Controller():
                 stopping_distance - height, stopping_distance / height,
                 time_to_ground, X[:, 0] + X[:, 2] * time_to_ground,
                 X[:, 4] + X[:, 5] * time_to_ground)))
+            # Continuing at the observed thrust is one possible short-horizon
+            # trajectory; immediate actuators can also change it at the next decision.
+            acceleration = np.where(fuel > 0, X[:, 7], 0.) * np.cos(X[:, 4] + X[:, 8]) / mass - 9.80665
+            delayed_speed = np.maximum(down_speed - .2 * acceleration, 0.)
+            delayed_distance = down_speed * .2 + delayed_speed ** 2 / (2. * braking)
+            relative_vx = X[:, 2] - X[:, 9]
+            basis.append(np.column_stack((acceleration,
+                delayed_distance - height, delayed_distance / height,
+                X[:, 0] + X[:, 2] * np.minimum(time_to_ground, 5.),
+                relative_vx, X[:, 4] + .5 * X[:, 5], X[:, 4] + X[:, 5],
+                X[:, 4] + 2. * X[:, 5], X[:, 5] * time_to_ground)))
+            # Immediate-response physics: each throttle level takes effect at
+            # the next 0.1 s decision boundary, with no thrust after fuel runs out.
+            # Gimbal choices change horizontal acceleration and vertical braking.
+            thrust_levels = np.array([0., 482000. + .12 * 363000.,
+                                      482000. + .55 * 363000., 845000.])
+            thrust = np.where(fuel[:, None] > 0, thrust_levels[None, :], 0.)
+            vertical_acceleration = thrust * np.cos(X[:, 4, None]) / mass[:, None] - 9.80665
+            speeds = np.maximum(down_speed[:, None] - .1 * vertical_acceleration, 0.)
+            basis.append(np.column_stack((vertical_acceleration, speeds)))
+            gimbals = np.radians(np.array([-5., 0., 5.]))
+            full_thrust = np.where(fuel[:, None] > 0, 845000., 0.)
+            angles = X[:, 4, None] + gimbals
+            basis.append(np.column_stack((-full_thrust * np.sin(angles) / mass[:, None],
+                                          full_thrust * np.cos(angles) / mass[:, None] - 9.80665)))
             # Differences estimate acceleration and actuator changes over 0.1 s.
             if previous is None:
                 previous = X
@@ -130,7 +186,8 @@ class Controller():
         self.loss_history = []
         self.reset()
 
-        for _ in range(self.epochs):
+        for epoch in range(self.epochs):
+            print(f"Epoch {epoch + 1}/{self.epochs}", end="\r")
             probabilities = self._softmax(X @ self.weights + self.bias)
             self.loss_history.append(
                 self.cross_entropy_loss(labels, probabilities)

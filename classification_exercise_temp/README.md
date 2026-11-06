@@ -1,6 +1,6 @@
 # Rocket landing expert
 
-The simulator uses a Falcon 9-inspired calibrated model, deterministic physics and the `touchdown-v1.0` first-contact scorer. `ExpertController` selects one of ten discrete actions every 0.10 seconds. Its five-step predictive search and the 0.01-second physics timestep are unchanged; the previous expert achieved 241/300 successful landings in an earlier held-out evaluation.
+The simulator uses a Falcon 9-inspired calibrated model, deterministic physics and the `touchdown-v1.0` first-contact scorer. `ExpertController` selects one of ten discrete actions every 0.10 seconds using a five-step predictive search and a 0.01-second physics timestep. Thrust and gimbal respond immediately by default. Set `ACTUATOR_DELAY = True` in `rocket_calibration.py` to restore rate-limited actuators, then restart the server. Changing this setting changes the physics and requires new training and test datasets and retrained weights.
 
 Install Python 3.10+ and `python3 -m pip install -r requirements.txt`. Generate a CSV with:
 
@@ -17,23 +17,43 @@ The terminal reports completed runs, successful landings, elapsed time, and
 the final row count; progress messages are limited to roughly one every five
 seconds, plus the first and last completed run.
 
+After changing the actuator-delay setting, regenerate both datasets before training or evaluating action agreement; CSVs and weights generated under the previous physics do not match the new simulator. For example, from this directory:
+
+```sh
+python3 generate_dataset.py --runs 1000 --seed 42 --output landings.csv
+python3 generate_dataset.py --runs 10 --seed 99191 --output test_landings.csv
+```
+
+These commands overwrite the named CSVs. Use different seeds for training and test data, and then retrain and save the controller weights. The validation set in `validation_runs.csv` can be retained.
+
 Each independently sampled start varies position, velocity, orientation, rotation, fuel and constant horizontal and vertical wind. Nominal, challenging and extreme ranges are sampled. Runs end at first contact or after 20 seconds; unsuccessful contacts and timeouts remain in the CSV. Each row contains an observation immediately before an expert decision, its action (0–9), and the final run outcome. Run IDs are unique within the file; the seed makes the dataset reproducible. `success` is outcome metadata and must not be used as a controller observation or classifier input.
 
 The twelve observation columns are in SI units (angles in radians): pad-relative horizontal position and centre-of-mass height, horizontal and vertical velocities, orientation, angular velocity, remaining fuel, actual thrust and gimbal, horizontal and vertical wind, and air density. Upward velocity, anticlockwise orientation and leftward thrust deflection are positive.
 
 Start the interactive browser simulator with `python3 rocket_server.py` and open <http://127.0.0.1:8765>. The simulator can export its recordings and import existing `rocket-run-v1` JSON recordings for replay; controller source is not needed for replay.
 
-To try a controller, choose a trusted Python file in **Run a controller**. The local server creates its `Controller` class, calls `fit(X, y)` with the twelve observation columns and action labels from `landings.csv`, and evaluates a fresh copy of the fitted controller on each of the ten initial states and constant winds in `test_runs.csv`. It calls `predict_action(observation)` at each control interval and ends each flight at contact or after 20 seconds. The results include a replay for each of the first two runs. The uploaded Python runs with the server user's permissions, so only run code you trust; the separate process is not a security sandbox.
+To try a controller, choose a trusted Python file in **Run a controller**. The local server creates its `Controller` class, calls `fit(X, y)` with the twelve observation columns and action labels from `landings.csv`, and evaluates a fresh copy of the fitted controller on each of the ten initial states and constant winds in `validation_runs.csv`. It calls `predict_action(observation)` at each control interval and runs each test flight until contact. Recording capacity and the 120-second process limit can still stop long-running flights; the results report a recording limit as no contact. The results include a controller replay for each of the ten validation runs. To enable expert replays, regenerate the fixed validation CSV and matching replay files together with `python3 generate_dataset.py --fixed-validation --output validation_runs.csv --replay-dir expert_replays`. The evaluator uses the CSV initial states for the controller and loads the corresponding expert JSON recordings. Expert recordings must match the validation runs. The uploaded Python runs with the server user's permissions, so only run code you trust; the separate process is not a security sandbox.
 
-`test_runs.csv` accepts either ten saved initial-state rows or a full dataset
+For offline training, save the fitted example controller and upload both `example_controller.py` and the saved file:
+
+```python
+controller.fit(X, y, run_ids=run_ids, steps=steps)  # metadata is optional
+controller.save("weights.npz")
+```
+
+Selecting a saved weights file switches the page to evaluation only. The evaluator creates `Controller()`, calls `load(path)` on it (the method must update the instance), and does not call `fit`. Custom controllers can use any single-file format and implement their own `load(path)`; the example uses NumPy's `.npz` format and saves the learned weights, bias, class labels, normalization values, training settings and loss history. Flight history is cleared on loading. The weights file may be up to 20 MB. For saved models the training data is unknown, so overlap with the test data cannot be checked; keep your offline training data separate from `test_landings.csv` and `validation_runs.csv`.
+
+The supplied `validation_runs.csv` contains ten fixed expert validation runs. Their initial states and winds are used to evaluate the controller, and the matching recordings in `expert_replays` show the expert's flights. Keep this set separate from the training data.
+
+`validation_runs.csv` accepts either ten saved initial-state rows or a full dataset
 from `generate_dataset.py --runs 10`: the evaluator uses each run's `step=0`
 row as its initial state. Action classification metrics still use `test_landings.csv`.
 
-The results show measured signed velocities, tilt, angular velocity and landing-foot midpoint offset at first contact, or at the time limit when there is no contact. The diagnostic score applies only at valid first contact: `100 * sum(weight / (1 + abs(measurement) / reference))`. The five weights are 0.30, 0.15, 0.20, 0.15 and 0.20 for vertical velocity, horizontal velocity, tilt, angular velocity and midpoint offset; the references are 3 m/s, 1.5 m/s, 4 degrees, 2 degrees/s and 33.672 m respectively. It provides a gradient for failed landings but does not assess contact geometry or encode the full pass criteria. The displayed mean excludes flights without a valid contact. The versioned `touchdown-v1.0` success and score remain unchanged.
+The results show measured signed velocities, tilt, angular velocity and landing-foot midpoint offset at first contact, or at the final recorded state if the recording limit is reached before contact. The score applies only at valid first contact: `100 * sum(weight / (1 + abs(measurement) / reference))`. The five weights are 0.30, 0.15, 0.20, 0.15 and 0.20 for vertical velocity, horizontal velocity, tilt, angular velocity and midpoint offset; the references are 3 m/s, 1.5 m/s, 4 degrees, 2 degrees/s and 33.672 m respectively. It provides a gradient for failed landings but does not assess contact geometry or encode the full pass criteria. The displayed mean excludes flights without a valid contact. The versioned `touchdown-v1.0` success and score remain unchanged.
 
 Action accuracy and macro F1 compare `predict_action` with expert action labels in `test_landings.csv`. Macro F1 weights each action present in the targets or predictions equally. The page reports test observations that exactly match training observations; overlapping data is not an independent evaluation. These metrics measure action agreement, not landing success.
 
-Controllers may implement `reset()` to clear flight history. Evaluation calls it at the start of each flight and at run or step boundaries in the test CSV. If a controller's `fit` method explicitly accepts `run_ids` or `steps`, the evaluator supplies those training CSV columns. The example controller uses them to construct consecutive-observation features without crossing flight boundaries; without run IDs, training treats each observation as a separate first step. Its history differences assume the simulator's 0.1-second control interval. `predict_action` maintains history, whereas batch `predict` treats each row as a first observation.
+Controllers may implement `reset()` to clear flight history. Evaluation calls it at the start of each flight and at run or step boundaries in the test CSV. If a controller's `fit` method explicitly accepts `run_ids` or `steps`, the evaluator supplies those training CSV columns. The example controller uses them to construct consecutive-observation features without crossing flight boundaries; without run IDs, training treats each observation as a separate first step. Its history differences assume the simulator's 0.1-second control interval. The model also estimates short-horizon braking and attitude, including the immediate thrust and gimbal choices and loss of thrust when fuel is exhausted. These are approximate features, not a full physics simulation. `predict_action` maintains history, whereas batch `predict` treats each row as a first observation. Saved weights from earlier feature versions are incompatible and must be retrained with the current training data.
 
 Run checks with:
 
@@ -48,8 +68,7 @@ Add `--output results.json` to save the per-flight outcomes and final
 pre-decision observations. This benchmark uses the same 20-second limit as
 dataset generation.
 
-In paired tests of the current expert against the previous version, the
-current version landed 27/30 versus 22/30 starts (seed 42001), 25/30 versus
+In earlier paired tests under the delayed-actuator physics, the then-current expert landed 27/30 versus 22/30 starts (seed 42001), 25/30 versus
 25/30 (seed 72002), and 53/60 versus 48/60 (seed 91041). These samples do not
 guarantee success on other starts; fuel, pad position, and the time limit can
 still prevent a landing.

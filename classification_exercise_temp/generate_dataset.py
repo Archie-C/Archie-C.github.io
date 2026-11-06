@@ -4,15 +4,17 @@ import csv
 from concurrent.futures import FIRST_COMPLETED, ProcessPoolExecutor, wait
 from dataclasses import replace
 import logging
+import json
+from pathlib import Path
 import os
 import random
 import time
 
 from rocket_calibration import configuration
-from rocket_closed_loop import make_observation
+from rocket_closed_loop import make_observation, evaluate_closed_loop
 from rocket_expert import ExpertController
-from rocket_physics import clearance, discrete_command, step
-from rocket_scoring import score_contact
+from rocket_physics import State, clearance, discrete_command, step
+from rocket_scoring import CONFIG as score_config, score_contact
 
 COLUMNS = ('run_id', 'step', 'x', 'y', 'vx', 'vy', 'theta', 'omega',
            'fuel_mass', 'actual_thrust', 'actual_gimbal', 'wind_x', 'wind_y',
@@ -35,11 +37,30 @@ def random_initial_state(rng):
     return state, replace(p, wind=lambda y, t: (wind_x, wind_y))
 
 
+def validation_samples():
+    """Fixed, unnamed validation starts with increasing disturbances."""
+    # x, y, vx, vy, theta, omega, fuel, wind_x, wind_y (SI units)
+    starts = (
+        (0, 300, 0, -30, 0, 0, 10000, 0, 0),
+        (4, 450, 0, -48, 0, 0, 9000, 0, 0),
+        (-4, 450, .5, -48, 0, 0, 9000, 0, 0),
+        (5, 450, -.5, -48, 0, 0, 9000, 2, 0),
+        (-6, 450, 1, -48, .01, 0, 9000, -2, 0),
+        (-15, 450, 2, -48, .03, .004, 9000, -4, .5),
+        (18, 450, -2, -48, -.03, -.005, 9000, 5, -.5),
+        (-35, 500, 4, -60, .07, .01, 8000, -6, 1),
+        (40, 500, -5, -62, -.08, -.012, 7500, 7, -1),
+        (0, 35, 0, -100, 0, 4, 9000, 0, 0),
+    )
+    for x, y, vx, vy, theta, omega, fuel, wx, wy in starts:
+        yield State(x, y, vx, vy, theta, omega, fuel, 0, 0), (wx, wy)
+
+
 def run_expert(initial, parameters, max_time=20.0):
     """Return pre-action observations, actions, and the final touchdown result."""
     if clearance(initial, parameters)[0] <= 0:
         raise ValueError('initial state must be above ground')
-    expert = ExpertController()
+    expert = ExpertController(actuator_delay=parameters.actuator_delay)
     state, time, decisions, contact = initial, 0., [], None
     for decision in range(round(max_time / parameters.control_interval)):
         observation = make_observation(state, time, parameters)
@@ -66,11 +87,16 @@ def _run_sample(sample):
     return run_expert(state, parameters)
 
 
-def generate_dataset(runs, seed, output, workers=1):
+def generate_dataset(runs, seed, output, workers=1, replay_dir=None, fixed_validation=False):
     if runs < 1:
         raise ValueError('runs must be positive')
+    if fixed_validation and runs != 10:
+        raise ValueError('fixed validation requires exactly 10 runs')
     if workers < 1:
         raise ValueError('workers must be positive')
+    if replay_dir is not None:
+        replay_dir = Path(replay_dir)
+        replay_dir.mkdir(parents=True, exist_ok=True)
     rng = random.Random(seed)
     worker_count = min(workers, runs, 61 if os.name == 'nt' else workers)
     start = last_log = time.monotonic()
@@ -92,6 +118,9 @@ def generate_dataset(runs, seed, output, workers=1):
         writer.writerow(COLUMNS)
 
         def samples():
+            if fixed_validation:
+                yield from validation_samples()
+                return
             for _ in range(runs):
                 state, parameters = random_initial_state(rng)
                 yield state, parameters.wind(0, 0)
@@ -102,11 +131,24 @@ def generate_dataset(runs, seed, output, workers=1):
             for index, (observation, action) in enumerate(decisions):
                 writer.writerow((run_id, index, *observation, action, int(result['success'])))
             row_count += len(decisions)
+            if replay_dir is not None:
+                obs = decisions[0][0]
+                state = State(x=obs[0] + (score_config.pad_left + score_config.pad_right) / 2,
+                              y=obs[1] + score_config.pad_height, vx=obs[2], vy=obs[3],
+                              theta=obs[4], omega=obs[5], fuel=obs[6], thrust=obs[7], gimbal=obs[8])
+                parameters, _ = configuration('centred_descent')
+                actions = iter(action for _, action in decisions)
+                replay_result = evaluate_closed_loop(lambda observation: next(actions), state, parameters,
+                    'centred_descent', max_time=len(decisions) * parameters.control_interval,
+                    constant_wind=(obs[9], obs[10]))
+                if replay_result['replay']['status'] == 'error':
+                    raise ValueError(f"Could not reconstruct expert run {run_id}: {replay_result['termination_reason']}")
+                (replay_dir / f'run_{run_id}.json').write_text(
+                    json.dumps(replay_result['replay'], allow_nan=False), encoding='utf-8')
 
         if workers == 1:
-            for run_id in range(runs):
-                state, parameters = random_initial_state(rng)
-                result = run_expert(state, parameters)
+            for run_id, sample in enumerate(samples()):
+                result = _run_sample(sample)
                 report_completed(result)
                 write_run(run_id, result)
         else:
@@ -133,18 +175,24 @@ def generate_dataset(runs, seed, output, workers=1):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--runs', type=int, required=True)
+    parser.add_argument('--runs', type=int, help='number of random runs (fixed validation always has 10)')
+    parser.add_argument('--fixed-validation', action='store_true', help='use the ten predefined validation starts')
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--output', required=True)
     parser.add_argument('--workers', type=int, default=min(os.cpu_count() or 1, 61 if os.name == 'nt' else (os.cpu_count() or 1)),
                         help='worker processes (default: available CPU count; use 1 for serial execution)')
+    parser.add_argument('--replay-dir', help='save expert replay JSON files in this directory')
     args = parser.parse_args()
-    if args.runs < 1:
+    if args.fixed_validation:
+        if args.runs not in (None, 10):
+            parser.error('--fixed-validation requires 10 runs')
+        args.runs = 10
+    elif args.runs is None or args.runs < 1:
         parser.error('--runs must be positive')
     if args.workers < 1:
         parser.error('--workers must be positive')
     logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s', datefmt='%H:%M:%S')
-    generate_dataset(args.runs, args.seed, args.output, workers=args.workers)
+    generate_dataset(args.runs, args.seed, args.output, workers=args.workers, replay_dir=args.replay_dir, fixed_validation=args.fixed_validation)
 
 
 if __name__ == '__main__':

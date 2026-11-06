@@ -3,6 +3,8 @@ from dataclasses import asdict
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 import hashlib
+import base64
+import binascii
 import json
 import math
 import os
@@ -17,7 +19,7 @@ from urllib.parse import parse_qs, urlsplit
 import rocket_physics
 import rocket_calibration as calibration
 import rocket_scoring
-from rocket_physics import Command, Parameters, State, clearance, discrete_command, forces, mass_properties, simulate, step
+from rocket_physics import Command, Parameters, State, apply_actuators, clearance, discrete_command, forces, mass_properties, simulate, step
 
 ROOT = Path(__file__).resolve().parent
 SCHEMA = 'rocket-run-v1'
@@ -159,6 +161,7 @@ class Run:
         if applied:
             # Preserve the exact command transition even when it shares the
             # timestamp and physical pose of the preceding integration frame.
+            self.state = apply_actuators(self.state, Command(self.command['throttle'], self.command['gimbal']), self.p)
             self.tick += 1
             self.snapshots.append(state_packet(self, self.t, self.state, self.command.copy(), self.tick))
         h = min(self.p.timestep, (math.floor((self.t+1e-10)/self.p.control_interval)+1)*self.p.control_interval-self.t)
@@ -249,7 +252,7 @@ class Handler(BaseHTTPRequestHandler):
         global run, last_client
         try:
             length = int(self.headers.get('Content-Length', '0'))
-            limit = 256 * 1024 if self.path == '/api/controller' else 16384
+            limit = 28 * 1024 * 1024 if self.path == '/api/controller' else 16384
             if length < 0 or length > limit: raise ValueError('invalid request size')
             if self.path == '/api/controller':
                 host = self.headers.get('Host', '')
@@ -264,7 +267,21 @@ class Handler(BaseHTTPRequestHandler):
                 source = data.get('source')
                 if not isinstance(source, str) or not source.strip() or len(source.encode('utf-8')) > 128 * 1024:
                     raise ValueError('controller source must be a nonempty Python file under 128 KB')
-                self.reply(run_controller(source))
+                encoded_weights = data.get('weights')
+                weights = None
+                if encoded_weights is not None:
+                    if not isinstance(encoded_weights, str) or len(encoded_weights) > 28 * 1024 * 1024:
+                        raise ValueError('invalid saved weights')
+                    try:
+                        weights = base64.b64decode(encoded_weights, validate=True)
+                    except (binascii.Error, ValueError) as exc:
+                        raise ValueError('invalid saved weights encoding') from exc
+                    if not weights or len(weights) > 20 * 1024 * 1024:
+                        raise ValueError('saved weights must be nonempty and at most 20 MB')
+                name = data.get('weights_name', 'weights')
+                if not isinstance(name, str) or len(name) > 255:
+                    raise ValueError('invalid saved weights filename')
+                self.reply(run_controller(source, weights, name))
                 return
             if self.path == '/api/offline':
                 actions = data.get('actions')
@@ -322,7 +339,7 @@ def offline(actions, scenario_name='demo_descent', initial_override=None):
         if i != current_action:
             previous = r.snapshots[-1]
             transition_time = previous['time']
-            previous_state = State(**previous['state'])
+            previous_state = apply_actuators(State(**previous['state']), cmd, r.p)
             r.commands.append(dict(command_sequence=i, effective_time=transition_time, **command))
             r.snapshots.append(state_packet(r, transition_time, previous_state, command.copy(), len(r.snapshots)))
             current_action = i
@@ -334,17 +351,22 @@ def offline(actions, scenario_name='demo_descent', initial_override=None):
     return r.record()
 
 
-def run_controller(source):
+def run_controller(source, weights=None, weights_name="weights"):
     """Run user-selected, trusted Python in a separate process (not a sandbox)."""
     with tempfile.TemporaryDirectory(prefix='rocket-controller-') as directory:
         source_path = Path(directory) / 'controller.py'
         result_path = Path(directory) / 'result.json'
         source_path.write_text(source, encoding='utf-8')
+        args = [sys.executable, str(ROOT / 'run_uploaded_controller.py'), str(source_path), str(result_path)]
+        if weights is not None:
+            suffix = Path(weights_name).suffix[:32]
+            weights_path = Path(directory) / ('weights' + suffix)
+            weights_path.write_bytes(weights)
+            args.append(str(weights_path))
         env = dict(os.environ, OPENBLAS_NUM_THREADS='1', OMP_NUM_THREADS='1', MKL_NUM_THREADS='1')
         try:
             completed = subprocess.run(
-                [sys.executable, str(ROOT / 'run_uploaded_controller.py'), str(source_path),
-                 str(result_path)], cwd=ROOT, env=env,
+                args, cwd=ROOT, env=env,
                 stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=120)
         except subprocess.TimeoutExpired as exc:
             raise ValueError('training or simulation exceeded 120 seconds') from exc
