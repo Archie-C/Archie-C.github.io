@@ -16,9 +16,19 @@ function renderRocketLeaderboard(entries) {
     typeof value === 'number' && Number.isFinite(value) ? value.toFixed(digits) + suffix : '–';
   entries.forEach((entry, index) => {
     const metrics = entry.metrics || {}, row = rocketLeaderboardBody.insertRow();
+    if (entry.is_current_browser === true) row.classList.add('own');
     [index + 1, entry.name, number(metrics.score), number(metrics.landing_success_pct, '%'), number(metrics.macro_f1, '', 4),
       number(typeof metrics.accuracy === 'number' ? metrics.accuracy * 100 : null, '%')]
-      .forEach(value => { row.insertCell().textContent = value; });
+      .forEach((value, column) => {
+        const cell = row.insertCell();
+        cell.textContent = value;
+        if (column === 1 && entry.is_current_browser === true) {
+          const badge = document.createElement('span');
+          badge.className = 'own-badge';
+          badge.textContent = 'you';
+          cell.appendChild(badge);
+        }
+      });
   });
 }
 window.loadRocketLeaderboard = async () => {
@@ -29,6 +39,7 @@ window.loadRocketLeaderboard = async () => {
     for (let offset = 0;; offset += 500) {
       const url = new URL('https://sjoybqjjvhafnsobouzl.supabase.co/functions/v1/score-rocket');
       url.searchParams.set('metric', metric);
+      url.searchParams.set('browser_id', getBrowserId());
       url.searchParams.set('offset', String(offset));
       const response = await fetch(url);
       if (!response.ok) throw Error('Leaderboard request failed');

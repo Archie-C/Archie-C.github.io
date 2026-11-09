@@ -20,7 +20,7 @@ globalThis.fetch = async (url, options) => {
     }
     const result = [...byBrowser.values()].sort((a,b) => b.metrics[query.p_metric] - a.metrics[query.p_metric]);
     return Response.json(result.slice(query.p_offset, query.p_offset + query.p_limit)
-      .map(row => ({name:row.name, metrics:row.metrics, created_at:'2026-11-06T00:00:00Z'})));
+      .map(row => ({name:row.name, metrics:row.metrics, created_at:'2026-11-06T00:00:00Z', is_current_browser:row.browser_id === query.p_browser_id})));
   }
   if (parsed.pathname.endsWith('/global_submissions')) {
     if (options.method === 'POST') {
@@ -75,12 +75,18 @@ const publicBoard = await response.json();
 assert.equal(publicBoard.leaderboard.length, 1);
 assert.equal(publicBoard.metric, 'score');
 assert.equal(publicBoard.grouping, 'best-per-browser-v1');
-assert.deepEqual(leaderboardQueries[0], {p_metric:'score', p_offset:0, p_limit:500});
+assert.deepEqual(leaderboardQueries[0], {p_metric:'score', p_offset:0, p_limit:500, p_browser_id:null});
 assert.equal('predictions' in publicBoard.leaderboard[0], false);
 assert.equal('browser_id' in publicBoard.leaderboard[0], false);
 response = await handler(new Request('https://example.invalid?metric=accuracy&offset=500'));
 assert.equal(response.status, 200);
-assert.deepEqual(leaderboardQueries[1], {p_metric:'accuracy', p_offset:500, p_limit:500});
+assert.deepEqual(leaderboardQueries[1], {p_metric:'accuracy', p_offset:500, p_limit:500, p_browser_id:null});
+response = await handler(new Request('https://example.invalid?browser_id=browser-1'));
+assert.equal((await response.json()).leaderboard[0].is_current_browser, true);
+response = await handler(new Request('https://example.invalid?browser_id=another-browser'));
+assert.equal((await response.json()).leaderboard[0].is_current_browser, false);
+response = await handler(new Request('https://example.invalid?browser_id='));
+assert.equal(response.status, 400);
 response = await handler(new Request('https://example.invalid?metric=unknown'));
 assert.equal(response.status, 400);
 response = await handler(new Request('https://example.invalid?offset=-1'));

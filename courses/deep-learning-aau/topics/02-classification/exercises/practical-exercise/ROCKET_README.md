@@ -114,3 +114,5 @@ For an end-to-end smoke test, install Node.js and Playwright with Chromium in a
 separate development environment, serve the repository root as above, then run
 `node test-browser.cjs` from this directory. Set `ROOT_URL` if needed. The test
 uses mocked scoring and leaderboard responses and makes no real submissions.
+
+To enable the current-browser highlight, rerun `supabase/functions/score-rocket/leaderboard.sql` in the Supabase SQL editor and redeploy the `score-rocket` Edge Function alongside the updated page. The leaderboard response marks the matching entry without returning browser IDs.

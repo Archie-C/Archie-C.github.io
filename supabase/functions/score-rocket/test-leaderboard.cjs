@@ -29,7 +29,7 @@ const {PGlite} = require('@electric-sql/pglite');
         [id,browser,name,task,JSON.stringify(metrics),time]);
     }
     async function names(metric, offset=0, limit=500) {
-      const result = await db.query('select * from public.rocket_best_submissions($1,$2,$3)', [metric,offset,limit]);
+      const result = await db.query('select * from public.rocket_best_submissions($1,$2,$3,$4)', [metric,offset,limit,null]);
       return result.rows.map(row => row.name);
     }
     assert.deepEqual(await names('score'), ['A score','B recent']);
@@ -38,7 +38,10 @@ const {PGlite} = require('@electric-sql/pglite');
     assert.deepEqual(await names('score',0,1), ['A score']);
     assert.deepEqual(await names('score',1,1), ['B recent']);
     assert.deepEqual(await names('not-a-metric'), []);
-    const access = await db.query("select has_function_privilege('anon', 'public.rocket_best_submissions(text,integer,integer)', 'execute') as anon_access, has_function_privilege('authenticated', 'public.rocket_best_submissions(text,integer,integer)', 'execute') as auth_access, has_function_privilege('service_role', 'public.rocket_best_submissions(text,integer,integer)', 'execute') as service_access");
+    const own = await db.query('select * from public.rocket_best_submissions($1,$2,$3,$4)', ['accuracy',0,500,'a']);
+    assert.deepEqual(own.rows.map(row => row.is_current_browser), [true,false,false,false]);
+    assert.equal('browser_id' in own.rows[0], false);
+    const access = await db.query("select has_function_privilege('anon', 'public.rocket_best_submissions(text,integer,integer,text)', 'execute') as anon_access, has_function_privilege('authenticated', 'public.rocket_best_submissions(text,integer,integer,text)', 'execute') as auth_access, has_function_privilege('service_role', 'public.rocket_best_submissions(text,integer,integer,text)', 'execute') as service_access");
     assert.deepEqual(access.rows[0], {anon_access:false, auth_access:false, service_access:true});
     console.log('PostgreSQL best-per-browser, metric filtering, tie-breaking, paging and permissions passed');
   } finally { await db.close(); }

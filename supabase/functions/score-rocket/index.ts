@@ -35,11 +35,13 @@ Deno.serve(async (request: Request) => {
       const params = new URL(request.url).searchParams;
       const offsetValue = params.get('offset') ?? '0';
       const metric = params.get('metric') ?? 'score';
+      const browserId = params.get('browser_id');
+      if (browserId !== null && (!browserId.trim() || browserId.length > 100)) return reply({error:'Invalid browser ID'}, 400);
       if (!/^\d+$/.test(offsetValue) || Number(offsetValue) > 1000000) return reply({error:'Invalid offset'}, 400);
       if (!['score', 'landing_success_pct', 'macro_f1', 'accuracy'].includes(metric)) return reply({error:'Invalid metric'}, 400);
       const query = new URL('/rest/v1/rpc/rocket_best_submissions', base);
       const result = await fetch(query, {method:'POST', headers:{apikey:key, Authorization:`Bearer ${key}`,
-        'Content-Type':'application/json'}, body:JSON.stringify({p_metric:metric, p_offset:Number(offsetValue), p_limit:500})});
+        'Content-Type':'application/json'}, body:JSON.stringify({p_metric:metric, p_offset:Number(offsetValue), p_limit:500, p_browser_id:browserId})});
       if (!result.ok) throw new Error('Could not load leaderboard');
       const leaderboard = await result.json();
       if (!Array.isArray(leaderboard)) throw new Error('Invalid leaderboard data');

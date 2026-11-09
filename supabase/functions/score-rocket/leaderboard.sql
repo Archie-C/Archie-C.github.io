@@ -4,9 +4,10 @@ begin;
 create or replace function public.rocket_best_submissions(
   p_metric text,
   p_offset integer,
-  p_limit integer
+  p_limit integer,
+  p_browser_id text
 )
-returns table (name text, metrics jsonb, created_at timestamptz)
+returns table (name text, metrics jsonb, created_at timestamptz, is_current_browser boolean)
 language sql
 stable
 security invoker
@@ -30,14 +31,14 @@ as $$
     from eligible as e
     where e.metric_value is not null
   )
-  select r.name, r.metrics, r.created_at
+  select r.name, r.metrics, r.created_at, coalesce(r.browser_id = p_browser_id, false)
   from ranked as r
   where r.browser_rank = 1
   order by r.metric_value desc, r.created_at desc nulls last, r.id desc
   offset greatest(coalesce(p_offset, 0), 0)
   limit least(greatest(coalesce(p_limit, 0), 0), 500);
 $$;
-revoke all on function public.rocket_best_submissions(text, integer, integer) from public, anon, authenticated;
-grant execute on function public.rocket_best_submissions(text, integer, integer) to service_role;
+revoke all on function public.rocket_best_submissions(text, integer, integer, text) from public, anon, authenticated;
+grant execute on function public.rocket_best_submissions(text, integer, integer, text) to service_role;
 notify pgrst, 'reload schema';
 commit;
