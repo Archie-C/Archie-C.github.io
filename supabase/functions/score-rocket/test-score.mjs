@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';
+import { score } from './score.mjs';
+const labels = [{row_index: 0, action: 0}, {row_index: 1, action: 1}, {row_index: 2, action: 1}];
+const result = score([0, 0, 1], labels);
+assert.equal(result.accuracy, 2 / 3);
+assert.equal(result.macro_f1, 2 / 3);
+assert.throws(() => score([0, 0], labels));
+assert.throws(() => score([0, 11, 1], labels));
+assert.throws(() => score([0, 0, 1], [labels[1], labels[0], labels[2]]));
+console.log('Cloud scoring checks passed');

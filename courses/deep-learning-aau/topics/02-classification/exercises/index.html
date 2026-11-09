@@ -12,6 +12,7 @@
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
   onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
 <link rel="stylesheet" href="../../../styles/exercises.css"/>
+<link rel="stylesheet" href="./classification-exercises.css"/>
 </head>
 <body>
 <div class="frame">
@@ -22,11 +23,38 @@
       <a href="../">02 classification</a><span class="sep">&rsaquo;</span>
       exercises
     </span>
+    <nav class="topbar-links" aria-label="Course navigation">
+      <a href="../../../" class="active">syllabus</a>
+      <a href="../../../../../contact/">contact</a>
+    </nav>
   </div>
 
+  <div class="exercise-layout">
+    <aside class="exercise-sidebar" aria-label="Classification topic navigation">
+      <span class="sidebar-label">course</span>
+      <p>Deep Learning · Winter 2026</p>
+      <span class="sidebar-label">topic</span>
+      <div class="nav-group">02 · classification</div>
+      <nav class="nav-list" aria-label="Classification sections">
+        <a href="../linear-classifiers-and-decision-boundaries/">2.1 · linear classifiers and decision boundaries</a>
+        <a href="../logistic-regression/">2.2 · logistic regression</a>
+        <a href="../maximum-likelihood-and-binary-cross-entropy/">2.3 · maximum likelihood and binary cross-entropy</a>
+        <a href="../nonlinear-classification-with-basis-functions/">2.4 · nonlinear classification with basis functions</a>
+        <a href="../multiclass-classification-and-softmax/">2.5 · multiclass classification and softmax</a>
+        <a href="../evaluating-classifiers/">2.6 · evaluating classifiers</a>
+        <a href="./" class="current" aria-current="page">exercises</a>
+        <a href="./practical-exercise/">rocket control</a>
+      </nav>
+    </aside>
   <main class="content">
     <h1>Classification Exercises 2026</h1>
     <p class="standfirst">Practice building, interpreting, and evaluating classification models.</p>
+    <nav class="exercise-nav" aria-label="Exercise navigation">
+      <a href="#question-1">Question 1</a>
+      <a href="#question-2">Question 2</a>
+      <a href="#question-3">Question 3</a>
+      <a href="./practical-exercise/">Rocket control →</a>
+    </nav>
 
     <section aria-label="Classification exercises">
       <ol class="question-list">
@@ -34,7 +62,7 @@
         <li class="question">
           <span class="question-number">01</span>
           <div>
-            <h2 class="question-title">Question 1</h2>
+            <h2 class="question-title" id="question-1">Question 1</h2>
             <div class="question-content">
               <p>A binary classifier predicts class A when</p>
               <p>$$ a(\mathbf{x}) = w_0 + w_1 x_1 + w_2 x_2 > 0 $$</p>
@@ -53,7 +81,7 @@
         <li class="question">
           <span class="question-number">02</span>
           <div>
-            <h2 class="question-title">Question 2</h2>
+            <h2 class="question-title" id="question-2">Question 2</h2>
             <div class="question-content">
               <p>A classifier is used to detect a rare manufacturing defect. On 1000 components:</p>
               <ul>
@@ -75,7 +103,7 @@
         <li class="question">
           <span class="question-number">03</span>
           <div>
-            <h2 class="question-title">Question 3</h2>
+            <h2 class="question-title" id="question-3">Question 3</h2>
             <div class="question-content">
               <p>Consider a binary training set that is perfectly linearly separable and a logistic
                 regression model trained by maximum-likelihood.
@@ -88,7 +116,7 @@
                 <li>Explain why the unregularised maximum-likelihood estimate therefore does not have a finite optimum in this case.</li>
                 <li>In the context of the question, does this mean that logistic regression cannot correctly classify all observations?</li>
                 <li>Explain how $L_2$ regularisation addresses this issue when the training set is perfectly linearly separable.</li>
-                <li>Would regularising change this training-set decision boundary?</li>
+                <li>Does applying \(L_2\) regularisation necessarily preserve the original decision boundary? Explain your reasoning.</li>
               </ol>
             </div>
           </div>
@@ -97,10 +125,10 @@
         <li class="question">
           <span class="question-number">04</span>
           <div>
-            <h2 class="question-title">Practical exercises</h2>
+            <h2 class="question-title">Practical exercise</h2>
             <div class="question-content">
-              <p>Build and evaluate a classification model in the interactive practical exercise, or work through the accompanying notebook.</p>
-              <p><a class="question-link" href="./practical-exercise/">Open practical exercise &nearr;</a></p>
+              <p>Train a classifier to land a rocket.</p>
+              <p><a class="question-link" href="./practical-exercise/">Rocket control exercise &nearr;</a></p>
             </div>
           </div>
         </li>
@@ -113,6 +141,7 @@
       <a href="../evaluating-classifiers/">2.6 Evaluating classifiers &nearr;</a>
     </div>
   </main>
+  </div>
 </div>
 </body>
 </html>

@@ -1,0 +1,23 @@
+/* Match the course navigation used by the classification practical exercise. */
+.topbar-links { display: flex; flex-wrap: wrap; gap: 16px; margin-left: auto; font: 13px var(--font-mono); }
+.topbar-links a { color: var(--fg-2); text-decoration: none; }
+.topbar-links a:hover, .topbar-links a.active { color: var(--accent); }
+.exercise-layout { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 40px; padding: 40px 32px 64px; align-items: start; }
+.exercise-sidebar { position: sticky; top: 24px; color: var(--fg-3); font: 13px/1.5 var(--font-sans); }
+.exercise-sidebar p { margin: 0; }
+.sidebar-label { display: block; margin: 16px 0 6px; color: var(--fg-4); font: 10px var(--font-mono); letter-spacing: .08em; text-transform: uppercase; }
+.sidebar-label:first-child { margin-top: 0; }
+.nav-group { margin-top: 10px; padding-bottom: 4px; color: var(--fg-2); font: 11px var(--font-mono); letter-spacing: .04em; text-transform: uppercase; }
+.nav-list { display: flex; flex-direction: column; }
+.nav-list a { padding: 4px 0 4px 12px; border-left: 2px solid transparent; color: var(--fg-2); font: 13px/1.5 var(--font-mono); text-decoration: none; }
+.nav-list a:hover { color: var(--accent); }
+.nav-list a.current { border-left-color: var(--accent); color: var(--fg); background: var(--accent-soft); }
+.exercise-layout .content { width: 100%; margin: 0; padding: 0; }
+@media (max-width: 820px) {
+  .exercise-layout { display: block; padding: 32px 24px 48px; }
+  .exercise-sidebar { display: none; }
+  .topbar-links { margin-left: 0; }
+}
+@media (max-width: 640px) {
+  .exercise-layout { padding: 24px 20px 40px; }
+}
