@@ -2,8 +2,8 @@
 <html lang="en" data-palette="paper">
 <head>
 <meta charset="utf-8"/>
-<title>Learning Representations | Deep Learning</title>
-<meta name="description" content="Notes in preparation. Why projecting data into different spaces can be beneficial."/>
+<title>Representation Learning | Deep Learning</title>
+<meta name="description" content="Learn how neural networks construct, compare, and reuse representations of data."/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <link rel="icon" href="../../../../../design_system/assets/favicon.svg"/>
 <link rel="stylesheet" href="../../../../../design_system/colors_and_type.css"/>
@@ -57,29 +57,162 @@
         <a href="../">topic 03</a><span class="sep">&rsaquo;</span>
         subtopic 3.6
       </div>
-      <h1>Learning Representations.</h1>
-      <p class="standfirst">Why projecting data into different spaces can be beneficial.</p>
+      <h1>Representation Learning.</h1>
+      <p class="standfirst">The hidden layers of a neural network learn features as they make predictions. Let's look at what these features represent and how we can use them for other tasks.</p>
 
       <div class="body">
-        <div class="exercise">
-          <span class="tag">in preparation</span>
-          <p>These notes are in preparation. The planned sections are listed below.</p>
-        </div>
         <h2>What this note covers</h2>
         <ul>
-          <li>Projecting data into different spaces</li>
-          <li>Representations in hidden layers</li>
-          <li>Inspecting learned representations</li>
+          <li>Learned representations and embeddings</li>
+          <li>Learning features from supervised and self-supervised tasks</li>
+          <li>Reusing pretrained features and fine-tuning</li>
+          <li>Limitations of learned representations</li>
         </ul>
 
-        <h2>Projecting data into different spaces</h2>
-        <!-- TODO: Add the explanation, equations, and examples for this section. -->
+        <h2>Predictions and representations</h2>
+        <p>In <a href="../introduction-to-learning-features/">Introduction to learning features</a>, we started with basis functions that we chose ourselves. For example, we could add $x^2$ as a feature in a regression model. We then introduced learnable basis functions so that the model could find useful features from the data.</p>
+        <p>In a neural network, the hidden layers give us a way to learn these transformations. Recall that the output of layer $\ell$ is:</p>
+        <p>$$\mathbf{z}^{(\ell)} = h^{(\ell)}\left(\mathbf{W}^{(\ell)}\mathbf{z}^{(\ell-1)} + \mathbf{b}^{(\ell)}\right), \qquad \mathbf{z}^{(0)}=\mathbf{x}.$$</p>
+        <p>Here $\mathbf{W}^{(\ell)}$ and $\mathbf{b}^{(\ell)}$ are the weights and biases of the layer, and $h^{(\ell)}$ is its activation function. The vector $\mathbf{z}^{(\ell)}$ contains the features calculated by that layer. We call it a <strong>learned representation</strong> of the original input $\mathbf{x}$.</p>
+        <p>Each hidden layer receives the representation from the previous layer, so different layers can represent the same input in different ways. The output layer then uses the final hidden representation to make a prediction.</p>
+        <figure class="chart-card">
+          <div class="eyebrow">01 &middot; representation</div><h3>Inputs, representations and predictions</h3>
+          <svg viewBox="0 0 720 150" width="100%" height="auto" role="img" aria-labelledby="rep-flow-title rep-flow-desc">
+            <title id="rep-flow-title">Input, representation and prediction</title><desc id="rep-flow-desc">An input image passes through hidden layers to give a feature vector, which an output layer uses to predict a digit class.</desc>
+            <g font-family="var(--font-mono)" font-size="13" text-anchor="middle" fill="var(--fg)">
+              <rect x="12" y="38" width="120" height="65" rx="6" fill="var(--bg-sunk)" stroke="var(--rule-strong)"/><text x="72" y="65">input image</text><text x="72" y="87">x</text>
+              <path d="M132 70 H165 M158 64 L165 70 L158 76" fill="none" stroke="var(--fg-2)" stroke-width="2"/>
+              <rect x="170" y="38" width="130" height="65" rx="6" fill="var(--bg-sunk)" stroke="var(--rule-strong)"/><text x="235" y="75">hidden layers</text>
+              <path d="M300 70 H333 M326 64 L333 70 L326 76" fill="none" stroke="var(--fg-2)" stroke-width="2"/>
+              <rect x="338" y="38" width="145" height="65" rx="6" fill="var(--accent-soft)" stroke="var(--accent)"/><text x="410" y="65">representation</text><text x="410" y="87">z</text>
+              <path d="M483 70 H516 M509 64 L516 70 L509 76" fill="none" stroke="var(--fg-2)" stroke-width="2"/>
+              <rect x="521" y="38" width="115" height="65" rx="6" fill="var(--bg-sunk)" stroke="var(--rule-strong)"/><text x="578" y="75">output layer</text>
+              <path d="M636 70 H658 M651 64 L658 70 L651 76" fill="none" stroke="var(--fg-2)" stroke-width="2"/><text x="687" y="66">class</text><text x="687" y="85">score</text>
+            </g>
+          </svg>
+          <figcaption class="chart-caption"><span class="label">fig 1</span> The representation is a vector of features; the prediction is the output produced from those features.</figcaption>
+        </figure>
+        <p>We call the process of learning useful transformations of the data <strong>representation learning</strong>. Rather than constructing all the features ourselves, we allow the network to learn them. What makes a representation useful depends on the task we want to solve.</p>
 
-        <h2>Representations in hidden layers</h2>
-        <!-- TODO: Add the explanation, equations, and examples for this section. -->
+        <h2>What makes a representation useful?</h2>
+        <p>Suppose we want to classify images of handwritten digits. Two images can both show a 3, but the digit may be in a different position, have a different size or rotation, or be written in a different style. These changes affect the pixel values, even though the class is the same.</p>
+        <p>For this task, we want the representation to preserve information that helps distinguish digits, while reducing the importance of variation that does not change the class. For example, a useful transformation might map two differently written 3s to similar feature vectors, while making 3s and 8s easier to distinguish.</p>
+        <p>If the features make the classes easier to separate, a simple output layer may be enough to classify them. The illustration below shows one possible result. The points still overlap: a particular arrangement, or even a useful notion of distance, is not guaranteed by training a classifier.</p>
+        <figure class="chart-card">
+          <div class="eyebrow">02 &middot; feature spaces</div><h3>Before and after a learned transformation</h3>
+          <svg viewBox="0 0 720 310" width="100%" height="auto" role="img" aria-labelledby="spaces-title spaces-desc">
+            <title id="spaces-title">Illustrative original and learned feature spaces</title><desc id="spaces-desc">Two scatter plots show circles and triangles representing two digit classes. They overlap in the original two features and are more distinguishable, but still overlap, in the learned two-dimensional embedding.</desc>
+            <g font-family="var(--font-mono)" font-size="12" fill="var(--fg)" text-anchor="middle"><text x="185" y="24">original features</text><text x="535" y="24">learned representation</text><text x="185" y="293">original feature 1</text><text x="535" y="293">embedding component 1</text></g>
+            <g fill="none" stroke="var(--rule-strong)" stroke-width="1.5"><path d="M55 50 V260 H315"/><path d="M405 50 V260 H665"/></g>
+            <g font-family="var(--font-mono)" font-size="10" fill="var(--fg-2)"><text transform="translate(23 210) rotate(-90)">original feature 2</text><text transform="translate(374 220) rotate(-90)">embedding component 2</text></g>
+            <g fill="var(--c-cat-1)"><circle cx="105" cy="190" r="7"/><circle cx="155" cy="140" r="7"/><circle cx="190" cy="200" r="7"/><circle cx="230" cy="130" r="7"/><circle cx="265" cy="190" r="7"/><circle cx="140" cy="215" r="7"/>
+              <circle cx="450" cy="185" r="7"/><circle cx="480" cy="138" r="7"/><circle cx="505" cy="200" r="7"/><circle cx="530" cy="151" r="7"/><circle cx="550" cy="203" r="7"/><circle cx="470" cy="220" r="7"/></g>
+            <g fill="var(--c-cat-2)"><path d="M125 110 l-8 14 h16z M175 168 l-8 14 h16z M210 104 l-8 14 h16z M247 163 l-8 14 h16z M275 125 l-8 14 h16z M207 224 l-8 14 h16z"/>
+              <path d="M535 105 l-8 14 h16z M565 160 l-8 14 h16z M585 95 l-8 14 h16z M610 145 l-8 14 h16z M635 115 l-8 14 h16z M570 212 l-8 14 h16z"/></g>
+          </svg>
+          <figcaption class="chart-caption"><span class="label">fig 2</span> Circles and triangles represent two digit classes. These are illustrative two-dimensional features, not an actual network's outputs. The learned features make the classes easier to distinguish, although some points still overlap.</figcaption>
+        </figure>
+        <p>Which differences should be ignored depends on the task. For digit classification, handwriting style might be irrelevant; for identifying who wrote the digit, it could be useful. The training objective shapes the representation, but does not guarantee that every network will group examples in this way.</p>
 
-        <h2>Inspecting learned representations</h2>
-        <!-- TODO: Add the explanation, equations, and examples for this section. -->
+        <h2>Embeddings and representation spaces</h2>
+        <p>We often call a vector representation of an input an <strong>embedding</strong>. If we write the hidden layers as a function $f_{\boldsymbol{\theta}}$, with parameters $\boldsymbol{\theta}$, we can write:</p>
+        <p>$$\mathbf{z}=f_{\boldsymbol{\theta}}(\mathbf{x}).$$</p>
+        <p>The input is $\mathbf{x}$, and the embedding $\mathbf{z}$ is the feature vector returned by the learned transformation. The set of possible vectors is the representation space, often called the <strong>embedding space</strong>. The embedding is not yet a class prediction; we can use it as an input to a classifier.</p>
+        <p>For example, a $28\times28$ image has 784 pixel values. A network could map it into a vector with 16 components:</p>
+        <p>$$f_{\boldsymbol{\theta}}:\mathbb{R}^{784}\rightarrow\mathbb{R}^{16}.$$</p>
+        <p>The 16 components are learned combinations of the inputs; they do not need to correspond to individual pixels or have an obvious interpretation. Embeddings are not limited to two or three dimensions as in our plot. They can contain hundreds or thousands of components. The transformation can reduce the number of dimensions, as above, but it can also keep the same number or increase it.</p>
+        <p>One way to compare two embeddings is Euclidean distance:</p>
+        <p>$$d(\mathbf{z}_i,\mathbf{z}_j)=\|\mathbf{z}_i-\mathbf{z}_j\|_2.$$</p>
+        <p>This measures the distance between the two points. Another common measure is cosine similarity:</p>
+        <p>$$\operatorname{sim}(\mathbf{z}_i,\mathbf{z}_j)=\frac{\mathbf{z}_i^\top\mathbf{z}_j}{\|\mathbf{z}_i\|_2\|\mathbf{z}_j\|_2}.$$</p>
+        <p>Cosine similarity compares the directions of two nonzero vectors, rather than the distance between their endpoints. It is undefined if either vector is zero. Two vectors pointing in the same direction have cosine similarity 1, even if their lengths differ.</p>
+        <div class="note important"><span class="tag">important</span><p>Neither distance nor cosine similarity is automatically meaningful just because the vectors came from a network. We need to consider the data and objective used to learn the representation, and whether they support the comparison we want to make.</p></div>
+
+        <h2>Learning representations through supervised learning</h2>
+        <p>We do not need to tell a network explicitly to find a particular edge or curve. Instead, we can train it to make a prediction and let it learn features that help with that task. For a classifier, we can separate the hidden layers and output layer as:</p>
+        <p>$$\mathbf{z}=f_{\boldsymbol{\theta}}(\mathbf{x}), \qquad \hat{\mathbf{y}}=g_{\mathbf{w}}(\mathbf{z}).$$</p>
+        <p>Here $f_{\boldsymbol{\theta}}$ produces the representation and $g_{\mathbf{w}}$ uses it to produce the prediction. The parameters $\boldsymbol{\theta}$ belong to the hidden layers and $\mathbf{w}$ denotes the output layer's parameters, including its biases.</p>
+        <p>For a digit classifier, $\hat{\mathbf{y}}$ could contain the predicted probabilities for the ten digits. During training, we compare these probabilities with the labels using multiclass cross-entropy, as in the <a href="../output-layers-and-loss-functions/">previous note</a>. The loss provides a learning signal for both the output layer and the hidden layers. We will look at how parameters are updated later.</p>
+        <p>As the network learns to distinguish digits, its hidden features can become useful for that distinction. We do not prescribe those features individually, and a different prediction task or loss can lead to a different representation of the same images.</p>
+
+        <h2>Reusing learned representations</h2>
+        <p>Suppose we have a network trained to recognise many kinds of objects in photographs, and we now want to classify a smaller collection of plant images. Some features learned from the first task may also be useful for the second. Instead of learning every feature again from random initialisation, we can start with the existing network.</p>
+        <p>This is an example of <strong>transfer learning</strong>. We use the pretrained hidden layers as a feature extractor and attach a new output layer for the plant classes. The original output layer predicted the classes from the first task, so we replace it with one that matches the new targets.</p>
+        <figure class="chart-card">
+          <div class="eyebrow">03 &middot; transfer learning</div><h3>Adapting a pretrained network</h3>
+          <svg viewBox="0 0 720 230" width="100%" height="auto" role="img" aria-labelledby="transfer-title transfer-desc">
+            <title id="transfer-title">Replacing an output layer for a new task</title><desc id="transfer-desc">The original model maps images through pretrained features to an original output layer. For the new task the pretrained features are retained and a new output layer is attached.</desc>
+            <g font-family="var(--font-mono)" font-size="12" text-anchor="middle" fill="var(--fg)">
+              <text x="75" y="34">original task</text><text x="75" y="146">new task</text>
+              <rect x="140" y="10" width="105" height="55" rx="6" fill="var(--bg-sunk)" stroke="var(--rule-strong)"/><text x="192" y="42">image</text>
+              <rect x="290" y="10" width="160" height="55" rx="6" fill="var(--accent-soft)" stroke="var(--accent)"/><text x="370" y="34">pretrained</text><text x="370" y="50">features</text>
+              <rect x="495" y="10" width="175" height="55" rx="6" fill="var(--bg-sunk)" stroke="var(--rule-strong)" stroke-dasharray="4 3"/><text x="582" y="34">original output</text><text x="582" y="50">remove</text>
+              <rect x="140" y="122" width="105" height="55" rx="6" fill="var(--bg-sunk)" stroke="var(--rule-strong)"/><text x="192" y="154">image</text>
+              <rect x="290" y="122" width="160" height="55" rx="6" fill="var(--accent-soft)" stroke="var(--accent)"/><text x="370" y="146">pretrained</text><text x="370" y="162">features</text>
+              <rect x="495" y="122" width="175" height="55" rx="6" fill="var(--bg-sunk)" stroke="var(--accent)" stroke-width="2"/><text x="582" y="146">new output</text><text x="582" y="162">target classes</text>
+              <g fill="none" stroke="var(--fg-2)" stroke-width="2"><path d="M245 37 H285 M278 31 L285 37 L278 43 M450 37 H490 M483 31 L490 37 L483 43 M245 149 H285 M278 143 L285 149 L278 155 M450 149 H490 M483 143 L490 149 L483 155 M370 70 V116 M364 109 L370 116 L376 109"/></g>
+            </g>
+          </svg>
+          <figcaption class="chart-caption"><span class="label">fig 3</span> We keep the pretrained feature extractor and replace the original output layer with one suited to the new task.</figcaption>
+        </figure>
+        <p>Transfer learning can be particularly useful when we have relatively little labelled data for the new task. The pretrained features give us a starting point, but they are not guaranteed to help. If the source and target tasks or their data are very different, we need to check whether the transferred features are useful.</p>
+
+        <h2>Frozen features and fine-tuning</h2>
+        <p>Once we have attached a new output layer, we can decide which parameters to train. Two common approaches are:</p>
+        <p><strong>Frozen feature extraction.</strong> We keep the pretrained parameters fixed and train only the new output layer. Each input is transformed using the same pretrained features throughout training. Since we learn fewer parameters, this can also be computationally cheaper.</p>
+        <p><strong>Fine-tuning.</strong> We allow some or all of the pretrained parameters to change along with the new output layer. This lets the features adapt to the new task. The trade-off is that changing them may also alter useful features learned from the original task. Fine-tuning may need more data and computation than training only the output layer.</p>
+        <figure class="chart-card">
+          <div class="eyebrow">04 &middot; training choices</div><h3>Which parameters can change?</h3>
+          <svg viewBox="0 0 720 200" width="100%" height="auto" role="img" aria-labelledby="freeze-title freeze-desc">
+            <title id="freeze-title">Frozen feature extraction and fine-tuning</title><desc id="freeze-desc">In frozen feature extraction the pretrained feature parameters stay fixed and the new output is trainable. In fine-tuning some or all pretrained parameters and the new output are trainable.</desc>
+            <g font-family="var(--font-mono)" font-size="12" text-anchor="middle" fill="var(--fg)">
+              <text x="105" y="46">frozen features</text><text x="105" y="137">fine-tuning</text>
+              <rect x="205" y="20" width="225" height="58" rx="6" fill="var(--bg-sunk)" stroke="var(--rule-strong)"/><text x="317" y="43">pretrained features</text><text x="317" y="62">fixed</text>
+              <rect x="475" y="20" width="200" height="58" rx="6" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2"/><text x="575" y="43">new output layer</text><text x="575" y="62">trainable</text>
+              <rect x="205" y="110" width="225" height="58" rx="6" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2"/><text x="317" y="133">pretrained features</text><text x="317" y="152">some or all trainable</text>
+              <rect x="475" y="110" width="200" height="58" rx="6" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2"/><text x="575" y="133">new output layer</text><text x="575" y="152">trainable</text>
+              <g fill="none" stroke="var(--fg-2)" stroke-width="2"><path d="M430 49 H469 M462 43 L469 49 L462 55 M430 139 H469 M462 133 L469 139 L462 145"/></g>
+            </g>
+          </svg>
+          <figcaption class="chart-caption"><span class="label">fig 4</span> Highlighted boxes contain trainable parameters. In fine-tuning we can choose to update only some of the pretrained layers.</figcaption>
+        </figure>
+
+        <h2>Learning representations without labels</h2>
+        <p>So far we have used supervised learning: each training input comes with a target supplied for the prediction task. But we do not always have labels, and obtaining them can be expensive. We can also learn representations using information already present in unlabelled data.</p>
+        <p>In <strong>self-supervised learning</strong>, we construct a learning task from the data itself. For example, we might hide part of an image and ask a model to predict the missing part. To do this, it must use information from the visible pixels. Another approach is to learn representations that remain similar when we apply suitable transformations to an image.</p>
+        <p>One family of approaches is <strong>contrastive learning</strong>. The basic idea is to encourage related examples to have similar representations, while unrelated examples may be pushed apart. For example, two differently cropped or slightly rotated versions of the same photograph can form a positive pair. Other images can serve as negative examples in methods that use negative pairs.</p>
+        <p>The transformations should preserve information we expect to matter for the eventual task. Not all self-supervised methods are contrastive, and not all contrastive methods require explicit negative pairs. In either case, an abundance of unlabelled data can help us learn a representation before using labelled examples for a later task.</p>
+
+        <h2>Worked example: using an embedding for a new task</h2>
+        <p>Suppose a digit classifier maps each $28\times28$ image to a 16-dimensional representation and then predicts one of ten digits. We can write its original pipeline as:</p>
+        <p>$$\mathbf{x}\in\mathbb{R}^{784}\ \xrightarrow{\ f_{\boldsymbol{\theta}}\ }\ \mathbf{z}\in\mathbb{R}^{16}\ \xrightarrow{\ g_{\mathbf{w}}\ }\ \hat{\mathbf{y}}\in\mathbb{R}^{10}.$$</p>
+        <p>Now suppose our new task is to predict whether a digit is even or odd. We remove the original output layer, extract $\mathbf{z}$ from the hidden network, and attach a new binary classifier:</p>
+        <p>$$\mathbf{x}\in\mathbb{R}^{784}\ \xrightarrow{\ f_{\boldsymbol{\theta}}\ }\ \mathbf{z}\in\mathbb{R}^{16}\ \xrightarrow{\ g_{\mathbf{v}}\ }\ p(\text{even}\mid\mathbf{x})\in(0,1).$$</p>
+        <p>For example, the new classifier could apply sigmoid to $\mathbf{v}^\top\mathbf{z}+b$. It uses 16 learned features rather than 784 pixel values. We can freeze $f_{\boldsymbol{\theta}}$ and train only $\mathbf{v}$ and $b$, or fine-tune some or all of $f_{\boldsymbol{\theta}}$ as well. We should still check performance on held-out examples for the new task.</p>
+        <p>To see how we might compare embeddings, let's use two-dimensional vectors for a small calculation. These are only illustrative; the digit network above uses 16 dimensions. Suppose:</p>
+        <p>$$\mathbf{z}_1=\begin{bmatrix}1\\2\end{bmatrix},\qquad \mathbf{z}_2=\begin{bmatrix}2\\2\end{bmatrix}.$$</p>
+        <p>Their Euclidean distance and cosine similarity are:</p>
+        <p>$$d(\mathbf{z}_1,\mathbf{z}_2)=\sqrt{(1-2)^2+(2-2)^2}=1,\qquad \operatorname{sim}(\mathbf{z}_1,\mathbf{z}_2)=\frac{6}{\sqrt{5}\sqrt{8}}\approx0.949.$$</p>
+        <p>The points are one unit apart, and their vectors point in similar directions. Whether either number tells us anything useful about the images depends on how the representation was learned.</p>
+
+        <h2>Limitations of learned representations</h2>
+        <p>A learned representation is not automatically meaningful, interpretable or useful for another task. It depends on the training data, the prediction task, the architecture and the loss. If a feature helps minimise the training loss, the network may use it even if it is not the feature we expected.</p>
+        <p>For example, a classifier might learn to associate a class with the background in its training images instead of the object itself. This shortcut could fail when the background changes. Similarly, a representation that discards handwriting style to classify digits may no longer contain enough information to identify the writer.</p>
+        <p>Plots like fig 2 can help us explore representations, but an embedding with many dimensions must be projected down to two dimensions to draw it this way. That projection can distort distances and relationships, so we should be careful about drawing conclusions from the plot alone.</p>
+
+        <h2>Check your understanding</h2>
+        <div class="exercise"><span class="tag">questions</span>
+          <ol>
+            <li><span>How do manually chosen basis functions differ from the features learned by a hidden layer? What makes a representation useful for a particular task?</span></li>
+            <li><span>What is an embedding? Why might two nearby embedding vectors be useful, and why can we not assume that their distance is meaningful?</span></li>
+            <li><span>How can a digit classifier learn useful hidden features when it is only given images and digit labels?</span></li>
+            <li><span>You have a pretrained object recognition network and a small labelled set of similar plant images. Would you train from scratch, use frozen features, or fine-tune? Explain your choice and what you would check.</span></li>
+            <li><span>How can a self-supervised task be constructed without manual labels? Give an image example and explain how its learned features might be used later.</span></li>
+          </ol>
+        </div>
+        <h2>Summary</h2>
+        <p>Neural networks learn representations as well as predictions. These representations are shaped by the task and data used to learn them, and can sometimes be reused for a new problem. Whether we freeze or adapt the features, we need to check how useful they are for the new task.</p>
+        <p>In the next note, <a href="../implementing-neural-networks/">Building a Neural Network in PyTorch</a>, we will implement and inspect the concepts introduced throughout this topic.</p>
       </div>
 
       <div class="endbar">

@@ -95,7 +95,7 @@
         <p>As expected, class 2 has the largest probability. To make a prediction, we choose the class with the largest probability:</p>
         <p>$$\hat{k}=\arg\max_k y_k.$$</p>
         <p>In plain English, this means “choose the index of the largest probability.” Softmax preserves the ordering of scores, so it is also the class with the largest score: $\hat{k}=\arg\max_k a_k$.</p>
-        <figure class="chart-card"><div class="eyebrow">02 &middot; softmax</div><h3>From class scores to probabilities</h3><div class="chart-frame"><canvas id="softmaxExampleChart" aria-label="Softmax probabilities for three class scores" role="img"></canvas></div><figcaption class="chart-caption"><span class="label">fig 2</span> Softmax turns the three scores into probabilities that sum to one. Hover to see each raw score.</figcaption></figure>
+        <figure class="chart-card"><div class="eyebrow">02 &middot; softmax</div><h3>Class scores and probabilities</h3><div class="chart-frame"><canvas id="softmaxExampleChart" aria-label="Softmax probabilities for three class scores" role="img"></canvas></div><figcaption class="chart-caption"><span class="label">fig 2</span> Softmax turns the three scores into probabilities that sum to one. Hover to see each raw score.</figcaption></figure>
 
         <h2>Why not apply sigmoid to every class?</h2>
         <p>If we applied sigmoid independently to three scores, we might get probabilities such as $0.8$, $0.7$, and $0.6$. These values do not have to sum to one.</p>
