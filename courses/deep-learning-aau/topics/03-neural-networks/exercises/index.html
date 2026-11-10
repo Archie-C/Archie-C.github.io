@@ -28,21 +28,69 @@
     <h1>Neural networks exercises 2026</h1>
     <p class="standfirst">Exercises in preparation for building, training, and evaluating neural networks.</p>
 
+    <nav class="exercise-nav" aria-label="Exercise navigation">
+      <a href="#question-1">Question 1</a>
+      <a href="#question-2">Question 2</a>
+      <a href="#question-3">Question 3*</a>
+    </nav>
+
     <section aria-label="Neural networks exercises">
       <ol class="question-list">
-        <!-- Duplicate a .question item for each exercise and replace its number, title, and prompt. -->
         <li class="question">
           <span class="question-number">01</span>
           <div>
-            <h2 class="question-title">Theory exercises</h2>
+            <h2 class="question-title" id="question-1">Question 1</h2>
             <div class="question-content">
-              <p>Exercises are in preparation.</p>
-              <!-- TODO: Add questions on learned features, neural networks, activation functions, losses, deep architectures, and representations. -->
+              <p>Consider a neural network with two inputs, two ReLU hidden neurons and one linear output:</p>
+              <p>$$\mathbf{z} = W^{(1)}\mathbf{x} + \mathbf{b}^{(1)}, \qquad \mathbf{h} = \operatorname{ReLU}(\mathbf{z}), \qquad y = W^{(2)}\mathbf{h} + b^{(2)}.$$</p>
+              <p>For $\mathbf{x} = \begin{pmatrix} 1 \\ 2 \end{pmatrix}$, use</p>
+              <p>$$W^{(1)} = \begin{pmatrix} 1 &amp; -1 \\ 2 &amp; 1 \end{pmatrix}, \quad \mathbf{b}^{(1)} = \begin{pmatrix} 0 \\ -1 \end{pmatrix}, \quad W^{(2)} = \begin{pmatrix} 2 &amp; -1 \end{pmatrix}, \quad b^{(2)} = 1.$$</p>
+              <ol type="a">
+                <li>Calculate the network output, showing your intermediate calculations.</li>
+                <li>Calculate the total number of trainable parameters.</li>
+                <li>Recalculate the output if the hidden neurons use identity activations instead of ReLU.</li>
+                <li>Explain why nonlinear activation functions are important in neural networks.</li>
+              </ol>
             </div>
           </div>
         </li>
+
         <li class="question">
           <span class="question-number">02</span>
+          <div>
+            <h2 class="question-title" id="question-2">Question 2</h2>
+            <div class="question-content">
+              <p>A neural network controls a rocket by predicting continuous thrust $T \in [0, T_{\max}]$ and gimbal angle $g \in [-g_{\max}, g_{\max}]$.</p>
+              <ol type="a">
+                <li>How many output neurons are required? Explain whether softmax is appropriate for these outputs.</li>
+                <li>Suggest output activations or transformations that enforce the control limits.</li>
+                <li>What problems can arise when ordinary mean squared error is applied to outputs with very different scales? Propose a solution.</li>
+                <li>Why might a model with low prediction error on expert demonstrations still fail to land successfully in closed-loop control?</li>
+              </ol>
+            </div>
+          </div>
+        </li>
+
+        <li class="question">
+          <span class="question-number">03</span>
+          <div>
+            <h2 class="question-title" id="question-3">Question 3*</h2>
+            <div class="question-content">
+              <p>Consider a single-hidden-layer network with scalar input and output:</p>
+              <p>$$f(x) = b + \sum_{j=1}^{M} v_j h(w_j x + b_j).$$</p>
+              <ol type="a">
+                <li>Prove that if $h$ is the identity activation, the network reduces to a linear function of $x$.</li>
+                <li>Find weights and biases for a two-hidden-neuron ReLU network that exactly represents $f(x) = |x|$.</li>
+                <li>Explain why an ordinary linear model cannot represent $|x|$ exactly over the real numbers.</li>
+                <li>Explain why universal approximation does not make deep networks unnecessary.</li>
+                <li>Does universal approximation guarantee successful training? Explain.</li>
+              </ol>
+            </div>
+          </div>
+        </li>
+
+        <li class="question">
+          <span class="question-number">04</span>
           <div>
             <h2 class="question-title">Practical exercises</h2>
             <div class="question-content">
@@ -54,6 +102,7 @@
       </ol>
     </section>
 
+    <p class="exam-note"><em>* denotes exam-level questions (not necessarily exam length).</em></p>
 
     <div class="page-links">
       <a href="../">&larr; 03 neural networks topic guide</a>

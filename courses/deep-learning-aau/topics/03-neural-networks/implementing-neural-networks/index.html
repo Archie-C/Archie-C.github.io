@@ -2,8 +2,8 @@
 <html lang="en" data-palette="paper">
 <head>
 <meta charset="utf-8"/>
-<title>How do I implement them? | Deep Learning</title>
-<meta name="description" content="Notes in preparation. Learn how to implement a neural network using pytorch."/>
+<title>Building a Neural Network in PyTorch | Deep Learning</title>
+<meta name="description" content="Learn how to construct a neural network in PyTorch and calculate its predictions."/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <link rel="icon" href="../../../../../design_system/assets/favicon.svg"/>
 <link rel="stylesheet" href="../../../../../design_system/colors_and_type.css"/>
@@ -25,7 +25,7 @@
     <span class="crumb">
       <a href="../../../">Deep Learning</a><span class="sep">&rsaquo;</span>
       <a href="../">03 neural networks</a><span class="sep">&rsaquo;</span>
-      how do i implement them?
+      building a neural network in pytorch
     </span>
     <nav aria-label="Course navigation">
       <a href="../../../" class="active">syllabus</a>
@@ -46,7 +46,7 @@
         <a href="../why-we-use-deep-networks/">3.4 &middot; why deep networks?</a>
         <a href="../output-layers-and-loss-functions/">3.5 &middot; outputs and loss functions</a>
         <a href="../learning-representations/">3.6 &middot; learning representations</a>
-        <a class="current" href="./" aria-current="page">3.7 &middot; how do i implement them?</a>
+        <a class="current" href="./" aria-current="page">3.7 &middot; building a neural network in pytorch</a>
         <a href="../exercises/">3.8 &middot; exercises</a>
       </nav>
     </aside>
@@ -57,29 +57,298 @@
         <a href="../">topic 03</a><span class="sep">&rsaquo;</span>
         subtopic 3.7
       </div>
-      <h1>How do I implement them?</h1>
-      <p class="standfirst">Learn how to implement a neural network using pytorch.</p>
+      <h1>Building a Neural Network in PyTorch</h1>
+      <p class="standfirst">Build a neural network in PyTorch and follow the calculations behind its predictions.</p>
 
       <div class="body">
-        <div class="exercise">
-          <span class="tag">in preparation</span>
-          <p>These notes are in preparation. The planned sections are listed below.</p>
-        </div>
-        <h2>What this note covers</h2>
-        <ul>
-          <li>Preparing data and tensors</li>
-          <li>Defining a network in PyTorch</li>
-          <li>Training and evaluating the model</li>
-        </ul>
+        <h2>Mathematical equations in code</h2>
+        <p>We have seen how a neural network builds a prediction by composing layers. Each fully connected layer takes its inputs, forms weighted sums, adds biases and applies an activation function:</p>
+        <p>$$\mathbf{z}=h(\mathbf{W}\mathbf{x}+\mathbf{b}).$$</p>
+        <p>To implement this calculation, we need numerical arrays for the inputs, weights, biases and activations, and operations to combine them. The hidden units are the learnable basis functions we met earlier: their parameter values determine the features passed to the next layer.</p>
+        <p><strong>PyTorch</strong> is a Python library for numerical computation and deep learning. It provides tools for building networks and calculating gradients automatically. We will explore automatic differentiation later. PyTorch can perform calculations on CPUs and supported GPUs, but we will use the CPU in this note. The mathematics stays the same; PyTorch gives us convenient ways to express and execute it.</p>
 
-        <h2>Preparing data and tensors</h2>
-        <!-- TODO: Add the explanation, equations, and examples for this section. -->
+        <h2>Introduction to tensors</h2>
+        <p>PyTorch's main data structure is the <code>torch.Tensor</code>. Like a NumPy array, a tensor stores numbers in an array with a shape and a data type. We can create one from a Python list using <code>torch.tensor</code>, or from a NumPy array using <code>torch.from_numpy</code>:</p>
+<pre><code class="language-python">import torch
+import numpy as np
 
-        <h2>Defining a network in PyTorch</h2>
-        <!-- TODO: Add the explanation, equations, and examples for this section. -->
+x = torch.tensor([1.0, 2.0])
+a = np.array([3.0, 4.0], dtype=np.float32)
+y = torch.from_numpy(a)
+print(x, y)  # tensor([1., 2.]) tensor([3., 4.])</code></pre>
+        <p>A scalar has no dimensions, a vector has one and a matrix has two. The <code>.shape</code> attribute tells us the size of each dimension:</p>
+<pre><code class="language-python">scalar = torch.tensor(2.0)                  # shape: ()
+vector = torch.tensor([1.0, 2.0])            # shape: (2,)
+matrix = torch.tensor([[1.0, 2.0], [3.0, 4.0]])  # shape: (2, 2)
+print(scalar.shape, vector.shape, matrix.shape)</code></pre>
+        <p>Arithmetic such as addition and multiplication with <code>*</code> works element by element. The <code>@</code> operator instead performs matrix multiplication, combining entries across a shared dimension:</p>
+<pre><code class="language-python">x = torch.tensor([1.0, 2.0])
+y = torch.tensor([3.0, 4.0])
+W = torch.tensor([[1.0, 2.0], [3.0, 4.0]])
+print(x + y)  # tensor([4., 6.])
+print(x * y)  # tensor([3., 8.])
+print(W @ x)  # tensor([5., 11.])</code></pre>
+        <p>Tensors also have a data type, available through <code>.dtype</code>. Two common types are <code>torch.float32</code> for floating-point numbers and <code>torch.int64</code> for integers. Neural-network inputs and parameters are typically floating point because weights and activations can take fractional values and gradients are calculated for floating-point parameters. Integer tensors are useful for things such as class indices.</p>
+<pre><code class="language-python">features = torch.tensor([1, 2], dtype=torch.float32)
+labels = torch.tensor([0, 1], dtype=torch.int64)
+print(features.dtype, labels.dtype)</code></pre>
+        <p>For a CPU tensor that does not track gradients, <code>.numpy()</code> gives a NumPy array. To convert a tensor that tracks gradients, first use <code>.detach()</code>; if it is on a GPU, move it to the CPU with <code>.cpu()</code> as well. Conversions can share memory, so changing one array can change the other.</p>
+<pre><code class="language-python">array = features.detach().cpu().numpy()
+tensor = torch.from_numpy(array)
+print(array, tensor)</code></pre>
 
-        <h2>Training and evaluating the model</h2>
-        <!-- TODO: Add the explanation, equations, and examples for this section. -->
+        <h2>Implementing a neuron manually</h2>
+        <p>Let's start with one neuron. It takes a weighted sum of its inputs, adds a bias and applies an activation function:</p>
+        <p>$$z=h(\mathbf{w}^{\top}\mathbf{x}+b).$$</p>
+<pre><code class="language-python">import torch
+
+x = torch.tensor([1.0, 2.0])
+w = torch.tensor([0.5, -1.0])
+b = torch.tensor(2.0)
+weighted_sum = w @ x          # 0.5(1) - 1(2) = -1.5
+a = weighted_sum + b         # 0.5
+z = torch.relu(a)            # max(0, 0.5)
+print(z)                     # tensor(0.5000)</code></pre>
+        <p>The <code>@</code> operation calculates $\mathbf{w}^{\top}\mathbf{x}$, then we add $b$. Finally, <code>torch.relu</code> applies ReLU, returning zero for a negative value and the value itself otherwise. We chose the weights and bias by hand; later we will learn how to find them from data.</p>
+        <figure class="chart-card"><div class="eyebrow">01 &middot; a neuron in code</div><h3>The operations of a neuron</h3>
+          <svg viewBox="0 0 720 120" width="100%" height="auto" role="img" aria-labelledby="neuron-title neuron-desc"><title id="neuron-title">A neuron in mathematics and code</title><desc id="neuron-desc">The dot product, bias addition and ReLU in the equation correspond to w at x, plus b and torch.relu in code.</desc><g font-family="var(--font-mono)" font-size="14" text-anchor="middle" fill="var(--fg)"><text x="120" y="30">weighted sum</text><text x="360" y="30">add bias</text><text x="600" y="30">activation</text><rect x="30" y="45" width="180" height="50" rx="6" fill="var(--bg-sunk)" stroke="var(--rule-strong)"/><rect x="270" y="45" width="180" height="50" rx="6" fill="var(--bg-sunk)" stroke="var(--rule-strong)"/><rect x="510" y="45" width="180" height="50" rx="6" fill="var(--accent-soft)" stroke="var(--accent)"/><text x="120" y="76">w @ x</text><text x="360" y="76">+ b</text><text x="600" y="76">torch.relu(a)</text><path d="M210 70 H270 M450 70 H510" fill="none" stroke="var(--fg-2)" stroke-width="2"/></g></svg>
+          <figcaption class="chart-caption"><span class="label">fig 1</span> Each operation corresponds to a part of the neuron equation.</figcaption></figure>
+        <div class="exercise"><span class="tag">try it</span><p>Change the second input to 1. Before running the code, calculate the new weighted sum and predict the output after ReLU.</p></div>
+
+        <h2>Implementing a hidden layer manually</h2>
+        <p>A layer performs the same calculation for several neurons in parallel. For two inputs and three hidden neurons, we can put one neuron's weights in each row of $\mathbf{W}^{(1)}$:</p>
+        <p>$$\mathbf{z}=h(\mathbf{W}^{(1)}\mathbf{x}+\mathbf{b}^{(1)}).$$</p>
+<pre><code class="language-python">import torch
+
+x = torch.tensor([1.0, 2.0])                    # (2,)
+W1 = torch.tensor([[0.5, -1.0],                # (3, 2)
+                   [1.0, 1.0],
+                   [-1.0, 0.5]])
+b1 = torch.tensor([2.0, -1.0, -1.0])           # (3,)
+a1 = W1 @ x + b1                               # (3,): [0.5, 2.0, -1.0]
+z = torch.relu(a1)                             # (3,): [0.5, 2.0, 0.0]
+print(z)  # tensor([0.5000, 2.0000, 0.0000])</code></pre>
+        <p>Each row of <code>W1</code> contains the two weights for one neuron, and each entry of <code>b1</code> is its bias. One matrix multiplication calculates all three weighted sums. ReLU then acts elementwise, giving three hidden features. We can check the first neuron against the calculation above.</p>
+
+        <h2>Adding an output layer</h2>
+        <p>We can use those three features as inputs to an output neuron. For regression, we use an identity output activation, leaving the output layer's weighted sum unchanged:</p>
+        <p>$$\hat{y}=\mathbf{W}^{(2)}h(\mathbf{W}^{(1)}\mathbf{x}+\mathbf{b}^{(1)})+\mathbf{b}^{(2)}.$$</p>
+<pre><code class="language-python"># Continue from the hidden-layer example above
+W2 = torch.tensor([[1.0, -0.5, 2.0]])  # (1, 3)
+b2 = torch.tensor([0.5])               # (1,)
+prediction = W2 @ z + b2               # (1,)
+print(prediction)  # tensor([0.])</code></pre>
+        <p>Here <code>z</code> is the hidden layer's output and the output layer's input. The result is $1(0.5)-0.5(2)+2(0)+0.5=0$. A network can produce a prediction before its parameters have been trained, but there is no reason to expect that prediction to be useful yet.</p>
+
+        <h2>Introducing <code>torch.nn</code></h2>
+        <p>Creating every weight matrix and bias vector ourselves becomes inconvenient as networks grow. <code>torch.nn</code> provides a collection of neural-network components. One of these is <code>nn.Linear</code>, which performs the affine transformation</p>
+        <p>$$\mathbf{a}=\mathbf{W}\mathbf{x}+\mathbf{b}.$$</p>
+        <p>Its <code>in_features</code> argument is the number of input features and <code>out_features</code> is the number of outputs. It does not apply an activation function; we add one separately, for example with <code>nn.ReLU()</code>.</p>
+<pre><code class="language-python">import torch
+from torch import nn
+
+layer = nn.Linear(in_features=2, out_features=3)
+x = torch.tensor([1.0, 2.0])
+print(layer.weight, layer.weight.shape)  # weights: (3, 2)
+print(layer.bias, layer.bias.shape)      # biases: (3,)
+a = layer(x)                             # affine transformation
+z = nn.ReLU()(a)                         # apply ReLU
+print(a, z)</code></pre>
+        <p>PyTorch initialises the weights and biases automatically, so their values and the output will generally differ between runs. Their shapes still match the manual layer: one row of weights and one bias per output.</p>
+
+        <h2>Building a network with <code>nn.Sequential</code></h2>
+        <p><code>nn.Sequential</code> connects modules in order, passing each module's output directly to the next. We can construct the same architecture as before:</p>
+<pre><code class="language-python">import torch
+from torch import nn
+
+model = nn.Sequential(
+    nn.Linear(2, 3),
+    nn.ReLU(),
+    nn.Linear(3, 1)
+)
+print(model)
+x = torch.tensor([1.0, 2.0])
+print(model(x))  # one complete forward pass
+print(list(model.parameters()))</code></pre>
+        <p>The first linear layer maps two inputs to three values. ReLU turns these into hidden features, and the second linear layer maps the three features to one regression output. <code>print(model)</code> displays the architecture; <code>model.parameters()</code> gives access to its current weights and biases. The architecture specifies the operations and shapes, while the parameter values determine the particular function computed.</p>
+        <figure class="chart-card"><div class="eyebrow">02 &middot; network architecture</div><h3>Two inputs, three hidden neurons, one output</h3>
+          <svg viewBox="0 0 720 220" width="100%" height="auto" role="img" aria-labelledby="network-title network-desc"><title id="network-title">Fully connected network and PyTorch modules</title><desc id="network-desc">Two input nodes connect to all three hidden nodes through Linear 2 to 3, followed by ReLU. All three connect to one output through Linear 3 to 1.</desc><g stroke="var(--rule-strong)" stroke-width="1.5"><path d="M110 80 L350 55 M110 80 L350 110 M110 80 L350 165 M110 140 L350 55 M110 140 L350 110 M110 140 L350 165 M350 55 L610 110 M350 110 L610 110 M350 165 L610 110"/></g><g fill="var(--bg-sunk)" stroke="var(--accent)" stroke-width="2"><circle cx="110" cy="80" r="14"/><circle cx="110" cy="140" r="14"/><circle cx="350" cy="55" r="14"/><circle cx="350" cy="110" r="14"/><circle cx="350" cy="165" r="14"/><circle cx="610" cy="110" r="14"/></g><g font-family="var(--font-mono)" font-size="12" text-anchor="middle" fill="var(--fg)"><text x="230" y="205">nn.Linear(2, 3)</text><text x="350" y="25">ReLU</text><text x="490" y="205">nn.Linear(3, 1)</text></g></svg>
+          <figcaption class="chart-caption"><span class="label">fig 2</span> Each linear layer connects every value in the preceding layer with every neuron in the next.</figcaption></figure>
+        <p>Random initialisation means predictions can differ between runs. We can control the random seed or set the parameters explicitly. To compare with our manual calculation, copy its values into the two linear modules. <code>torch.no_grad()</code> lets us assign them without recording the assignment for gradient calculations, and <code>copy_</code> copies values into the existing parameters:</p>
+<pre><code class="language-python"># Continue from the manual layer and nn.Sequential examples
+with torch.no_grad():
+    model[0].weight.copy_(W1)
+    model[0].bias.copy_(b1)
+    model[2].weight.copy_(W2)
+    model[2].bias.copy_(b2)
+
+manual = W2 @ torch.relu(W1 @ x + b1) + b2
+print(manual, model(x))          # both tensor([0.])
+print(torch.allclose(manual, model(x)))  # True</code></pre>
+        <p><code>torch.allclose</code> checks whether two tensors agree within a numerical tolerance. The modules now have the same architecture <em>and</em> parameter values as the manual network.</p>
+        <figure class="chart-card"><div class="eyebrow">03 &middot; equivalent calculations</div><h3>Manual tensors and modules</h3>
+          <svg viewBox="0 0 720 145" width="100%" height="auto" role="img" aria-labelledby="compare-title compare-desc"><title id="compare-title">Manual and sequential implementations</title><desc id="compare-desc">The manual affine transformation, ReLU and output affine transformation correspond to Linear, ReLU and Linear modules.</desc><g font-family="var(--font-mono)" font-size="12" text-anchor="middle" fill="var(--fg)"><text x="90" y="30">manual</text><text x="90" y="96">Sequential</text><rect x="160" y="8" width="165" height="40" rx="5" fill="var(--bg-sunk)" stroke="var(--rule-strong)"/><rect x="345" y="8" width="115" height="40" rx="5" fill="var(--accent-soft)" stroke="var(--accent)"/><rect x="480" y="8" width="180" height="40" rx="5" fill="var(--bg-sunk)" stroke="var(--rule-strong)"/><text x="242" y="33">W1 @ x + b1</text><text x="402" y="33">relu</text><text x="570" y="33">W2 @ z + b2</text><rect x="160" y="74" width="165" height="40" rx="5" fill="var(--bg-sunk)" stroke="var(--rule-strong)"/><rect x="345" y="74" width="115" height="40" rx="5" fill="var(--accent-soft)" stroke="var(--accent)"/><rect x="480" y="74" width="180" height="40" rx="5" fill="var(--bg-sunk)" stroke="var(--rule-strong)"/><text x="242" y="99">Linear(2, 3)</text><text x="402" y="99">ReLU()</text><text x="570" y="99">Linear(3, 1)</text></g></svg>
+          <figcaption class="chart-caption"><span class="label">fig 3</span> With identical parameters, the two sequences of operations give the same prediction.</figcaption></figure>
+
+        <h2>Working with batches of observations</h2>
+        <p>We often process several observations together. For $N$ observations with $D$ features each, we arrange one observation per row:</p>
+        <p>$$\mathbf{X}\in\mathbb{R}^{N\times D}.$$</p>
+        <p>The first dimension is the <strong>batch dimension</strong>. A single input vector has shape <code>(2,)</code>; a batch of three observations with two features has shape <code>(3, 2)</code>:</p>
+<pre><code class="language-python"># Continue with model from above
+X = torch.tensor([[1.0, 2.0],
+                  [0.0, 1.0],
+                  [2.0, 0.0]])
+predictions = model(X)
+print(X.shape)            # torch.Size([3, 2])
+print(predictions.shape)  # torch.Size([3, 1])
+print(predictions)        # [[0.], [1.5], [3.]] (values shown without grad information)</code></pre>
+        <p><code>nn.Linear</code> transforms the last, feature dimension and preserves the batch dimension. With one output neuron, the result has shape <code>(N, 1)</code>. In matrix notation for a batch, the first affine operation is $\mathbf{X}(\mathbf{W}^{(1)})^\top+\mathbf{b}^{(1)}$, with the bias added to each row.</p>
+        <figure class="chart-card"><div class="eyebrow">04 &middot; tensor shapes</div><h3>Following a batch through the network</h3>
+          <svg viewBox="0 0 720 125" width="100%" height="auto" role="img" aria-labelledby="shapes-title shapes-desc"><title id="shapes-title">Batch tensor shapes through the network</title><desc id="shapes-desc">A batch of N observations with two features becomes N by three after the first linear layer and ReLU, then N by one after the second linear layer.</desc><g font-family="var(--font-mono)" font-size="13" text-anchor="middle" fill="var(--fg)"><rect x="20" y="30" width="160" height="58" rx="6" fill="var(--bg-sunk)" stroke="var(--rule-strong)"/><rect x="280" y="30" width="160" height="58" rx="6" fill="var(--accent-soft)" stroke="var(--accent)"/><rect x="540" y="30" width="160" height="58" rx="6" fill="var(--bg-sunk)" stroke="var(--rule-strong)"/><text x="100" y="54">input</text><text x="100" y="74">(N, 2)</text><text x="360" y="54">hidden</text><text x="360" y="74">(N, 3)</text><text x="620" y="54">output</text><text x="620" y="74">(N, 1)</text><text x="230" y="24">Linear + ReLU</text><text x="490" y="24">Linear</text><path d="M180 59 H280 M440 59 H540" fill="none" stroke="var(--fg-2)" stroke-width="2"/></g></svg>
+          <figcaption class="chart-caption"><span class="label">fig 4</span> The number of observations stays the same while the feature dimension changes.</figcaption></figure>
+        <p>A common mistake is to confuse the number of observations with the number of features. <code>nn.Linear(2, 3)</code> expects two features in the last dimension, regardless of batch size. Transposing this example to shape <code>(2, 3)</code> would give it three features per observation and cause a shape error.</p>
+
+        <h2>Computing a loss function</h2>
+        <p>A prediction can be compared with a target using a loss function. For our regression network, <code>nn.MSELoss()</code> calculates the mean squared error introduced in the <a href="../output-layers-and-loss-functions/">outputs and loss functions note</a>: $\frac{1}{N}\sum_{n=1}^{N}(\hat{y}_n-y_n)^2$ for one output per observation.</p>
+<pre><code class="language-python"># Continue with model and X from above
+predictions = model(X)                       # (3, 1)
+targets = torch.tensor([[1.0], [0.0], [2.0]])  # (3, 1)
+loss = nn.MSELoss()(predictions, targets)
+print(loss)  # approximately 1.4167</code></pre>
+        <p>Predictions and targets should have matching shapes. A target with shape <code>(3,)</code> and predictions with shape <code>(3, 1)</code> can be broadcast into a <code>(3, 3)</code> comparison instead of pairing each prediction with its own target. This is not the loss we intended.</p>
+        <p>For classification, PyTorch also provides losses that combine the output activation with the loss calculation. Both examples below take <strong>logits</strong>, so we do not apply sigmoid or softmax to the outputs first:</p>
+<pre><code class="language-python"># Binary classification: floating-point targets, same shape as logits
+binary_logits = torch.tensor([[0.2], [-1.0], [1.5]])  # (3, 1)
+binary_targets = torch.tensor([[1.0], [0.0], [1.0]]) # (3, 1)
+binary_loss = nn.BCEWithLogitsLoss()(binary_logits, binary_targets)
+
+# Multiclass classification: one integer class index per observation
+class_logits = torch.tensor([[1.0, 0.5, -1.0], [0.0, 2.0, 1.0]])  # (2, 3)
+class_targets = torch.tensor([0, 2], dtype=torch.int64)             # (2,)
+class_loss = nn.CrossEntropyLoss()(class_logits, class_targets)
+print(binary_loss, class_loss)</code></pre>
+        <p>For standard multiclass cross-entropy, each target is the index of the correct class, between zero and the number of classes minus one. The logits have one entry per class for each observation.</p>
+
+        <h2>A first look at trainable parameters</h2>
+        <p>PyTorch automatically tracks parameters belonging to modules such as <code>nn.Linear</code>. <code>model.parameters()</code> provides the parameters, while <code>model.named_parameters()</code> also gives each one a name:</p>
+<pre><code class="language-python"># Continue with model from above
+for name, parameter in model.named_parameters():
+    print(name, parameter.shape, parameter)
+
+count = sum(p.numel() for p in model.parameters() if p.requires_grad)
+print(count)  # 13</code></pre>
+        <p><code>requires_grad=True</code> means PyTorch tracks operations on that parameter so that gradients can be calculated for it. <code>numel()</code> counts the entries in a tensor. For $D=2$ inputs, $M=3$ hidden neurons and $K=1$ output, this agrees with our earlier parameter-count formula:</p>
+        <p>$$P=M(D+1)+K(M+1)=3(2+1)+1(3+1)=13.$$</p>
+        <p>Training aims to find parameter values that minimise a loss. PyTorch can calculate the gradients needed for this automatically; we will use that capability shortly.</p>
+
+        <h2>Worked example: a complete neural network</h2>
+        <p>Let's put the pieces together. This example creates a regression network, makes predictions for a small batch and compares them with targets. A fixed seed makes the random initialisation reproducible in the same environment.</p>
+<pre><code class="language-python">import torch
+from torch import nn
+
+torch.manual_seed(42)
+model = nn.Sequential(
+    nn.Linear(2, 3),
+    nn.ReLU(),
+    nn.Linear(3, 1)
+)
+
+X = torch.tensor([[1.0, 2.0], [0.0, 1.0], [2.0, 0.0]])
+targets = torch.tensor([[1.0], [0.0], [2.0]])
+predictions = model(X)
+loss = nn.MSELoss()(predictions, targets)
+count = sum(p.numel() for p in model.parameters() if p.requires_grad)
+
+print("Predictions:", predictions)
+print("Loss:", loss.item())
+print("Trainable parameters:", count)  # 13</code></pre>
+        <p><code>torch.manual_seed</code> sets the seed before the layers are created. Each row of <code>X</code> is one observation; each row of <code>targets</code> is its corresponding value. Calling the model performs the forward pass, and <code>nn.MSELoss</code> compares the resulting predictions with the targets. <code>loss.item()</code> extracts the single numerical value from the loss tensor.</p>
+        <p>We have not used the targets to change any parameters. The predictions therefore come from the initial parameter values, and the model has not learned from these observations yet.</p>
+
+        <h2>Training Our First Neural Network</h2>
+        <p>We have built a network and measured its loss, but we have not yet changed its parameters to improve its predictions. Let's do that now with a small regression problem. We will generate observations using $y=x^2$ and train a network to approximate this nonlinear relationship.</p>
+        <p>The example below uses PyTorch and Matplotlib. If you need to install them, follow the installation instructions for your environment. The data are generated in the code, so no dataset download is needed.</p>
+<pre><code class="language-python">import torch
+from torch import nn
+import matplotlib.pyplot as plt
+
+torch.manual_seed(42)
+
+# Generate 41 observations, each with one input and one target.
+X = torch.linspace(-1.0, 1.0, 41).reshape(-1, 1)
+targets = X ** 2
+
+model = nn.Sequential(
+    nn.Linear(1, 16),
+    nn.ReLU(),
+    nn.Linear(16, 1)
+)
+loss_function = nn.MSELoss()
+optimizer = torch.optim.SGD(model.parameters(), lr=0.05)
+
+# Save predictions before any parameters are updated.
+with torch.no_grad():
+    predictions_before = model(X).clone()
+
+losses = []
+epochs = 2000
+for epoch in range(epochs):
+    predictions = model(X)
+    loss = loss_function(predictions, targets)
+    losses.append(loss.item())
+
+    optimizer.zero_grad()
+    loss.backward()
+    optimizer.step()
+
+with torch.no_grad():
+    predictions_after = model(X)
+    final_loss = loss_function(predictions_after, targets).item()
+
+print(f"Initial loss: {losses[0]:.6f}")
+print(f"Final loss:   {final_loss:.6f}")
+
+fig, axes = plt.subplots(1, 2, figsize=(10, 4))
+axes[0].scatter(X[:, 0].numpy(), targets[:, 0].numpy(),
+                label="Training data", color="black", s=15)
+axes[0].plot(X[:, 0].numpy(), predictions_before[:, 0].numpy(),
+             label="Before training", linestyle="--")
+axes[0].plot(X[:, 0].numpy(), predictions_after[:, 0].numpy(),
+             label="After training")
+axes[0].set_xlabel("x")
+axes[0].set_ylabel("y")
+axes[0].legend()
+
+axes[1].plot(range(1, epochs + 1), losses)
+axes[1].set_xlabel("Epoch")
+axes[1].set_ylabel("Mean squared error")
+axes[1].set_title("Training loss")
+plt.tight_layout()
+plt.show()</code></pre>
+        <p><code>torch.linspace</code> creates evenly spaced inputs between $-1$ and $1$. We use <code>reshape(-1, 1)</code> to arrange them as a batch with shape <code>(41, 1)</code>; the targets have the same shape. The network has one input, 16 hidden ReLU neurons and one output. Its hidden neurons provide features that can be combined to approximate the curve.</p>
+        <p><code>torch.optim.SGD</code> creates an optimiser that will update the model's parameters. The learning rate <code>lr</code> controls the size of its updates. Each <strong>epoch</strong> in this example uses the whole batch once. Within each epoch, we calculate predictions and their MSE, then:</p>
+        <ol>
+          <li><span><code>optimizer.zero_grad()</code> clears the gradients left over from the previous epoch. PyTorch otherwise accumulates them.</span></li>
+          <li><span><code>loss.backward()</code> calculates gradients of the loss with respect to the parameters. These describe how the loss changes as the parameters change.</span></li>
+          <li><span><code>optimizer.step()</code> uses those gradients to update the parameters.</span></li>
+        </ol>
+        <p>We record the loss before the update in each epoch, and calculate the final loss again after the last update. <code>torch.no_grad()</code> tells PyTorch that we do not need gradients when saving predictions for the plots. The first plot compares the initial and trained predictions with the data; the second shows the training loss across epochs. With the fixed seed and these settings, the loss should decrease and the fitted curve should follow the data more closely.</p>
+        <p>These plots show how well the network fits the observations it trained on. They do not tell us how well it will predict new observations; we would need separate data to investigate that.</p>
+        <div class="exercise"><span class="tag">try it</span><p>Run the example, then change one setting at a time: the learning rate, the number of hidden neurons, or the number of epochs. How do the fitted curve and loss change? Try a smaller and a larger learning rate and compare how quickly the loss falls. Keep the seed fixed when comparing runs.</p></div>
+
+        <h2>Check your understanding</h2>
+        <div class="exercise"><span class="tag">exercises</span><ol>
+          <li><span><strong>Single neuron.</strong> Choose new weights, a bias and an input for the manual neuron. Calculate its weighted sum and ReLU output by hand, then check with PyTorch.</span></li>
+          <li><span><strong>Hidden layer.</strong> Use tensor operations to construct a layer with three inputs and four ReLU neurons. What are the shapes of its weights, bias and output?</span></li>
+          <li><span><strong>Network architecture.</strong> Use <code>nn.Sequential</code> to build a network with four inputs, eight hidden ReLU neurons and two outputs. Use an identity output for regression.</span></li>
+          <li><span><strong>Parameter counting.</strong> Calculate the number of trainable parameters in that network by hand, then verify it using <code>model.parameters()</code> and <code>numel()</code>.</span></li>
+          <li><span><strong>Batch processing.</strong> Pass ten observations through the network from exercise 3. Predict the input and output shapes before printing them.</span></li>
+          <li><span><strong>Loss functions.</strong> Create predictions and matching targets for a regression or classification problem. Choose an appropriate loss and calculate it with PyTorch.</span></li>
+          <li><span><strong>Comparing implementations.</strong> Implement a small network using tensor operations and again with <code>nn.Sequential</code>. Assign identical parameters using <code>torch.no_grad()</code> and verify that their outputs match.</span></li>
+        </ol></div>
+        <h2>Summary</h2>
+        <p>We can now represent data as tensors, construct a neural network, calculate its predictions and train it using a loss function. We have also seen how to inspect its parameters and follow its progress during training.</p>
+        <p>In <strong>Section 7: Gradient Descent</strong>, we will explore how parameter updates work. In <strong>Section 8: Backpropagation</strong>, we will look at how the gradients used for those updates are calculated.</p>
       </div>
 
       <div class="endbar">
