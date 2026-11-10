@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <title>Introduction to learning features | Deep Learning</title>
-<meta name="description" content="Notes in preparation. Move from fixed basis functions to representations learned from data."/>
+<meta name="description" content="Learn features from data instead of choosing fixed basis functions."/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <link rel="icon" href="../../../../../design_system/assets/favicon.svg"/>
 <link rel="stylesheet" href="../../../../../design_system/colors_and_type.css"/>
@@ -61,7 +61,7 @@
         subtopic 3.1
       </div>
       <h1>Introduction to learning features.</h1>
-      <p class="standfirst">Move from fixed basis functions to functions learned from data.</p>
+      <p class="standfirst">Learn basis functions from data instead of choosing them in advance.</p>
 
       <div class="body">
         <h2>What this note covers</h2>
@@ -111,8 +111,7 @@
           Although the model can learn a coefficient for each of these terms, many of these
           features may contribute very little to the prediction.
         </p>
-        <p>The difficulty is therefore not simply that we need more features. 
-          It is that we do not know which of these 324,632 features are actually useful.
+        <p>So we have a lot of features, but we do not know which of these 324,632 terms are actually useful for the prediction.
         </p>
 
         <figure class="chart-card" id="polynomial-features">
@@ -263,7 +262,7 @@ regions, and therefore 100 basis functions.
           that are actually informative for the prediction task.
         </p>
         <h2>Learning the basis functions</h2>
-        <p>In order to target the underlying structure in the data, we need to allow the model to learn the functions themselves. Instead of having:</p>
+        <p>So how can we use this structure? One approach is to allow the model to learn the basis functions themselves. Instead of having:</p>
         <p>$$ \phi_j(x)$$</p>
         where the basis function is fixed, we can define a basis function with learnable parameters $\theta$:
         <p>$$ \phi_j(x, \theta_j)$$</p>
@@ -310,11 +309,10 @@ regions, and therefore 100 basis functions.
           $\mathbf{w}$ and the learnable parameters $\theta$ that control the behaviour of the functions themselves .
         </p>
         <p>
-          This is the central idea behind neural networks: rather than relying on hand-crafted features,
-          we can learn useful representations of the input space directly from the data.
+          This is the idea behind neural networks: instead of choosing all the features ourselves, we can learn useful features from the data.
         </p>
         <p>
-          In the next note, we will dive into the mathematics of single and multilayer neural networks.
+          In the next note, we will see how to use this idea to build a neural network.
         </p>
       </div>
 

@@ -145,7 +145,7 @@
         subtopic 3.3
       </div>
       <h1>Activation functions.</h1>
-      <p class="standfirst">The functions that turn weighted inputs into features, and why their shapes matter.</p>
+      <p class="standfirst">We have used ReLU to turn weighted inputs into features. Now let's look at some other activation functions and how they affect the network.</p>
 
       <div class="body">
         <h2>What this note covers</h2>
@@ -184,14 +184,10 @@
           Nonlinear activation functions allow the network to model nonlinear relationships.
         </p>
         <p>
-          The choice of activation matters. Some functions keep their outputs within a fixed range.
-          Others allow any positive value, or return zero for every negative input.
-          These differences affect both the features a network produces and how it learns.
+          The activation function affects the features a network produces and how it learns. Some functions keep their outputs within a fixed range, while others allow any positive value or return zero for negative inputs.
         </p>
         <p>
-          To compare them, it helps to look at their slopes as well as their outputs.
-          The derivative $h'(a)$ gives the slope at $a$: how much the output changes for a small
-          change in the pre-activation. A slope close to zero means the output barely changes.
+          To compare these functions, we will look at their slopes as well as their outputs. The derivative $h'(a)$ gives the slope at $a$, telling us how much the output changes for a small change in the pre-activation. If the slope is close to zero, the output barely changes.
         </p>
 
         <h2>The sigmoid activation function</h2>
@@ -285,8 +281,7 @@
         </figure>
         <p>
           This flattening is called <strong>saturation</strong>.
-          Once a neuron is in this region, changing its pre-activation makes very little difference
-          to its output. That can make learning difficult.
+          In this region, changing the pre-activation makes very little difference to the output, which can make learning difficult.
         </p>
         <p>
           A gradient describes how the loss changes when a model parameter changes.
@@ -475,9 +470,7 @@
           <figcaption class="chart-caption"><span class="label">fig 3</span> ReLU has slope $0$ for negative inputs and $1$ for positive inputs. Open circles mark the undefined derivative at zero.</figcaption>
         </figure>
         <p>
-          ReLU is simple to compute, and its positive side never flattens: the slope stays at $1$.
-          This helps gradients pass through active neurons, even for large positive inputs.
-          Sigmoid and tanh have very small slopes in that region.
+          ReLU is simple to compute, and its slope stays at $1$ for positive inputs. This helps gradients pass through active neurons, even for large positive inputs, where sigmoid and tanh have very small slopes.
         </p>
         <p>
           The flat negative side causes a different problem.
@@ -803,8 +796,7 @@
           </ol>
         </div>
         <p>
-          Nonlinear activations let a network learn more than an affine transformation.
-          The next note, <a href="../why-we-use-deep-networks/">Why deep networks?</a>,
+          Nonlinear activations allow the network to learn more than an affine transformation. The next note, <a href="../why-we-use-deep-networks/">Why deep networks?</a>,
           looks at what adding more layers allows it to represent.
         </p>
       </div>

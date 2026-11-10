@@ -212,9 +212,7 @@
           are suitable choices, although not every nonlinear activation has this property.
         </p>
         <p>
-          There are a couple of terms to unpack here. A continuous function has no jumps. In the
-          input spaces we use here, a compact domain is a closed and bounded set, such as the
-          interval $[0,1]$, including its endpoints.
+          First, let's define what we mean by continuous and compact. A continuous function has no jumps. In the input spaces we use here, a compact domain is a closed and bounded set, such as the interval $[0,1]$, including its endpoints.
         </p>
         <p>
           By approximate, we mean that we can make the network output as close to the function
@@ -224,9 +222,7 @@
         </p>
         <div class="note important">
           <span class="tag">important</span>
-          <p>This tells us that suitable weights exist. It does not tell us how to find them,
-            how many neurons we need, or how well a network fitted to a dataset will predict
-            on unseen data. It also does not say that one hidden layer uses the fewest parameters.</p>
+          <p>The theorem tells us that suitable weights exist, but it does not tell us how to find them or how many neurons we need. It also does not tell us how well a network fitted to a dataset will predict on unseen data, or whether one hidden layer uses the fewest parameters.</p>
         </div>
         <p>
           Below we have a simple example. We use a shallow ReLU network to approximate a smooth
@@ -294,9 +290,7 @@
 
         <h2>Why add more layers?</h2>
         <p>
-          If one hidden layer can approximate the function, why bother adding more? The issue is
-          how many neurons and parameters we need to do it. Being able to represent a function
-          does not mean we have found an efficient way to represent it.
+          If one hidden layer can approximate a function, why add more? The question is how many neurons and parameters we need. A single hidden layer may be able to represent the function, but it is not necessarily the most efficient way to do so.
         </p>
         <p>
           For example, suppose we have four inputs. One neuron compares $x_1$ and $x_2$, while
@@ -335,9 +329,7 @@
           give results for particular classes of compositional functions.
         </p>
         <p>
-          The small example above shows how we can reuse a calculation; it does not establish
-          a parameter saving. Adding layers is not always more efficient. That depends on the
-          function we are trying to learn and the widths and connections we choose.
+          Our example shows how we can reuse a calculation, but it does not show a saving in parameters. Adding layers is not always more efficient; this depends on the function we are trying to learn and the widths and connections we choose.
         </p>
 
         <h2>Hierarchical representations</h2>
@@ -512,10 +504,7 @@
 
         <h2>Summary</h2>
         <p>
-          Adding layers allows us to learn new features using the outputs of earlier layers.
-          For some problems, this uses fewer parameters than one very wide layer. But we still
-          need to find suitable weights and check that the model generalises; depth alone does
-          not guarantee either. How we construct and train the network matters.
+          By adding layers, we can learn new features from the outputs of earlier layers. For some problems, this can use fewer parameters than a single wide layer. We still need to learn suitable weights and check how well the model generalises to unseen data.
         </p>
         <p>
           In the next note, <a href="../output-layers-and-loss-functions/">Outputs and Loss Functions</a>,

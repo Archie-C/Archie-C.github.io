@@ -86,7 +86,7 @@
           Here $\mathbf{z}^{(L-1)}$ contains the hidden features, and $\mathbf{W}^{(L)}$ and
           $\mathbf{b}^{(L)}$ are the final weights and biases. We call the resulting values
           <strong>output pre-activations</strong>, or usually <strong>logits</strong> when we are
-          doing classification. Importantly, here we have not yet applied an output activation.
+          doing classification. We have not yet applied an output activation.
         </p>
         <p>
           We can keep the same hidden architecture for regression or classification. Much of
@@ -151,8 +151,7 @@
           assumption true. Mean absolute error, $\frac{1}{N}\sum_n|y_n-\hat{y}_n|$, is another option.
         </p>
         <p>
-          So adding hidden layers changes how we construct the prediction, but we can still use
-          the regression losses we already know.
+          So even though the hidden layers change how we construct the prediction, we can still use the regression losses from the earlier notes.
         </p>
 
         <h2>Binary classification</h2>
@@ -190,8 +189,7 @@
           </table>
         </div>
         <p>
-          The confident but wrong prediction gets a much larger penalty than the uncertain one.
-          For a target of $y=0$, the same happens when we assign a probability close to one:
+          Notice that the confident but wrong prediction gets a much larger penalty than the uncertain one. For a target of $y=0$, the same happens when we assign a probability close to one:
         </p>
         <figure class="chart-card">
           <div class="eyebrow">binary cross-entropy</div>
@@ -245,8 +243,7 @@
         </p>
         <p>$$p_k=\frac{\exp(a_k)}{\sum_{j=1}^{K}\exp(a_j)}.$$</p>
         <p>
-          First we exponentiate each score, making it positive, then divide by the total.
-          So every probability is positive and their sum is one:
+          First, we exponentiate each score to make it positive. Then we divide by the sum, so the resulting probabilities add up to one:
         </p>
         <p>$$p_k&gt;0,\qquad \sum_{k=1}^{K}p_k=
           \frac{\sum_{k=1}^{K}\exp(a_k)}{\sum_{j=1}^{K}\exp(a_j)}=1.$$</p>
@@ -321,7 +318,7 @@
         <p>
           With scores $(2,1,0)$ we get approximately $(0.881,0.731,0.500)$, which does not sum
           to one. The target could be $(1,1,0)$ if the photograph contains a dog and a person,
-          but no bicycle. Unlike the one-hot target, it can contain more than one one.
+          but no bicycle. Unlike the one-hot target, it can contain more than one entry equal to $1$.
         </p>
         <p>
           We calculate BCE for each label. With $K$ labels and $N$ data points, we can average
@@ -339,9 +336,7 @@
 
         <h2>Logits, probabilities and numerical stability</h2>
         <p>
-          So far we have written the output activation and loss as separate steps. In practice,
-          libraries often combine them. The reason is that calculating the probabilities first
-          can cause numerical problems.
+          So far, we have written the output activation and loss as separate steps. But in practice, libraries often combine them because calculating the probabilities first can cause numerical problems.
         </p>
         <p>
           For example, exponentiating a large score can produce a number too large for the
@@ -356,8 +351,7 @@
           <li><span><strong>Softmax cross-entropy using logits</strong> calculates the categorical loss without first storing the probabilities and then taking their logarithms.</span></li>
         </ul>
         <p>
-          The mathematical losses are the same. We have just rearranged the calculations to
-          avoid numerical problems. You can see examples in the documentation for
+          The loss is mathematically the same; we have just rearranged the calculation to avoid numerical problems. You can see examples in the documentation for
           <a href="https://docs.pytorch.org/docs/stable/generated/torch.nn.BCEWithLogitsLoss.html">BCE with logits</a>
           and <a href="https://docs.pytorch.org/docs/stable/generated/torch.nn.CrossEntropyLoss.html">multiclass cross-entropy</a>.
         </p>
@@ -368,15 +362,12 @@
         </p>
         <p>$$\log\sum_j e^{a_j}=m+\log\sum_j e^{a_j-m}.$$</p>
         <p>
-          This is why a model may return raw scores during training even when we interpret its
-          predictions as probabilities. If the loss expects logits, pass it the logits directly.
-          We can apply sigmoid or softmax separately when we want to inspect the probabilities.
+          This is why a model may return raw scores during training even when we interpret its predictions as probabilities. If the loss expects logits, we pass them in directly. We can then apply sigmoid or softmax separately to inspect the probabilities.
         </p>
 
         <h2>Choosing the output and loss</h2>
         <p>
-          We can now put the common choices together. The first thing to decide is what the
-          target represents, then choose an output and loss that suit it:
+          Now let's put these choices together. First we need to decide what the target represents, then choose a suitable output and loss:
         </p>
         <div class="output-table-wrap" role="region" aria-label="Output layers and loss functions by task" tabindex="0">
           <table class="output-table task-table">
@@ -444,9 +435,7 @@
           &amp;\approx\frac{0.127+0.313+0.693}{3}\approx0.378.
           \end{aligned}$$</p>
         <p>
-          The last two output layers have the same shape, but their probabilities mean different
-          things and we use different losses. We can keep the hidden architecture the same;
-          training it on different tasks will generally change the hidden weights too.
+          The last two output layers have the same shape, but their probabilities have different interpretations, so we use different losses. We can keep the hidden architecture the same, although training on different tasks will generally change the hidden weights too.
         </p>
 
         <h2>Check your understanding</h2>
@@ -462,10 +451,7 @@
         </div>
         <h2>Summary</h2>
         <p>
-          The hidden layers calculate features, and the output layer uses them to make a
-          prediction. We choose its activation according to what we want to predict, and use
-          a loss function to measure how good the predictions are. For classification, it is
-          often better to calculate that loss directly using logits for numerical stability.
+          The hidden layers calculate features, which the output layer uses to make a prediction. We choose the output activation based on what we want to predict, and a loss function to measure the error. For classification, calculating the loss directly from logits can help avoid numerical problems.
         </p>
         <p>
           In the next note, <a href="../learning-representations/">Representation Learning</a>,

@@ -65,7 +65,7 @@
         subtopic 3.2
       </div>
       <h1>Neural networks.</h1>
-      <p class="standfirst">Compose layers to map input features to predictions.</p>
+      <p class="standfirst">We can use neurons to learn features from our inputs, and combine these features to make a prediction.</p>
 
       <div class="body">
         <h2>What this note covers</h2>
@@ -215,8 +215,7 @@
 
         <h2>Layers and network architecture</h2>
         <p>
-          A single neuron gives us one single learnable feature.
-          However, just as we used multiple basis functions in regression, we can construct multiple neurons to learn different features from the same input.
+          A single neuron gives us one learnable feature. But just as we used multiple basis functions in regression, we can use multiple neurons to learn different features from the same input.
         </p>
         <p>Suppose we construct $M$ neurons, each with its own weights and bias. The output of neuron $j$ is:</p>
 
@@ -354,7 +353,7 @@
           Now we have $M$ learned features. But we still need to combine these to produce a prediction.
         </p>
         <p>
-          Fortunately, it turns out it's the same as before: we can use a linear combination of these features to produce a prediction:
+          We can do this in the same way as before, by taking a linear combination of the features:
         </p>
         <p>
           $$
@@ -365,8 +364,7 @@
         </p>
         <p>Note, for brevity I omit the $\theta$.</p>
         <p>
-          The difference now is that the features $\phi_j$ are learned from the data, rather than being fixed basis functions.
-          And substituting their definition gives:
+          The difference now is that the features $\phi_j$ are learned from the data. If we substitute their definition, we get:
         </p>
         <p>
           $$
@@ -379,7 +377,7 @@
         <p>
           We can use this construction for different tasks.
           For regression, the final output is a real number.
-          For binary classification, we can apply a sigmoid function to the final linear combinations:
+          For binary classification, we can apply a sigmoid function to the final linear combination:
         </p>
         <p>
           $$
@@ -393,8 +391,7 @@
         </p>
         <h3>Matrix representation</h3>
         <p>
-          When we have lots of neurons and layers, writing out each neuron becomes cumbersome.
-          Instead, we can express an entire layer using matrix multiplication.
+          Writing out every neuron becomes cumbersome when we have many neurons and layers. So let's write the layer using matrix multiplication instead.
         </p>
         <p>
           Suppose our input has $D$ features and we have $M$ neurons in the layer.
@@ -457,11 +454,7 @@
         </p>
         <h2>Worked example: forward propagation</h2>
         <p>
-          Calculating a prediction by passing an input through the network, layer by layer,
-          is called a <strong>forward pass</strong>, or <strong>forward propagation</strong>.
-          At each neuron, you multiply the inputs by their weights, sum the results with the bias,
-          and apply the activation function.
-          The resulting values become the inputs to the next layer.
+          To make a prediction, we pass an input through the network one layer at a time. This is called a <strong>forward pass</strong>, or <strong>forward propagation</strong>. At each neuron, we multiply the inputs by their weights, add the bias and apply the activation function. The outputs then become the inputs to the next layer.
         </p>
         <p>
           Consider a regression network with two input features, two hidden neurons using ReLU,
@@ -488,7 +481,7 @@
 
         <figure class="chart-card">
           <div class="eyebrow">03 &middot; forward pass</div>
-          <h3>From two inputs to one prediction</h3>
+          <h3>A pass through the network</h3>
           <svg class="chart" viewBox="0 0 680 320" width="100%" height="auto" role="img" aria-labelledby="nn-forward-title nn-forward-desc">
             <title id="nn-forward-title">A forward pass through a two-input, two-hidden-neuron network</title>
             <desc id="nn-forward-desc">Inputs x_1 = 2 and x_2 = 1 connect to both hidden neurons. The first has weights 1 and 1, bias minus 1, and ReLU output 2. The second has weights minus 1 and 1, bias 0, and ReLU output 0. Output weights 2 and minus 1 and output bias 1 give y = 5.</desc>
@@ -576,9 +569,7 @@
           \phi_2(\mathbf{x}) = \max(0,-1) = 0.$$
         </p>
         <p>
-          The first neuron's positive value passes through unchanged. The second neuron's
-          negative value becomes zero. The hidden layer has therefore turned the input
-          into the feature vector $\boldsymbol{\phi}(\mathbf{x}) = [2,0]^\top$.
+          The first neuron's positive value passes through unchanged, while the second neuron's negative value becomes zero. So the hidden layer gives us the feature vector $\boldsymbol{\phi}(\mathbf{x}) = [2,0]^\top$.
         </p>
         <h3>Step 3: calculate the output</h3>
         <p>Finally, combine these two features using the output weights and bias:</p>
@@ -592,9 +583,7 @@
           $$
         </p>
         <p>
-          The second hidden neuron contributes zero for this input, even though its output weight is $-1$.
-          The output activation is the identity, so the final prediction is $5$.
-          This completes one forward pass.
+          The second hidden neuron contributes zero for this input, even though its output weight is $-1$. The output activation is the identity, so our final prediction is $5$. We have now completed a forward pass.
         </p>
 
         <h2>Number of parameters</h2>
@@ -650,10 +639,7 @@
 
         <h2>Deeper networks</h2>
         <p>
-          So far, the hidden layer has taken the original input features and produced a new
-          feature vector. There is no reason to stop there: the outputs of one hidden layer
-          can become the inputs of another hidden layer. Each neuron in the next layer
-          applies its own weights, bias, and activation to those values.
+          So far, we have used one hidden layer to produce a new feature vector. But we can also use the outputs of this layer as the inputs to another hidden layer. Each neuron in the next layer applies its own weights, bias and activation to these values.
         </p>
         <p>
           The <strong>width</strong> of a layer is its number of neurons.

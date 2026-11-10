@@ -101,10 +101,10 @@
       <p class="standfirst">A linear score tells us which side of a boundary an input lies on. Logistic regression turns that score into a probability.</p>
       <div class="body">
         <h2>What this note covers</h2>
-        <ul><li>The logistic sigmoid</li><li>From scores to probabilities</li><li>Logistic regression</li><li>Making predictions</li><li>Implementation details</li></ul>
+        <ul><li>The logistic sigmoid</li><li>Scores and probabilities</li><li>Logistic regression</li><li>Making predictions</li><li>Implementation details</li></ul>
         <p>For a more formal definition, see <a href="https://www.bishopbook.com/">Deep learning: Foundations and Concepts</a>.</p>
 
-        <h2>From a score to a probability</h2>
+        <h2>Turning a score into a probability</h2>
         <p>In the previous note, we used the linear decision function</p>
         <p>$$a(\mathbf{x}) = \mathbf{w}^T\mathbf{x} + w_0.$$</p>
         <p>It can return any real number:</p>
@@ -118,7 +118,7 @@
         <figure class="chart-card"><div class="eyebrow">01 &middot; function</div><h3>The logistic sigmoid</h3><div class="chart-frame"><canvas id="sigmoidChart" aria-label="Plot of the logistic sigmoid from minus eight to eight" role="img"></canvas></div><figcaption class="chart-caption"><span class="label">fig 1</span> The sigmoid maps any real-valued score into the interval $(0, 1)$.</figcaption></figure>
         <div class="note important"><span class="tag">important</span><p>The sigmoid does not change the ordering of scores. A larger linear score still gives a larger output.</p></div>
 
-        <h2>From scores to probabilities</h2>
+        <h2>The logistic regression model</h2>
         <p>We can combine the linear decision function with the sigmoid. Let</p>
         <p>$$a(\mathbf{x}) = \mathbf{w}^T\mathbf{x} + w_0$$</p>
         <p>and define</p>

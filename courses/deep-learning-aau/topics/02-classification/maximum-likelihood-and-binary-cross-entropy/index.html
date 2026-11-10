@@ -107,7 +107,7 @@
         <p>The log-likelihood is easier to calculate and optimise, and it ranks models in the same order as the likelihood.</p>
         <div class="note important"><span class="tag">important</span><p>The logarithm is strictly increasing, so the parameters that maximise the likelihood also maximise the log-likelihood.</p></div>
 
-        <h2>From maximum likelihood to a loss</h2>
+        <h2>Maximum likelihood and the loss function</h2>
         <p>Maximum likelihood asks us to maximise the log-likelihood. Optimisation is often written as minimisation, so we instead minimise its negative:</p>
         <p>$$\mathcal{L}=-\sum_{n=1}^{N}\left[t_n\log y_n+(1-t_n)\log(1-y_n)\right].$$</p>
         <p>This is the binary cross-entropy loss. It is also common to use the mean over the examples:</p>
