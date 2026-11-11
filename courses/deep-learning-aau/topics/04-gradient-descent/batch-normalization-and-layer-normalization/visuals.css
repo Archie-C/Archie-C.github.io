@@ -1,0 +1,8 @@
+.matrix-grid, #matrix-output { margin: 16px 0; }
+.matrix-label { font: 11px var(--font-mono); color: var(--fg-2); margin: 8px 0; }
+.matrix-row { display: flex; gap: 6px; margin: 6px 0; }
+.matrix-row input, .matrix-cell { box-sizing: border-box; width: 5.2em; max-width: 22vw; padding: 8px 5px; border: 1px solid var(--rule-strong); border-radius: 3px; background: var(--bg); color: var(--fg); font: 12px var(--font-mono); text-align: center; }
+.matrix-cell { display: inline-block; }
+.matrix-row .selected { border-color: var(--accent); background: var(--bg-sunk); color: var(--accent); }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+.matrix-row input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
