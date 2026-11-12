@@ -1,92 +1,912 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" data-palette="paper">
-<head>
-<meta charset="utf-8"/>
-<title>Batch, stochastic and mini-batch gradient descent | Deep Learning</title>
-<meta name="description" content="How the examples used in each update affect gradient descent."/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<link rel="icon" href="../../../../../design_system/assets/favicon.svg"/>
-<link rel="stylesheet" href="../../../../../design_system/colors_and_type.css"/>
-<link rel="stylesheet" href="../../../../../design_system/charts.css"/>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"/>
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
-<link rel="stylesheet" href="../../../styles/notes.css"/>
-<link rel="stylesheet" href="../error-surfaces-and-gradient-descent/visuals.css"/>
-<script defer src="visuals.js"></script>
-</head>
-<body><div class="frame">
-<div class="topbar"><a href="../../../../../" class="mark">a<span class="dot">.</span>c</a><span class="crumb"><a href="../../../">Deep Learning</a><span class="sep">&rsaquo;</span><a href="../">04 gradient descent</a><span class="sep">&rsaquo;</span>batch, stochastic and mini-batch gradient descent</span><nav aria-label="Course navigation"><a href="../../../" class="active">syllabus</a><a href="/contact/">contact</a></nav></div>
-<div class="lecture"><aside><span class="h">course</span>Deep Learning &middot; Winter 2026<span class="h">topic</span><div class="nav-group">04 &middot; gradient descent</div><nav class="nav-list" aria-label="Gradient descent notes"><a href="../error-surfaces-and-gradient-descent/">4.1 &middot; error surfaces and gradient descent</a><a class="current" href="./" aria-current="page">4.2 &middot; batch, stochastic and mini-batch gradient descent</a><a href="../convergence-learning-rates-and-momentum/">4.3 &middot; convergence, learning rates and momentum</a><a href="../batch-normalization-and-layer-normalization/">4.6 &middot; batch and layer normalisation</a></nav><span class="h">on this page</span><nav class="nav-list" aria-label="On this page"><a href="#dataset">gradients over a dataset</a><a href="#batch">batch gradient descent</a><a href="#stochastic">stochastic gradient descent</a><a href="#minibatch">mini-batch gradient descent</a><a href="#noise">gradient noise and batch size</a><a href="#epochs">epochs and shuffling</a><a href="#comparison">comparison</a></nav></aside>
-<article><div class="crumb"><a href="../../../">syllabus</a><span class="sep">&rsaquo;</span><a href="../">topic 04</a><span class="sep">&rsaquo;</span>subtopic 4.2</div>
-<h1>Batch, stochastic and mini-batch gradient descent.</h1><p class="standfirst">How much of the training data do we need to calculate each update?</p><div class="body">
-<h2>What this note covers</h2><ul><li>Gradients of individual examples and the complete dataset</li><li>Batch, stochastic and mini-batch updates</li><li>Gradient variability and the cost of an update</li><li>Epochs, iterations and shuffling</li></ul>
-<h2 id="dataset">Gradients over a training dataset</h2>
-<p>In the previous note, we used the gradient of a loss to update the parameters. In regression, classification and neural networks, that loss is often built from contributions of individual training examples. If $E_n(\mathbf{w})$ is the loss for example $n$, we can write the training objective for $N$ examples as:</p>
-<p>$$E(\mathbf{w})=\frac{1}{N}\sum_{n=1}^{N}E_n(\mathbf{w}).$$</p>
-<p>Here $\mathbf{w}$ collects the model parameters. We use the mean loss throughout this note. Bishop and Bishop sometimes use a sum instead: its gradient is $N$ times the mean gradient, so the scaling can be absorbed into the learning rate. The convention and learning rate must be used consistently, particularly when comparing updates.</p>
-<p>Let's unpack this expression. For each training example, we make a prediction using the current parameters and calculate a loss $E_n(\mathbf{w})$ from that prediction and its target. We then add those losses together and divide by the number of examples. So $E(\mathbf{w})$ gives us one number that measures the model's performance over the training dataset as a whole.</p>
-<p>Taking the mean is useful because the scale of the objective does not simply grow when we add more examples with similar losses. It does not change which parameter values minimise the corresponding sum for a fixed dataset, but it does change the size of the gradient. For example, a step using the sum with learning rate $\eta/N$ is the same as a step using the mean with learning rate $\eta$.</p>
-<p>Differentiation distributes over the sum, giving:</p><p>$$\nabla E(\mathbf{w})=\frac{1}{N}\sum_{n=1}^{N}\nabla E_n(\mathbf{w}).$$</p>
-<p>The gradient of the complete objective is the average of the example gradients, all evaluated at the same parameter vector. This gives us a choice: calculate every contribution for an update, or use a selection of examples to estimate the average.</p>
-<p>To see what this means, imagine calculating one component of the gradient, such as $\partial E/\partial w_1$. Each example contributes its own partial derivative $\partial E_n/\partial w_1$. Averaging these contributions gives the corresponding component of the full gradient. The same is true for every other parameter, so we can average the individual gradient vectors component by component.</p>
-<p>Notice that the losses and gradients are different things. The loss for an example tells us how well the current model fits it; its gradient tells us how that loss would change if we changed the parameters. Two examples can therefore suggest different updates even though they are part of the same training objective.</p>
-<figure class="chart-card"><div class="eyebrow">01 &middot; example gradients</div><h3>From individual gradients to their mean</h3><svg class="chart" viewBox="0 0 680 150" role="img" aria-label="Four example gradients, minus 1, minus 4, minus 6 and minus 16, are averaged to give minus 6.75"><g font-family="var(--font-mono)" font-size="13" fill="var(--fg)" text-anchor="middle"><text x="85" y="30">example 1</text><text x="245" y="30">example 2</text><text x="405" y="30">example 3</text><text x="565" y="30">example 4</text><text x="85" y="57">−1</text><text x="245" y="57">−4</text><text x="405" y="57">−6</text><text x="565" y="57">−16</text><path d="M85 70 L340 105 M245 70 L340 105 M405 70 L340 105 M565 70 L340 105" stroke="var(--rule-strong)" fill="none"/><text x="340" y="135" fill="var(--accent)">mean gradient = −6.75</text></g></svg><figcaption class="chart-caption"><span class="label">fig 1</span> The four gradients in the example below are evaluated at the same value of $w$ and then averaged.</figcaption></figure>
-<h2 id="batch">Batch gradient descent</h2><p>In <strong>full-batch gradient descent</strong>, every example contributes to every update. Substituting the complete gradient into the rule from the previous note gives:</p><p>$$\mathbf{w}_{t+1}=\mathbf{w}_t-\eta\frac{1}{N}\sum_{n=1}^{N}\nabla E_n(\mathbf{w}_t).$$</p>
-<p>For a fixed dataset and parameter vector, this gradient is deterministic: the same calculation gives the same result. But we must process the entire dataset before taking a step. For a large neural network and dataset, this can make each update expensive or impractical. An expensive update need not mean that more updates are needed; the number of updates and the work needed to reach a target loss are separate questions.</p>
-<p>We can think of one update as two stages. First, keep $\mathbf{w}_t$ fixed while calculating the gradient for every example. Then average those gradients and use the result to update the parameters once. We do not update the parameters after each example: doing so would mean that later gradients were calculated at a different point.</p>
-<p>This gives us the direction of steepest local decrease for the complete training objective, as discussed in the previous note. However, knowing the exact direction at the current point does not tell us how many steps will be needed to reach a desired loss. A method with cheaper updates might need more of them, and the total work depends on both quantities.</p>
-<h2>Worked example: a regression model</h2><p>Consider $y(x,w)=wx$ and the following four observations:</p>
-<div class="table-wrap" role="region" aria-label="Regression dataset" tabindex="0"><table><caption>Training observations</caption><thead><tr><th scope="col">Example $n$</th><th scope="col">$x_n$</th><th scope="col">$t_n$</th></tr></thead><tbody><tr><td>1</td><td>1</td><td>1</td></tr><tr><td>2</td><td>2</td><td>2</td></tr><tr><td>3</td><td>3</td><td>2</td></tr><tr><td>4</td><td>4</td><td>4</td></tr></tbody></table></div>
-<p>Using mean half-squared error, the objective and its derivative are:</p><p>$$E(w)=\frac{1}{2N}\sum_{n=1}^{N}(wx_n-t_n)^2,\qquad \frac{dE}{dw}=\frac{1}{N}\sum_{n=1}^{N}(wx_n-t_n)x_n.$$</p>
-<p>Here $wx_n$ is the prediction and $t_n$ is the target, so $(wx_n-t_n)$ is the prediction error for example $n$. We square each error, take the mean over the four examples, and include a factor of $1/2$. This factor makes the derivative a little cleaner: differentiating the square produces a factor of two, which cancels it.</p>
-<p>For an individual example, let's write its contribution to the derivative as $g_n=(wx_n-t_n)x_n$. This is the error multiplied by the input. At $w=0$, every prediction is zero, but the gradients still differ because the targets and inputs differ. For example, the second observation gives $g_2=(0\cdot 2-2)\cdot 2=-4$.</p>
-<p>At $w_0=0$, the four individual derivatives are $g_1=-1$, $g_2=-4$, $g_3=-6$ and $g_4=-16$. Their average and the update for $\eta=0.1$ are:</p><p>$$\frac{dE}{dw}=\frac{-1-4-6-16}{4}=-6.75,\qquad w_1=0-0.1(-6.75)=0.675.$$</p><p>All four observations have influenced this one step. We will use the same starting point, learning rate and data to compare the other methods.</p>
-<p>The negative gradient tells us that a small increase in $w$ reduces the mean loss at the starting point. Subtracting that negative value increases $w$ from zero to $0.675$. After the update, we would calculate all four gradients again at $w=0.675$ before taking the next step. We cannot keep using the values from $w=0$, because the prediction errors change when $w$ changes.</p>
-<h2 id="stochastic">Stochastic gradient descent</h2><p>Calculating the complete gradient is not always necessary to make useful progress. In <strong>stochastic gradient descent</strong> (SGD), we use one example for each update:</p><p>$$\mathbf{w}_{t+1}=\mathbf{w}_t-\eta\nabla E_{n_t}(\mathbf{w}_t),$$</p><p>where $n_t$ identifies the example selected at iteration $t$. Its gradient describes that example's loss, not the complete objective. It is a noisy estimate of the full gradient: different examples generally give different directions and magnitudes. If $n_t$ is sampled uniformly from the $N$ examples at a fixed $\mathbf{w}$, its expected gradient is exactly their average, $\mathbb{E}[\nabla E_{n_t}(\mathbf{w})]=\nabla E(\mathbf{w})$. The estimate is therefore unbiased.</p>
-<p>Each update requires only one example and is cheaper than a full-batch update, although many updates may be needed. The complete loss can fluctuate rather than decrease at every step. Noise changes the trajectory and can sometimes help an update move out of a flat region or a local minimum, but it does not guarantee escape or a better solution. Repeated updates let information from the rest of the dataset influence the parameters too.</p>
-<p>Why does an unbiased estimate not always point in the same direction as the full gradient? The expectation is an average over all possible selections. A particular selection can be above or below that average, and for a vector it can even point in a direction that increases the full loss locally. Unbiasedness describes the estimate across repeated uniform selections at the same parameters; it does not promise that every step will reduce the objective.</p>
-<p>Near a minimum of the complete objective, the individual gradients need not all be zero. One observation may pull the parameters in one direction while another pulls them in the opposite direction, with their average equal to zero. Single-example updates can therefore continue to move around the minimum rather than settle exactly on it with a fixed learning rate.</p>
-<p>For the regression example, suppose the fourth observation is selected first. At $w_0=0$:</p><p>$$g_4=(wx_4-t_4)x_4=(0-4)(4)=-16,\qquad w_1=0-0.1(-16)=1.6.$$</p><p>The batch update gave $w_1=0.675$. The two steps differ because one uses just the fourth gradient while the other averages all four. One update alone does not establish which method will eventually find a better solution.</p>
-<p>For this observation, the prediction starts at zero while the target is four. Its large negative gradient produces a larger increase in $w$ than the average gradient does. After this step, however, we must calculate the next selected example's gradient at $w=1.6$, not at zero. For example, if the first observation is selected next, its gradient is $(1.6\cdot1-1)\cdot1=0.6$, giving $w_2=1.6-0.1(0.6)=1.54$.</p>
-<p>The second step moves in the opposite direction to the first. This does not mean that the two examples are being ignored: each update responds to the selected example at the current parameter value. Over a sequence of updates, the parameter reflects the examples encountered along the way.</p>
-<h2 id="minibatch">Mini-batch gradient descent</h2><p>Between these extremes, we can use a subset $\mathcal{B}_t$ of $B$ examples and average their gradients:</p><p>$$\nabla E_{\mathcal{B}_t}(\mathbf{w}_t)=\frac{1}{B}\sum_{n\in\mathcal{B}_t}\nabla E_n(\mathbf{w}_t),\qquad \boxed{\mathbf{w}_{t+1}=\mathbf{w}_t-\eta\nabla E_{\mathcal{B}_t}(\mathbf{w}_t)}.$$</p><p>With $B=1$ this is single-example SGD; with $B=N$ and the whole dataset it is full-batch gradient descent. Intermediate values give <strong>mini-batch gradient descent</strong>. In deep learning, the name SGD is also frequently used for mini-batch SGD.</p>
-<p>For a mini-batch, we first hold the parameters fixed and calculate a gradient for each selected example. We then average those gradients and make one update. The division by $B$ matters: it keeps the result on the scale of an average example gradient, so changing the batch size does not automatically multiply the gradient by the number of examples in the batch.</p>
-<p>If the batch is chosen uniformly from the dataset, its average gradient is also an unbiased estimate of the full gradient at a fixed parameter vector. It will usually differ from the full gradient for any particular batch, because the selected examples do not necessarily represent the entire dataset exactly.</p>
-<p>For the first two observations in our regression example, at $w_0=0$ the average gradient is $g_{\mathcal B}=(-1-4)/2=-2.5$. With the same learning rate, $w_1=0-0.1(-2.5)=0.25$:</p>
-<div class="table-wrap" role="region" aria-label="Comparison of first updates" tabindex="0"><table><caption>First update from $w_0=0$, with $\eta=0.1$</caption><thead><tr><th scope="col">Method</th><th scope="col">Examples used</th><th scope="col">Gradient</th><th scope="col">Updated $w$</th></tr></thead><tbody><tr><td>Full-batch</td><td>All 4</td><td>−6.75</td><td>0.675</td></tr><tr><td>SGD</td><td>Example 4</td><td>−16</td><td>1.6</td></tr><tr><td>Mini-batch</td><td>Examples 1 and 2</td><td>−2.5</td><td>0.25</td></tr></tbody></table></div><p>These are different estimates at one point, not a comparison of eventual convergence. The full-batch value is exact for the dataset; the other values depend on which examples were chosen.</p>
-<p>Let's look at the mini-batch calculation more closely. The first observation pulls $w$ upwards using a gradient of $-1$, while the second gives $-4$. Their average, $-2.5$, is less negative than the full gradient because the two larger contributions from examples 3 and 4 are absent. Choosing another pair would generally give a different update. For instance, examples 3 and 4 give $(-6-16)/2=-11$ and hence $w_1=1.1$.</p>
-<p>All three calculations start at the same $w$ and use the same learning rate, which lets us isolate the effect of the chosen examples. Once the first steps have been taken, their parameters differ, so subsequent gradients must also be evaluated at those different parameter values.</p>
-<h2 id="noise">Gradient noise and batch size</h2><p>At a fixed parameter vector, a small random batch tends to vary more from one selection to another than a large one. To see why, consider one scalar component of the gradient. Suppose $\hat g_B$ is the average of $B$ independent, identically distributed sampled gradients, each with finite variance $\sigma_g^2$. The variance of a sum of independent variables is the sum of their variances, so:</p><p>$$\operatorname{Var}(\hat g_B)=\frac{1}{B^2}B\sigma_g^2=\frac{\sigma_g^2}{B},\qquad \sigma_{\hat g_B}=\frac{\sigma_g}{\sqrt B}.$$</p><p>Thus increasing $B$ from 16 to 64 uses four times as many examples but halves the standard deviation. The square root gives diminishing returns. These expressions assume independent sampling at a fixed parameter vector; actual gradients change as parameters change. For uniform sampling without replacement from a finite dataset, the variance also has the finite-population correction $(N-B)/(N-1)$ when $\sigma_g^2$ is the population variance with denominator $N$. At $B=N$ the estimate is the exact full gradient.</p>
-<p>Let's see where the factor of $B^2$ comes from. The average multiplies the sum by $1/B$, and multiplying a random quantity by $1/B$ multiplies its variance by $1/B^2$. The $B$ independent contributions then give $B\sigma_g^2$ in the numerator. Taking the square root of the resulting variance gives the standard deviation.</p>
-<p>Independence is important here. If the sampled gradients are correlated, their covariances also contribute to the variance of the average. Sampling without replacement is one example: once an observation has been selected, it cannot appear again in that batch. The correction accounts for this dependence and goes to zero when the batch contains every example. For $N=1$, the full gradient is already known from the single example.</p>
-<p>The figure enumerates every equally likely subset of the four regression examples at $w=0$. Change $B$ to see how the possible averages gather around the full gradient.</p>
-<figure class="chart-card"><div class="eyebrow">02 &middot; gradient variability</div><h3>Possible mini-batch gradients</h3><svg class="chart" id="distribution" viewBox="0 0 680 190" role="img" aria-label="Distribution of all subset gradients at w equals zero"></svg><div class="controls" id="distribution-controls" hidden><label for="dist-size">Batch size $B$ <output id="dist-value"></output><input id="dist-size" type="range" min="1" max="4" step="1" value="1"/></label></div><p class="readout" id="dist-readout" aria-live="polite"></p><figcaption class="chart-caption"><span class="label">fig 2</span> Each dot is one equally likely subset, sampled without replacement. The vertical line marks the full gradient, −6.75.</figcaption><noscript><p class="chart-caption">Enable JavaScript to change the batch size.</p></noscript></figure>
-<p>Increasing the batch size generally makes an update more stable but requires more example gradients and memory. Larger batches can also use parallel hardware more efficiently. The number of updates, work per update, hardware utilisation and memory all matter: using more examples per update does not by itself imply less total computation or shorter training time. There is no universally optimal batch size.</p>
-<p>For example, processing 64 examples together does not necessarily take four times as long as processing 16: a GPU can perform many operations in parallel. But a larger batch also needs space for more intermediate values, and taking fewer updates while processing the same number of examples can change how quickly the loss falls. The fastest choice in elapsed time can therefore differ from the choice that uses the fewest example computations.</p>
-<h2 id="epochs">Epochs, iterations and data shuffling</h2><p>An <strong>iteration</strong> is one parameter update, and its <strong>mini-batch</strong> is the subset used for that update. An <strong>epoch</strong> is one complete pass through the training dataset. If each example is used once and the last incomplete batch is retained, the number of updates in an epoch is:</p><p>$$\left\lceil\frac{N}{B}\right\rceil.$$</p><p>If the final incomplete batch is discarded instead, there are $\lfloor N/B\rfloor$ updates; the discarded examples are not used in that pass. Its gradient, when retained, is averaged over its actual number of examples.</p>
-<p>For example, if $N=103$ and $B=10$, ten batches contain ten examples each and one batch contains the remaining three. Keeping that final batch gives eleven updates. Dropping it gives ten updates and leaves three examples unused in that pass. Which examples are left out can change when the order is shuffled.</p>
-<p>For 100 observations, batch sizes 1, 10, 25 and 100 give 100, 10, 4 and 1 updates per epoch respectively. An epoch processes the same number of examples in each case, but the parameters are updated at different frequencies. Comparing methods therefore requires care about epochs, updates and the computation or elapsed time needed to reach a target loss.</p>
-<figure class="chart-card"><div class="eyebrow">03 &middot; an epoch</div><h3>Dividing a dataset into batches</h3><svg class="chart" id="batches" viewBox="0 0 680 210" role="img" aria-label="Twelve examples divided into mini-batches"></svg><div class="controls" id="batch-controls" hidden><label for="batch-size">Batch size $B$ <output id="batch-value"></output><input id="batch-size" type="range" min="1" max="12" step="1" value="4"/></label><div><button type="button" id="shuffle">Shuffle</button> <button type="button" id="order-reset">Reset order</button></div></div><p class="readout" id="batch-readout" aria-live="polite"></p><figcaption class="chart-caption"><span class="label">fig 3</span> Each row is one update. The final incomplete batch is retained.</figcaption><noscript><p class="chart-caption">Enable JavaScript to change the batch size and shuffle.</p></noscript></figure>
-<p>Order matters because each update changes the parameters at which the next gradient is calculated. If observations are ordered by class or another property, consecutive updates may systematically reflect only part of the data. Shuffling between epochs changes the sequence of updates without changing the complete dataset objective. A recorded random seed helps reproduce the order and a run. The sampling strategy should respect the data: arbitrary shuffling may be unsuitable when temporal or sequential relationships must be preserved.</p>
-<p>Imagine a classification dataset where all examples of one class come first. With small batches, several consecutive updates would respond only to that class, followed by several responding to another. The order can pull the model in different directions in blocks. Shuffling mixes the examples before dividing them into batches, making such long runs less likely.</p>
-<p>Shuffling does not change the sum of the individual losses: the same examples still contribute to the same complete objective. It can nevertheless change the path through parameter space, because averaging gradients at a fixed $\mathbf{w}$ is different from updating $\mathbf{w}$ between batches. A fixed seed makes a chosen sequence reproducible in the same environment; it does not make every possible training run identical.</p>
-<h2 id="comparison">Comparing the approaches</h2><div class="table-wrap" role="region" aria-label="Comparison of gradient descent methods" tabindex="0"><table><caption>One pass through $N$ examples, retaining the last batch</caption><thead><tr><th scope="col">Property</th><th scope="col">Full-batch</th><th scope="col">Single-example SGD</th><th scope="col">Mini-batch</th></tr></thead><tbody><tr><td>Examples per update</td><td>$N$</td><td>1</td><td>$B$</td></tr><tr><td>Work per update</td><td>All examples</td><td>One example</td><td>$B$ examples</td></tr><tr><td>Gradient variability</td><td>None for fixed data and parameters</td><td>Often high</td><td>Depends on $B$</td></tr><tr><td>Updates per epoch</td><td>1</td><td>$N$</td><td>$\lceil N/B\rceil$</td></tr><tr><td>Parallel processing</td><td>Across the dataset</td><td>Limited across examples</td><td>Across the batch</td></tr><tr><td>Memory</td><td>Potentially high</td><td>Typically lower</td><td>Typically grows with $B$</td></tr><tr><td>Typical use</td><td>Smaller datasets</td><td>Online or single-example updates</td><td>Neural network training</td></tr></tbody></table></div>
-<p>Mini-batch SGD is widely used for deep learning because it balances frequent updates with efficient parallel computation. The best choice depends on the problem, implementation and hardware; none of these methods is always superior.</p>
-<p>It is useful to separate three questions when reading this table. How much work does one update require? How many updates are made in one pass through the data? And how many passes or updates are needed to reach a loss we are happy with? The first two follow from the batch size and dataset, but the third depends on the optimisation problem and the path taken.</p>
-<p>A smaller batch gives more opportunities to change the parameters during an epoch. A larger batch combines more information before each change and may use the hardware more efficiently. Neither observation alone tells us which run will finish sooner or find the lower loss.</p>
-<pre><code>Choose initial parameters w, learning rate η and batch size B
+  <head>
+    <meta charset="utf-8" />
+    <title>
+      Batch, stochastic and mini-batch gradient descent | Deep Learning
+    </title>
+    <meta
+      name="description"
+      content="How the examples used in each update affect gradient descent."
+    />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <link rel="icon" href="../../../../../design_system/assets/favicon.svg" />
+    <link
+      rel="stylesheet"
+      href="../../../../../design_system/colors_and_type.css"
+    />
+    <link rel="stylesheet" href="../../../../../design_system/charts.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
+    />
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"
+    ></script>
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+      onload="
+        renderMathInElement(document.body, {
+          delimiters: [
+            { left: '$$', right: '$$', display: true },
+            { left: '$', right: '$', display: false },
+          ],
+        })
+      "
+    ></script>
+    <link rel="stylesheet" href="../../../styles/notes.css" />
+    <link
+      rel="stylesheet"
+      href="../error-surfaces-and-gradient-descent/visuals.css"
+    />
+    <script defer src="visuals.js"></script>
+  </head>
+  <body>
+    <div class="frame">
+      <div class="topbar">
+        <a href="../../../../../" class="mark">a<span class="dot">.</span>c</a
+        ><span class="crumb"
+          ><a href="../../../">Deep Learning</a><span class="sep">&rsaquo;</span
+          ><a href="../">04 gradient descent</a
+          ><span class="sep">&rsaquo;</span>batch, stochastic and mini-batch
+          gradient descent</span
+        >
+        <nav aria-label="Course navigation">
+          <a href="../../../" class="active">syllabus</a
+          ><a href="/contact/">contact</a>
+        </nav>
+      </div>
+      <div class="lecture">
+        <aside>
+          <span class="h">course</span>Deep Learning &middot; Winter 2026<span
+            class="h"
+            >topic</span
+          >
+          <div class="nav-group">04 &middot; gradient descent</div>
+          <nav class="nav-list" aria-label="Gradient descent notes">
+            <a href="../error-surfaces-and-gradient-descent/"
+              >4.1 &middot; error surfaces and gradient descent</a
+            ><a class="current" href="./" aria-current="page"
+              >4.2 &middot; batch, stochastic and mini-batch gradient descent</a
+            ><a href="../convergence-learning-rates-and-momentum/"
+              >4.3 &middot; convergence, learning rates and momentum</a
+            ><a href="../batch-normalization-and-layer-normalization/"
+              >4.6 &middot; batch and layer normalisation</a
+            >
+          </nav>
+          <span class="h">on this page</span>
+          <nav class="nav-list" aria-label="On this page">
+            <a href="#dataset">gradients over a dataset</a
+            ><a href="#batch">batch gradient descent</a
+            ><a href="#stochastic">stochastic gradient descent</a
+            ><a href="#minibatch">mini-batch gradient descent</a
+            ><a href="#noise">gradient noise and batch size</a
+            ><a href="#epochs">epochs and shuffling</a
+            ><a href="#comparison">comparison</a>
+          </nav>
+        </aside>
+        <article>
+          <div class="crumb">
+            <a href="../../../">syllabus</a><span class="sep">&rsaquo;</span
+            ><a href="../">topic 04</a><span class="sep">&rsaquo;</span>subtopic
+            4.2
+          </div>
+          <h1>Batch, stochastic and mini-batch gradient descent.</h1>
+          <p class="standfirst">
+            How much of the training data do we need to calculate each update?
+          </p>
+          <div class="body">
+            <h2>What this note covers</h2>
+            <ul>
+              <li>Gradients of individual examples and the complete dataset</li>
+              <li>Batch, stochastic and mini-batch updates</li>
+              <li>Gradient variability and the cost of an update</li>
+              <li>Epochs, iterations and shuffling</li>
+            </ul>
+            <h2 id="dataset">Gradients over a training dataset</h2>
+            <p>
+              In the previous note, we used the gradient of a loss to update the
+              parameters. In regression, classification and neural networks,
+              that loss is often built from contributions of individual training
+              examples. If $E_n(\mathbf{w})$ is the loss for example $n$, we can
+              write the training objective for $N$ examples as:
+            </p>
+            <p>$$E(\mathbf{w})=\frac{1}{N}\sum_{n=1}^{N}E_n(\mathbf{w}).$$</p>
+            <p>
+              We use the mean loss throughout this note. Bishop and Bishop
+              sometimes use a sum instead however, its gradient is just $N$
+              times the mean gradient, so the scaling can be absorbed into the
+              learning rate.
+            </p>
+            <p>
+              Let's unpack this expression. For each training example, we make a
+              prediction using the current parameters and calculate a loss
+              $E_n(\mathbf{w})$ from that prediction and its target. We then add
+              those losses together and divide by the number of examples. So
+              $E(\mathbf{w})$ gives us one number that measures the model's
+              performance over the training dataset as a whole.
+            </p>
+            <p>
+              Taking the mean is useful because the scale of the objective does
+              not simply grow when we add more examples with similar losses.
+              Importantly, it does not change which parameter values minimise
+              the corresponding sum for a fixed dataset, but it does change the
+              size of the gradient. For example, a step using the sum with
+              learning rate $\eta/N$ is the same as a step using the mean with
+              learning rate $\eta$.
+            </p>
+            <p>
+              To find the gradient of the complete objective, we can use the
+              fact that differentiation distributes over the sum:
+            </p>
+            <p>
+              $$\nabla E(\mathbf{w})=\frac{1}{N}\sum_{n=1}^{N}\nabla
+              E_n(\mathbf{w}).$$
+            </p>
+            <p>
+              Therefore, the gradient of the complete objective is the average
+              of the example gradients, all evaluated at the same parameter
+              vector. Which gives use an interesting choice: calculate the
+              gradient using the whole dataset, or just use a subset of
+              examples.
+            </p>
+            <figure class="chart-card">
+              <div class="eyebrow">01 &middot; example gradients</div>
+              <h3>Collecting individual gradients into one value</h3>
+              <svg
+                class="chart"
+                viewBox="0 0 680 150"
+                role="img"
+                aria-label="Four example gradients, minus 1, minus 4, minus 6 and minus 16, are averaged to give minus 6.75"
+              >
+                <g
+                  font-family="var(--font-mono)"
+                  font-size="13"
+                  fill="var(--fg)"
+                  text-anchor="middle"
+                >
+                  <text x="85" y="30">example 1</text>
+                  <text x="245" y="30">example 2</text>
+                  <text x="405" y="30">example 3</text>
+                  <text x="565" y="30">example 4</text>
+                  <text x="85" y="57">−1</text>
+                  <text x="245" y="57">−4</text>
+                  <text x="405" y="57">−6</text>
+                  <text x="565" y="57">−16</text>
+                  <path
+                    d="M85 70 L340 105 M245 70 L340 105 M405 70 L340 105 M565 70 L340 105"
+                    stroke="var(--rule-strong)"
+                    fill="none"
+                  />
+                  <text x="340" y="135" fill="var(--accent)">
+                    mean gradient = −6.75
+                  </text>
+                </g>
+              </svg>
+              <figcaption class="chart-caption">
+                <span class="label">fig 1</span> The four gradients in the
+                example below are evaluated at the same value of $w$ and then
+                averaged.
+              </figcaption>
+            </figure>
+            <h2 id="batch">Batch gradient descent</h2>
+            <p>
+              In <strong>full-batch gradient descent</strong>, we use the whole
+              dataset, so every example contributes to every update.
+              Substituting the complete gradient into the rule from the previous
+              note gives:
+            </p>
+            <p>
+              $$\mathbf{w}_{t+1}=\mathbf{w}_t-\eta\frac{1}{N}\sum_{n=1}^{N}\nabla
+              E_n(\mathbf{w}_t).$$
+            </p>
+            <p>
+              For a fixed dataset and parameter vector, this gradient is
+              deterministic. But we must process the entire dataset before
+              taking a step. For a large neural network and dataset, this can
+              make each update expensive or impractical. However, it tends to
+              give a smoother trajectory than using a subset.
+            </p>
+            <p>
+              We can think of one update as two stages. First, keep
+              $\mathbf{w}_t$ fixed while calculating the gradient for every
+              example. Then average those gradients and use the result to update
+              the parameters once. We <strong>do not</strong> update the
+              parameters after each example, only after each step.
+            </p>
+            <p>
+              This gives us the direction of steepest local decrease for the
+              complete training objective, as discussed in the previous note.
+              However, knowing the exact direction at the current point does not
+              tell us how many steps will be needed to reach a desired loss. A
+              method with cheaper updates (less examples) might need more steps,
+              and the total work depends on both quantities.
+            </p>
+            <h2>Worked example: a regression model</h2>
+            <p>Consider $y(x,w)=wx$ and the following four observations:</p>
+            <div
+              class="table-wrap"
+              role="region"
+              aria-label="Regression dataset"
+              tabindex="0"
+            >
+              <table>
+                <caption>
+                  Training observations
+                </caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Example $n$</th>
+                    <th scope="col">$x_n$</th>
+                    <th scope="col">$t_n$</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>1</td>
+                    <td>1</td>
+                    <td>1</td>
+                  </tr>
+                  <tr>
+                    <td>2</td>
+                    <td>2</td>
+                    <td>2</td>
+                  </tr>
+                  <tr>
+                    <td>3</td>
+                    <td>3</td>
+                    <td>2</td>
+                  </tr>
+                  <tr>
+                    <td>4</td>
+                    <td>4</td>
+                    <td>4</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p>
+              Using mean half-squared error, the objective and its derivative
+              are:
+            </p>
+            <p>
+              $$E(w)=\frac{1}{2N}\sum_{n=1}^{N}(wx_n-t_n)^2,\qquad
+              \frac{dE}{dw}=\frac{1}{N}\sum_{n=1}^{N}(wx_n-t_n)x_n.$$
+            </p>
+            <p>
+              This means that an individual example's contribution to the
+              derivative is $g_n=(wx_n-t_n)x_n$. For example, if we start at
+              $w=0$, the four individual derivatives are $g_1=-1$, $g_2=-4$,
+              $g_3=-6$ and $g_4=-16$. Their average and the update for
+              $\eta=0.1$ are:
+            </p>
+            <p>
+              $$\frac{dE}{dw}=\frac{-1-4-6-16}{4}=-6.75,\qquad
+              w_1=0-0.1(-6.75)=0.675.$$
+            </p>
+            <p>
+              All four observations have influenced this one step. We will use
+              the same starting point, learning rate and data to compare the
+              other methods.
+            </p>
+            <p>
+              The negative gradient tells us that a small increase in $w$
+              reduces the mean loss at the starting point. Subtracting that
+              negative value increases $w$ from zero to $0.675$. After the
+              update, we would calculate all four gradients again at $w=0.675$
+              before taking the next step. We cannot keep using the values from
+              $w=0$, because the prediction errors change when $w$ changes.
+            </p>
+            <h2 id="stochastic">Stochastic gradient descent</h2>
+            <p>
+              Calculating the complete gradient is not always necessary to make
+              useful progress. In
+              <strong>stochastic gradient descent</strong> (SGD), we use one
+              example for each update:
+            </p>
+            <p>
+              $$\mathbf{w}_{t+1}=\mathbf{w}_t-\eta\nabla
+              E_{n_t}(\mathbf{w}_t),$$
+            </p>
+            <p>
+              where $n_t$ identifies the example selected at iteration $t$. Its
+              gradient describes that example's loss, not the complete
+              objective. It is a noisy estimate of the full gradient: different
+              examples generally give different directions and magnitudes. If
+              $n_t$ is sampled uniformly from the $N$ examples at a fixed
+              $\mathbf{w}$, its expected gradient is exactly their average,
+              $\mathbb{E}[\nabla E_{n_t}(\mathbf{w})]=\nabla E(\mathbf{w})$. The
+              estimate is therefore unbiased.
+            </p>
+            <p>
+              Each update requires only one example and is cheaper than a
+              full-batch update, although many updates may be needed. The
+              complete loss can fluctuate rather than decrease at every step.
+              Noise changes the trajectory and can sometimes help an update move
+              out of a flat region or a local minimum, but it does not guarantee
+              escape or a better solution. Repeated updates let information from
+              the rest of the dataset influence the parameters too.
+            </p>
+            <p>
+              Why does an unbiased estimate not always point in the same
+              direction as the full gradient? The expectation is an average over
+              all possible selections. A particular selection can be above or
+              below that average, and for a vector it can even point in a
+              direction that increases the full loss locally. Unbiasedness
+              describes the estimate across repeated uniform selections at the
+              same parameters; it does not promise that every step will reduce
+              the objective.
+            </p>
+            <p>
+              Near a minimum of the complete objective, the individual gradients
+              need not all be zero. One observation may pull the parameters in
+              one direction while another pulls them in the opposite direction,
+              with their average equal to zero. Single-example updates can
+              therefore continue to move around the minimum rather than settle
+              exactly on it with a fixed learning rate.
+            </p>
+            <p>
+              For the regression example, suppose the fourth observation is
+              selected first. At $w_0=0$:
+            </p>
+            <p>$$g_4=(wx_4-t_4)x_4=(0-4)(4)=-16,\qquad w_1=0-0.1(-16)=1.6.$$</p>
+            <p>
+              The batch update gave $w_1=0.675$. The two steps differ because
+              one uses just the fourth gradient while the other averages all
+              four. One update alone does not establish which method will
+              eventually find a better solution.
+            </p>
+            <p>
+              For this observation, the prediction starts at zero while the
+              target is four. Its large negative gradient produces a larger
+              increase in $w$ than the average gradient does. After this step,
+              however, we must calculate the next selected example's gradient at
+              $w=1.6$, not at zero. For example, if the first observation is
+              selected next, its gradient is $(1.6\cdot1-1)\cdot1=0.6$, giving
+              $w_2=1.6-0.1(0.6)=1.54$.
+            </p>
+            <p>
+              The second step moves in the opposite direction to the first. This
+              does not mean that the two examples are being ignored: each update
+              responds to the selected example at the current parameter value.
+              Over a sequence of updates, the parameter reflects the examples
+              encountered along the way.
+            </p>
+            <h2 id="minibatch">Mini-batch gradient descent</h2>
+            <p>
+              Between these extremes, we can use a subset $\mathcal{B}_t$ of $B$
+              examples and average their gradients:
+            </p>
+            <p>
+              $$\nabla
+              E_{\mathcal{B}_t}(\mathbf{w}_t)=\frac{1}{B}\sum_{n\in\mathcal{B}_t}\nabla
+              E_n(\mathbf{w}_t),\qquad
+              \boxed{\mathbf{w}_{t+1}=\mathbf{w}_t-\eta\nabla
+              E_{\mathcal{B}_t}(\mathbf{w}_t)}.$$
+            </p>
+            <p>
+              With $B=1$ this is single-example SGD; with $B=N$ and the whole
+              dataset it is full-batch gradient descent. Intermediate values
+              give <strong>mini-batch gradient descent</strong>. In deep
+              learning, the name SGD is also frequently used for mini-batch SGD.
+            </p>
+            <p>
+              For a mini-batch, we first hold the parameters fixed and calculate
+              a gradient for each selected example. We then average those
+              gradients and make one update. The division by $B$ matters: it
+              keeps the result on the scale of an average example gradient, so
+              changing the batch size does not automatically multiply the
+              gradient by the number of examples in the batch.
+            </p>
+            <p>
+              If the batch is chosen uniformly from the dataset, its average
+              gradient is also an unbiased estimate of the full gradient at a
+              fixed parameter vector. It will usually differ from the full
+              gradient for any particular batch, because the selected examples
+              do not necessarily represent the entire dataset exactly.
+            </p>
+            <p>
+              For the first two observations in our regression example, at
+              $w_0=0$ the average gradient is $g_{\mathcal B}=(-1-4)/2=-2.5$.
+              With the same learning rate, $w_1=0-0.1(-2.5)=0.25$:
+            </p>
+            <div
+              class="table-wrap"
+              role="region"
+              aria-label="Comparison of first updates"
+              tabindex="0"
+            >
+              <table>
+                <caption>
+                  First update from $w_0=0$, with $\eta=0.1$
+                </caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Method</th>
+                    <th scope="col">Examples used</th>
+                    <th scope="col">Gradient</th>
+                    <th scope="col">Updated $w$</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Full-batch</td>
+                    <td>All 4</td>
+                    <td>−6.75</td>
+                    <td>0.675</td>
+                  </tr>
+                  <tr>
+                    <td>SGD</td>
+                    <td>Example 4</td>
+                    <td>−16</td>
+                    <td>1.6</td>
+                  </tr>
+                  <tr>
+                    <td>Mini-batch</td>
+                    <td>Examples 1 and 2</td>
+                    <td>−2.5</td>
+                    <td>0.25</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p>
+              These are different estimates at one point, not a comparison of
+              eventual convergence. The full-batch value is exact for the
+              dataset; the other values depend on which examples were chosen.
+            </p>
+            <p>
+              Let's look at the mini-batch calculation more closely. The first
+              observation pulls $w$ upwards using a gradient of $-1$, while the
+              second gives $-4$. Their average, $-2.5$, is less negative than
+              the full gradient because the two larger contributions from
+              examples 3 and 4 are absent. Choosing another pair would generally
+              give a different update. For instance, examples 3 and 4 give
+              $(-6-16)/2=-11$ and hence $w_1=1.1$.
+            </p>
+            <p>
+              All three calculations start at the same $w$ and use the same
+              learning rate, which lets us isolate the effect of the chosen
+              examples. Once the first steps have been taken, their parameters
+              differ, so subsequent gradients must also be evaluated at those
+              different parameter values.
+            </p>
+            <h2 id="noise">Gradient noise and batch size</h2>
+            <p>
+              At a fixed parameter vector, a small random batch tends to vary
+              more from one selection to another than a large one. To see why,
+              consider one scalar component of the gradient. Suppose $\hat g_B$
+              is the average of $B$ independent, identically distributed sampled
+              gradients, each with finite variance $\sigma_g^2$. The variance of
+              a sum of independent variables is the sum of their variances, so:
+            </p>
+            <p>
+              $$\operatorname{Var}(\hat
+              g_B)=\frac{1}{B^2}B\sigma_g^2=\frac{\sigma_g^2}{B},\qquad
+              \sigma_{\hat g_B}=\frac{\sigma_g}{\sqrt B}.$$
+            </p>
+            <p>
+              Thus increasing $B$ from 16 to 64 uses four times as many examples
+              but halves the standard deviation. The square root gives
+              diminishing returns. These expressions assume independent sampling
+              at a fixed parameter vector; actual gradients change as parameters
+              change. For uniform sampling without replacement from a finite
+              dataset, the variance also has the finite-population correction
+              $(N-B)/(N-1)$ when $\sigma_g^2$ is the population variance with
+              denominator $N$. At $B=N$ the estimate is the exact full gradient.
+            </p>
+            <p>
+              Let's see where the factor of $B^2$ comes from. The average
+              multiplies the sum by $1/B$, and multiplying a random quantity by
+              $1/B$ multiplies its variance by $1/B^2$. The $B$ independent
+              contributions then give $B\sigma_g^2$ in the numerator. Taking the
+              square root of the resulting variance gives the standard
+              deviation.
+            </p>
+            <p>
+              Independence is important here. If the sampled gradients are
+              correlated, their covariances also contribute to the variance of
+              the average. Sampling without replacement is one example: once an
+              observation has been selected, it cannot appear again in that
+              batch. The correction accounts for this dependence and goes to
+              zero when the batch contains every example. For $N=1$, the full
+              gradient is already known from the single example.
+            </p>
+            <p>
+              The figure enumerates every equally likely subset of the four
+              regression examples at $w=0$. Change $B$ to see how the possible
+              averages gather around the full gradient.
+            </p>
+            <figure class="chart-card">
+              <div class="eyebrow">02 &middot; gradient variability</div>
+              <h3>Possible mini-batch gradients</h3>
+              <svg
+                class="chart"
+                id="distribution"
+                viewBox="0 0 680 190"
+                role="img"
+                aria-label="Distribution of all subset gradients at w equals zero"
+              ></svg>
+              <div class="controls" id="distribution-controls" hidden>
+                <label for="dist-size"
+                  >Batch size $B$ <output id="dist-value"></output
+                  ><input
+                    id="dist-size"
+                    type="range"
+                    min="1"
+                    max="4"
+                    step="1"
+                    value="1"
+                /></label>
+              </div>
+              <p class="readout" id="dist-readout" aria-live="polite"></p>
+              <figcaption class="chart-caption">
+                <span class="label">fig 2</span> Each dot is one equally likely
+                subset, sampled without replacement. The vertical line marks the
+                full gradient, −6.75.
+              </figcaption>
+              <noscript
+                ><p class="chart-caption">
+                  Enable JavaScript to change the batch size.
+                </p></noscript
+              >
+            </figure>
+            <p>
+              Increasing the batch size generally makes an update more stable
+              but requires more example gradients and memory. Larger batches can
+              also use parallel hardware more efficiently. The number of
+              updates, work per update, hardware utilisation and memory all
+              matter: using more examples per update does not by itself imply
+              less total computation or shorter training time. There is no
+              universally optimal batch size.
+            </p>
+            <p>
+              For example, processing 64 examples together does not necessarily
+              take four times as long as processing 16: a GPU can perform many
+              operations in parallel. But a larger batch also needs space for
+              more intermediate values, and taking fewer updates while
+              processing the same number of examples can change how quickly the
+              loss falls. The fastest choice in elapsed time can therefore
+              differ from the choice that uses the fewest example computations.
+            </p>
+            <h2 id="epochs">Epochs, iterations and data shuffling</h2>
+            <p>
+              An <strong>iteration</strong> is one parameter update, and its
+              <strong>mini-batch</strong> is the subset used for that update. An
+              <strong>epoch</strong> is one complete pass through the training
+              dataset. If each example is used once and the last incomplete
+              batch is retained, the number of updates in an epoch is:
+            </p>
+            <p>$$\left\lceil\frac{N}{B}\right\rceil.$$</p>
+            <p>
+              If the final incomplete batch is discarded instead, there are
+              $\lfloor N/B\rfloor$ updates; the discarded examples are not used
+              in that pass. Its gradient, when retained, is averaged over its
+              actual number of examples.
+            </p>
+            <p>
+              For example, if $N=103$ and $B=10$, ten batches contain ten
+              examples each and one batch contains the remaining three. Keeping
+              that final batch gives eleven updates. Dropping it gives ten
+              updates and leaves three examples unused in that pass. Which
+              examples are left out can change when the order is shuffled.
+            </p>
+            <p>
+              For 100 observations, batch sizes 1, 10, 25 and 100 give 100, 10,
+              4 and 1 updates per epoch respectively. An epoch processes the
+              same number of examples in each case, but the parameters are
+              updated at different frequencies. Comparing methods therefore
+              requires care about epochs, updates and the computation or elapsed
+              time needed to reach a target loss.
+            </p>
+            <figure class="chart-card">
+              <div class="eyebrow">03 &middot; an epoch</div>
+              <h3>Dividing a dataset into batches</h3>
+              <svg
+                class="chart"
+                id="batches"
+                viewBox="0 0 680 210"
+                role="img"
+                aria-label="Twelve examples divided into mini-batches"
+              ></svg>
+              <div class="controls" id="batch-controls" hidden>
+                <label for="batch-size"
+                  >Batch size $B$ <output id="batch-value"></output
+                  ><input
+                    id="batch-size"
+                    type="range"
+                    min="1"
+                    max="12"
+                    step="1"
+                    value="4"
+                /></label>
+                <div>
+                  <button type="button" id="shuffle">Shuffle</button>
+                  <button type="button" id="order-reset">Reset order</button>
+                </div>
+              </div>
+              <p class="readout" id="batch-readout" aria-live="polite"></p>
+              <figcaption class="chart-caption">
+                <span class="label">fig 3</span> Each row is one update. The
+                final incomplete batch is retained.
+              </figcaption>
+              <noscript
+                ><p class="chart-caption">
+                  Enable JavaScript to change the batch size and shuffle.
+                </p></noscript
+              >
+            </figure>
+            <p>
+              Order matters because each update changes the parameters at which
+              the next gradient is calculated. If observations are ordered by
+              class or another property, consecutive updates may systematically
+              reflect only part of the data. Shuffling between epochs changes
+              the sequence of updates without changing the complete dataset
+              objective. A recorded random seed helps reproduce the order and a
+              run. The sampling strategy should respect the data: arbitrary
+              shuffling may be unsuitable when temporal or sequential
+              relationships must be preserved.
+            </p>
+            <p>
+              Imagine a classification dataset where all examples of one class
+              come first. With small batches, several consecutive updates would
+              respond only to that class, followed by several responding to
+              another. The order can pull the model in different directions in
+              blocks. Shuffling mixes the examples before dividing them into
+              batches, making such long runs less likely.
+            </p>
+            <p>
+              Shuffling does not change the sum of the individual losses: the
+              same examples still contribute to the same complete objective. It
+              can nevertheless change the path through parameter space, because
+              averaging gradients at a fixed $\mathbf{w}$ is different from
+              updating $\mathbf{w}$ between batches. A fixed seed makes a chosen
+              sequence reproducible in the same environment; it does not make
+              every possible training run identical.
+            </p>
+            <h2 id="comparison">Comparing the approaches</h2>
+            <div
+              class="table-wrap"
+              role="region"
+              aria-label="Comparison of gradient descent methods"
+              tabindex="0"
+            >
+              <table>
+                <caption>
+                  One pass through $N$ examples, retaining the last batch
+                </caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Property</th>
+                    <th scope="col">Full-batch</th>
+                    <th scope="col">Single-example SGD</th>
+                    <th scope="col">Mini-batch</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Examples per update</td>
+                    <td>$N$</td>
+                    <td>1</td>
+                    <td>$B$</td>
+                  </tr>
+                  <tr>
+                    <td>Work per update</td>
+                    <td>All examples</td>
+                    <td>One example</td>
+                    <td>$B$ examples</td>
+                  </tr>
+                  <tr>
+                    <td>Gradient variability</td>
+                    <td>None for fixed data and parameters</td>
+                    <td>Often high</td>
+                    <td>Depends on $B$</td>
+                  </tr>
+                  <tr>
+                    <td>Updates per epoch</td>
+                    <td>1</td>
+                    <td>$N$</td>
+                    <td>$\lceil N/B\rceil$</td>
+                  </tr>
+                  <tr>
+                    <td>Parallel processing</td>
+                    <td>Across the dataset</td>
+                    <td>Limited across examples</td>
+                    <td>Across the batch</td>
+                  </tr>
+                  <tr>
+                    <td>Memory</td>
+                    <td>Potentially high</td>
+                    <td>Typically lower</td>
+                    <td>Typically grows with $B$</td>
+                  </tr>
+                  <tr>
+                    <td>Typical use</td>
+                    <td>Smaller datasets</td>
+                    <td>Online or single-example updates</td>
+                    <td>Neural network training</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p>
+              Mini-batch SGD is widely used for deep learning because it
+              balances frequent updates with efficient parallel computation. The
+              best choice depends on the problem, implementation and hardware;
+              none of these methods is always superior.
+            </p>
+            <p>
+              It is useful to separate three questions when reading this table.
+              How much work does one update require? How many updates are made
+              in one pass through the data? And how many passes or updates are
+              needed to reach a loss we are happy with? The first two follow
+              from the batch size and dataset, but the third depends on the
+              optimisation problem and the path taken.
+            </p>
+            <p>
+              A smaller batch gives more opportunities to change the parameters
+              during an epoch. A larger batch combines more information before
+              each change and may use the hardware more efficiently. Neither
+              observation alone tells us which run will finish sooner or find
+              the lower loss.
+            </p>
+            <pre><code>Choose initial parameters w, learning rate η and batch size B
 Repeat until a stopping condition is met:
     Shuffle the training examples if appropriate
     For each mini-batch in the dataset:
         Calculate the mean gradient over the mini-batch at w
         Update w ← w − η × mean gradient
 Return w</code></pre>
-<p>In this algorithm, one pass through the inner loop is one iteration. Once all retained batches have been processed, we have completed an epoch and can choose a new order for the next one. The gradient is recalculated at the current $\mathbf{w}$ for every batch; it is not a collection of gradients saved at the beginning of the epoch.</p>
-<p>We can compare trajectories on a two-parameter objective made from four example losses $E_n(\mathbf{w})=\frac12\|\mathbf{w}-\mathbf{a}_n\|^2$, with centres $(1,1)$, $(3,1)$, $(1,3)$ and $(3,3)$. Each example gradient is $\mathbf{w}-\mathbf{a}_n$; the full objective is their mean. Both paths start at $(0,0)$ with $\eta=0.25$. Each step uses the next batch in a fixed order, while the full-batch path uses all four examples every time.</p>
-<p>Each individual loss is smallest at its own centre, but the mean loss is smallest at $(2,2)$, the mean of the four centres. At $(0,0)$, for example, the first example's gradient is $(-1,-1)^\top$, while the full gradient is $(-2,-2)^\top$. The first single-example step is therefore $(0.25,0.25)^\top$ and the full-batch step is $(0.5,0.5)^\top$. The stochastic path is calculated from the selected example losses themselves.</p>
-<p>Try $B=1$ and take several steps, then reset and choose a larger batch. The displayed loss is always evaluated on all four examples, even when the update used fewer. The paths take the same number of updates when you press the button, but the full-batch path completes an epoch at every step; the smaller batch needs several steps to process all four examples. The fixed order makes the comparison repeatable, but another order would produce another mini-batch path.</p>
-<figure class="chart-card"><div class="eyebrow">04 &middot; optimisation paths</div><h3>Following the updates</h3><svg class="chart" id="trajectory" viewBox="0 0 680 310" role="img" aria-label="Full-batch and selected batch-size trajectories on contours of the full objective"></svg><div class="controls" id="trajectory-controls" hidden><label for="trajectory-size">Selected batch size $B$ <output id="trajectory-value"></output><input id="trajectory-size" type="range" min="1" max="4" step="1" value="1"/></label><div><button type="button" id="step">Next step</button> <button type="button" id="reset">Reset</button></div></div><p class="readout" id="trajectory-readout" aria-live="polite"></p><figcaption class="chart-caption"><span class="label">fig 4</span> Purple: selected batch size; blue: full batch. Contours and both reported losses use the full objective. Each path takes one update per step; their completed epochs can differ.</figcaption><noscript><p class="chart-caption">Enable JavaScript to step through the trajectories.</p></noscript></figure>
-<h2>Check your understanding</h2><div class="exercise"><span class="tag">questions</span><ol><li><span>Why is a uniformly sampled example gradient an unbiased estimate of the full gradient?</span></li><li><span>For the regression dataset, calculate the mini-batch gradient for examples 3 and 4 at $w=0$. What is the first update with $\eta=0.1$?</span></li><li><span>What assumptions give the $1/\sqrt B$ relationship for standard deviation? What happens when a batch contains the entire dataset without replacement?</span></li><li><span>For 103 examples and $B=10$, how many updates are made if the final batch is retained? What changes if it is discarded?</span></li><li><span>Why might two methods need different numbers of updates per epoch and different amounts of time to reach the same loss?</span></li></ol></div>
-<h2>Summary</h2><p>The full gradient averages the gradients of all training examples. Full-batch descent uses that exact average for every update; SGD and mini-batch descent use one example or a subset. Smaller batches can make cheaper, more variable updates, while larger batches provide more stable estimates and can make better use of parallel hardware.</p><p>In the next note, we will consider convergence, learning rates and momentum: how the optimisation algorithm's behaviour can be improved once we have chosen how to use the training data.</p><p>For further reading, see Chapter 7, especially Sections 7.2.2–7.2.4, of Christopher M. Bishop and Hugh Bishop, <a href="https://doi.org/10.1007/978-3-031-45468-4">Deep Learning: Foundations and Concepts</a>.</p>
-</div><div class="endbar"><a href="../error-surfaces-and-gradient-descent/">&larr; 4.1 &middot; error surfaces and gradient descent</a><a href="../convergence-learning-rates-and-momentum/">4.3 &middot; convergence, learning rates and momentum &rarr;</a></div></article></div></div></body></html>
+            <p>
+              In this algorithm, one pass through the inner loop is one
+              iteration. Once all retained batches have been processed, we have
+              completed an epoch and can choose a new order for the next one.
+              The gradient is recalculated at the current $\mathbf{w}$ for every
+              batch; it is not a collection of gradients saved at the beginning
+              of the epoch.
+            </p>
+            <p>
+              We can compare trajectories on a two-parameter objective made from
+              four example losses
+              $E_n(\mathbf{w})=\frac12\|\mathbf{w}-\mathbf{a}_n\|^2$, with
+              centres $(1,1)$, $(3,1)$, $(1,3)$ and $(3,3)$. Each example
+              gradient is $\mathbf{w}-\mathbf{a}_n$; the full objective is their
+              mean. Both paths start at $(0,0)$ with $\eta=0.25$. Each step uses
+              the next batch in a fixed order, while the full-batch path uses
+              all four examples every time.
+            </p>
+            <p>
+              Each individual loss is smallest at its own centre, but the mean
+              loss is smallest at $(2,2)$, the mean of the four centres. At
+              $(0,0)$, for example, the first example's gradient is
+              $(-1,-1)^\top$, while the full gradient is $(-2,-2)^\top$. The
+              first single-example step is therefore $(0.25,0.25)^\top$ and the
+              full-batch step is $(0.5,0.5)^\top$. The stochastic path is
+              calculated from the selected example losses themselves.
+            </p>
+            <p>
+              Try $B=1$ and take several steps, then reset and choose a larger
+              batch. The displayed loss is always evaluated on all four
+              examples, even when the update used fewer. The paths take the same
+              number of updates when you press the button, but the full-batch
+              path completes an epoch at every step; the smaller batch needs
+              several steps to process all four examples. The fixed order makes
+              the comparison repeatable, but another order would produce another
+              mini-batch path.
+            </p>
+            <figure class="chart-card">
+              <div class="eyebrow">04 &middot; optimisation paths</div>
+              <h3>Following the updates</h3>
+              <svg
+                class="chart"
+                id="trajectory"
+                viewBox="0 0 680 310"
+                role="img"
+                aria-label="Full-batch and selected batch-size trajectories on contours of the full objective"
+              ></svg>
+              <div class="controls" id="trajectory-controls" hidden>
+                <label for="trajectory-size"
+                  >Selected batch size $B$
+                  <output id="trajectory-value"></output
+                  ><input
+                    id="trajectory-size"
+                    type="range"
+                    min="1"
+                    max="4"
+                    step="1"
+                    value="1"
+                /></label>
+                <div>
+                  <button type="button" id="step">Next step</button>
+                  <button type="button" id="reset">Reset</button>
+                </div>
+              </div>
+              <p class="readout" id="trajectory-readout" aria-live="polite"></p>
+              <figcaption class="chart-caption">
+                <span class="label">fig 4</span> Purple: selected batch size;
+                blue: full batch. Contours and both reported losses use the full
+                objective. Each path takes one update per step; their completed
+                epochs can differ.
+              </figcaption>
+              <noscript
+                ><p class="chart-caption">
+                  Enable JavaScript to step through the trajectories.
+                </p></noscript
+              >
+            </figure>
+            <h2>Check your understanding</h2>
+            <div class="exercise">
+              <span class="tag">questions</span>
+              <ol>
+                <li>
+                  <span
+                    >Why is a uniformly sampled example gradient an unbiased
+                    estimate of the full gradient?</span
+                  >
+                </li>
+                <li>
+                  <span
+                    >For the regression dataset, calculate the mini-batch
+                    gradient for examples 3 and 4 at $w=0$. What is the first
+                    update with $\eta=0.1$?</span
+                  >
+                </li>
+                <li>
+                  <span
+                    >What assumptions give the $1/\sqrt B$ relationship for
+                    standard deviation? What happens when a batch contains the
+                    entire dataset without replacement?</span
+                  >
+                </li>
+                <li>
+                  <span
+                    >For 103 examples and $B=10$, how many updates are made if
+                    the final batch is retained? What changes if it is
+                    discarded?</span
+                  >
+                </li>
+                <li>
+                  <span
+                    >Why might two methods need different numbers of updates per
+                    epoch and different amounts of time to reach the same
+                    loss?</span
+                  >
+                </li>
+              </ol>
+            </div>
+            <h2>Summary</h2>
+            <p>
+              The full gradient averages the gradients of all training examples.
+              Full-batch descent uses that exact average for every update; SGD
+              and mini-batch descent use one example or a subset. Smaller
+              batches can make cheaper, more variable updates, while larger
+              batches provide more stable estimates and can make better use of
+              parallel hardware.
+            </p>
+            <p>
+              In the next note, we will consider convergence, learning rates and
+              momentum: how the optimisation algorithm's behaviour can be
+              improved once we have chosen how to use the training data.
+            </p>
+            <p>
+              For further reading, see Chapter 7, especially Sections
+              7.2.2–7.2.4, of Christopher M. Bishop and Hugh Bishop,
+              <a href="https://doi.org/10.1007/978-3-031-45468-4"
+                >Deep Learning: Foundations and Concepts</a
+              >.
+            </p>
+          </div>
+          <div class="endbar">
+            <a href="../error-surfaces-and-gradient-descent/"
+              >&larr; 4.1 &middot; error surfaces and gradient descent</a
+            ><a href="../convergence-learning-rates-and-momentum/"
+              >4.3 &middot; convergence, learning rates and momentum &rarr;</a
+            >
+          </div>
+        </article>
+      </div>
+    </div>
+  </body>
+</html>

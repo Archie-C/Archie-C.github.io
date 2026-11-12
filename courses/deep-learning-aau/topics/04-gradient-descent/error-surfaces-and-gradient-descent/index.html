@@ -1,105 +1,797 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" data-palette="paper">
-<head>
-<meta charset="utf-8"/>
-<title>Error surfaces and gradient descent | Deep Learning</title>
-<meta name="description" content="Explore error surfaces, gradients, and iterative optimisation of model parameters."/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<link rel="icon" href="../../../../../design_system/assets/favicon.svg"/>
-<link rel="stylesheet" href="../../../../../design_system/colors_and_type.css"/>
-<link rel="stylesheet" href="../../../../../design_system/charts.css"/>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"/>
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
-<link rel="stylesheet" href="../../../styles/notes.css"/>
-<link rel="stylesheet" href="visuals.css"/>
-<script defer src="visuals.js"></script>
-</head>
-<body><div class="frame">
-<div class="topbar"><a href="../../../../../" class="mark">a<span class="dot">.</span>c</a><span class="crumb"><a href="../../../">Deep Learning</a><span class="sep">&rsaquo;</span><a href="../">04 gradient descent</a><span class="sep">&rsaquo;</span>error surfaces and gradient descent</span><nav aria-label="Course navigation"><a href="../../../" class="active">syllabus</a><a href="/contact/">contact</a></nav></div>
-<div class="lecture"><aside><span class="h">course</span>Deep Learning &middot; Winter 2026<span class="h">topic</span><div class="nav-group">04 &middot; gradient descent</div><nav class="nav-list" aria-label="Gradient descent notes"><a class="current" href="./" aria-current="page">4.1 &middot; error surfaces and gradient descent</a><a href="../batch-stochastic-and-mini-batch-gradient-descent/">4.2 &middot; batch, stochastic and mini-batch gradient descent</a><a href="../convergence-learning-rates-and-momentum/">4.3 &middot; convergence, learning rates and momentum</a><a href="../batch-normalization-and-layer-normalization/">4.6 &middot; batch and layer normalisation</a></nav><span class="h">on this page</span><nav class="nav-list" aria-label="On this page"><a href="#surfaces">error surfaces</a><a href="#gradients">gradients</a><a href="#algorithm">gradient descent</a><a href="#learning-rate">learning rate</a><a href="#multiple">multiple dimensions</a><a href="#limitations">limitations</a></nav></aside>
-<article><div class="crumb"><a href="../../../">syllabus</a><span class="sep">&rsaquo;</span><a href="../">topic 04</a><span class="sep">&rsaquo;</span>subtopic 4.1</div>
-<h1>Error surfaces and gradient descent.</h1><p class="standfirst">Once we have chosen a model and a loss function, we need a way to find suitable values for its parameters.</p>
-<div class="body">
-<h2>What this note covers</h2><ul><li>Error surfaces and stationary points</li><li>Gradients and the direction of steepest descent</li><li>Gradient descent and the learning rate</li><li>Updating several parameters at once</li><li>Limitations of gradient descent</li></ul>
-<h2 id="surfaces">Error surfaces</h2>
-<p>In the previous topic, we built neural networks and chose loss functions for their predictions. Training means finding parameter values that make the loss small. We can collect the weights and biases into a vector $\mathbf{w}$ and write the loss as $E(\mathbf{w})$, keeping the training data fixed.</p>
-<p>It is useful to distinguish the <strong>input space</strong>, where each point is an input $\mathbf{x}$, from the <strong>parameter space</strong>, where each point is a choice of $\mathbf{w}$. When we evaluate a trained model on different inputs, we move through input space while keeping the parameters fixed. When we train the model, we instead change the parameters and evaluate the resulting predictions on the fixed training data.</p>
-<p>Each point in parameter space therefore corresponds to one setting of the model's weights and biases and has an associated loss. The graph of that loss against the parameters is called an <strong>error surface</strong>. Training can be thought of as looking for a low point on this surface. A real network can have many thousands of parameters, so we cannot usually draw the whole surface, but a two-parameter example lets us see the idea.</p>
-<p>Let's consider a model with just two parameters:</p><p>$$E(w_1,w_2)=(w_1-2)^2+4(w_2+1)^2.$$</p>
-<p>Both terms are non-negative, so the smallest possible loss is zero. This occurs when $w_1=2$ and $w_2=-1$, giving the global minimum $\mathbf{w}^*=(2,-1)^\top$. For example, at $(w_1,w_2)=(0,0)$ the loss is $4+4=8$. Changing the parameter vector changes our position on the surface and the height tells us the resulting loss.</p>
-<p>We can also represent the surface using a <strong>contour plot</strong>. A contour joins parameter values with the same loss, just as a contour on a map joins points at the same height. For instance, the contour for loss $4$ satisfies $(w_1-2)^2+4(w_2+1)^2=4$. It passes through $(4,-1)$ and $(2,0)$: both have the same loss even though their parameters differ.</p>
-<p>Looking down on the surface gives the elliptical contours below. They are narrower in the $w_2$ direction because changing $w_2$ by the same amount as $w_1$, starting from the minimum, increases the loss four times as much. The centre of the contours is the bottom of the bowl.</p>
-<figure class="chart-card"><div class="eyebrow">01 &middot; error surface</div><h3>A surface and its contours</h3><svg class="chart" id="surface" viewBox="0 0 680 270" role="img" aria-label="Wireframe quadratic bowl and elliptical contours with the same minimum"></svg><figcaption class="chart-caption"><span class="label">fig 1</span> The height of the surface is the loss. Each contour on the right represents a constant loss; the centre is the minimum.</figcaption></figure>
-<p>At a differentiable <strong>stationary point</strong>, all first partial derivatives are zero, so $\nabla E(\mathbf{w})=\mathbf{0}$. The surface is locally flat to first order at such a point. This tells us where a differentiable minimum may occur, but it does not by itself tell us whether we have found a minimum.</p>
-<p>A <strong>local minimum</strong> has loss no greater than points sufficiently close to it. A <strong>global minimum</strong> has loss no greater than any point in the parameter space. Every global minimum is also a local minimum, but a local minimum need not be the lowest point on the whole surface. Similarly, a local maximum has loss no smaller than nearby points. A stationary point need not be either: at a saddle point the surface rises in some directions and falls in others.</p>
-<p>To see the distinction, consider $E(w)=(w^2-1)^2$. Differentiating and setting the result to zero gives:</p>
-<p>$$\frac{dE}{dw}=4w(w^2-1)=0 \qquad\Longrightarrow\qquad w=-1,\;0,\;1.$$</p>
-<p>The loss is zero at $w=-1$ and $w=1$. Since it is a square, it cannot be negative, so both are global minima. At $w=0$ the loss is $1$, and moving a small distance in either direction makes it smaller. This point is a local maximum, despite also having a zero derivative.</p>
-<p>Now consider $f(w_1,w_2)=w_1^2-w_2^2$. Its gradient $(2w_1,-2w_2)^\top$ is zero at the origin. If we hold $w_2=0$, then $f=w_1^2$, which rises as we move away from the origin. If we instead hold $w_1=0$, then $f=-w_2^2$, which falls. The origin is therefore a saddle point: whether the function rises or falls depends on the direction we choose.</p>
-<figure class="chart-card"><div class="eyebrow">02 &middot; stationary points</div><h3>Minima, a maximum, and a saddle</h3><svg class="chart" id="stationary" viewBox="0 0 680 230" role="img" aria-label="Double well with two minima and a maximum, and intersecting rising and falling slices through a saddle"></svg><figcaption class="chart-caption"><span class="label">fig 2</span> The double well has two minima and a maximum. The two slices on the right pass through the same saddle point in different directions.</figcaption></figure>
-<p>A function is <strong>convex</strong> if, between any two points, its graph lies on or below the straight line joining their heights. Any local minimum of a convex function is also global: there cannot be a separate, lower valley that is hidden beyond an intervening rise. A convex function can still have more than one global minimum, for example along a flat region.</p>
-<p>The quadratic bowl above is convex. The double well is not: between its two minima, the graph rises above the line joining them. Neural network losses are generally non-convex because predictions depend on parameters through compositions of layers and nonlinear activations. As a result, their error surfaces can contain multiple valleys and stationary points, and finding a low point does not automatically tell us that it is the lowest one.</p>
-<h2 id="gradients">Gradients and steepest descent</h2>
-<p>For a scalar loss with $M$ parameters, the gradient collects the partial derivatives:</p><p>$$\nabla E(\mathbf{w})=\begin{pmatrix}\frac{\partial E}{\partial w_1}\\\vdots\\\frac{\partial E}{\partial w_M}\end{pmatrix}.$$</p>
-<p>Each component tells us how the loss changes when we vary that parameter locally, holding the others fixed. A positive partial derivative means that a small increase in that parameter increases the loss; a negative derivative means that a small increase decreases it. The magnitude tells us how sensitive the loss is to that change.</p>
-<p>In an update we may change several parameters at once. For a small displacement $\Delta\mathbf{w}$, a first-order Taylor approximation combines their effects:</p><p>$$E(\mathbf{w}+\Delta\mathbf{w})\approx E(\mathbf{w})+\nabla E(\mathbf{w})^\top\Delta\mathbf{w}.$$</p>
-<p>The dot product adds the contribution from each parameter: $\nabla E(\mathbf{w})^\top\Delta\mathbf{w}=\sum_{j=1}^M (\partial E/\partial w_j)\Delta w_j$. It approximates the change in loss, with the derivatives evaluated at the starting point $\mathbf{w}$. We can use it to ask which small displacement reduces the loss most.</p>
-<p>Suppose we fix the displacement's length at $\epsilon&gt;0$ and write $\Delta\mathbf{w}=\epsilon\mathbf{u}$, where $\|\mathbf{u}\|=1$. The approximate change is then:</p><p>$$\Delta E\approx\epsilon\nabla E(\mathbf{w})^\top\mathbf{u}=\epsilon\|\nabla E(\mathbf{w})\|\cos\theta.$$</p>
-<p>Here $\theta$ is the angle between the gradient and the displacement. Because $\mathbf{u}$ has length one, changing its direction changes $\cos\theta$ but not the length of our step. For a nonzero gradient, the approximate change is largest when $\cos\theta=1$, so $\mathbf{u}$ points along the gradient. It is smallest when $\cos\theta=-1$, so $\mathbf{u}$ points in the opposite direction. The direction of steepest local decrease is therefore:</p><p>$$\mathbf{u}=-\frac{\nabla E(\mathbf{w})}{\|\nabla E(\mathbf{w})\|}.$$</p>
-<p>Along a contour the loss does not change locally, so a tangent displacement has zero dot product with the gradient. The gradient is therefore perpendicular to the contour and points towards increasing loss; the negative gradient points towards decreasing loss. On these elliptical contours, the negative gradient does not generally point directly at the minimum. It points in the direction that decreases the loss most quickly at the current point. As we move, that direction can change. In the figure, try moving the selected point to the centre. At the minimum the gradient is zero, so neither arrow has a direction.</p>
-<p>There is an important qualification: this is a <em>local</em> result. The Taylor approximation uses the gradient at the starting point, but the gradient can change as we move and the surface curves. A direction that gives the greatest decrease for a very small step does not necessarily lead to the lowest loss after a large step.</p>
-<figure class="chart-card"><div class="eyebrow">03 &middot; gradient</div><h3>Directions on a contour plot</h3><svg class="chart" id="gradient" viewBox="0 0 680 300" role="img" aria-label="Quadratic contours with gradient and negative gradient arrows"></svg><div class="controls" id="gradient-controls" hidden><label for="point1">$w_1$ <output id="point1-value"></output><input id="point1" type="range" min="-1" max="5" step="0.1" value="0"/></label><label for="point2">$w_2$ <output id="point2-value"></output><input id="point2" type="range" min="-2.5" max="0.5" step="0.1" value="0"/></label></div><p class="readout" id="gradient-readout" aria-live="polite"></p><figcaption class="chart-caption"><span class="label">fig 3</span> Adjust the point to see the gradient (purple), negative gradient (blue), and minimum. Both axes use the same scale; arrow lengths are scaled for display.</figcaption><noscript><p class="chart-caption">Enable JavaScript to explore the gradient directions.</p></noscript></figure>
-<h2 id="algorithm">The gradient descent algorithm</h2>
-<p>Some loss functions can be minimised analytically, but for a neural network this is generally unavailable or impractical. Instead, we can start with an initial parameter vector and repeatedly take a small step in the negative gradient direction:</p><p>$$\boxed{\mathbf{w}_{t+1}=\mathbf{w}_t-\eta\nabla E(\mathbf{w}_t)}$$</p>
-<p>Here $\mathbf{w}_t$ is the parameter vector at iteration $t$, $\nabla E(\mathbf{w}_t)$ is the gradient evaluated at that vector, and $\eta&gt;0$ is the <strong>learning rate</strong>. We subtract the gradient because it points uphill. After taking a step, we calculate a new gradient at the new parameter vector and use that for the next step.</p>
-<p>The update scales the negative gradient rather than normalising it. This means that the step length is $\eta\|\nabla E(\mathbf{w}_t)\|$: it depends on both the learning rate and the magnitude of the gradient. In a steep region the same learning rate gives a larger step than in a flat region.</p>
-<p>We need a rule for when to stop. For example, we might stop after a chosen number of iterations or when the gradient is sufficiently small. A small gradient tells us that the surface is locally flat, but, as we saw above, it does not establish that we have found a global minimum.</p>
-<pre><code>Choose initial parameters w and learning rate η
+  <head>
+    <meta charset="utf-8" />
+    <title>Error surfaces and gradient descent | Deep Learning</title>
+    <meta
+      name="description"
+      content="Explore error surfaces, gradients, and iterative optimisation of model parameters."
+    />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <link rel="icon" href="../../../../../design_system/assets/favicon.svg" />
+    <link
+      rel="stylesheet"
+      href="../../../../../design_system/colors_and_type.css"
+    />
+    <link rel="stylesheet" href="../../../../../design_system/charts.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
+    />
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"
+    ></script>
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+      onload="
+        renderMathInElement(document.body, {
+          delimiters: [
+            { left: '$$', right: '$$', display: true },
+            { left: '$', right: '$', display: false },
+          ],
+        })
+      "
+    ></script>
+    <link rel="stylesheet" href="../../../styles/notes.css" />
+    <link rel="stylesheet" href="visuals.css" />
+    <script defer src="visuals.js"></script>
+  </head>
+  <body>
+    <div class="frame">
+      <div class="topbar">
+        <a href="../../../../../" class="mark">a<span class="dot">.</span>c</a
+        ><span class="crumb"
+          ><a href="../../../">Deep Learning</a><span class="sep">&rsaquo;</span
+          ><a href="../">04 gradient descent</a
+          ><span class="sep">&rsaquo;</span>error surfaces and gradient
+          descent</span
+        >
+        <nav aria-label="Course navigation">
+          <a href="../../../" class="active">syllabus</a
+          ><a href="/contact/">contact</a>
+        </nav>
+      </div>
+      <div class="lecture">
+        <aside>
+          <span class="h">course</span>Deep Learning &middot; Winter 2026<span
+            class="h"
+            >topic</span
+          >
+          <div class="nav-group">04 &middot; gradient descent</div>
+          <nav class="nav-list" aria-label="Gradient descent notes">
+            <a class="current" href="./" aria-current="page"
+              >4.1 &middot; error surfaces and gradient descent</a
+            ><a href="../batch-stochastic-and-mini-batch-gradient-descent/"
+              >4.2 &middot; batch, stochastic and mini-batch gradient descent</a
+            ><a href="../convergence-learning-rates-and-momentum/"
+              >4.3 &middot; convergence, learning rates and momentum</a
+            ><a href="../batch-normalization-and-layer-normalization/"
+              >4.6 &middot; batch and layer normalisation</a
+            >
+          </nav>
+          <span class="h">on this page</span>
+          <nav class="nav-list" aria-label="On this page">
+            <a href="#surfaces">error surfaces</a
+            ><a href="#gradients">gradients</a
+            ><a href="#algorithm">gradient descent</a
+            ><a href="#learning-rate">learning rate</a
+            ><a href="#multiple">multiple dimensions</a
+            ><a href="#limitations">limitations</a>
+          </nav>
+        </aside>
+        <article>
+          <div class="crumb">
+            <a href="../../../">syllabus</a><span class="sep">&rsaquo;</span
+            ><a href="../">topic 04</a><span class="sep">&rsaquo;</span>subtopic
+            4.1
+          </div>
+          <h1>Error surfaces and gradient descent.</h1>
+          <p class="standfirst">
+            Once we have chosen a model and a loss function, we need a way to
+            find suitable values for its parameters.
+          </p>
+          <div class="body">
+            <h2>What this note covers</h2>
+            <ul>
+              <li>Error surfaces and stationary points</li>
+              <li>Gradients and the direction of steepest descent</li>
+              <li>Gradient descent and the learning rate</li>
+              <li>Updating several parameters at once</li>
+              <li>Limitations of gradient descent</li>
+            </ul>
+            <h2 id="surfaces">Error surfaces</h2>
+            <p>
+              In the previous topic, we built neural networks and briefly
+              discussed how to train them. In this section and the next one
+              (Backpropagation) we will look at the details of training. In
+              general, training means finding parameter values that reduce the
+              loss. The notation we will use for this section is as follows: The
+              loss for a model with parameters $\mathbf{w}$ is denoted as
+              $E(\mathbf{w})$, keeping the training data fixed.
+            </p>
+            <p>
+              Additionally, it is useful to distinguish the
+              <strong>input space</strong>, where each point is an input
+              $\mathbf{x}$, from the <strong>parameter space</strong>, where
+              each point is a choice of $\mathbf{w}$. When we evaluate a trained
+              model on different inputs, we move through input space while
+              keeping the parameters fixed. When we train the model, we instead
+              change the parameters and evaluate the resulting predictions on
+              the fixed training data.
+            </p>
+            <p>
+              Each point in parameter space therefore corresponds to one setting
+              of the model's weights and biases and has an associated loss. The
+              graph of that loss against the parameters is called an
+              <strong>error surface</strong>. Training can be thought of as
+              looking for a minimum on this surface. A real network can have
+              many thousands of parameters, so we cannot usually draw the whole
+              surface, but for an example lets consider a model with just two
+              parameters:
+            </p>
+            <p>$$E(w_1,w_2)=(w_1-2)^2+4(w_2+1)^2.$$</p>
+            <p>
+              In this example, both terms are non-negative which means the
+              smallest possible loss is zero. Which occurs when $w_1=2$ and
+              $w_2=-1$, so we can say the global minimum is
+              $\mathbf{w}^*=(2,-1)^\top$. Other parameter values give us a
+              positive loss, on a "higher" point of the resulting surface.
+            </p>
+            <p>
+              It's quite useful to visualize the surface using a
+              <strong>contour plot</strong>. Contours are lines that join
+              parameter values with the same loss, just as a contour on a map
+              joins points at the same height. For instance, the contour for
+              loss $4$ satisfies $(w_1-2)^2+4(w_2+1)^2=4$.
+            </p>
+            <p>
+              If we look down on the surface, we see the elliptical contours
+              below. They are narrower in the $w_2$ direction because changing
+              $w_2$ by the same amount as $w_1$, increases the loss four times
+              as much. Here the centre of the plot is the global minimum
+              $\mathbf{w}^*$.
+            </p>
+            <figure class="chart-card">
+              <div class="eyebrow">01 &middot; error surface</div>
+              <h3>A surface and its contours</h3>
+              <svg
+                class="chart"
+                id="surface"
+                viewBox="0 0 680 270"
+                role="img"
+                aria-label="Wireframe quadratic bowl and elliptical contours with the same minimum"
+              ></svg>
+              <figcaption class="chart-caption">
+                <span class="label">fig 1</span> The height of the surface is
+                the loss. Each contour on the right represents a constant loss;
+                the centre is the minimum.
+              </figcaption>
+            </figure>
+            <p>
+              At a differentiable <strong>stationary point</strong>, all first
+              partial derivatives are zero, so $\nabla
+              E(\mathbf{w})=\mathbf{0}$. This means the surface is locally flat
+              to first order at such a point. Using this we can find where a
+              function's differentiable stationary points are. However, as not
+              all stationary points are minima, we will need the second
+              derivative to distinguish between them (see a later note for more
+              details).
+            </p>
+            <p>
+              Stationary points come in a few types.A
+              <strong>local minimum</strong> has loss no greater than points
+              sufficiently close to it. A <strong>global minimum</strong> has
+              loss no greater than any possible point in the parameter space and
+              therrefore every global minimum is also a local minimum.
+              Similarly, a local maximum has loss no smaller than nearby points.
+              A <strong>saddle point</strong> is a stationary point where the
+              surface rises in some directions and falls in others.
+            </p>
+            <p>
+              To see the distinction, consider $E(w)=(w^2-1)^2$. Differentiating
+              and setting the result to zero gives:
+            </p>
+            <p>
+              $$\frac{dE}{dw}=4w(w^2-1)=0 \qquad\Longrightarrow\qquad
+              w=-1,\;0,\;1.$$
+            </p>
+            <p>
+              There are three stationary points for this function. As its a
+              positive square, the loss is non-negative and the two points
+              $w=-1$ and $w=1$ are global minima as the loss is zero at these
+              points. The point $w=0$ is a local maximum, as the loss is $1$
+              there and moving a small distance in either direction makes it
+              smaller.
+            </p>
+            <p>
+              Now consider a 2D function: $f(w_1,w_2)=w_1^2-w_2^2$. Its gradient
+              $(2w_1,-2w_2)^\top$ is zero at the origin. If we hold $w_2=0$,
+              then $f=w_1^2$, so the function rises in the $w_1$ direction
+              either way. If we instead hold $w_1=0$, then $f=-w_2^2$, which
+              falls in either direction. The origin is therefore a saddle point:
+              and whether the function rises or falls depends on the direction
+              we choose.
+            </p>
+            <figure class="chart-card">
+              <div class="eyebrow">02 &middot; stationary points</div>
+              <h3>Minima, a maximum, and a saddle</h3>
+              <svg
+                class="chart"
+                id="stationary"
+                viewBox="0 0 680 230"
+                role="img"
+                aria-label="Double well with two minima and a maximum, and intersecting rising and falling slices through a saddle"
+              ></svg>
+              <figcaption class="chart-caption">
+                <span class="label">fig 2</span> The double well has two minima
+                and a maximum. The two slices on the right pass through the same
+                saddle point in different directions.
+              </figcaption>
+            </figure>
+            <p>
+              An ideal property for optimization is the
+              <strong>convex</strong> property. A function is
+              <strong>convex</strong> if, between any two points, its graph lies
+              on or below the straight line joining their heights. Any local
+              minimum of a convex function is also global: there cannot be a
+              separate, lower valley that is hidden beyond an intervening rise.
+              A convex function can still have more than one global minimum, for
+              example along a flat region.
+            </p>
+            <p>
+              The quadratic bowl above is convex. The double well is not as
+              between its two minima, the graph rises above the line joining
+              them. Unfortunately, neural network losses are generally
+              non-convex because predictions depend on parameters through
+              compositions of layers and nonlinear activations. As a result,
+              their error surfaces can contain multiple valleys and stationary
+              points, and finding a low point does not automatically mean its a
+              global minimum.
+            </p>
+            <h2 id="gradients">Gradients and steepest descent</h2>
+            <p>
+              Usually we have a scalar loss with a number of parameters, lets
+              call the number of parameters $M$. The gradient can therefore be
+              represented as a vector of $M$ partial derivatives:
+            </p>
+            <p>
+              $$\nabla E(\mathbf{w})=\begin{pmatrix}\frac{\partial E}{\partial
+              w_1}\\\vdots\\\frac{\partial E}{\partial w_M}\end{pmatrix}.$$
+            </p>
+            <p>
+              Where each component tells us how the loss changes when we vary
+              that parameter locally, while holding the others fixed. A positive
+              partial derivative means that a small increase in that parameter
+              increases the loss and vice versa for negative derivatives. The
+              magnitude tells us how sensitive the loss is to that change.
+            </p>
+            <p>
+              When we update the parameters in the network we may change several
+              at once. For a small parameter change (displacement)
+              $\Delta\mathbf{w}$, we can approximate the change in loss using a
+              first-order Taylor expansion:
+            </p>
+            <p>
+              $$E(\mathbf{w}+\Delta\mathbf{w})\approx E(\mathbf{w})+\nabla
+              E(\mathbf{w})^\top\Delta\mathbf{w}.$$
+            </p>
+            <p>
+              The dot product is just the same as adding the contribution from
+              each parameter in a sum: $\nabla
+              E(\mathbf{w})^\top\Delta\mathbf{w}=\sum_{j=1}^M (\partial
+              E/\partial w_j)\Delta w_j$. This expansion approximates the change
+              in loss, when the derivatives are evaluated at the starting point
+              $\mathbf{w}$. The idea is that we can use it to ask which small
+              displacement reduces the loss most.
+            </p>
+            <p>
+              Suppose we fix the displacement's length at $\epsilon&gt;0$ and
+              write $\Delta\mathbf{w}=\epsilon\mathbf{u}$, where
+              $\|\mathbf{u}\|=1$ is the unit vector in the direction of the
+              displacement. The approximate change (using the definition of the
+              dot product) is then:
+            </p>
+            <p>
+              $$\Delta E\approx\epsilon\nabla
+              E(\mathbf{w})^\top\mathbf{u}=\epsilon\|\nabla
+              E(\mathbf{w})\|\cos\theta.$$
+            </p>
+            <p>
+              Here $\theta$ is the angle between the gradient and the
+              displacement. Because $\mathbf{u}$ has length one, changing its
+              direction changes $\cos\theta$ but not the length of our step.
+              This means the approximate change is largest when $\cos\theta=1$,
+              so $\mathbf{u}$ points along the gradient and it is smallest when
+              $\cos\theta=-1$, so $\mathbf{u}$ points in the opposite direction.
+              The direction of steepest local decrease is therefore:
+            </p>
+            <p>
+              $$\mathbf{u}=-\frac{\nabla E(\mathbf{w})}{\|\nabla
+              E(\mathbf{w})\|}.$$
+            </p>
+            <p>
+              A displacement that is tangent to a contour line has zero dot
+              product with the gradient. From this, we can then infer that the
+              gradient is therefore perpendicular to the contour and points
+              towards increasing loss. On elliptical contours, the negative
+              gradient does not generally point directly at the minimum as it
+              points in the direction that decreases the loss most quickly at
+              the current point. You can see this in the figure below.
+            </p>
+            <p>
+              There is an important qualification: this is a
+              <em>local</em> result. The Taylor approximation uses the gradient
+              at the starting point, but the gradient can change as we move and
+              the surface curves. So, a direction that gives the greatest
+              decrease for a very small step does not necessarily lead to the
+              lowest loss after a large step.
+            </p>
+            <figure class="chart-card">
+              <div class="eyebrow">03 &middot; gradient</div>
+              <h3>Directions on a contour plot</h3>
+              <svg
+                class="chart"
+                id="gradient"
+                viewBox="0 0 680 300"
+                role="img"
+                aria-label="Quadratic contours with gradient and negative gradient arrows"
+              ></svg>
+              <div class="controls" id="gradient-controls" hidden>
+                <label for="point1"
+                  >$w_1$ <output id="point1-value"></output
+                  ><input
+                    id="point1"
+                    type="range"
+                    min="-1"
+                    max="5"
+                    step="0.1"
+                    value="0" /></label
+                ><label for="point2"
+                  >$w_2$ <output id="point2-value"></output
+                  ><input
+                    id="point2"
+                    type="range"
+                    min="-2.5"
+                    max="0.5"
+                    step="0.1"
+                    value="0"
+                /></label>
+              </div>
+              <p class="readout" id="gradient-readout" aria-live="polite"></p>
+              <figcaption class="chart-caption">
+                <span class="label">fig 3</span> Adjust the point to see the
+                gradient (purple), negative gradient (blue), and minimum. Both
+                axes use the same scale; arrow lengths are scaled for display.
+              </figcaption>
+              <noscript
+                ><p class="chart-caption">
+                  Enable JavaScript to explore the gradient directions.
+                </p></noscript
+              >
+            </figure>
+            <h2 id="algorithm">The gradient descent algorithm</h2>
+            <p>
+              Some loss functions can be minimised analytically, like the
+              squared error function for linear regression, but for a neural
+              network this is generally unavailable or impractical. If you
+              consider a model such as Claude Mythos or GPT-6 Astra, they are
+              rumoured to have around 10 trillion parameters. Even if an
+              analytical solution exists, it would be computationally infeasible
+              to find it. Instead, we can start with an initial parameter vector
+              and repeatedly take a small step in the negative gradient
+              direction:
+            </p>
+            <p>
+              $$\boxed{\mathbf{w}_{t+1}=\mathbf{w}_t-\eta\nabla
+              E(\mathbf{w}_t)}$$
+            </p>
+            <p>
+              Here $\mathbf{w}_t$ is the parameter vector at iteration $t$,
+              $\nabla E(\mathbf{w}_t)$ is the gradient evaluated at that vector,
+              and $\eta&gt;0$ is the <strong>learning rate</strong>. We subtract
+              the gradient because it points uphill. After taking a step, we
+              calculate a new gradient at the new parameter vector and use that
+              for the next step. This doesn't guarantee that it will reach a
+              global minimum, but it will find a local minimum if the learning
+              rate is suitable.
+            </p>
+            <p>
+              The update scales the negative gradient rather than normalising
+              it. This means that the step length is $\eta\|\nabla
+              E(\mathbf{w}_t)\|$ which depends on both the learning rate and the
+              magnitude of the gradient. Therefore, in a steep region the same
+              learning rate gives a larger step than in a flat region.
+            </p>
+            <p>
+              This process could continue indefinitely, so we need a stopping
+              condition. One option is to stop after a chosen number of
+              iterations or when the gradient is sufficiently small. A small
+              gradient tells us that the surface is locally flat, but, as we saw
+              above, it does not establish that we have found a global minimum.
+              The algorithm can be summarised as follows:
+            </p>
+            <pre><code>Choose initial parameters w and learning rate η
 Repeat until a stopping condition is met:
     Calculate the gradient ∇E(w)
     Update w ← w − η∇E(w)
 Return w</code></pre>
-<h2>Worked example</h2><p>Consider $E(w)=(w-3)^2$. The loss is zero at $w=3$ and positive elsewhere, so we know the minimum in advance. This makes it useful for checking what the updates do. Its derivative is $dE/dw=2(w-3)$, giving the update:</p>
-<p>$$w_{t+1}=w_t-2\eta(w_t-3).$$</p>
-<p>If $w$ is below $3$, the derivative is negative, so subtracting it increases $w$. If $w$ is above $3$, the derivative is positive, so the update decreases $w$. Let's start from $w_0=0$ with $\eta=0.1$. At the starting point the derivative is $-6$, so our first step adds $0.6$ to the parameter. Recalculating at each new point gives:</p>
-<p>$$\begin{aligned}w_1&amp;=0-0.2(0-3)=0.6,\\w_2&amp;=0.6-0.2(0.6-3)=1.08,\\w_3&amp;=1.08-0.2(1.08-3)=1.464.\end{aligned}$$</p>
-<div class="table-wrap" role="region" aria-label="Gradient descent iterations and loss" tabindex="0">
-  <table>
-    <caption>Gradient descent with $w_0=0$ and $\eta=0.1$</caption>
-    <thead><tr><th scope="col">Iteration $t$</th><th scope="col">Parameter $w_t$</th><th scope="col">Loss $E(w_t)$</th></tr></thead>
-    <tbody>
-      <tr><td>0</td><td>0</td><td>9</td></tr>
-      <tr><td>1</td><td>0.6</td><td>5.76</td></tr>
-      <tr><td>2</td><td>1.08</td><td>3.6864</td></tr>
-      <tr><td>3</td><td>1.464</td><td>2.359296</td></tr>
-    </tbody>
-  </table>
-</div>
-<p>The loss values come from substituting each parameter back into $E(w)$. For example, $E(1.08)=(1.08-3)^2=3.6864$. Each update in the table moves $w$ closer to $3$ and reduces the loss. The derivative's magnitude becomes smaller as we approach the minimum, so with the same learning rate the steps become smaller too.</p>
-<p>We do not need to start at zero. In the figure, choose a point on the other side of the minimum and step through the updates. The derivative changes sign there, and the parameter approaches $3$ from the right instead.</p>
-<figure class="chart-card"><div class="eyebrow">04 &middot; one parameter</div><h3>Taking gradient descent steps</h3><svg class="chart" id="one-dimensional" viewBox="0 0 680 300" role="img" aria-label="Quadratic loss and gradient descent iterates"></svg><div class="controls" id="one-controls" hidden><label for="initial">Initial parameter $w_0$ <output id="initial-value"></output><input id="initial" type="range" min="-2" max="8" step="0.1" value="0"/></label><div><button type="button" id="one-step">Next step</button> <button type="button" id="one-reset">Reset</button></div></div><p class="readout" id="one-readout" aria-live="polite"></p><figcaption class="chart-caption"><span class="label">fig 4</span> The learning rate is $0.1$. Change the starting point or advance one iteration at a time.</figcaption><noscript><p class="chart-caption">Enable JavaScript to step through the updates.</p></noscript></figure>
-<h2 id="learning-rate">The learning rate</h2><p>The learning rate controls how far we move for a given gradient. For the same quadratic, subtracting $3$ from both sides of the update gives:</p><p>$$w_{t+1}-3=(1-2\eta)(w_t-3).$$</p>
-<p>The quantity $w_t-3$ is the signed distance from the minimum: it is negative to the left and positive to the right. The equation says that each iteration multiplies this signed distance by $1-2\eta$. Repeating the update gives:</p>
-<p>$$w_t-3=(1-2\eta)^t(w_0-3).$$</p>
-<p>For a starting point away from the minimum, the distance approaches zero precisely when the magnitude of the multiplier is less than one. Solving that condition gives:</p>
-<p>$$|1-2\eta|&lt;1 \quad\Longleftrightarrow\quad -1&lt;1-2\eta&lt;1 \quad\Longleftrightarrow\quad 0&lt;\eta&lt;1.$$</p>
-<p>If the multiplier is positive, the iterates stay on the same side of the minimum. If it is negative, their sign alternates, so they cross the minimum at every step. Its magnitude determines whether these distances shrink, stay the same, or grow:</p>
-<ul><li><span>$\eta=0.1$: steady convergence from the same side.</span></li><li><span>$\eta=0.5$: the minimum is reached in one step.</span></li><li><span>$\eta=0.6$: oscillations decrease in size.</span></li><li><span>$\eta=1.0$: the iterates oscillate without converging.</span></li><li><span>$\eta=1.1$: the oscillations grow and the iterates diverge.</span></li></ul>
-<p>For example, with $\eta=0.6$ the multiplier is $-0.2$: each update crosses the minimum and leaves one fifth of the previous distance. With $\eta=1.1$ it is $-1.2$, so each crossing takes the parameter further away. At $\eta=1$ the multiplier is $-1$; starting away from the minimum, the two distances repeat indefinitely.</p>
-<p>This range is specific to $E(w)=(w-3)^2$. Changing the curvature of the loss changes the gradient at a given distance from the minimum, and therefore changes the suitable learning rates. The condition $0&lt;\eta&lt;1$ is not a universal rule. A learning rate that works for one loss may be too large for another.</p>
-<figure class="chart-card"><div class="eyebrow">05 &middot; learning rate</div><h3>Changing the learning rate</h3><svg class="chart" id="rate-chart" viewBox="0 0 680 300" role="img" aria-label="Quadratic loss and trajectory for the selected learning rate"></svg><div class="controls" id="rate-controls" hidden><label for="rate">Learning rate $\eta$ <output id="rate-value"></output><input id="rate" type="range" min="0" max="1.1" step="0.1" value="0.1"/></label><div><button type="button" id="rate-step">Next step</button> <button type="button" id="rate-reset">Reset</button></div></div><p class="readout" id="rate-readout" aria-live="polite"></p><figcaption class="chart-caption"><span class="label">fig 5</span> Starting from $w_0=0$, compare the trajectories for different learning rates. The axes expand when the iterates move outside the initial view.</figcaption><noscript><p class="chart-caption">Enable JavaScript to change the learning rate and advance the iterations.</p></noscript></figure>
-<h2 id="multiple">Gradient descent in multiple dimensions</h2><p>Let's return to the two-parameter quadratic. Differentiating with respect to each parameter gives:</p><p>$$\nabla E(\mathbf{w})=\begin{pmatrix}2(w_1-2)\\8(w_2+1)\end{pmatrix}.$$</p>
-<p>Starting at $\mathbf{w}_0=(0,0)^\top$ with $\eta=0.1$, the first gradient and update are:</p><p>$$\nabla E(\mathbf{w}_0)=\begin{pmatrix}-4\\8\end{pmatrix},\qquad \mathbf{w}_1=\begin{pmatrix}0\\0\end{pmatrix}-0.1\begin{pmatrix}-4\\8\end{pmatrix}=\begin{pmatrix}0.4\\-0.8\end{pmatrix}.$$</p>
-<p>Evaluating the gradient again at each new point gives:</p><p>$$\begin{aligned}\mathbf{w}_2&amp;=\begin{pmatrix}0.4\\-0.8\end{pmatrix}-0.1\begin{pmatrix}-3.2\\1.6\end{pmatrix}=\begin{pmatrix}0.72\\-0.96\end{pmatrix},\\[4pt]\mathbf{w}_3&amp;=\begin{pmatrix}0.72\\-0.96\end{pmatrix}-0.1\begin{pmatrix}-2.56\\0.32\end{pmatrix}=\begin{pmatrix}0.976\\-0.992\end{pmatrix}.\end{aligned}$$</p>
-<p>At the starting point, the first gradient component is negative and the second is positive. Subtracting them therefore increases $w_1$ and decreases $w_2$, moving both towards their values at the minimum. Both components are updated simultaneously using the gradient at the current point; we do not use the new $w_1$ to calculate the $w_2$ part of the same update.</p>
-<p>Writing the update component by component makes the different rates of change clearer:</p>
-<p>$$\begin{aligned}w_{1,t+1}-2&amp;=(1-2\eta)(w_{1,t}-2),\\w_{2,t+1}+1&amp;=(1-8\eta)(w_{2,t}+1).\end{aligned}$$</p>
-<p>With $\eta=0.1$, the first signed distance is multiplied by $0.8$ and the second by $0.2$ at each step. So $w_2$ approaches its optimal value more quickly in this example, and the trajectory turns as the two gradient components change. The larger curvature in the $w_2$ direction gives a larger gradient for the same distance from its optimum. It also means that a learning rate suitable for one direction may be too large for another.</p>
-<figure class="chart-card"><div class="eyebrow">06 &middot; two parameters</div><h3>A trajectory through parameter space</h3><svg class="chart" id="two-dimensional" viewBox="0 0 680 300" role="img" aria-label="Contours and gradient descent trajectory in two dimensions"></svg><div class="controls" id="two-controls" hidden><label for="two-rate">Learning rate $\eta$ <output id="two-rate-value"></output><input id="two-rate" type="range" min="0" max="0.4" step="0.01" value="0.1"/></label><div><button type="button" id="two-step">Next step</button> <button type="button" id="two-reset">Reset</button></div></div><p class="readout" id="two-readout" aria-live="polite"></p><figcaption class="chart-caption"><span class="label">fig 6</span> The purple arrow shows the negative gradient at the current point. The axes expand to keep the trajectory visible.</figcaption><noscript><p class="chart-caption">Enable JavaScript to change the learning rate and advance the trajectory.</p></noscript></figure>
-<h2 id="limitations">Limitations of gradient descent</h2><p>Gradient descent gives us a way to search for parameters with a small loss, but the result depends on the surface and on our choices. For a general non-convex loss, following the local gradient does not guarantee a global minimum. Different initial parameters can lead the updates into different parts of the surface and towards different solutions.</p>
-<p>Progress can also be slow in a flat region: when the gradient is small, the update is small even if the loss is still high. At a stationary point the gradient descent update is zero, but that point could be a maximum or saddle rather than a minimum. A small gradient alone does not tell us what kind of point we have reached.</p>
-<p>The learning rate matters too. A small value can make progress slow, whereas a large value can make us overshoot, oscillate or diverge. Finally, when the loss is calculated over a large training dataset, calculating its gradient using every data point can be computationally expensive at each update. In the next note we will consider how the data used for each update affects this cost.</p>
-<h2>Check your understanding</h2><div class="exercise"><span class="tag">questions</span><ol><li><span>How does parameter space differ from input space? What does a contour represent?</span></li><li><span>Why is a zero gradient not enough to show that a point is a minimum?</span></li><li><span>Why does the negative gradient give the steepest local decrease?</span></li><li><span>For the one-dimensional quadratic, what happens when $\eta=1$? Why?</span></li><li><span>How do the two components of the gradient affect the update of the two-parameter example?</span></li></ol></div>
-<h2>Summary</h2><p>An error surface describes how loss changes as we vary model parameters. The gradient points towards the steepest local increase, so gradient descent repeatedly moves in the opposite direction. The learning rate and the shape of the surface affect the resulting trajectory.</p><p>In the next note, batch, stochastic and mini-batch gradient descent, we will look at how the data used to calculate an update affects the cost of optimisation.</p><p>For further reading, see Chapter 7, especially Sections 7.1 and 7.2.1, of Christopher M. Bishop and Hugh Bishop, <a href="https://doi.org/10.1007/978-3-031-45468-4">Deep Learning: Foundations and Concepts</a>.</p>
-</div><div class="endbar"><a href="../">&larr; 04 &middot; gradient descent</a><a href="../batch-stochastic-and-mini-batch-gradient-descent/">4.2 &middot; batch, stochastic and mini-batch gradient descent &rarr;</a></div></article></div></div></body></html>
+            <h2>Worked example</h2>
+            <p>
+              Consider $E(w)=(w-3)^2$ which is obviously convex and solvable
+              analytically, however its a good example to illustrate the
+              behaviour. The loss is zero at $w=3$ and positive elsewhere, so we
+              know the minimum in advance. Its derivative is $dE/dw=2(w-3)$,
+              which gives the update:
+            </p>
+            <p>$$w_{t+1}=w_t-2\eta(w_t-3).$$</p>
+            <p>
+              If $w$ is below $3$, the derivative is negative, so subtracting it
+              increases $w$. If $w$ is above $3$, the derivative is positive, so
+              the update decreases $w$. Let's start from $w_0=0$ with
+              $\eta=0.1$. At the starting point the derivative is $-6$, so our
+              first step adds $0.6$ to the parameter. Recalculating at each new
+              point gives:
+            </p>
+            <p>
+              $$\begin{aligned}w_1&amp;=0-0.2(0-3)=0.6,\\w_2&amp;=0.6-0.2(0.6-3)=1.08,\\w_3&amp;=1.08-0.2(1.08-3)=1.464.\end{aligned}$$
+            </p>
+            <div
+              class="table-wrap"
+              role="region"
+              aria-label="Gradient descent iterations and loss"
+              tabindex="0"
+            >
+              <table>
+                <caption>
+                  Gradient descent with $w_0=0$ and $\eta=0.1$
+                </caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Iteration $t$</th>
+                    <th scope="col">Parameter $w_t$</th>
+                    <th scope="col">Loss $E(w_t)$</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>0</td>
+                    <td>0</td>
+                    <td>9</td>
+                  </tr>
+                  <tr>
+                    <td>1</td>
+                    <td>0.6</td>
+                    <td>5.76</td>
+                  </tr>
+                  <tr>
+                    <td>2</td>
+                    <td>1.08</td>
+                    <td>3.6864</td>
+                  </tr>
+                  <tr>
+                    <td>3</td>
+                    <td>1.464</td>
+                    <td>2.359296</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p>
+              The loss values come from substituting each parameter back into
+              $E(w)$. For example, $E(1.08)=(1.08-3)^2=3.6864$. As you can see,
+              derivative's magnitude becomes smaller as we approach the minimum
+              because the slope of the surface is shallower.
+            </p>
+            <p>
+              In the figure below, you can see it step down the slope and
+              converge to the minimum.
+            </p>
+            <figure class="chart-card">
+              <div class="eyebrow">04 &middot; one parameter</div>
+              <h3>Taking gradient descent steps</h3>
+              <svg
+                class="chart"
+                id="one-dimensional"
+                viewBox="0 0 680 300"
+                role="img"
+                aria-label="Quadratic loss and gradient descent iterates"
+              ></svg>
+              <div class="controls" id="one-controls" hidden>
+                <label for="initial"
+                  >Initial parameter $w_0$ <output id="initial-value"></output
+                  ><input
+                    id="initial"
+                    type="range"
+                    min="-2"
+                    max="8"
+                    step="0.1"
+                    value="0"
+                /></label>
+                <div>
+                  <button type="button" id="one-step">Next step</button>
+                  <button type="button" id="one-reset">Reset</button>
+                </div>
+              </div>
+              <p class="readout" id="one-readout" aria-live="polite"></p>
+              <figcaption class="chart-caption">
+                <span class="label">fig 4</span> The learning rate is $0.1$.
+                Change the starting point or advance one iteration at a time.
+              </figcaption>
+              <noscript
+                ><p class="chart-caption">
+                  Enable JavaScript to step through the updates.
+                </p></noscript
+              >
+            </figure>
+            <h2 id="learning-rate">The learning rate</h2>
+            <p>
+              The learning rate controls how far we move for a given gradient.
+              Using the same example, we can write the signed distance from the
+              minimum as $w_t-3$ and rearrange the update:
+            </p>
+            <p>$$w_{t+1}-3=(1-2\eta)(w_t-3).$$</p>
+            <p>
+              The equation says that each iteration multiplies this signed
+              distance by $1-2\eta$. So, repeating the update gives:
+            </p>
+            <p>$$w_t-3=(1-2\eta)^t(w_0-3).$$</p>
+            <p>This means that it converges to the minimum if $|1-2\eta|<1$.</p>
+            <p>
+              $$|1-2\eta|&lt;1 \quad\Longleftrightarrow\quad -1&lt;1-2\eta&lt;1
+              \quad\Longleftrightarrow\quad 0&lt;\eta&lt;1.$$
+            </p>
+            <p>
+              If the multiplier is positive, the iterates stay on the same side
+              of the minimum. If it is negative, their sign alternates, so they
+              cross the minimum at every step. Its magnitude determines whether
+              these distances shrink, stay the same, or grow:
+            </p>
+            <ul>
+              <li>
+                <span>$\eta=0.1$: steady convergence from the same side.</span>
+              </li>
+              <li>
+                <span>$\eta=0.5$: the minimum is reached in one step.</span>
+              </li>
+              <li><span>$\eta=0.6$: oscillations decrease in size.</span></li>
+              <li>
+                <span
+                  >$\eta=1.0$: the iterates oscillate without converging.</span
+                >
+              </li>
+              <li>
+                <span
+                  >$\eta=1.1$: the oscillations grow and the iterates
+                  diverge.</span
+                >
+              </li>
+            </ul>
+            <p>
+              For example, with $\eta=0.6$ the multiplier is $-0.2$: each update
+              crosses the minimum and leaves one fifth of the previous distance.
+              With $\eta=1.1$ it is $-1.2$, so each crossing takes the parameter
+              further away. At $\eta=1$ the multiplier is $-1$ so if we start
+              away from the minimum, the two distances repeat indefinitely.
+            </p>
+            <p>
+              This range is specific to the loss function $E(w)=(w-3)^2$. With
+              different loss functions, the gradients and hence the suitable
+              learning rates will be different. The condition $0&lt;\eta&lt;1$
+              is not a universal rule. A learning rate that works for one loss
+              may be too large for another.
+            </p>
+            <figure class="chart-card">
+              <div class="eyebrow">05 &middot; learning rate</div>
+              <h3>Changing the learning rate</h3>
+              <svg
+                class="chart"
+                id="rate-chart"
+                viewBox="0 0 680 300"
+                role="img"
+                aria-label="Quadratic loss and trajectory for the selected learning rate"
+              ></svg>
+              <div class="controls" id="rate-controls" hidden>
+                <label for="rate"
+                  >Learning rate $\eta$ <output id="rate-value"></output
+                  ><input
+                    id="rate"
+                    type="range"
+                    min="0"
+                    max="1.1"
+                    step="0.1"
+                    value="0.1"
+                /></label>
+                <div>
+                  <button type="button" id="rate-step">Next step</button>
+                  <button type="button" id="rate-reset">Reset</button>
+                </div>
+              </div>
+              <p class="readout" id="rate-readout" aria-live="polite"></p>
+              <figcaption class="chart-caption">
+                <span class="label">fig 5</span> Starting from $w_0=0$, compare
+                the trajectories for different learning rates. The axes expand
+                when the iterates move outside the initial view.
+              </figcaption>
+              <noscript
+                ><p class="chart-caption">
+                  Enable JavaScript to change the learning rate and advance the
+                  iterations.
+                </p></noscript
+              >
+            </figure>
+            <h2 id="multiple">Gradient descent in multiple dimensions</h2>
+            <p>
+              Let's return to the two-parameter quadratic in the first equation
+              of this note. Differentiating with respect to each parameter
+              gives:
+            </p>
+            <p>
+              $$\nabla
+              E(\mathbf{w})=\begin{pmatrix}2(w_1-2)\\8(w_2+1)\end{pmatrix}.$$
+            </p>
+            <p>
+              Starting at $\mathbf{w}_0=(0,0)^\top$ with $\eta=0.1$, the first
+              gradient and update are:
+            </p>
+            <p>
+              $$\nabla E(\mathbf{w}_0)=\begin{pmatrix}-4\\8\end{pmatrix},\qquad
+              \mathbf{w}_1=\begin{pmatrix}0\\0\end{pmatrix}-0.1\begin{pmatrix}-4\\8\end{pmatrix}=\begin{pmatrix}0.4\\-0.8\end{pmatrix}.$$
+            </p>
+            <p>If we do this again then we get:</p>
+            <p>
+              $$\begin{aligned}\mathbf{w}_2&amp;=\begin{pmatrix}0.4\\-0.8\end{pmatrix}-0.1\begin{pmatrix}-3.2\\1.6\end{pmatrix}=\begin{pmatrix}0.72\\-0.96\end{pmatrix},\\[4pt]\mathbf{w}_3&amp;=\begin{pmatrix}0.72\\-0.96\end{pmatrix}-0.1\begin{pmatrix}-2.56\\0.32\end{pmatrix}=\begin{pmatrix}0.976\\-0.992\end{pmatrix}.\end{aligned}$$
+            </p>
+
+            <p>
+              In general the form for each parameter can be written as (like
+              before):
+            </p>
+            <p>
+              $$\begin{aligned}w_{1,t+1}-2&amp;=(1-2\eta)(w_{1,t}-2),\\w_{2,t+1}+1&amp;=(1-8\eta)(w_{2,t}+1).\end{aligned}$$
+            </p>
+            <p>
+              The first parameter is multiplied by $(1-2\eta)$ and the second by
+              $(1-8\eta)$ at each step. Which means that the optimal region for
+              the learning rate is different for each parameter. For example,
+              with $\eta=0.3$ the first parameter converges to its optimum,
+              decreasing by a factor of $0.4$ each step, but the second
+              diverges, with a factor of $-1.4$ each step. The second parameter
+              has a larger curvature, so the same learning rate is too large for
+              it. You can see this in the interactive plot below.
+            </p>
+            <figure class="chart-card">
+              <div class="eyebrow">06 &middot; two parameters</div>
+              <h3>A trajectory through parameter space</h3>
+              <svg
+                class="chart"
+                id="two-dimensional"
+                viewBox="0 0 680 300"
+                role="img"
+                aria-label="Contours and gradient descent trajectory in two dimensions"
+              ></svg>
+              <div class="controls" id="two-controls" hidden>
+                <label for="two-rate"
+                  >Learning rate $\eta$ <output id="two-rate-value"></output
+                  ><input
+                    id="two-rate"
+                    type="range"
+                    min="0"
+                    max="0.4"
+                    step="0.01"
+                    value="0.1"
+                /></label>
+                <div>
+                  <button type="button" id="two-step">Next step</button>
+                  <button type="button" id="two-reset">Reset</button>
+                </div>
+              </div>
+              <p class="readout" id="two-readout" aria-live="polite"></p>
+              <figcaption class="chart-caption">
+                <span class="label">fig 6</span> The purple arrow shows the
+                negative gradient at the current point. The axes expand to keep
+                the trajectory visible.
+              </figcaption>
+              <noscript
+                ><p class="chart-caption">
+                  Enable JavaScript to change the learning rate and advance the
+                  trajectory.
+                </p></noscript
+              >
+            </figure>
+            <h2 id="limitations">Limitations of gradient descent</h2>
+            <p>
+              Gradient descent gives us a way to search for parameters with a
+              small loss, but the result depends on the surface and on our
+              choices. For a general non-convex loss, following the local
+              gradient does not guarantee a global minimum. Different initial
+              parameters can lead the updates into different parts of the
+              surface and towards different solutions.
+            </p>
+            <p>
+              Progress can also be slow in a flat region: when the gradient is
+              small, the update is small even if the loss is still high. At a
+              stationary point the gradient descent update is zero, but that
+              point could be a maximum or saddle rather than a minimum. A small
+              gradient alone does not tell us what kind of point we have
+              reached.
+            </p>
+            <p>
+              The learning rate matters too. A small value can make progress
+              slow, whereas a large value can make us overshoot, oscillate or
+              diverge. Finally, when the loss is calculated over a large
+              training dataset, calculating its gradient using every data point
+              can be computationally expensive at each update. In the next note
+              we will consider how the data used for each update affects this
+              cost.
+            </p>
+            <h2>Check your understanding</h2>
+            <div class="exercise">
+              <span class="tag">questions</span>
+              <ol>
+                <li>
+                  <span
+                    >How does parameter space differ from input space? What does
+                    a contour represent?</span
+                  >
+                </li>
+                <li>
+                  <span
+                    >Why is a zero gradient not enough to show that a point is a
+                    minimum?</span
+                  >
+                </li>
+                <li>
+                  <span
+                    >Why does the negative gradient give the steepest local
+                    decrease?</span
+                  >
+                </li>
+                <li>
+                  <span
+                    >For the one-dimensional quadratic, what happens when
+                    $\eta=1$? Why?</span
+                  >
+                </li>
+                <li>
+                  <span
+                    >How do the two components of the gradient affect the update
+                    of the two-parameter example?</span
+                  >
+                </li>
+              </ol>
+            </div>
+            <h2>Summary</h2>
+            <p>
+              An error surface describes how loss changes as we vary model
+              parameters. The gradient points towards the steepest local
+              increase, so gradient descent repeatedly moves in the opposite
+              direction. The learning rate and the shape of the surface affect
+              the resulting trajectory.
+            </p>
+            <p>
+              In the next note, batch, stochastic and mini-batch gradient
+              descent, we will look at how the data used to calculate an update
+              affects the cost of optimisation.
+            </p>
+            <p>
+              For further reading, see Chapter 7, especially Sections 7.1 and
+              7.2.1, of Christopher M. Bishop and Hugh Bishop,
+              <a href="https://doi.org/10.1007/978-3-031-45468-4"
+                >Deep Learning: Foundations and Concepts</a
+              >.
+            </p>
+          </div>
+          <div class="endbar">
+            <a href="../">&larr; 04 &middot; gradient descent</a
+            ><a href="../batch-stochastic-and-mini-batch-gradient-descent/"
+              >4.2 &middot; batch, stochastic and mini-batch gradient descent
+              &rarr;</a
+            >
+          </div>
+        </article>
+      </div>
+    </div>
+  </body>
+</html>
