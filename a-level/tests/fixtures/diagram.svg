@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="120" viewBox="0 0 240 120" role="img" aria-label="Test coordinate axes and a curve">
+  <path d="M20 100H225M30 110V10" fill="none" stroke="#15120B"/>
+  <path d="M35 95Q115 95 205 20" fill="none" stroke="#6B2C5C" stroke-width="2"/>
+  <text x="215" y="114" font-family="serif" font-size="12">x</text>
+  <text x="16" y="16" font-family="serif" font-size="12">y</text>
+</svg>

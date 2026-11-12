@@ -1,0 +1,18 @@
+{
+  "name": "a-level-revision-checks",
+  "private": true,
+  "scripts": {
+    "test": "node database.cjs && node browser.cjs",
+    "test:db": "node database.cjs",
+    "test:browser": "node browser.cjs",
+    "vendor": "node vendor.cjs"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.3.14",
+    "@supabase/supabase-js": "2.81.1",
+    "dompurify": "3.4.17",
+    "katex": "0.19.1",
+    "marked": "15.0.12",
+    "playwright": "1.56.1"
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "A-level revision question import v1",
+  "type": "object",
+  "required": ["schema_version", "questions"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {"const": 1},
+    "questions": {"type": "array", "items": {"$ref": "#/$defs/question"}}
+  },
+  "$defs": {
+    "question": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "version", "prompt_md", "solution_md", "subtopic_ids", "difficulty", "estimated_seconds", "source", "review_status"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9_-]{2,119}$"},
+        "version": {"type": "integer", "minimum": 1},
+        "prompt_md": {"type": "string", "minLength": 1},
+        "solution_md": {"type": "string", "minLength": 1},
+        "subtopic_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string"}},
+        "difficulty": {"type": "integer", "minimum": 1, "maximum": 5},
+        "estimated_seconds": {"type": "integer", "minimum": 15, "maximum": 7200},
+        "total_marks": {"type": ["integer", "null"], "minimum": 1},
+        "assets": {"type": "array", "items": {"$ref": "#/$defs/asset"}},
+        "source": {
+          "type": "object",
+          "required": ["title", "licence"],
+          "properties": {
+            "title": {"type": "string", "minLength": 1},
+            "licence": {"type": "string", "minLength": 1},
+            "url": {"type": ["string", "null"]},
+            "reviewed_by": {"type": ["string", "null"]}
+          }
+        },
+        "review_status": {"enum": ["draft", "verified"]}
+      },
+      "allOf": [{"if": {"properties": {"review_status": {"const": "verified"}}}, "then": {"properties": {"source": {"required": ["reviewed_by"], "properties": {"reviewed_by": {"type": "string", "minLength": 1}}}}}}]
+    },
+    "asset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["url", "alt"],
+      "properties": {
+        "url": {"type": "string", "minLength": 1, "pattern": "^(https://[^ ]+|/[^/ ][^ ]*|[a-zA-Z0-9][a-zA-Z0-9_./-]*)$"},
+        "alt": {"type": "string", "minLength": 1},
+        "caption": {"type": "string"}
+      }
+    }
+  }
+}

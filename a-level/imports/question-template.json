@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "questions": [
+    {
+      "id": "original-index-laws-001",
+      "version": 1,
+      "prompt_md": "Simplify $x^2 \\times x^3$, giving your answer as a single power of $x$.",
+      "solution_md": "When multiplying powers with the same base, add the indices.\n\n$$x^2 \\times x^3 = x^{2+3} = x^5.$$\n\nAward 1 mark for adding the indices and 1 mark for the answer $x^5$.",
+      "subtopic_ids": ["maths-pure-mathematics-year-1-s1-1"],
+      "difficulty": 1,
+      "estimated_seconds": 120,
+      "total_marks": 2,
+      "assets": [],
+      "source": {
+        "title": "Original index laws example",
+        "licence": "CC0-1.0",
+        "url": null,
+        "reviewed_by": null
+      },
+      "review_status": "draft"
+    }
+  ]
+}

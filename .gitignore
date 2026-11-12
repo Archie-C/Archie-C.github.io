@@ -122,3 +122,4 @@ htmlcov/
 # Private rocket test labels and local full-data backup
 /.private/
 /classification_exercise_temp/test_landings.csv
+*textbooks/

@@ -1,0 +1,251 @@
+Book,Subject,Chapter_Number,Topic,Subtopic_Number,Subtopic,Page_Start,Page_Count,Length_Rating,Difficulty_Rating
+Pure Mathematics Year 1,Pure,1,Algebraic expressions,1.1,Index laws,2,2,2,1
+Pure Mathematics Year 1,Pure,1,Algebraic expressions,1.2,Expanding brackets,4,2,2,1
+Pure Mathematics Year 1,Pure,1,Algebraic expressions,1.3,Factorising,6,3,3,2
+Pure Mathematics Year 1,Pure,1,Algebraic expressions,1.4,Negative and fractional indices,9,3,3,2
+Pure Mathematics Year 1,Pure,1,Algebraic expressions,1.5,Surds,12,1,1,2
+Pure Mathematics Year 1,Pure,1,Algebraic expressions,1.6,Rationalising denominators,13,2,2,2
+Pure Mathematics Year 1,Pure,2,Quadratics,2.1,Solving quadratic equations,19,3,3,2
+Pure Mathematics Year 1,Pure,2,Quadratics,2.2,Completing the square,22,3,3,2
+Pure Mathematics Year 1,Pure,2,Quadratics,2.3,Functions,25,2,2,2
+Pure Mathematics Year 1,Pure,2,Quadratics,2.4,Quadratic graphs,27,3,3,2
+Pure Mathematics Year 1,Pure,2,Quadratics,2.5,The discriminant,30,2,2,3
+Pure Mathematics Year 1,Pure,2,Quadratics,2.6,Modelling with quadratics,32,3,3,3
+Pure Mathematics Year 1,Pure,3,Equations and inequalities,3.1,Linear simultaneous equations,39,2,2,1
+Pure Mathematics Year 1,Pure,3,Equations and inequalities,3.2,Quadratic simultaneous equations,41,1,1,2
+Pure Mathematics Year 1,Pure,3,Equations and inequalities,3.3,Simultaneous equations on graphs,42,4,4,2
+Pure Mathematics Year 1,Pure,3,Equations and inequalities,3.4,Linear inequalities,46,2,2,1
+Pure Mathematics Year 1,Pure,3,Equations and inequalities,3.5,Quadratic inequalities,48,3,3,3
+Pure Mathematics Year 1,Pure,3,Equations and inequalities,3.6,Inequalities on graphs,51,2,2,2
+Pure Mathematics Year 1,Pure,3,Equations and inequalities,3.7,Regions,53,3,3,3
+Pure Mathematics Year 1,Pure,4,Graphs and transformations,4.1,Cubic graphs,60,4,4,2
+Pure Mathematics Year 1,Pure,4,Graphs and transformations,4.2,Quartic graphs,64,2,2,2
+Pure Mathematics Year 1,Pure,4,Graphs and transformations,4.3,Reciprocal graphs,66,2,2,2
+Pure Mathematics Year 1,Pure,4,Graphs and transformations,4.4,Points of intersection,68,3,3,3
+Pure Mathematics Year 1,Pure,4,Graphs and transformations,4.5,Translating graphs,71,4,4,2
+Pure Mathematics Year 1,Pure,4,Graphs and transformations,4.6,Stretching graphs,75,4,4,3
+Pure Mathematics Year 1,Pure,4,Graphs and transformations,4.7,Transforming functions,79,3,3,3
+Pure Mathematics Year 1,Pure,5,Straight line graphs,5.1,y = mx + c,90,3,3,1
+Pure Mathematics Year 1,Pure,5,Straight line graphs,5.2,Equations of straight lines,93,4,4,2
+Pure Mathematics Year 1,Pure,5,Straight line graphs,5.3,Parallel and perpendicular lines,97,3,3,2
+Pure Mathematics Year 1,Pure,5,Straight line graphs,5.4,Length and area,100,3,3,3
+Pure Mathematics Year 1,Pure,5,Straight line graphs,5.5,Modelling with straight lines,103,5,5,3
+Pure Mathematics Year 1,Pure,6,Circles,6.1,Midpoints and perpendicular bisectors,114,3,3,2
+Pure Mathematics Year 1,Pure,6,Circles,6.2,Equation of a circle,117,4,4,2
+Pure Mathematics Year 1,Pure,6,Circles,6.3,Intersections of straight lines and circles,121,2,2,3
+Pure Mathematics Year 1,Pure,6,Circles,6.4,Use tangent and chord properties,123,5,5,4
+Pure Mathematics Year 1,Pure,6,Circles,6.5,Circles and triangles,128,4,4,4
+Pure Mathematics Year 1,Pure,7,Algebraic methods,7.1,Algebraic fractions,138,1,1,2
+Pure Mathematics Year 1,Pure,7,Algebraic methods,7.2,Dividing polynomials,139,4,4,3
+Pure Mathematics Year 1,Pure,7,Algebraic methods,7.3,The factor theorem,143,3,3,2
+Pure Mathematics Year 1,Pure,7,Algebraic methods,7.4,Mathematical proof,146,4,4,3
+Pure Mathematics Year 1,Pure,7,Algebraic methods,7.5,Methods of proof,150,4,4,3
+Pure Mathematics Year 1,Pure,8,The binomial expansion,8.1,Pascal's triangle,159,2,2,1
+Pure Mathematics Year 1,Pure,8,The binomial expansion,8.2,Factorial notation,161,2,2,2
+Pure Mathematics Year 1,Pure,8,The binomial expansion,8.3,The binomial expansion,163,2,2,2
+Pure Mathematics Year 1,Pure,8,The binomial expansion,8.4,Solving binomial problems,165,2,2,3
+Pure Mathematics Year 1,Pure,8,The binomial expansion,8.5,Binomial estimation,167,2,2,3
+Pure Mathematics Year 1,Pure,9,Trigonometric ratios,9.1,The cosine rule,174,5,5,2
+Pure Mathematics Year 1,Pure,9,Trigonometric ratios,9.2,The sine rule,179,6,5,3
+Pure Mathematics Year 1,Pure,9,Trigonometric ratios,9.3,Areas of triangles,185,2,2,2
+Pure Mathematics Year 1,Pure,9,Trigonometric ratios,9.4,Solving triangle problems,187,5,5,3
+Pure Mathematics Year 1,Pure,9,Trigonometric ratios,9.5,"Graphs of sine, cosine and tangent",192,2,2,2
+Pure Mathematics Year 1,Pure,9,Trigonometric ratios,9.6,Transforming trigonometric graphs,194,4,4,3
+Pure Mathematics Year 1,Pure,10,Trigonometric identities and equations,10.1,Angles in all four quadrants,203,5,5,3
+Pure Mathematics Year 1,Pure,10,Trigonometric identities and equations,10.2,Exact values of trigonometrical ratios,208,1,1,2
+Pure Mathematics Year 1,Pure,10,Trigonometric identities and equations,10.3,Trigonometric identities,209,4,4,3
+Pure Mathematics Year 1,Pure,10,Trigonometric identities and equations,10.4,Simple trigonometric equations,213,4,4,3
+Pure Mathematics Year 1,Pure,10,Trigonometric identities and equations,10.5,Harder trigonometric equations,217,2,2,4
+Pure Mathematics Year 1,Pure,10,Trigonometric identities and equations,10.6,Equations and identities,219,3,3,4
+Pure Mathematics Year 1,Pure,11,Vectors,11.1,Vectors,231,4,4,2
+Pure Mathematics Year 1,Pure,11,Vectors,11.2,Representing vectors,235,4,4,2
+Pure Mathematics Year 1,Pure,11,Vectors,11.3,Magnitude and direction,239,3,3,2
+Pure Mathematics Year 1,Pure,11,Vectors,11.4,Position vectors,242,2,2,2
+Pure Mathematics Year 1,Pure,11,Vectors,11.5,Solving geometric problems,244,4,4,3
+Pure Mathematics Year 1,Pure,11,Vectors,11.6,Modelling with vectors,248,3,3,3
+Pure Mathematics Year 1,Pure,12,Differentiation,12.1,Gradients of curves,256,3,3,2
+Pure Mathematics Year 1,Pure,12,Differentiation,12.2,Finding the derivative,259,3,3,3
+Pure Mathematics Year 1,Pure,12,Differentiation,12.3,Differentiating x^n,262,2,2,2
+Pure Mathematics Year 1,Pure,12,Differentiation,12.4,Differentiating quadratics,264,2,2,2
+Pure Mathematics Year 1,Pure,12,Differentiation,12.5,Differentiating functions with two or more terms,266,2,2,2
+Pure Mathematics Year 1,Pure,12,Differentiation,12.6,"Gradients, tangents and normal",268,2,2,3
+Pure Mathematics Year 1,Pure,12,Differentiation,12.7,Increasing and decreasing functions,270,1,1,2
+Pure Mathematics Year 1,Pure,12,Differentiation,12.8,Second order derivatives,271,2,2,2
+Pure Mathematics Year 1,Pure,12,Differentiation,12.9,Stationary points,273,4,4,3
+Pure Mathematics Year 1,Pure,12,Differentiation,12.10,Sketching gradient functions,277,2,2,3
+Pure Mathematics Year 1,Pure,12,Differentiation,12.11,Modelling with differentiation,279,3,3,4
+Pure Mathematics Year 1,Pure,13,Integration,13.1,Integrating x^n,288,2,2,2
+Pure Mathematics Year 1,Pure,13,Integration,13.2,Indefinite integrals,290,3,3,2
+Pure Mathematics Year 1,Pure,13,Integration,13.3,Finding functions,293,2,2,3
+Pure Mathematics Year 1,Pure,13,Integration,13.4,Definite integrals,295,2,2,2
+Pure Mathematics Year 1,Pure,13,Integration,13.5,Areas under curves,297,3,3,3
+Pure Mathematics Year 1,Pure,13,Integration,13.6,Areas under the x-axis,300,2,2,3
+Pure Mathematics Year 1,Pure,13,Integration,13.7,Areas between curves and lines,302,4,4,4
+Pure Mathematics Year 1,Pure,14,Exponentials and logarithms,14.1,Exponential functions,312,2,2,2
+Pure Mathematics Year 1,Pure,14,Exponentials and logarithms,14.2,y = e^x,314,3,3,2
+Pure Mathematics Year 1,Pure,14,Exponentials and logarithms,14.3,Exponential modelling,317,2,2,3
+Pure Mathematics Year 1,Pure,14,Exponentials and logarithms,14.4,Logarithms,319,2,2,2
+Pure Mathematics Year 1,Pure,14,Exponentials and logarithms,14.5,Laws of logarithms,321,3,3,3
+Pure Mathematics Year 1,Pure,14,Exponentials and logarithms,14.6,Solving equations using logarithms,324,2,2,3
+Pure Mathematics Year 1,Pure,14,Exponentials and logarithms,14.7,Working with natural logarithms,326,2,2,3
+Pure Mathematics Year 1,Pure,14,Exponentials and logarithms,14.8,Logarithms and non-linear data,328,6,5,4
+Pure Mathematics Year 2,Pure,1,Algebraic methods,1.1,Proof by contradiction,2,3,3,4
+Pure Mathematics Year 2,Pure,1,Algebraic methods,1.2,Algebraic fractions,5,4,4,2
+Pure Mathematics Year 2,Pure,1,Algebraic methods,1.3,Partial fractions,9,3,3,3
+Pure Mathematics Year 2,Pure,1,Algebraic methods,1.4,Repeated factors,12,2,2,3
+Pure Mathematics Year 2,Pure,1,Algebraic methods,1.5,Algebraic division,14,5,5,3
+Pure Mathematics Year 2,Pure,2,Functions and graphs,2.1,The modulus function,23,4,4,2
+Pure Mathematics Year 2,Pure,2,Functions and graphs,2.2,Functions and mappings,27,5,5,3
+Pure Mathematics Year 2,Pure,2,Functions and graphs,2.3,Composite functions,32,4,4,3
+Pure Mathematics Year 2,Pure,2,Functions and graphs,2.4,Inverse functions,36,4,4,3
+Pure Mathematics Year 2,Pure,2,Functions and graphs,2.5,y = |f(x)| and y = f(|x|),40,4,4,3
+Pure Mathematics Year 2,Pure,2,Functions and graphs,2.6,Combining transformations,44,4,4,3
+Pure Mathematics Year 2,Pure,2,Functions and graphs,2.7,Solving modulus problems,48,5,5,4
+Pure Mathematics Year 2,Pure,3,Sequences and series,3.1,Arithmetic sequences,60,3,3,2
+Pure Mathematics Year 2,Pure,3,Sequences and series,3.2,Arithmetic series,63,3,3,3
+Pure Mathematics Year 2,Pure,3,Sequences and series,3.3,Geometric sequences,66,4,4,2
+Pure Mathematics Year 2,Pure,3,Sequences and series,3.4,Geometric series,70,3,3,3
+Pure Mathematics Year 2,Pure,3,Sequences and series,3.5,Sum to infinity,73,3,3,3
+Pure Mathematics Year 2,Pure,3,Sequences and series,3.6,Sigma notation,76,3,3,3
+Pure Mathematics Year 2,Pure,3,Sequences and series,3.7,Recurrence relations,79,4,4,3
+Pure Mathematics Year 2,Pure,3,Sequences and series,3.8,Modelling with series,83,3,3,4
+Pure Mathematics Year 2,Pure,4,Binomial expansion,4.1,Expanding (1 + x)^n,92,5,5,3
+Pure Mathematics Year 2,Pure,4,Binomial expansion,4.2,Expanding (a + bx)^n,97,4,4,4
+Pure Mathematics Year 2,Pure,4,Binomial expansion,4.3,Using partial fractions,101,3,3,4
+Pure Mathematics Year 2,Pure,5,Radians,5.1,Radian measure,114,4,4,2
+Pure Mathematics Year 2,Pure,5,Radians,5.2,Arc length,118,4,4,2
+Pure Mathematics Year 2,Pure,5,Radians,5.3,Areas of sectors and segments,122,6,5,3
+Pure Mathematics Year 2,Pure,5,Radians,5.4,Solving trigonometric equations,128,5,5,3
+Pure Mathematics Year 2,Pure,5,Radians,5.5,Small angle approximations,133,2,2,3
+Pure Mathematics Year 2,Pure,6,Trigonometric functions,6.1,"Secant, cosecant and cotangent",143,2,2,2
+Pure Mathematics Year 2,Pure,6,Trigonometric functions,6.2,"Graphs of sec x, cosec x and cot x",145,4,4,3
+Pure Mathematics Year 2,Pure,6,Trigonometric functions,6.3,"Using sec x, cosec x and cot x",149,4,4,3
+Pure Mathematics Year 2,Pure,6,Trigonometric functions,6.4,Trigonometric identities,153,5,5,4
+Pure Mathematics Year 2,Pure,6,Trigonometric functions,6.5,Inverse trigonometric functions,158,4,4,3
+Pure Mathematics Year 2,Pure,7,Trigonometry and modelling,7.1,Addition formulae,167,4,4,3
+Pure Mathematics Year 2,Pure,7,Trigonometry and modelling,7.2,Using the angle addition formulae,171,3,3,3
+Pure Mathematics Year 2,Pure,7,Trigonometry and modelling,7.3,Double-angle formulae,174,3,3,3
+Pure Mathematics Year 2,Pure,7,Trigonometry and modelling,7.4,Solving trigonometric equations,177,4,4,4
+Pure Mathematics Year 2,Pure,7,Trigonometry and modelling,7.5,Simplifying a cos x +- b sin x,181,5,5,4
+Pure Mathematics Year 2,Pure,7,Trigonometry and modelling,7.6,Proving trigonometric identities,186,3,3,5
+Pure Mathematics Year 2,Pure,7,Trigonometry and modelling,7.7,Modelling with trigonometric functions,189,3,3,4
+Pure Mathematics Year 2,Pure,8,Parametric equations,8.1,Parametric equations,198,4,4,3
+Pure Mathematics Year 2,Pure,8,Parametric equations,8.2,Using trigonometric identities,202,4,4,4
+Pure Mathematics Year 2,Pure,8,Parametric equations,8.3,Curve sketching,206,3,3,3
+Pure Mathematics Year 2,Pure,8,Parametric equations,8.4,Points of intersection,209,4,4,3
+Pure Mathematics Year 2,Pure,8,Parametric equations,8.5,Modelling with parametric equations,213,7,5,4
+Pure Mathematics Year 2,Pure,9,Differentiation,9.1,Differentiating sin x and cos x,232,3,3,3
+Pure Mathematics Year 2,Pure,9,Differentiation,9.2,Differentiating exponentials and logarithms,235,2,2,3
+Pure Mathematics Year 2,Pure,9,Differentiation,9.3,The chain rule,237,4,4,3
+Pure Mathematics Year 2,Pure,9,Differentiation,9.4,The product rule,241,2,2,3
+Pure Mathematics Year 2,Pure,9,Differentiation,9.5,The quotient rule,243,3,3,3
+Pure Mathematics Year 2,Pure,9,Differentiation,9.6,Differentiating trigonometric functions,246,5,5,4
+Pure Mathematics Year 2,Pure,9,Differentiation,9.7,Parametric differentiation,251,3,3,4
+Pure Mathematics Year 2,Pure,9,Differentiation,9.8,Implicit differentiation,254,3,3,4
+Pure Mathematics Year 2,Pure,9,Differentiation,9.9,Using second derivatives,257,4,4,4
+Pure Mathematics Year 2,Pure,9,Differentiation,9.10,Rates of change,261,4,4,4
+Pure Mathematics Year 2,Pure,10,Numerical methods,10.1,Locating roots,274,4,4,2
+Pure Mathematics Year 2,Pure,10,Numerical methods,10.2,Iteration,278,4,4,3
+Pure Mathematics Year 2,Pure,10,Numerical methods,10.3,The Newton-Raphson method,282,4,4,3
+Pure Mathematics Year 2,Pure,10,Numerical methods,10.4,Applications to modelling,286,3,3,3
+Pure Mathematics Year 2,Pure,11,Integration,11.1,Integrating standard functions,294,2,2,3
+Pure Mathematics Year 2,Pure,11,Integration,11.2,Integrating f(ax + b),296,2,2,3
+Pure Mathematics Year 2,Pure,11,Integration,11.3,Using trigonometric identities,298,2,2,4
+Pure Mathematics Year 2,Pure,11,Integration,11.4,Reverse chain rule,300,3,3,4
+Pure Mathematics Year 2,Pure,11,Integration,11.5,Integration by substitution,303,4,4,5
+Pure Mathematics Year 2,Pure,11,Integration,11.6,Integration by parts,307,3,3,4
+Pure Mathematics Year 2,Pure,11,Integration,11.7,Partial fractions,310,3,3,4
+Pure Mathematics Year 2,Pure,11,Integration,11.8,Finding areas,313,4,4,4
+Pure Mathematics Year 2,Pure,11,Integration,11.9,The trapezium rule,317,5,5,3
+Pure Mathematics Year 2,Pure,11,Integration,11.10,Solving differential equations,322,4,4,4
+Pure Mathematics Year 2,Pure,11,Integration,11.11,Modelling with differential equations,326,3,3,5
+Pure Mathematics Year 2,Pure,12,Vectors,12.1,3D coordinates,337,2,2,2
+Pure Mathematics Year 2,Pure,12,Vectors,12.2,Vectors in 3D,339,5,5,3
+Pure Mathematics Year 2,Pure,12,Vectors,12.3,Solving geometric problems,344,3,3,4
+Pure Mathematics Year 2,Pure,12,Vectors,12.4,Application to mechanics,347,2,2,3
+Applied Mathematics Year 1,Statistics,1,Data collection,1.1,Populations and samples,2,3,3,1
+Applied Mathematics Year 1,Statistics,1,Data collection,1.2,Sampling,5,2,2,2
+Applied Mathematics Year 1,Statistics,1,Data collection,1.3,Non-random sampling,7,2,2,2
+Applied Mathematics Year 1,Statistics,1,Data collection,1.4,Types of data,9,2,2,1
+Applied Mathematics Year 1,Statistics,1,Data collection,1.5,The large data set,11,5,5,3
+Applied Mathematics Year 1,Statistics,2,Measures of location and spread,2.1,Measures of central tendency,21,4,4,1
+Applied Mathematics Year 1,Statistics,2,Measures of location and spread,2.2,Other measures of location,25,3,3,2
+Applied Mathematics Year 1,Statistics,2,Measures of location and spread,2.3,Measures of spread,28,2,2,1
+Applied Mathematics Year 1,Statistics,2,Measures of location and spread,2.4,Variance and standard deviation,30,3,3,2
+Applied Mathematics Year 1,Statistics,2,Measures of location and spread,2.5,Coding,33,3,3,3
+Applied Mathematics Year 1,Statistics,3,Representations of data,3.1,Outliers,41,2,2,2
+Applied Mathematics Year 1,Statistics,3,Representations of data,3.2,Box plots,43,3,3,2
+Applied Mathematics Year 1,Statistics,3,Representations of data,3.3,Cumulative frequency,46,2,2,2
+Applied Mathematics Year 1,Statistics,3,Representations of data,3.4,Histograms,48,5,5,3
+Applied Mathematics Year 1,Statistics,3,Representations of data,3.5,Comparing data,53,1,1,2
+Applied Mathematics Year 1,Statistics,4,Correlation,4.1,Correlation,60,3,3,1
+Applied Mathematics Year 1,Statistics,4,Correlation,4.2,Linear regression,63,3,3,2
+Applied Mathematics Year 1,Statistics,5,Probability,5.1,Calculating probabilities,70,2,2,1
+Applied Mathematics Year 1,Statistics,5,Probability,5.2,Venn diagrams,72,3,3,2
+Applied Mathematics Year 1,Statistics,5,Probability,5.3,Mutually exclusive and independent events,75,3,3,3
+Applied Mathematics Year 1,Statistics,5,Probability,5.4,Tree diagrams,78,2,2,2
+Applied Mathematics Year 1,Statistics,6,Statistical distributions,6.1,Probability distributions,84,4,4,2
+Applied Mathematics Year 1,Statistics,6,Statistical distributions,6.2,The binomial distribution,88,3,3,3
+Applied Mathematics Year 1,Statistics,6,Statistical distributions,6.3,Cumulative probabilities,91,3,3,3
+Applied Mathematics Year 1,Statistics,7,Hypothesis testing,7.1,Hypothesis testing,99,2,2,3
+Applied Mathematics Year 1,Statistics,7,Hypothesis testing,7.2,Finding critical values,101,4,4,4
+Applied Mathematics Year 1,Statistics,7,Hypothesis testing,7.3,One-tailed tests,105,2,2,3
+Applied Mathematics Year 1,Statistics,7,Hypothesis testing,7.4,Two-tailed tests,107,2,2,4
+Applied Mathematics Year 1,Mechanics,8,Modelling in mechanics,8.1,Constructing a model,119,1,1,1
+Applied Mathematics Year 1,Mechanics,8,Modelling in mechanics,8.2,Modelling assumptions,120,2,2,2
+Applied Mathematics Year 1,Mechanics,8,Modelling in mechanics,8.3,Quantities and units,122,3,3,1
+Applied Mathematics Year 1,Mechanics,8,Modelling in mechanics,8.4,Working with vectors,125,3,3,2
+Applied Mathematics Year 1,Mechanics,9,Constant acceleration,9.1,Displacement-time graphs,131,2,2,2
+Applied Mathematics Year 1,Mechanics,9,Constant acceleration,9.2,Velocity-time graphs,133,4,4,2
+Applied Mathematics Year 1,Mechanics,9,Constant acceleration,9.3,Constant acceleration formulae 1,137,5,5,3
+Applied Mathematics Year 1,Mechanics,9,Constant acceleration,9.4,Constant acceleration formulae 2,142,4,4,3
+Applied Mathematics Year 1,Mechanics,9,Constant acceleration,9.5,Vertical motion under gravity,146,6,5,3
+Applied Mathematics Year 1,Mechanics,10,Forces and motion,10.1,Force diagrams,157,3,3,2
+Applied Mathematics Year 1,Mechanics,10,Forces and motion,10.2,Forces as vectors,160,2,2,2
+Applied Mathematics Year 1,Mechanics,10,Forces and motion,10.3,Forces and acceleration,162,4,4,3
+Applied Mathematics Year 1,Mechanics,10,Forces and motion,10.4,Motion in 2 dimensions,166,3,3,3
+Applied Mathematics Year 1,Mechanics,10,Forces and motion,10.5,Connected particles,169,4,4,4
+Applied Mathematics Year 1,Mechanics,10,Forces and motion,10.6,Pulleys,173,4,4,4
+Applied Mathematics Year 1,Mechanics,11,Variable acceleration,11.1,Functions of time,182,3,3,2
+Applied Mathematics Year 1,Mechanics,11,Variable acceleration,11.2,Using differentiation,185,1,1,2
+Applied Mathematics Year 1,Mechanics,11,Variable acceleration,11.3,Maxima and minima problems,186,2,2,3
+Applied Mathematics Year 1,Mechanics,11,Variable acceleration,11.4,Using integration,188,3,3,3
+Applied Mathematics Year 1,Mechanics,11,Variable acceleration,11.5,Constant acceleration formulae,191,2,2,3
+Applied Mathematics Year 2,Statistics,1,"Regression, correlation and hypothesis testing",1.1,Exponential models,2,3,3,3
+Applied Mathematics Year 2,Statistics,1,"Regression, correlation and hypothesis testing",1.2,Measuring correlation,5,3,3,2
+Applied Mathematics Year 2,Statistics,1,"Regression, correlation and hypothesis testing",1.3,Hypothesis testing for zero correlation,8,4,4,4
+Applied Mathematics Year 2,Statistics,2,Conditional probability,2.1,Set notation,17,4,4,2
+Applied Mathematics Year 2,Statistics,2,Conditional probability,2.2,Conditional probability,21,3,3,3
+Applied Mathematics Year 2,Statistics,2,Conditional probability,2.3,Conditional probabilities in Venn diagrams,24,3,3,3
+Applied Mathematics Year 2,Statistics,2,Conditional probability,2.4,Probability formulae,27,4,4,4
+Applied Mathematics Year 2,Statistics,2,Conditional probability,2.5,Tree diagrams,31,3,3,3
+Applied Mathematics Year 2,Statistics,3,The normal distribution,3.1,The normal distribution,38,3,3,2
+Applied Mathematics Year 2,Statistics,3,The normal distribution,3.2,Finding probabilities for normal distributions,41,3,3,3
+Applied Mathematics Year 2,Statistics,3,The normal distribution,3.3,The inverse normal distribution function,44,3,3,3
+Applied Mathematics Year 2,Statistics,3,The normal distribution,3.4,The standard normal distribution,47,2,2,3
+Applied Mathematics Year 2,Statistics,3,The normal distribution,3.5,Finding mu and sigma,49,4,4,4
+Applied Mathematics Year 2,Statistics,3,The normal distribution,3.6,Approximating a binomial distribution,53,3,3,4
+Applied Mathematics Year 2,Statistics,3,The normal distribution,3.7,Hypothesis testing with the normal distribution,56,4,4,4
+Applied Mathematics Year 2,Mechanics,4,Moments,4.1,Moments,71,2,2,2
+Applied Mathematics Year 2,Mechanics,4,Moments,4.2,Resultant moments,73,3,3,3
+Applied Mathematics Year 2,Mechanics,4,Moments,4.3,Equilibrium,76,4,4,3
+Applied Mathematics Year 2,Mechanics,4,Moments,4.4,Centres of mass,80,3,3,3
+Applied Mathematics Year 2,Mechanics,4,Moments,4.5,Tilting,83,2,2,4
+Applied Mathematics Year 2,Mechanics,5,Forces and friction,5.1,Resolving forces,91,5,5,3
+Applied Mathematics Year 2,Mechanics,5,Forces and friction,5.2,Inclined planes,96,4,4,3
+Applied Mathematics Year 2,Mechanics,5,Forces and friction,5.3,Friction,100,5,5,4
+Applied Mathematics Year 2,Mechanics,6,Projectiles,6.1,Horizontal projection,108,3,3,3
+Applied Mathematics Year 2,Mechanics,6,Projectiles,6.2,Horizontal and vertical components,111,2,2,3
+Applied Mathematics Year 2,Mechanics,6,Projectiles,6.3,Projection at any angle,113,7,5,4
+Applied Mathematics Year 2,Mechanics,6,Projectiles,6.4,Projectile motion formulae,120,5,5,5
+Applied Mathematics Year 2,Mechanics,7,Applications of forces,7.1,Static particles,129,4,4,3
+Applied Mathematics Year 2,Mechanics,7,Applications of forces,7.2,Modelling with statics,133,4,4,3
+Applied Mathematics Year 2,Mechanics,7,Applications of forces,7.3,Friction and static particles,137,5,5,4
+Applied Mathematics Year 2,Mechanics,7,Applications of forces,7.4,Static rigid bodies,142,5,5,5
+Applied Mathematics Year 2,Mechanics,7,Applications of forces,7.5,Dynamics and inclined planes,147,3,3,4
+Applied Mathematics Year 2,Mechanics,7,Applications of forces,7.6,Connected particles,150,4,4,4
+Applied Mathematics Year 2,Mechanics,8,Further kinematics,8.1,Vectors in kinematics,160,5,5,3
+Applied Mathematics Year 2,Mechanics,8,Further kinematics,8.2,Vector methods with projectiles,165,2,2,4
+Applied Mathematics Year 2,Mechanics,8,Further kinematics,8.3,Variable acceleration in one dimension,167,4,4,4
+Applied Mathematics Year 2,Mechanics,8,Further kinematics,8.4,Differentiating vectors,171,2,2,3
+Applied Mathematics Year 2,Mechanics,8,Further kinematics,8.5,Integrating vectors,173,4,4,4

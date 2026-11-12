@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en" data-palette="paper">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta
+      name="description"
+      content="A focused A-level revision companion: practise questions, understand your progress and prepare for your exams."
+    />
+    <title>A-level revision | Archie Carpenter</title>
+    <link rel="icon" href="assets/favicon.svg" />
+    <link rel="stylesheet" href="assets/colors_and_type.css" />
+    <link rel="stylesheet" href="assets/vendor/katex.min.css" />
+    <link rel="stylesheet" href="revision.css" />
+    <script defer src="assets/vendor/supabase.js"></script>
+    <script defer src="assets/vendor/marked.umd.js"></script>
+    <script defer src="assets/vendor/purify.min.js"></script>
+    <script defer src="assets/vendor/katex.min.js"></script>
+    <script defer src="assets/vendor/auto-render.min.js"></script>
+    <script type="module" src="app.mjs"></script>
+  </head>
+  <body>
+    <a class="skip" href="#content">Skip to content</a>
+    <div class="page">
+      <aside class="rail">
+        <a class="mark" href="../" aria-label="Archie Carpenter home"
+          >a<span>.</span>c</a
+        >
+        <div class="rail-heading">A-level revision</div>
+        <nav aria-label="Revision navigation" id="navigation">
+          <a href="#today" data-view="today">Today <span>01</span></a>
+          <a href="#topics" data-view="topics">Your syllabus <span>02</span></a>
+          <a href="#progress" data-view="progress"
+            >Learning progress <span>03</span></a
+          >
+          <a href="#exams" data-view="exams"
+            >Exam preparation <span>04</span></a
+          >
+          <a href="#settings" data-view="settings">Settings <span>05</span></a>
+        </nav>
+        <div class="rail-foot">
+          <a href="../">Back to the site ↗</a
+          ><button id="sign-out" class="text-button" hidden>Sign out</button>
+        </div>
+      </aside>
+      <div class="workspace">
+        <header class="topbar">
+          <span>Study / A-level</span
+          ><span id="connection" role="status">Connecting…</span>
+        </header>
+        <div id="notice" role="status" aria-live="polite"></div>
+        <main id="content" tabindex="-1">
+          <p class="muted">Loading your revision space…</p>
+        </main>
+        <footer class="pagefoot">
+          <span>a.c / A-level revision</span>
+        </footer>
+      </div>
+    </div>
+    <noscript
+      ><p>
+        This revision tool needs JavaScript. Your other course notes remain
+        available from the main site.
+      </p></noscript
+    >
+  </body>
+</html>
