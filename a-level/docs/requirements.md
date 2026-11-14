@@ -62,7 +62,7 @@ The main success criterion is a usable next-question recommendation without the 
 | ID | Requirement | Acceptance |
 |---|---|---|
 | CONTENT-01 | Import versioned reviewed content in JSON. | Unknown tags, invalid metadata and unsafe image URLs fail the entire import. Published versions are immutable; reimporting identical content is safe. |
-| CONTENT-02 | Respect source and review metadata. | Every question includes source title/licence; verified content also records a reviewer. Only reviewed questions enter practice. No textbook question text is copied by the catalogue generator. |
+| CONTENT-02 | Require reviewed questions. | Questions need no source/licence metadata. Dashboard verification records the responsible administrator in the import audit. Only reviewed questions enter practice. No textbook question text is copied by the catalogue generator. |
 | CONTENT-03 | Render safely. | Markdown, LaTeX and images work; raw HTML is displayed as text and unsafe links/scripts cannot execute. |
 | EXAM-01 | Use maintained dates and paper mappings. | Each exam has a date, source link and provisional flag. Only relevant selected papers and the chosen year appear. The Python prototype's dates are not seeded. |
 | EXAM-02 | Communicate planning limits. | Show coverage and a diagnostic-work estimate; flag when even that work exceeds capacity. Explain missing questions and excluded future retention/improvement workload. Do not label estimates predicted grades. |

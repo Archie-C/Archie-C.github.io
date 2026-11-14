@@ -13,6 +13,7 @@ This system extends the existing static website. It helps a student decide what 
 5. [Learning model and scheduler](algorithms.md): equations, defaults, examples and limitations.
 6. [Manual Supabase setup](setup.md): ordered installation and maintenance using the browser dashboard.
 7. [Verification and development](verification.md): automated checks, live acceptance checks, traceability and release phases.
+8. [Administration](admin.md): dashboard setup, role grants, CSV workflows, catalogue editing and auditing.
 
 ## Delivered components
 
@@ -26,6 +27,6 @@ Your administrator supplies the Supabase project, testing account, reviewed ques
 
 ## Agreed boundaries
 
-The launch subjects are Edexcel A-level Mathematics (9MA0) and Further Mathematics (9FM0). Confidence and proficiency belong to whole textbook chapters. Further Mathematics includes both core books and a valid pair of optional books from the supplied catalogue. Other subjects, automatic timetable ingestion, AI authoring, automatic marking, answer uploads and full-paper practice are future work.
+The seeded subjects are Edexcel A-level Mathematics (9MA0) and Further Mathematics (9FM0). Other imported specifications become selectable when revision books exist. Confidence and proficiency belong to whole chapters. Migration 08 generalizes optional content with per-specification group bounds, book/chapter/subtopic choices and prerequisites, while preserving the Further Maths routes. Automatic timetable ingestion, AI authoring, automatic marking, answer uploads and full-paper practice remain future work.
 
 The implementation is delivered as local repository files. You perform live Supabase setup and your normal website publication. No commits, pushes, project registration or hosting changes are part of this work.

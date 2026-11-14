@@ -17,8 +17,9 @@ The document has integer `schema_version: 1` and a `questions` array. Each quest
 | `estimated_seconds` | Whole estimated working seconds, 15–7200. Include attempting and self-marking time. |
 | `total_marks` | Optional positive integer or null. Earned marks remain optional during practice. |
 | `assets` | Optional array of question diagrams: `{url, alt, caption?}`. Use HTTPS or relative URLs. These assets are visible before reveal. |
-| `source` | Object requiring nonempty `title` and `licence`; optional `url` and `reviewed_by`. Use an appropriate licence/permission description for your actual material. |
-| `review_status` | `draft` or `verified`. Verified content requires a nonempty `source.reviewed_by`. |
+| `review_status` | `draft` or `verified`. Only verified questions enter student practice. |
+
+Apply migration `10-question-metadata.sql` after migration 09 before using the current import format. Source, licence and reviewer metadata are no longer required or stored; older JSON metadata is ignored. Admin audit records identify who verifies questions through the dashboard.
 
 The supplied example is original content and remains a draft. The integration test bank is artificial test material and must not be used as a substantive revision bank.
 
@@ -57,8 +58,8 @@ Tags must describe the skills actually assessed. A mixed question is schedulable
 
 ## Import procedure
 
-1. Prepare and validate the JSON. Check every prompt, answer, mark allocation, image, tag, licence and duration.
-2. Keep `review_status: "draft"` until review is complete. Set `reviewed_by` and change the status to `verified` when ready.
+1. Prepare and validate the JSON. Check every prompt, answer, mark allocation, image, tag and duration.
+2. Keep `review_status: "draft"` until review is complete. Change the status to `verified` when ready.
 3. Paste the entire JSON document into a SQL dollar-quoted string:
 
 ```sql
@@ -71,13 +72,13 @@ select revision_private.import_questions(
 
 Replace the empty JSON with your document. If your text contains the dollar-quote delimiter itself, choose another delimiter. The function returns the number of newly inserted versions. Zero is normal for an identical reimport or draft promotion. Any validation failure rolls back the entire document.
 
-Imports validate required fields, bounds through table constraints, known subtopic IDs, review status/reviewer and asset URLs. The JSON Schema additionally catches editorial mistakes such as extra properties and duplicate tags; the importer normalises repeated tags. Use both schema validation and SQL validation rather than assuming either verifies mathematical correctness.
+Imports validate required fields, bounds through table constraints, known subtopic IDs, review status and asset URLs. The JSON Schema additionally catches editorial mistakes such as extra properties and duplicate tags; the importer normalises repeated tags. Use both schema validation and SQL validation rather than assuming either verifies mathematical correctness.
 
 ## Versioning and publication
 
-An identical reimport is safe. To change a prompt, solution, marks, difficulty, estimate, assets, source or tags, increment `version` while keeping `id`. Publishing a new verified version archives the previous verified version. Existing sessions/attempts retain their exact version and original solution. Retirement follows the stable ID, so a corrected version does not silently become a new question for students who have already retired it.
+An identical reimport is safe. To change a prompt, solution, marks, difficulty, estimate, assets or tags, increment `version` while keeping `id`. Publishing a new verified version archives the previous verified version. Existing sessions/attempts retain their exact version and original solution. Retirement follows the stable ID, so a corrected version does not silently become a new question for students who have already retired it.
 
-An unchanged draft can be promoted by setting `review_status: "verified"` and adding its reviewer; other edits require a new version. Reimporting an old archived version does not reactivate it. Withdraw content administratively when it should no longer start new attempts:
+An unchanged draft can be promoted by setting `review_status: "verified"`; other edits require a new version. Reimporting an old archived version does not reactivate it. Withdraw content administratively when it should no longer start new attempts:
 
 ```sql
 update public.revision_questions

@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en" data-palette="paper">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Revision administration | Archie Carpenter</title>
+  <link rel="icon" href="../a-level/assets/favicon.svg">
+  <link rel="stylesheet" href="../a-level/assets/colors_and_type.css">
+  <link rel="stylesheet" href="../a-level/assets/vendor/katex.min.css">
+  <link rel="stylesheet" href="../a-level/revision.css">
+  <link rel="stylesheet" href="../a-level/admin.css">
+  <script defer src="../a-level/assets/vendor/supabase.js"></script>
+  <script defer src="../a-level/assets/vendor/marked.umd.js"></script>
+  <script defer src="../a-level/assets/vendor/purify.min.js"></script>
+  <script defer src="../a-level/assets/vendor/katex.min.js"></script>
+  <script defer src="../a-level/assets/vendor/auto-render.min.js"></script>
+  <script type="module" src="../a-level/admin.mjs"></script>
+</head>
+<body>
+  <a class="skip" href="#content">Skip to content</a>
+  <div class="page">
+    <aside class="rail">
+      <a class="mark" href="../" aria-label="Archie Carpenter home">a<span>.</span>c</a>
+      <div class="rail-heading">Revision / Administration</div>
+      <nav aria-label="Admin navigation" id="navigation" hidden>
+        <a href="#questions">Question bank <span>01</span></a>
+        <a href="#coverage">Question coverage <span>02</span></a>
+        <a href="#exams">Exam timetables <span>03</span></a>
+        <a href="#chapters">Topics & specifications <span>04</span></a>
+        <a href="#students">Students <span>05</span></a>
+        <a href="#history">Import history <span>06</span></a>
+      </nav>
+      <div class="rail-foot"><a href="../a-level/">Student revision ↗</a><button id="sign-out" class="text-button" hidden>Sign out</button></div>
+    </aside>
+    <div class="workspace">
+      <header class="topbar"><span>Study / Administration</span><span id="connection" role="status">Connecting…</span></header>
+      <div id="notice" role="status" aria-live="polite"></div>
+      <main id="content" tabindex="-1"><p class="muted">Checking access…</p></main>
+      <footer class="pagefoot"><span>a.c / A-level revision</span><a href="../a-level/">Return to revision</a></footer>
+    </div>
+  </div>
+  <noscript>This dashboard requires JavaScript and an administrator account.</noscript>
+</body>
+</html>

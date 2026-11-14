@@ -1,6 +1,8 @@
 import {RevisionBackend,Outbox} from './api.mjs';
 import {timezoneGroups} from './timezones.mjs';
-import {escapeHTML as h,formatTime,minutes,percent,activeItem,selectedChapters,chapterProgress,usedSeconds,relevantExams,daysUntil,renderMarkdown,safeURL} from './model.mjs';
+import {optionRequirement,validateOptionSelection} from './options.mjs';
+import {escapeHTML as h,formatTime,minutes,percent,activeItem,selectedChapters,selectedSubtopics,chapterProgress,usedSeconds,relevantExams,daysUntil,renderMarkdown,safeURL} from './model.mjs';
+import {questionCard,renderQuestionCards,renderQuestionMarkdown} from './question-view.mjs';
 
 const main=document.querySelector('#content');
 const notice=document.querySelector('#notice');
@@ -9,7 +11,7 @@ const timezone=Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC';
 const easeLabels=["Couldn't attempt",'Very difficult','Moderate','Easy','Effortless'];
 const correctnessLabels=['None correct','A little correct','About half','Mostly correct','Completely correct'];
 let backend,user,data,outbox,draft,weekly,busy=false,wakeLock=null,lastTick=performance.now(),checkpointAt=0;
-let view=location.hash.slice(1)||'today',bookFilter='',searchFilter='',uncoveredOnly=false;
+let view=location.hash.slice(1)||'today',searchFilter='',uncoveredOnly=false;
 const chapterTitle=id=>data?.chapters.find(c=>c.id===id)?.title||'Chapter';
 const chapterBook=id=>data?.books.find(b=>b.id===data.chapters.find(c=>c.id===id)?.book_id)?.title||'';
 const title=(eyebrow,heading,intro='')=>`<div class="eyebrow">${h(eyebrow)}</div><h1>${h(heading)}</h1>${intro?`<p class="intro">${h(intro)}</p>`:''}`;
@@ -98,13 +100,13 @@ function pause() {
 }
 async function run(task) {
   if(busy)return;busy=true;
-  const origin=document.activeElement,chapterFocus=origin?.dataset.confidence,buttonFocus=origin?.tagName==='BUTTON';
+  const origin=document.activeElement,chapterFocus=origin?.dataset.confidence,confidenceValue=origin?.dataset.confidenceValue,buttonFocus=origin?.tagName==='BUTTON';
   for(const el of main.querySelectorAll('button'))el.disabled=true;
   try {await task();}
   catch(error){message(errorMessage(error),true);syncStatus();}
   finally {
     busy=false;render();
-    if(chapterFocus)main.querySelector(`[data-confidence="${CSS.escape(chapterFocus)}"]`)?.focus();
+    if(chapterFocus)main.querySelector(`[data-confidence="${CSS.escape(chapterFocus)}"][data-confidence-value="${CSS.escape(confidenceValue)}"]`)?.focus();
     else if(buttonFocus)main.focus();
   }
 }
@@ -121,7 +123,7 @@ function renderSetup() {
   connection.textContent='Setup required';
 }
 function renderLogin() {
-  main.innerHTML=title('A-level / Revision','A little practice. A clearer picture.','Choose your subjects, tell me what you have covered, and take your next question one step at a time.')+
+  main.innerHTML=title('A-level / Revision','Your revision')+
     `<form id="login" class="card login"><h2>Welcome back</h2><p class="muted section">Sign in with the account provided by your administrator.</p><label class="field">Email<input name="email" type="email" autocomplete="username" required></label><label class="field">Password<input name="password" type="password" autocomplete="current-password" required minlength="6"></label><button type="submit" ${busy?'disabled':''}>Sign in →</button><p class="muted section">Accounts are created privately. There is no public registration.</p></form>`;
   document.querySelector('#login').addEventListener('submit',event=>{event.preventDefault();const form=new FormData(event.target);run(async()=>{
     const {data:auth,error}=await backend.client.auth.signInWithPassword({email:form.get('email'),password:form.get('password')});
@@ -135,52 +137,69 @@ function renderToday() {
   const due=data.syllabus_check_due;
   const queue=session?.items.filter(q=>q.state==='queued')||[];
   const exam=relevantExams(data).find(e=>daysUntil(e.exam_date,data.today)>=0);
-  main.innerHTML=title(new Date(`${data.today}T12:00:00`).toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'}),"Today's revision",'A useful next question, chosen around what you know and the time you have.')+
+  main.innerHTML=title(new Date(`${data.today}T12:00:00`).toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'}),"Today's revision")+
     `<div class="stats"><div class="stat"><strong>${minutes(seconds)}<small> / ${data.profile.daily_minutes} min</small></strong><span>Time spent today</span></div><div class="stat"><strong>${covered.length}<small> / ${selected.length}</small></strong><span>Chapters covered</span></div><div class="stat"><strong>${todayHistory?.questions||0}</strong><span>Questions completed</span></div></div>`+
-    `<div class="split"><section><div class="section-head"><h2>${item?'Pick up where you left off':'Your next step'}</h2></div><div class="card"><span class="tag">${item?'Question in progress':seconds>=data.profile.daily_minutes*60?'Daily target reached':'Made for your time'}</span><h2 class="section">${item?h(chapterTitle(item.chapter_ids[0])):seconds>=data.profile.daily_minutes*60?'A good place to finish.':`${data.profile.daily_minutes} minutes, one question at a time.`}</h2><p class="muted section">${item?'Your question and ratings are saved. Resume whenever you are ready.':covered.length?'The queue balances initial assessment, weaker chapters, retention and upcoming exams.':'Mark the chapters you have already learned before starting your first question.'}</p><div class="actions">${item?button('Resume question →','resume'):covered.length?button(seconds>=data.profile.daily_minutes*60?'Continue voluntarily →':'Start revision →',seconds>=data.profile.daily_minutes*60?'continue':'start'):'<a class="button" href="#topics">Review your syllabus →</a>'}</div><div class="progress-track" role="progressbar" aria-label="Daily revision time" aria-valuemin="0" aria-valuemax="${data.profile.daily_minutes*60}" aria-valuenow="${Math.min(Math.floor(seconds),data.profile.daily_minutes*60)}"><div class="progress-fill" style="--value:${percent(seconds/(data.profile.daily_minutes*60))}"></div></div></div></section><section><div class="section-head"><h2>Ahead of you</h2></div><div class="card">${exam?`<span class="eyebrow">Next exam</span><h3 class="section">${h(data.papers.find(p=>p.id===exam.paper_id)?.title)}</h3><p class="section">${daysUntil(exam.exam_date,data.today)} days <span class="tag">${exam.provisional?'Provisional':'Confirmed'}</span></p><a href="#exams">See exam preparation →</a>`:'<h3>Your exam dates</h3><p class="muted section">No upcoming dates are recorded for your chosen exam year. Your administrator can add confirmed or provisional dates.</p><a href="#settings">Check your exam year →</a>'}</div></section></div>`+
+    `<div class="split"><section><div class="section-head"><h2>${item?'Pick up where you left off':'Your next step'}</h2></div><div class="card">${item?'<span class="tag">Question in progress</span>':seconds>=data.profile.daily_minutes*60?'<span class="tag">Daily target reached</span>':''}<h2 class="section">${item?h(chapterTitle(item.chapter_ids[0])):seconds>=data.profile.daily_minutes*60?'A good place to finish.':`Daily target: ${data.profile.daily_minutes} minutes`}</h2><p class="muted section">${item?'Your question and ratings are saved. Resume whenever you are ready.':covered.length?'The queue balances initial assessment, weaker chapters, retention and upcoming exams.':'Mark the chapters you have already learned before starting your first question.'}</p><div class="actions">${item?button('Resume question →','resume'):covered.length?button(seconds>=data.profile.daily_minutes*60?'Continue voluntarily →':'Start revision →',seconds>=data.profile.daily_minutes*60?'continue':'start'):'<a class="button" href="#topics">Review your syllabus →</a>'}</div><div class="progress-track" role="progressbar" aria-label="Daily revision time" aria-valuemin="0" aria-valuemax="${data.profile.daily_minutes*60}" aria-valuenow="${Math.min(Math.floor(seconds),data.profile.daily_minutes*60)}"><div class="progress-fill" style="--value:${percent(seconds/(data.profile.daily_minutes*60))}"></div></div></div></section><section><div class="section-head"><h2>Ahead of you</h2></div><div class="card">${exam?`<span class="eyebrow">Next exam</span><h3 class="section">${h(data.papers.find(p=>p.id===exam.paper_id)?.title)}</h3><p class="section">${daysUntil(exam.exam_date,data.today)} days <span class="tag">${exam.provisional?'Provisional':'Confirmed'}</span></p><a href="#exams">See exam preparation →</a>`:'<h3>Your exam dates</h3><p class="muted section">No upcoming dates are recorded for your chosen exam year. Your administrator can add confirmed or provisional dates.</p><a href="#settings">Check your exam year →</a>'}</div></section></div>`+
     (due?`<div class="callout"><h3>A quick syllabus check</h3><p class="section">Learned anything new this week? Review your uncovered chapters. The time counts towards today’s target.</p>${button(weekly?'Continue syllabus check →':'Review uncovered chapters →','weekly','secondary')}</div>`:'')+
     (queue.length?`<section class="section"><div class="section-head"><h2>Your suggested queue</h2><span class="muted">≈ ${minutes(queue.reduce((n,q)=>n+q.estimated_seconds,0))} min remaining</span></div>${queueRows(queue)}${queue.length>6?`<p class="muted section">${queue.length-6} more questions. The queue adapts as you practise.</p>`:''}</section>`:covered.length?'<div class="section"><p class="muted">Your queue is built when you start. If the bank has no eligible questions, you will see which content needs adding.</p></div>':'');
 }
 function renderSettings() {
   const first=!data.profile.onboarded;
-  const maths=data.enrolments.some(id=>id.startsWith('maths-'))||first;
-  const further=data.enrolments.some(id=>id.startsWith('further-maths-'));
-  const options=data.books.filter(b=>!b.required),chosen=options.filter(b=>data.enrolments.includes(b.id));
-  const choiceA=chosen.find(b=>b.option_level===1)?.id||'further-maths-further-statistics-1';
-  const choiceB=chosen.find(b=>b.id!==choiceA)?.id||'further-maths-decision-mathematics-1';
+  const available=data.specifications.filter(sp=>data.books.some(b=>b.specification_id===sp.id));
+  const selected=new Set(data.selected_specifications||data.books.filter(b=>data.enrolments.includes(b.id)).map(b=>b.specification_id));
+  if(first&&!selected.size&&available.some(s=>s.id==='edexcel-9ma0'))selected.add('edexcel-9ma0');
+  const chosen=new Set(data.selected_options||[]);
   const year=first?new Date().getFullYear()+(new Date().getMonth()>=7?1:0):data.profile.exam_year;
-  const optionHTML=(items,value)=>items.map(b=>`<option value="${h(b.id)}" ${b.id===value?'selected':''}>${h(b.title)}</option>`).join('');
   const selectedTimezone=first?timezone:data.profile.timezone;
   const timezoneHTML=timezoneGroups(selectedTimezone,timezone).map(group=>`<optgroup label="${h(group.label)}">${group.options.map(option=>`<option value="${h(option.value)}" ${option.value===selectedTimezone?'selected':''}>${h(option.label)}</option>`).join('')}</optgroup>`).join('');
-  main.innerHTML=title(first?'Getting started':'Your preferences',first?'Make this your revision space.':'Settings','Choose your subjects and time target. Changes update future questions while keeping your practice history.')+
-    `<form id="settings-form"><fieldset><legend>Your subjects</legend><label class="checkbox"><input type="checkbox" name="maths" ${maths?'checked':''}> Edexcel A-level Mathematics · 9MA0</label><label class="checkbox"><input type="checkbox" name="further" ${further?'checked':''}> Edexcel A-level Further Mathematics · 9FM0</label><p class="muted">Mathematics includes all four books. Further Mathematics includes both Core Pure books.</p><div id="option-fields" ${further?'':'hidden'}><label class="field">First optional book${`<select name="option_a">${optionHTML(options.filter(b=>b.option_level===1),choiceA)}</select>`}</label><label class="field">Second optional book<select name="option_b">${optionHTML(options,choiceB)}</select></label><p class="muted">Choose two different level 1 options, or the level 1 and level 2 books from the same strand.</p></div></fieldset><div class="form-grid"><label class="field">Daily revision target (minutes)<input name="daily_minutes" type="number" min="5" max="480" step="1" value="${data.profile.daily_minutes}" required></label><label class="field">Exam year<input name="exam_year" type="number" min="2020" max="2100" value="${year}" required></label></div><label class="field"><span id="timezone-label">Timezone</span><select name="timezone" aria-labelledby="timezone-label" aria-describedby="timezone-help" required>${timezoneHTML}</select><span class="muted" id="timezone-help">For the UK, choose United Kingdom — London (GMT / BST). Clocks change automatically. Your timezone sets daily targets and review dates.</span></label><div class="actions"><button type="submit">${first?'Save and review your syllabus →':'Save settings'}</button></div></form>`;
+  const subjects=available.map(sp=>{
+    const subject=data.subjects.find(s=>s.id===sp.subject_id);
+    const groups=(data.option_groups||[]).filter(g=>g.specification_id===sp.id&&!g.archived);
+    return `<section><label class="checkbox"><input type="checkbox" name="specification" value="${h(sp.id)}" ${selected.has(sp.id)?'checked':''}> ${h(subject?.board)} · ${h(subject?.name||sp.title)} · ${h(sp.code)}</label>${groups.map(g=>{
+      const choices=(data.options||[]).filter(o=>o.group_id===g.id&&!o.archived);
+      return `<fieldset data-spec-options="${h(sp.id)}" data-option-group="${h(g.id)}" ${selected.has(sp.id)?'':'hidden disabled'}><legend>${h(g.title)}</legend><p class="muted">${h(optionRequirement(g))}. <span data-option-count></span></p>${choices.map(o=>{
+        const prerequisite=data.options.find(p=>p.id===o.requires_option_id);
+        return `<label class="checkbox"><input data-option type="${g.max_choices===1?'radio':'checkbox'}" name="options:${h(g.id)}" value="${h(o.id)}" ${chosen.has(o.id)?'checked':''} ${g.max_choices===0?'disabled':''}> ${h(o.title)}${prerequisite?` <small>(requires ${h(prerequisite.title)})</small>`:''}</label>`;
+      }).join('')}${g.min_choices===0&&g.max_choices===1?`<label class="checkbox"><input data-option-none type="radio" name="options:${h(g.id)}" value="" ${choices.some(o=>chosen.has(o.id))?'':'checked'}> None</label>`:''}${!choices.length?'<p class="muted">Options have not been added yet.</p>':''}</fieldset>`;
+    }).join('')}</section>`;
+  }).join('');
+  main.innerHTML=title(first?'Getting started':'Your preferences',first?'Make this your revision space.':'Settings','Choose your subjects, optional content and time target. Changes update future questions while keeping your practice history.')+
+    `<form id="settings-form"><fieldset><legend>Your subjects</legend>${subjects||'<p class="muted">Your administrator has not added any revision books yet.</p>'}</fieldset><div class="form-grid"><label class="field">Daily revision target (minutes)<input name="daily_minutes" type="number" min="5" max="480" step="1" value="${data.profile.daily_minutes}" required></label><label class="field">Exam year<input name="exam_year" type="number" min="2020" max="2100" value="${year}" required></label></div><label class="field"><span id="timezone-label">Timezone</span><select name="timezone" aria-labelledby="timezone-label" aria-describedby="timezone-help" required>${timezoneHTML}</select><span class="muted" id="timezone-help">For the UK, choose United Kingdom — London (GMT / BST). Clocks change automatically. Your timezone sets daily targets and review dates.</span></label><div class="actions"><button type="submit">${first?'Save and review your syllabus →':'Save settings'}</button></div></form>`;
   const form=document.querySelector('#settings-form');
-  form.elements.further.addEventListener('change',()=>{document.querySelector('#option-fields').hidden=!form.elements.further.checked;});
-  form.addEventListener('submit',event=>{event.preventDefault();run(async()=>{
-    const f=new FormData(form),books=[];
-    if(f.has('maths'))books.push(...data.books.filter(b=>b.specification_id==='edexcel-9ma0').map(b=>b.id));
-    if(f.has('further'))books.push(...data.books.filter(b=>b.specification_id==='edexcel-9fm0'&&b.required).map(b=>b.id),f.get('option_a'),f.get('option_b'));
-    // Settings errors are editable validation failures, not an offline question outbox.
-    const payload={books,daily_minutes:Number(f.get('daily_minutes')),exam_year:Number(f.get('exam_year')),timezone:f.get('timezone').trim(),request_id:crypto.randomUUID()};
-    await flush();data=await backend.call('settings',payload);message('Your settings are saved.');if(first)go('topics');
-  });});
+  const refreshChoices=()=>{
+    const specs=[...form.querySelectorAll('[name=specification]:checked')].map(c=>c.value);
+    for(const group of form.querySelectorAll('[data-spec-options]')){
+      group.hidden=group.disabled=!specs.includes(group.dataset.specOptions);
+      group.querySelector('[data-option-count]').textContent=`${group.querySelectorAll('[data-option]:checked:not(:disabled)').length} selected.`;
+    }
+  };
+  form.addEventListener('change',refreshChoices);refreshChoices();
+  form.addEventListener('submit',event=>{
+    event.preventDefault();const f=new FormData(form);
+    const specifications=f.getAll('specification'),option_ids=[...form.querySelectorAll('[data-option]:checked')].filter(c=>!c.disabled&&!c.closest('fieldset').disabled).map(c=>c.value);
+    const problem=validateOptionSelection(data,specifications,option_ids);
+    if(problem){message(problem,true);return;}
+    run(async()=>{
+      const payload={specifications,option_ids,daily_minutes:Number(f.get('daily_minutes')),exam_year:Number(f.get('exam_year')),timezone:f.get('timezone').trim(),request_id:crypto.randomUUID()};
+      await flush();data=await backend.call('settings',payload);message('Your settings are saved.');if(first)go('topics');
+    });
+  });
 }
 function renderTopics() {
-  const chapters=selectedChapters(data),books=data.books.filter(b=>data.enrolments.includes(b.id));
-  const filtered=chapters.filter(c=>(!bookFilter||c.book_id===bookFilter)&&(!uncoveredOnly||!chapterProgress(data,c.id)?.confidence)&&(`${c.title} ${chapterBook(c.id)}`.toLowerCase().includes(searchFilter.toLowerCase())));
-  main.innerHTML=title(weekly?'Weekly syllabus check':'Your syllabus',weekly?'What have you learned this week?':'Start with what you have covered.','Rate your confidence in each chapter from 1 to 5. Leave chapters blank until you have learned them; they will stay out of your question queue.')+
+  const chapters=selectedChapters(data);
+  const filtered=chapters.filter(c=>(!uncoveredOnly||!chapterProgress(data,c.id)?.confidence)&&(`${c.title} ${chapterBook(c.id)}`.toLowerCase().includes(searchFilter.toLowerCase())));
+  main.innerHTML=title(weekly?'Weekly syllabus check':'Your syllabus',weekly?'What have you learned this week?':'Your chapters','Rate your confidence in each chapter from 1 to 5. Leave chapters blank until you have learned them; they will stay out of your question queue.')+
     (weekly?`<div class="callout">Syllabus check time: <strong id="weekly-time">${formatTime(weekly.seconds)}</strong>. Rate newly covered chapters, then ${button('Finish syllabus check','finish-weekly','secondary')}</div>`:'')+
-    `<div class="filters"><input id="topic-search" type="search" aria-label="Search chapters" placeholder="Find a chapter…" value="${h(searchFilter)}"><select id="book-filter" aria-label="Filter by book"><option value="">All selected books</option>${books.map(b=>`<option value="${h(b.id)}" ${b.id===bookFilter?'selected':''}>${h(b.title)}</option>`).join('')}</select><label class="checkbox"><input id="uncovered-filter" type="checkbox" ${uncoveredOnly?'checked':''}> Uncovered only</label></div><p class="muted">${filtered.length} chapters shown · confidence is your self-assessment, separate from demonstrated proficiency.</p><div id="chapter-list">${filtered.map(c=>{
-      const p=chapterProgress(data,c.id),subtopics=data.subtopics.filter(t=>t.chapter_id===c.id);
-      return `<article class="topic-row"><div><div class="meta">${h(chapterBook(c.id))} · Chapter ${c.number}</div><h3>${h(c.title)}</h3><details><summary>About this chapter</summary><div class="reminder">${c.reminder_reviewed&&c.description_md?`<div data-markdown="${h(c.description_md)}"></div>`:'<p class="muted">A reviewed chapter description has not been added yet.</p>'}<ul>${subtopics.map(t=>`<li>${h(t.number)} · ${h(t.title)}</li>`).join('')}</ul>${c.reminder_reviewed&&c.example_md?`<div data-markdown="${h(c.example_md)}"></div>`:'<p class="muted">A reviewed worked example has not been added yet.</p>'}</div></details></div><label>Confidence<select data-confidence="${h(c.id)}" aria-label="Confidence: ${h(c.title)}"><option value="">Not yet covered</option>${['Very low','Low','Moderate','High','Very high'].map((label,i)=>`<option value="${i+1}" ${p?.confidence===i+1?'selected':''}>${i+1} · ${label}</option>`).join('')}</select></label></article>`;
+    `<div class="filters"><input id="topic-search" type="search" aria-label="Search chapters" placeholder="Find a chapter…" value="${h(searchFilter)}"><label class="checkbox"><input id="uncovered-filter" type="checkbox" ${uncoveredOnly?'checked':''}> Uncovered only</label></div><p class="muted">${filtered.length} chapters shown · confidence is your self-assessment, separate from demonstrated proficiency.</p><div id="chapter-list">${filtered.map(c=>{
+      const p=chapterProgress(data,c.id),subtopics=selectedSubtopics(data).filter(t=>t.chapter_id===c.id);
+      return `<article class="topic-row"><div><div class="meta">${h(chapterBook(c.id))} · Chapter ${c.number}</div><h3>${h(c.title)}</h3><details><summary>About this chapter</summary><div class="reminder">${c.reminder_reviewed&&c.description_md?`<div data-markdown="${h(c.description_md)}"></div>`:'<p class="muted">A reviewed chapter description has not been added yet.</p>'}<ul>${subtopics.map(t=>`<li>${h(t.number)} · ${h(t.title)}</li>`).join('')}</ul>${c.reminder_reviewed&&c.example_md?`<div data-markdown="${h(c.example_md)}"></div>`:'<p class="muted">A reviewed worked example has not been added yet.</p>'}</div></details></div><div class="confidence"><div class="confidence-label">Confidence</div><div class="confidence-buttons" role="group" aria-label="Confidence: ${h(c.title)}">${['Very low','Low','Moderate','High','Very high'].map((label,i)=>`<button type="button" data-confidence="${h(c.id)}" data-confidence-value="${i+1}" aria-label="${i+1} · ${label}" aria-pressed="${p?.confidence===i+1}">${i+1}</button>`).join('')}</div>${p?.confidence?`<button type="button" class="text-button confidence-clear" data-confidence="${h(c.id)}" data-confidence-value="" aria-label="Mark ${h(c.title)} as not yet covered">Mark as not yet covered</button>`:'<span class="confidence-status">Not yet covered</span>'}</div></article>`;
     }).join('')||'<p class="empty">No chapters match these filters.</p>'}</div>`;
-  document.querySelector('#book-filter').addEventListener('change',e=>{bookFilter=e.target.value;render();});
   document.querySelector('#uncovered-filter').addEventListener('change',e=>{uncoveredOnly=e.target.checked;render();});
   document.querySelector('#topic-search').addEventListener('input',e=>{
     searchFilter=e.target.value;const position=e.target.selectionStart;render();const field=document.querySelector('#topic-search');field.focus();field.setSelectionRange(position,position);
   });
-  for(const select of main.querySelectorAll('[data-confidence]'))select.addEventListener('change',()=>run(async()=>{
-    await flush();data=await backend.call('confidence',{request_id:crypto.randomUUID(),ratings:[{chapter_id:select.dataset.confidence,confidence:select.value?Number(select.value):null}]});
+  for(const control of main.querySelectorAll('[data-confidence]'))control.addEventListener('click',()=>run(async()=>{
+    await flush();data=await backend.call('confidence',{request_id:crypto.randomUUID(),ratings:[{chapter_id:control.dataset.confidence,confidence:control.dataset.confidenceValue?Number(control.dataset.confidenceValue):null}]});
     message('Chapter confidence saved. Your next questions have been updated.');
   }));
 }
@@ -207,16 +226,11 @@ function renderPractice() {
   main.innerHTML=title('Question practice',item.chapter_ids.map(chapterTitle).join(' / '),'Take your time. Your place is saved as you work.')+
     (s.local_date!==data.today?`<p class="muted">Resuming the session from ${h(s.local_date)}. Questions completed now count towards today’s history.</p>`:'')+
     `<div class="timerbar"><div><strong id="question-time">${formatTime(draft.active_seconds)}</strong><small>On this question</small></div><div><strong id="session-time">${formatTime(used-item.active_seconds+draft.active_seconds)}</strong><small>Session target: ${minutes(s.target_seconds)} min</small></div>${button(draft.paused?'Resume timer':'Pause','toggle-pause','secondary')}</div>`+
-    `<article class="card"><div class="question-head"><span class="tag">Difficulty ${item.difficulty} / 5</span> ${item.total_marks?`<span class="tag">${item.total_marks} marks</span>`:''}</div><div id="question-text" class="question-content"></div><div id="question-assets" class="question-content"></div></article>`+
+    questionCard(item,true)+
     `<form id="assessment"><section class="section">${rating('ease','Before the solution: how easy did this feel?',easeLabels,draft.ease,Boolean(item.revealed_at))}${item.revealed_at?'<p class="muted">Your ease rating was recorded before revealing the solution.</p>':button('Reveal worked solution →','reveal')}</section>`+
     (item.revealed_at?`<section class="solution"><h2>Worked solution</h2><div id="solution-text" class="question-content section"></div>${rating('correctness','Compare your work: how much was correct?',correctnessLabels,draft.correctness,completionPending)}${item.total_marks?`<label class="field">Marks earned (optional, out of ${item.total_marks})<input name="earned_marks" type="number" min="0" max="${item.total_marks}" step="1" value="${draft.earned_marks??''}" ${completionPending?'disabled':''}></label>`:''}<div class="actions">${completionPending?`<p>Attempt waiting to sync.</p>${button('Retry pending saves','retry','secondary')}`:'<button type="submit">Save attempt and continue →</button>'}</div></section>`:'')+`</form><p class="muted section">The timer pauses when you leave this tab or this question. You will never be stopped midway through a question.</p>`;
-  renderMarkdown(document.querySelector('#question-text'),item.prompt_md);
-  if(item.revealed_at)renderMarkdown(document.querySelector('#solution-text'),item.solution_md);
-  for(const asset of item.assets||[]) {
-    const url=safeURL(asset.url);if(!url)continue;
-    const figure=document.createElement('figure'),img=document.createElement('img'),caption=document.createElement('figcaption');
-    img.src=url;img.alt=asset.alt;img.loading='lazy';figure.append(img);if(asset.caption){caption.textContent=asset.caption;figure.append(caption);}document.querySelector('#question-assets').append(figure);
-  }
+  renderQuestionCards(main);
+  if(item.revealed_at)renderQuestionMarkdown(document.querySelector('#solution-text'),item.solution_md);
   const form=document.querySelector('#assessment');
   form.addEventListener('input',e=>{
     if(e.target.name==='ease')draft.ease=Number(e.target.value);
@@ -241,29 +255,28 @@ function histogram(values) {
 function renderProgress() {
   const chapters=selectedChapters(data),measured=chapters.map(c=>({...c,p:chapterProgress(data,c.id)})).filter(c=>c.p?.attempts);
   const ranked=[...measured].sort((a,b)=>a.p.proficiency-b.p.proficiency);
-  const totalSubtopics=data.subtopics.filter(t=>chapters.some(c=>c.id===t.chapter_id)).length;
+  const totalSubtopics=selectedSubtopics(data).filter(t=>chapters.some(c=>c.id===t.chapter_id)).length;
   const assessed=measured.reduce((n,c)=>n+c.p.assessed_subtopics,0);
-  main.innerHTML=title('Learning progress','Understand what you know.','Self-reported confidence, demonstrated performance and uncertainty tell different parts of the story. These estimates are provisional; they are not predicted grades.')+
+  main.innerHTML=title('Learning progress','Your progress')+
     `<div class="stats"><div class="stat"><strong>${data.totals.questions}</strong><span>Questions completed</span></div><div class="stat"><strong>${minutes(data.totals.seconds)} min</strong><span>Question practice time</span></div><div class="stat"><strong>${assessed}<small> / ${totalSubtopics}</small></strong><span>Subtopics assessed</span></div></div>`+
-    (measured.length?`<div class="split"><div class="card"><h3>Needs more practice</h3><p class="section">${h(ranked[0].title)}</p><p class="muted">Estimate ${percent(ranked[0].p.proficiency)} · ${ranked[0].p.distinct_questions} different questions</p></div><div class="card"><h3>Strongest current estimate</h3><p class="section">${h(ranked.at(-1).title)}</p><p class="muted">Estimate ${percent(ranked.at(-1).p.proficiency)} · uncertainty still matters.</p></div></div>`:'<p class="empty">Complete your first question to start building evidence. Confidence ratings alone are not demonstrated performance.</p>')+
+    (measured.length?`<div class="split"><div class="card"><h3>Needs more practice</h3><p class="section">${h(ranked[0].title)}</p><p class="muted">Estimate ${percent(ranked[0].p.proficiency)} · ${ranked[0].p.distinct_questions} different questions</p></div><div class="card"><h3>Strongest current estimate</h3><p class="section">${h(ranked.at(-1).title)}</p><p class="muted">Estimate ${percent(ranked.at(-1).p.proficiency)} · uncertainty still matters.</p></div></div>`:'')+
     `<section class="section"><h2>Practice over time</h2>${data.history.length?`<div class="spark" role="img" aria-label="Question practice minutes by day; exact values follow">${data.history.map(d=>`<span style="--value:${Math.max(3,d.seconds/Math.max(1,...data.history.map(d=>d.seconds))*100)}%" title="${h(d.local_date)}: ${minutes(d.seconds)} min"></span>`).join('')}</div><details><summary>Daily totals</summary>${data.history.map(d=>`<p class="muted">${h(d.local_date)} · ${d.questions} questions · ${minutes(d.seconds)} min · correctness ${percent(d.correctness)}</p>`).join('')}</details>`:'<p class="muted section">Your daily question history will appear here.</p>'}</section>`+
     `<section class="section"><h2>Chapter evidence</h2>${chapters.map(c=>{
-      const p=chapterProgress(data,c.id),n=data.subtopics.filter(t=>t.chapter_id===c.id).length;
+      const p=chapterProgress(data,c.id),n=selectedSubtopics(data).filter(t=>t.chapter_id===c.id).length;
       return `<details class="section card"><summary>${h(c.title)} · ${p?.attempts?`estimate ${percent(p.proficiency)}`:'not assessed'}</summary><p class="muted section">${h(chapterBook(c.id))} · Self-reported confidence: ${p?.confidence?`${p.confidence} / 5`:'not covered'}</p>${p?.attempts?`<p>Estimated proficiency: ${percent(p.proficiency)}. Uncertainty (standard deviation): ${Math.round(Math.sqrt(p.variance)*100)} percentage points.</p><p class="muted">${p.distinct_questions} different questions · ${p.practice_days} practice days · ${p.assessed_subtopics} / ${n} subtopics assessed · next retention check ${h(p.next_review)}</p><div class="split"><div><h3>Correctness</h3>${histogram(p.correctness_distribution)}</div><div><h3>Perceived ease</h3>${histogram(p.ease_distribution)}</div></div>`:'<p class="muted">No demonstrated evidence yet. Your confidence provides a low-certainty starting point.</p>'}</details>`;
     }).join('')}</section>`;
 }
 function renderExams() {
-  const exams=relevantExams(data),chapters=selectedChapters(data);
-  main.innerHTML=title('Exam preparation','Keep the next exam in view.','Dates come from your maintained exam catalogue. Workload figures are rough planning estimates, not predictions of readiness or grades.')+
+  const exams=[...relevantExams(data)].sort((a,b)=>a.exam_date.localeCompare(b.exam_date)||(a.start_time||'').localeCompare(b.start_time||''));
+  const nextDate=exams.find(exam=>daysUntil(exam.exam_date,data.today)>=0)?.exam_date;
+  main.innerHTML=title('Exam preparation','Your exams')+
     (!exams.length?`<div class="card"><h2>No exam dates recorded</h2><p class="section">There are no dates for your selected papers in ${data.profile.exam_year}. Ask your administrator to add them with a source link. Estimates must be marked provisional.</p><a href="#settings">Check subjects and exam year →</a></div>`:exams.map(exam=>{
       const paper=data.papers.find(p=>p.id===exam.paper_id),days=daysUntil(exam.exam_date,data.today);
-      const ids=new Set(data.paper_chapters.filter(p=>p.paper_id===paper.id).map(p=>p.chapter_id));
-      const relevant=chapters.filter(c=>ids.has(c.id)),covered=relevant.filter(c=>chapterProgress(data,c.id)?.confidence);
-      let gap=0,estimated=0;
-      for(const c of covered){const count=chapterProgress(data,c.id)?.distinct_questions||0,needed=Math.max(0,3-count),bank=data.bank_counts.find(b=>b.chapter_id===c.id);gap+=needed;estimated+=needed*(bank?.questions?bank.seconds/bank.questions:300);}
-      const available=Math.max(0,days)*data.profile.daily_minutes;
-      const missing=covered.filter(c=>!data.bank_counts.find(b=>b.chapter_id===c.id)?.questions).length;
-      return `<article class="card section"><div class="section-head"><h2>${h(paper.title)}</h2><span class="tag">${exam.provisional?'Provisional':'Confirmed'}</span></div><p>${h(exam.exam_date)} · ${days>=0?`${days} days away`:'Past exam'} ${exam.label?`· ${h(exam.label)}`:''}</p><p class="muted">${covered.length} / ${relevant.length} examinable chapters marked covered. ${gap} different diagnostic questions remain across covered chapters.</p><p class="muted">Approximate diagnostic workload: ${minutes(estimated)} min. Maximum time at your current daily target before this paper: ${available} min, shared with your other exams.</p>${missing?`<p class="muted">${missing} covered chapters have no verified questions; workload cannot yet be assessed reliably.</p>`:''}${estimated/60>available&&days>=0?'<div class="callout">Even the estimated initial assessment work exceeds your available time. Consider increasing your target or reviewing your priorities.</div>':''}<p class="muted">Uncovered content, later retention checks and additional improvement work are not included. Shared chapters are assessed once and contribute to every relevant paper.</p>${safeURL(exam.source_url)?`<a href="${h(safeURL(exam.source_url))}" rel="noopener noreferrer">Timetable source ↗</a>`:''}</article>`;
+      const date=new Date(`${exam.exam_date}T12:00:00Z`),format=options=>new Intl.DateTimeFormat('en-GB',{...options,timeZone:'UTC'}).format(date);
+      const countdown=days<0?'Past exam':days===0?'Today':days===1?'Tomorrow':`${days} days away`;
+      const time=exam.start_time?exam.start_time.slice(0,5):null;
+      const duration=exam.duration_minutes?`${Math.floor(exam.duration_minutes/60)?`${Math.floor(exam.duration_minutes/60)} hr`:''}${exam.duration_minutes%60?`${exam.duration_minutes>=60?' ':''}${exam.duration_minutes%60} min`:''}`:null;
+      return `<article class="exam-row${exam.exam_date===nextDate?' exam-next':''}"><time class="exam-date" datetime="${h(exam.exam_date)}" aria-label="${h(format({weekday:'long',day:'numeric',month:'long',year:'numeric'}))}"><span>${h(format({month:'short'}))}</span><strong>${h(format({day:'numeric'}))}</strong><small>${h(format({weekday:'short'}))}</small></time><div class="exam-details"><div class="exam-heading"><h2>${h(paper.title)}</h2><span class="tag">${exam.provisional?'Provisional':'Confirmed'}</span></div><p class="exam-meta">${time?`<span>Starts ${h(time)}</span>`:''}${duration?`<span>${h(duration)}</span>`:''}${exam.label?`<span>${h(exam.label)}</span>`:''}</p>${safeURL(exam.source_url)?`<a class="exam-source" href="${h(safeURL(exam.source_url))}" rel="noopener noreferrer">Timetable source ↗</a>`:''}</div><div class="exam-countdown">${exam.exam_date===nextDate?'<span>Next exam</span>':''}<strong>${h(countdown)}</strong></div></article>`;
     }).join(''));
 }
 function render() {
@@ -283,6 +296,7 @@ function render() {
   attachMarkdown();
 }
 const actions={
+  async reload(){location.reload();},
   async retry(){await flush();syncDraft();message(outbox.entries.length?'Your work is still waiting to sync.':'Your saved work has synced.');},
   async start(){await mutate('start');go('practice');},
   async continue(){await mutate('start',{continue:true});go('practice');},
@@ -329,23 +343,37 @@ setInterval(()=>{
 
 async function signedIn(authUser) {
   user=authUser;data=null;
+  // Older installations still work before the optional admin migration is applied.
+  backend.client.rpc('revision_is_admin').then(({data:isAdmin})=>{
+    document.querySelector('#admin-link').hidden=!(isAdmin===true&&user?.id===authUser.id);
+  }).catch(()=>{});
   outbox=new Outbox(user.id,async(action,payload)=>{
     const response=await backend.call(action,payload);data={...data,...response};
   },syncStatus);
   data=await backend.call('bootstrap',{timezone});
   try{weekly=JSON.parse(localStorage.getItem(`ac-revision-weekly:${user.id}`)||'null');}catch{weekly=null;}
-  syncDraft();await flush();syncStatus();render();
+  syncDraft();syncStatus();render();await flush();syncStatus();render();
 }
 async function init() {
   try {
     backend=new RevisionBackend();if(!backend.configured){render();return;}
+    connection.textContent='Checking saved sign-in…';
+    // Resolve initial Auth recovery before registering callbacks that share its lock.
+    const {data:auth,error}=await backend.getSession();if(error)throw error;
     backend.client.auth.onAuthStateChange((event,session)=>{
-      if(event==='SIGNED_OUT') {pause();user=null;data=null;draft=null;outbox=null;render();syncStatus();}
+      if(event==='SIGNED_OUT') {pause();user=null;data=null;draft=null;outbox=null;document.querySelector('#admin-link').hidden=true;render();syncStatus();}
       // Avoid Supabase auth callbacks awaiting another SDK call while its auth lock is held.
-      if(event==='TOKEN_REFRESHED'&&session)queueMicrotask(()=>flush().catch(()=>{}));
+      if(event==='TOKEN_REFRESHED'&&session)setTimeout(()=>flush().catch(()=>{}),0);
     });
-    const {data:auth,error}=await backend.client.auth.getSession();if(error)throw error;
-    if(auth.session)await signedIn(auth.session.user);else{render();syncStatus();}
-  }catch(error){message(errorMessage(error),true);if(data){render();syncStatus();}else if(backend?.configured&&user){main.innerHTML=title('Connection needs attention','Your revision data could not load.','Check the Supabase setup and your connection, then reload. Locally saved drafts have been preserved.');}else render();}
+    if(auth.session){connection.textContent='Loading revision data…';await signedIn(auth.session.user);}else{render();syncStatus();}
+  }catch(error){
+    message(errorMessage(error),true);
+    if(data){render();syncStatus();}
+    else {
+      connection.textContent='Connection needs attention';
+      main.innerHTML=title('Connection needs attention','Your revision space could not load.',errorMessage(error))+
+        '<p class="muted">Close other revision/admin tabs and reload this page. Locally saved drafts and pending attempts have been preserved.</p><button type="button" data-action="reload">Retry connection</button>';
+    }
+  }
 }
 init();

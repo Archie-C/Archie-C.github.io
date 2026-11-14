@@ -1,5 +1,15 @@
 import config from './config.js';
 
+// Bound waits without clearing Auth storage or treating an uncertain write as cancelled.
+export async function withTimeout(request,message,milliseconds=15000) {
+  let timer;
+  try {
+    return await Promise.race([request,new Promise((_,reject)=>{
+      timer=setTimeout(()=>{const error=new Error(message);error.code='REVISION_TIMEOUT';reject(error);},milliseconds);
+    })]);
+  }finally{clearTimeout(timer);}
+}
+
 export class RevisionBackend {
   constructor() {
     this.configured=Boolean(config.supabaseUrl&&config.supabasePublishableKey);
@@ -10,8 +20,12 @@ export class RevisionBackend {
       });
     }
   }
+  getSession() {
+    return withTimeout(this.client.auth.getSession(),'Checking your saved sign-in timed out. Close other revision/admin tabs, check your connection and reload. Saved revision work has been kept.');
+  }
   async call(action,payload={}) {
-    const {data,error}=await this.client.rpc('revision_api',{p_action:action,p_payload:payload});
+    const request=this.client.rpc('revision_api',{p_action:action,p_payload:payload});
+    const {data,error}=await (action==='bootstrap'?withTimeout(request,'Loading revision data from Supabase timed out. Check your connection and project status, then reload. Saved revision work has been kept.',30000):request);
     if(error) {const problem=new Error(error.message);problem.code=error.code;throw problem;}
     return data;
   }

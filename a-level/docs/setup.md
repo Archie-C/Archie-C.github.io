@@ -19,8 +19,14 @@ Open the project's **SQL Editor**. Paste and run these complete files in order, 
 | 3 | `03-import.sql` | Creates the administrator-only question importer. |
 | 4 | `04-catalogue.sql` | Seeds 2 subjects, 14 books, 118 chapters and 558 subtopics, with separate paper mappings. Does not seed exam dates. |
 | 5 | `05-verification.sql` | Runs read-only counts and privilege checks. |
+| 6 | `06-admin.sql` | Adds private admin roles, atomic CSV imports, auditing and exam metadata for `/admin/`. Follow [Administration](admin.md) to grant access. |
+| 7 | `07-exam-catalogue.sql` | Enables exam CSV imports before subjects/specifications/topics exist; preserves existing paper mappings and adds code aliases. Run after 06. |
+| 8 | `08-options.sql` | Adds option groups, min/max counts, book/chapter/subtopic choices, student selections and scheduler filtering. Migrates existing Further Maths choices. Run after 07. |
+| 9 | `09-chapter-import.sql` | Allows chapter CSVs to omit `book_id` by inferring the specification from the chapter ID. Run after 08. |
+| 10 | `10-question-metadata.sql` | Removes question source/licence metadata and cleans existing question-import audits. Preserves content and student history. Run after 09, before publishing the current frontend. |
+| 11 | `11-question-coverage.sql` | Adds admin-only subtopic question counts for the Question coverage dashboard. Run after 10. |
 
-Each installation script is transactional. If one fails, fix the reported error and rerun that file before proceeding. The same initial-version scripts can be rerun without deleting student data. They do not replace proper `ALTER TABLE` migrations for future schema changes.
+Each installation script is transactional. If one fails, fix the reported error and rerun that file before proceeding. Migration 10 is rerunnable and intentionally removes the retired question metadata. Apply scripts in order; rerunning an older function script afterwards can restore outdated APIs. They do not replace proper `ALTER TABLE` migrations for future schema changes.
 
 Verification should report 118 chapters, 558 subtopics and 14 books. All `revision_` tables should have `rls_enabled = true`. The API privilege row should be `false / true / false / false` for anonymous execution, authenticated execution, private-schema usage and direct progress updates respectively. Initially the question-count report will be empty/zero.
 
@@ -36,7 +42,9 @@ For real Supabase behaviour, consult [user management](https://supabase.com/docs
 
 ## 4. Import reviewed questions
 
-Follow [question authoring](questions.md). Copy the template locally, add your questions and verify solutions, topic links, durations, marks and licensing. Import through:
+For dashboard imports, editing, exam dates, question coverage and catalogue maintenance, apply migrations `06-admin.sql` through `11-question-coverage.sql` in order and follow [Administration](admin.md). The SQL-only procedures below remain available to the project owner.
+
+Follow [question authoring](questions.md). Copy the template locally, add your questions and verify solutions, topic links, durations and marks. Import through:
 
 ```sql
 select revision_private.import_questions(
@@ -46,7 +54,7 @@ select revision_private.import_questions(
 );
 ```
 
-Replace the JSON with your actual document. Drafts are not schedulable. To publish, use `review_status: "verified"` and a nonempty `source.reviewed_by`. The original example in the template is intentionally a draft. Reimporting identical content is safe; content edits require a higher version number.
+Replace the JSON with your actual document. Drafts are not schedulable. To publish, use `review_status: "verified"`. The original example in the template is intentionally a draft. Reimporting identical content is safe; content edits require a higher version number.
 
 Start with enough questions for the chapters you will mark covered, covering several subtopics and difficulty levels. The diagnostic goal is three different questions per chapter; retention and improvement require more. The application works with an empty bank by explaining what is missing, but cannot provide useful practice until questions are added.
 
@@ -97,10 +105,12 @@ export default {
 Serve the repository over HTTP and open `/a-level/`. For a local loopback preview from the repository root:
 
 ```powershell
-python -m http.server 8000 --bind 127.0.0.1
+python a-level/tools/serve.py
 ```
 
 Open `http://127.0.0.1:8000/a-level/`. Do not open `index.html` through `file://`; browser modules need HTTP. The production frontend remains a static page suitable for the existing GitHub Pages deployment. No npm installation/build is needed to serve it: browser libraries, KaTeX fonts and the copied design tokens are already supplied.
+
+The supplied server explicitly sets JavaScript MIME types for `.js` and `.mjs`, avoiding Windows file associations that can make the generic Python server return `text/plain`. It also disables caching during development. Stop an existing server with **Ctrl+C** before replacing it; use `python a-level/tools/serve.py --port 8001` to choose another port. The admin dashboard is at `http://127.0.0.1:8000/admin/`.
 
 For a student in the UK, select **United Kingdom — London (GMT / BST)** in Settings. This saves `Europe/London` and follows seasonal clock changes automatically; no timezone configuration change or SQL query is needed.
 
@@ -135,12 +145,14 @@ The local suite tests the PostgreSQL functions and the browser with an emulated 
 | Symptom | Check |
 |---|---|
 | Setup screen remains | Public URL/key are empty or the browser has an old cached configuration. |
+| Module script blocked with MIME type `text/plain` | Stop the generic server, run `python a-level/tools/serve.py` from the repository root, then hard-refresh (`Ctrl+Shift+R`). This sets correct JavaScript MIME types explicitly. |
 | Missing API/function error | Scripts 01–04 were run in order against the same project as the public configuration. |
 | Sign-in fails | Account exists, email confirmation/provider settings are correct, and credentials match. |
 | Empty question queue | Chapters covered/selected, questions verified, all mixed-question tags covered, and bank not retired/exhausted. |
 | Further Maths options rejected | Two different level-1 options, or one matching level-1/level-2 pair, must be selected. |
 | No exams | Dates exist for the chosen exam year and relevant paper/option IDs. |
 | Pending saves | Reconnect, keep one tab open and retry. For confirmed conflicts review the latest state; do not delete drafts. |
+| Stuck connecting / startup timeout | Close other revision/admin tabs, check the Supabase project's status and connection, then hard-refresh (`Ctrl+Shift+R`). Saved sign-in checks time out after 15 seconds; revision-data loading after 30 seconds. Use **Retry connection**. Preserve browser storage because it may contain unsynced attempts. If the original loading text never changes, inspect the first browser Console error for a failed JavaScript module or asset. |
 | Missing maths/diagrams/style | Static vendor/assets paths are published, images have valid URLs, and shared-token copies are current. |
 | RLS appears ineffective in SQL Editor | Administrator queries bypass RLS; test with authenticated client tokens instead. |
 

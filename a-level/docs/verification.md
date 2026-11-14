@@ -9,12 +9,19 @@ From that directory:
 ```powershell
 npm ci --ignore-scripts
 npm run test:db
+npm run test:admin
+npm run test:coverage
+npm run test:exams
+npm run test:options
 npm run test:browser
+python server_test.py
 ```
 
-`npm test` runs both suites. The browser suite starts its own loopback HTTP server and closes it afterwards. On Windows it uses installed Chrome or Edge when found. Otherwise install Playwright's Chromium once (`npx playwright install chromium`) or set `REVISION_BROWSER` to an existing browser executable. Screenshots and failure artifacts go in ignored `tests/artifacts/`.
+`npm test` runs all JavaScript suites. The coverage suite checks administrator permissions, zero-question subtopics, unique published question counts, draft/version history, archived links, targets and gap filters. The options suite covers min/max counts, optional chapters/subtopics, prerequisites, migration of existing selections, owner-only access and preservation of evidence after choice changes. The admin suite covers CSV parsing, server validation, duplicate handling, permissions, immutable updates, stale previews, transactional rollback, exam identity and audits. The exam suite checks creation of missing timetable parents, official code aliases, repeated imports, distinct same-title variants and complete rollback of parent rows on execution errors. The browser suite includes student regression, dashboard flows and question coverage on desktop/mobile; it starts its own loopback HTTP server and closes it afterwards. On Windows it uses installed Chrome or Edge when found. Otherwise install Playwright's Chromium once (`npx playwright install chromium`) or set `REVISION_BROWSER` to an existing browser executable. Screenshots and failure artifacts go in ignored `tests/artifacts/`. See [Administration](admin.md) for production migration and live permission checks.
 
 Run `npm run vendor` only when deliberately refreshing the committed browser distributions/shared design copies. Pinned dependencies and lockfile make this reproducible. Runtime libraries and licence notices are committed under `assets/vendor/`; serving the website does not require `node_modules`.
+
+`python server_test.py` checks the actual local preview server over HTTP, including correct `.js`/`.mjs` responses when system MIME mappings are deliberately set to `text/plain`. Start that server from the repository root with `python a-level/tools/serve.py`.
 
 ## Coverage
 
@@ -36,7 +43,7 @@ Run `npm run vendor` only when deliberately refreshing the committed browser dis
 | MOD-01, MOD-02 | Known Beta updates, one unit of mixed-question evidence, preserved priors/history, idempotent completion. | Longitudinal outcomes before treating estimates as calibrated. |
 | MOD-03, DASH-01 | Progress data, separate distributions, practice history and provisional wording. | Review interpretation with the testing student. |
 | SCH-01–06 | Actual SQL candidate/queue operations, duration adaptation, diversity/retirement and target behaviour. | Check recommendation usefulness over several days with a varied bank. |
-| CONTENT-01, CONTENT-02 | Repeatable immutable imports, invalid tags/assets and review constraints. | Mathematical correctness, source permissions and content review. |
+| CONTENT-01, CONTENT-02 | Repeatable immutable imports, invalid tags/assets and review constraints. | Mathematical correctness and content review. |
 | EXAM-01, EXAM-02 | No invented exam dates; mapped catalogue and empty-state browser view. | Enter official dates and verify provisional status, option variants and workload communication. |
 | UX-01 | Exact shared-token copy check, screenshot inspection and Paper accent assertion. | Final published asset availability on the actual GitHub Pages host. |
 

@@ -27,7 +27,7 @@ Every public table below has the `revision_` prefix.
 | `profiles` | Auth user UUID, daily minutes, IANA timezone, exam year, onboarding state and last syllabus-check timestamp. |
 | `enrolments` | Composite user/book key. Required books are added automatically for selected specifications. |
 | `progress` | Composite user/chapter key; current self-confidence, original prior alpha/beta, current alpha/beta, attempt count, review interval index, due date and last attempt. |
-| `questions` | Composite stable ID/version; immutable prompt, difficulty, estimate, marks, assets, source/review metadata and publication status. Only one version per ID is verified at a time. |
+| `questions` | Composite stable ID/version; immutable prompt, difficulty, estimate, marks, assets and publication status (question source/licence metadata is removed by migration 10). Only one version per ID is verified at a time. |
 | `question_subtopics` | Immutable question-version/subtopic links. Distinct linked chapters determine fractional evidence allocation. |
 | `sessions` | UUID and owner; unique user/local-date pair; original target, concurrency version, open/finished status and credited syllabus-check seconds. |
 | `queue` | UUID, session, position, exact question version, estimate, reason, queued/active/completed state, ease, reveal timestamp, active seconds, paused status and draft correctness/marks. One active item per session. |
@@ -89,6 +89,12 @@ Keep the exact transmitted payload until acknowledged. For connection failures, 
 The local browser outbox covers question/session workflow operations. Settings and confidence edits require a connection and can be reapplied safely after an ambiguous result; they do not add learning evidence. No server result is trusted as a grade or automatic mark.
 
 ## Operations and compatibility
+
+The additive `06-admin.sql` upgrade introduces `revision_is_admin()` and the guarded `revision_admin_api(p_action text,p_payload jsonb)` endpoint. Its role membership, import receipts and audits remain in the private schema. It uses the existing public catalogue, immutable question versions, private solutions, student analytics and exam table. See [Administration](admin.md) for CSV contracts, preview tokens, atomic imports, secure promotion and live verification. Existing student API actions and RLS policies remain compatible.
+
+Apply `07-exam-catalogue.sql` after 06 for timetable-first imports. It replaces the private planner/apply functions for exam imports and adds a private, RLS-protected paper-code alias table. Missing subjects/specifications/papers appear in preview and audit and are created only on confirmation; existing catalogue records and paper/chapter mappings are retained. No topics or student data are created or updated by these imports.
+
+Apply `08-options.sql` after 07 for general syllabus options. RLS-protected public tables store option groups (`specification_id`, `min_choices`, `max_choices`), choices and typed FK targets (book/chapter/subtopic), selected specifications and owner-only student choices. Direct writes remain revoked. Settings accepts `specifications: string[]` and `option_ids: string[]`, replacing selections atomically and validating counts/prerequisites. The legacy `books` payload remains supported. Snapshot adds `selected_specifications`, `option_groups`, `options`, `option_targets`, `selected_options`, `selected_chapter_ids` and `selected_subtopic_ids`. Question scheduling and activation require all linked subtopics to be selected. Admin CSV types `option_groups` and `options` reuse the preview/confirm/audit RPC.
 
 Scripts 01–04 form the initial installation and can be rerun against that installation. `CREATE TABLE IF NOT EXISTS` is not a general schema-upgrade mechanism. Future structural changes need an explicit numbered `ALTER TABLE` migration and corresponding frontend/API compatibility notes. Preserve historical content, priors and attempts during upgrades.
 

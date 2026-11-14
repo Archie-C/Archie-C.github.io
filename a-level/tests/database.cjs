@@ -7,7 +7,7 @@ const catalogue=JSON.parse(fs.readFileSync(path.join(root,'a-level/catalogue.jso
 const uid='00000000-0000-4000-8000-000000000001', other='00000000-0000-4000-8000-000000000002';
 const {randomUUID}=require('node:crypto');
 
-async function createDatabase() {
+async function createDatabase({removeQuestionMetadata=true}={}) {
   const db=new PGlite();
   await db.exec(`create role anon; create role authenticated;
     create schema auth; create table auth.users(id uuid primary key);
@@ -15,10 +15,12 @@ async function createDatabase() {
     grant usage on schema auth to authenticated,anon;
     grant execute on function auth.uid() to authenticated,anon;
     insert into auth.users values ('${uid}'),('${other}');`);
-  for(const file of ['01-schema.sql','02-functions.sql','03-import.sql','04-catalogue.sql']) {
+  for(const file of ['01-schema.sql','02-functions.sql','03-import.sql','04-catalogue.sql','06-admin.sql','07-exam-catalogue.sql','08-options.sql','09-chapter-import.sql',...(removeQuestionMetadata?['10-question-metadata.sql']:[])]) {
     const sql=fs.readFileSync(path.join(root,'supabase/revision',file),'utf8');
     await db.exec(sql);await db.exec(sql);
   }
+  await db.exec(fs.readFileSync(path.join(root,'supabase/revision/11-question-coverage.sql'),'utf8'));
+  await db.exec(fs.readFileSync(path.join(root,'supabase/revision/11-question-coverage.sql'),'utf8'));
   await db.exec(fs.readFileSync(path.join(root,'supabase/revision/05-verification.sql'),'utf8'));
   return db;
 }
@@ -26,7 +28,7 @@ function fixtureBank() {
   const cs=catalogue.chapters.filter(c=>c.book_id==='maths-pure-mathematics-year-1');
   const tags=id=>catalogue.subtopics.filter(t=>t.chapter_id===id).map(t=>t.id);
   const base={version:1,prompt_md:'Find $x$ when $2x=6$.',solution_md:'Divide by two: $x=3$.',difficulty:1,estimated_seconds:120,total_marks:2,
-    assets:[{url:'/a-level/tests/fixtures/diagram.svg',alt:'A test coordinate diagram',caption:'Integration fixture only'}],source:{title:'Original integration test',licence:'CC0',reviewed_by:'Test fixture'},review_status:'verified'};
+    assets:[{url:'/a-level/tests/fixtures/diagram.svg',alt:'A test coordinate diagram',caption:'Integration fixture only'}],review_status:'verified'};
   const questions=[];
   for(let i=0;i<6;i++) questions.push({...base,id:`fixture-algebra-${i}`,subtopic_ids:[tags(cs[0].id)[i%tags(cs[0].id).length]]});
   for(let i=0;i<4;i++) questions.push({...base,id:`fixture-quadratics-${i}`,subtopic_ids:[tags(cs[1].id)[i%tags(cs[1].id).length]]});

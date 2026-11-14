@@ -12,7 +12,7 @@
     "question": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "version", "prompt_md", "solution_md", "subtopic_ids", "difficulty", "estimated_seconds", "source", "review_status"],
+      "required": ["id", "version", "prompt_md", "solution_md", "subtopic_ids", "difficulty", "estimated_seconds", "review_status"],
       "properties": {
         "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9_-]{2,119}$"},
         "version": {"type": "integer", "minimum": 1},
@@ -23,19 +23,8 @@
         "estimated_seconds": {"type": "integer", "minimum": 15, "maximum": 7200},
         "total_marks": {"type": ["integer", "null"], "minimum": 1},
         "assets": {"type": "array", "items": {"$ref": "#/$defs/asset"}},
-        "source": {
-          "type": "object",
-          "required": ["title", "licence"],
-          "properties": {
-            "title": {"type": "string", "minLength": 1},
-            "licence": {"type": "string", "minLength": 1},
-            "url": {"type": ["string", "null"]},
-            "reviewed_by": {"type": ["string", "null"]}
-          }
-        },
         "review_status": {"enum": ["draft", "verified"]}
-      },
-      "allOf": [{"if": {"properties": {"review_status": {"const": "verified"}}}, "then": {"properties": {"source": {"required": ["reviewed_by"], "properties": {"reviewed_by": {"type": "string", "minLength": 1}}}}}}]
+      }
     },
     "asset": {
       "type": "object",

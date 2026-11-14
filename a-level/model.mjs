@@ -3,12 +3,15 @@ export const formatTime = seconds => { const s=Math.max(0,Math.floor(seconds||0)
 export const minutes = seconds => Math.ceil(Math.max(0,seconds||0)/60);
 export const percent = value => `${Math.round(Math.max(0,Math.min(1,Number(value)||0))*100)}%`;
 export const activeItem = data => data?.session?.items?.find(q=>q.state==='active');
-export const selectedChapters = data => data.chapters.filter(c=>data.enrolments.includes(c.book_id));
+export const selectedChapters = data => data.chapters.filter(c=>data.selected_chapter_ids?data.selected_chapter_ids.includes(c.id):data.enrolments.includes(c.book_id));
+export const selectedSubtopics = data => data.subtopics.filter(t=>!data.selected_subtopic_ids||data.selected_subtopic_ids.includes(t.id));
 export const chapterProgress = (data,id) => data.progress.find(p=>p.chapter_id===id);
 export const usedSeconds = session => (session?.check_seconds||0)+(session?.items||[]).reduce((n,q)=>n+(q.active_seconds||0),0);
 export function relevantExams(data) {
-  const specs=new Set(data.books.filter(b=>data.enrolments.includes(b.id)).map(b=>b.specification_id));
-  return data.exams.filter(e=>{const p=data.papers.find(p=>p.id===e.paper_id);return p&&specs.has(p.specification_id)&&(!p.option_book_id||data.enrolments.includes(p.option_book_id));});
+  const specs=new Set(data.selected_specifications||data.books.filter(b=>data.enrolments.includes(b.id)).map(b=>b.specification_id));
+  return data.exams.filter(e=>{const p=data.papers.find(p=>p.id===e.paper_id);if(!p||!specs.has(p.specification_id)||(p.option_book_id&&!data.enrolments.includes(p.option_book_id)))return false;
+    const mappings=(data.paper_chapters||[]).filter(m=>m.paper_id===p.id);
+    return !data.selected_chapter_ids||!mappings.length||mappings.some(m=>data.selected_chapter_ids.includes(m.chapter_id));});
 }
 export function daysUntil(date,today) { return Math.round((Date.parse(`${date}T12:00:00Z`)-Date.parse(`${today}T12:00:00Z`))/86400000); }
 export function safeURL(value) {
@@ -17,7 +20,7 @@ export function safeURL(value) {
   if (/^(?!\/\/)(?:\/?[a-z0-9_.-]+)+(?:\/[a-z0-9_.-]+)*(?:[?#][^\s]*)?$/i.test(value)) return value;
   return null;
 }
-export function renderMarkdown(element,text) {
+export function renderMarkdown(element,text,baseURL) {
   if (!globalThis.marked || !globalThis.DOMPurify) {element.textContent=text;return;}
   const math=[];
   const protectedText=String(text||'').replace(/\$\$[\s\S]+?\$\$|\$(?:\\.|[^$\\\n])+?\$|\\\[[\s\S]+?\\\]|\\\([\s\S]+?\\\)/g, expression=>{
@@ -34,6 +37,10 @@ export function renderMarkdown(element,text) {
   for(const el of element.querySelectorAll('[src],[href]')) {
     const attr=el.hasAttribute('src')?'src':'href';
     if(!safeURL(el.getAttribute(attr))) el.removeAttribute(attr);
+    else if(baseURL){
+      try{el.setAttribute(attr,new URL(el.getAttribute(attr),baseURL).href);}
+      catch{el.removeAttribute(attr);}
+    }
     if(el.tagName==='IMG') {el.loading='lazy'; if(!el.alt) el.alt='Question diagram';}
   }
   if(globalThis.renderMathInElement) globalThis.renderMathInElement(element,{
