@@ -1,0 +1,309 @@
+Book,Subject,Chapter_Number,Topic,Subtopic_Number,Subtopic,Page_Start,Page_Count,Length_Rating,Difficulty_Rating
+Core Pure Mathematics 1,Core Pure,1,Complex numbers,1.1,Imaginary and complex numbers,2,3,3,2
+Core Pure Mathematics 1,Core Pure,1,Complex numbers,1.2,Multiplying complex numbers,5,1,1,2
+Core Pure Mathematics 1,Core Pure,1,Complex numbers,1.3,Complex conjugation,6,2,2,2
+Core Pure Mathematics 1,Core Pure,1,Complex numbers,1.4,Roots of quadratic equations,8,2,2,2
+Core Pure Mathematics 1,Core Pure,1,Complex numbers,1.5,Solving cubic and quartic equations,10,4,4,3
+Core Pure Mathematics 1,Core Pure,2,Argand diagrams,2.1,Argand diagrams,18,2,2,2
+Core Pure Mathematics 1,Core Pure,2,Argand diagrams,2.2,Modulus and argument,20,3,3,2
+Core Pure Mathematics 1,Core Pure,2,Argand diagrams,2.3,Modulus-argument form of complex numbers,23,5,5,3
+Core Pure Mathematics 1,Core Pure,2,Argand diagrams,2.4,Loci in the Argand diagram,28,8,5,4
+Core Pure Mathematics 1,Core Pure,2,Argand diagrams,2.5,Regions in the Argand diagram,36,3,3,3
+Core Pure Mathematics 1,Core Pure,3,Series,3.1,Sums of natural numbers,44,3,3,2
+Core Pure Mathematics 1,Core Pure,3,Series,3.2,Sums of squares and cubes,47,4,4,3
+Core Pure Mathematics 1,Core Pure,4,Roots of polynomials,4.1,Roots of a quadratic equation,55,2,2,2
+Core Pure Mathematics 1,Core Pure,4,Roots of polynomials,4.2,Roots of a cubic equation,57,2,2,3
+Core Pure Mathematics 1,Core Pure,4,Roots of polynomials,4.3,Roots of a quartic equation,59,3,3,3
+Core Pure Mathematics 1,Core Pure,4,Roots of polynomials,4.4,Expressions relating to the roots of a polynomial,62,3,3,4
+Core Pure Mathematics 1,Core Pure,4,Roots of polynomials,4.5,Linear transformations of roots,65,3,3,3
+Core Pure Mathematics 1,Core Pure,5,Volumes of revolution,5.1,Volumes of revolution around the x-axis,72,4,4,2
+Core Pure Mathematics 1,Core Pure,5,Volumes of revolution,5.2,Volumes of revolution around the y-axis,76,2,2,3
+Core Pure Mathematics 1,Core Pure,5,Volumes of revolution,5.3,Adding and subtracting volumes,78,5,5,3
+Core Pure Mathematics 1,Core Pure,5,Volumes of revolution,5.4,Modelling with volumes of revolution,83,3,3,3
+Core Pure Mathematics 1,Core Pure,6,Matrices,6.1,Introduction to matrices,95,4,4,1
+Core Pure Mathematics 1,Core Pure,6,Matrices,6.2,Matrix multiplication,99,5,5,2
+Core Pure Mathematics 1,Core Pure,6,Matrices,6.3,Determinants,104,4,4,2
+Core Pure Mathematics 1,Core Pure,6,Matrices,6.4,Inverting a 2 x 2 matrix,108,4,4,2
+Core Pure Mathematics 1,Core Pure,6,Matrices,6.5,Inverting a 3 x 3 matrix,112,4,4,3
+Core Pure Mathematics 1,Core Pure,6,Matrices,6.6,Solving systems of equations using matrices,116,5,5,4
+Core Pure Mathematics 1,Core Pure,7,Linear transformations,7.1,Linear transformations in two dimensions,127,4,4,2
+Core Pure Mathematics 1,Core Pure,7,Linear transformations,7.2,Reflections and rotations,131,5,5,3
+Core Pure Mathematics 1,Core Pure,7,Linear transformations,7.3,Enlargements and stretches,136,4,4,2
+Core Pure Mathematics 1,Core Pure,7,Linear transformations,7.4,Successive transformations,140,4,4,3
+Core Pure Mathematics 1,Core Pure,7,Linear transformations,7.5,Linear transformations in three dimensions,144,4,4,3
+Core Pure Mathematics 1,Core Pure,7,Linear transformations,7.6,The inverse of a linear transformation,148,3,3,3
+Core Pure Mathematics 1,Core Pure,8,Proof by induction,8.1,Proof by mathematical induction,156,4,4,3
+Core Pure Mathematics 1,Core Pure,8,Proof by induction,8.2,Proving divisibility results,160,2,2,4
+Core Pure Mathematics 1,Core Pure,8,Proof by induction,8.3,Proving statements involving matrices,162,3,3,3
+Core Pure Mathematics 1,Core Pure,9,Vectors,9.1,Equation of a line in three dimensions,168,7,5,3
+Core Pure Mathematics 1,Core Pure,9,Vectors,9.2,Equation of a plane in three dimensions,175,3,3,3
+Core Pure Mathematics 1,Core Pure,9,Vectors,9.3,Scalar product,178,6,5,3
+Core Pure Mathematics 1,Core Pure,9,Vectors,9.4,Calculating angles between lines and planes,184,5,5,4
+Core Pure Mathematics 1,Core Pure,9,Vectors,9.5,Points of intersection,189,4,4,4
+Core Pure Mathematics 1,Core Pure,9,Vectors,9.6,Finding perpendiculars,193,9,5,5
+Core Pure Mathematics 2,Core Pure,1,Complex numbers,1.1,Exponential form of complex numbers,2,3,3,2
+Core Pure Mathematics 2,Core Pure,1,Complex numbers,1.2,Multiplying and dividing complex numbers,5,3,3,2
+Core Pure Mathematics 2,Core Pure,1,Complex numbers,1.3,De Moivre's theorem,8,3,3,3
+Core Pure Mathematics 2,Core Pure,1,Complex numbers,1.4,Trigonometric identities,11,5,5,4
+Core Pure Mathematics 2,Core Pure,1,Complex numbers,1.5,Sums of series,16,4,4,4
+Core Pure Mathematics 2,Core Pure,1,Complex numbers,1.6,nth roots of a complex number,20,5,5,4
+Core Pure Mathematics 2,Core Pure,1,Complex numbers,1.7,Solving geometric problems,25,2,2,4
+Core Pure Mathematics 2,Core Pure,2,Series,2.1,The method of differences,32,6,5,3
+Core Pure Mathematics 2,Core Pure,2,Series,2.2,Higher derivatives,38,2,2,2
+Core Pure Mathematics 2,Core Pure,2,Series,2.3,Maclaurin series,40,4,4,3
+Core Pure Mathematics 2,Core Pure,2,Series,2.4,Series expansions of compound functions,44,4,4,4
+Core Pure Mathematics 2,Core Pure,3,Methods in calculus,3.1,Improper integrals,53,5,5,3
+Core Pure Mathematics 2,Core Pure,3,Methods in calculus,3.2,The mean value of a function,58,4,4,2
+Core Pure Mathematics 2,Core Pure,3,Methods in calculus,3.3,Differentiating inverse trigonometric functions,62,3,3,3
+Core Pure Mathematics 2,Core Pure,3,Methods in calculus,3.4,Integrating with inverse trigonometric functions,65,4,4,4
+Core Pure Mathematics 2,Core Pure,3,Methods in calculus,3.5,Integrating using partial fractions,69,5,5,4
+Core Pure Mathematics 2,Core Pure,4,Volumes of revolution,4.1,Volumes of revolution around the x-axis,78,3,3,2
+Core Pure Mathematics 2,Core Pure,4,Volumes of revolution,4.2,Volumes of revolution around the y-axis,81,2,2,3
+Core Pure Mathematics 2,Core Pure,4,Volumes of revolution,4.3,Volumes of revolution of parametrically defined curves,83,4,4,4
+Core Pure Mathematics 2,Core Pure,4,Volumes of revolution,4.4,Modelling with volumes of revolution,87,2,2,3
+Core Pure Mathematics 2,Core Pure,5,Polar coordinates,5.1,Polar coordinates and equations,101,3,3,2
+Core Pure Mathematics 2,Core Pure,5,Polar coordinates,5.2,Sketching curves,104,5,5,3
+Core Pure Mathematics 2,Core Pure,5,Polar coordinates,5.3,Area enclosed by a polar curve,109,4,4,4
+Core Pure Mathematics 2,Core Pure,5,Polar coordinates,5.4,Tangents to polar curves,113,3,3,4
+Core Pure Mathematics 2,Core Pure,6,Hyperbolic functions,6.1,Introduction to hyperbolic functions,120,3,3,2
+Core Pure Mathematics 2,Core Pure,6,Hyperbolic functions,6.2,Inverse hyperbolic functions,123,2,2,3
+Core Pure Mathematics 2,Core Pure,6,Hyperbolic functions,6.3,Identities and equations,125,5,5,3
+Core Pure Mathematics 2,Core Pure,6,Hyperbolic functions,6.4,Differentiating hyperbolic functions,130,5,5,3
+Core Pure Mathematics 2,Core Pure,6,Hyperbolic functions,6.5,Integrating hyperbolic functions,135,7,5,4
+Core Pure Mathematics 2,Core Pure,7,Methods in differential equations,7.1,First-order differential equations,148,5,5,3
+Core Pure Mathematics 2,Core Pure,7,Methods in differential equations,7.2,Second-order homogeneous differential equations,153,4,4,4
+Core Pure Mathematics 2,Core Pure,7,Methods in differential equations,7.3,Second-order non-homogeneous differential equations,157,5,5,4
+Core Pure Mathematics 2,Core Pure,7,Methods in differential equations,7.4,Using boundary conditions,162,3,3,4
+Core Pure Mathematics 2,Core Pure,8,Modelling with differential equations,8.1,Modelling with first-order differential equations,171,4,4,4
+Core Pure Mathematics 2,Core Pure,8,Modelling with differential equations,8.2,Simple harmonic motion,175,5,5,4
+Core Pure Mathematics 2,Core Pure,8,Modelling with differential equations,8.3,Damped and forced harmonic motion,180,6,5,5
+Core Pure Mathematics 2,Core Pure,8,Modelling with differential equations,8.4,Coupled first-order simultaneous differential equations,186,5,5,5
+Decision Mathematics 1,Decision,1,Algorithms,1.1,Using and understanding algorithms,2,4,4,1
+Decision Mathematics 1,Decision,1,Algorithms,1.2,Flow charts,6,4,4,2
+Decision Mathematics 1,Decision,1,Algorithms,1.3,Bubble sort,10,3,3,2
+Decision Mathematics 1,Decision,1,Algorithms,1.4,Quick sort,13,3,3,3
+Decision Mathematics 1,Decision,1,Algorithms,1.5,Bin-packing algorithms,16,5,5,3
+Decision Mathematics 1,Decision,1,Algorithms,1.6,Order of an algorithm,21,4,4,3
+Decision Mathematics 1,Decision,2,Graphs and networks,2.1,Modelling with graphs,30,4,4,2
+Decision Mathematics 1,Decision,2,Graphs and networks,2.2,Graph theory,34,4,4,2
+Decision Mathematics 1,Decision,2,Graphs and networks,2.3,Special types of graph,38,3,3,3
+Decision Mathematics 1,Decision,2,Graphs and networks,2.4,Representing graphs and networks using matrices,41,2,2,3
+Decision Mathematics 1,Decision,2,Graphs and networks,2.5,The planarity algorithm,43,5,5,4
+Decision Mathematics 1,Decision,3,Algorithms on graphs,3.1,Kruskal's algorithm,53,4,4,2
+Decision Mathematics 1,Decision,3,Algorithms on graphs,3.2,Prim's algorithm,57,3,3,2
+Decision Mathematics 1,Decision,3,Algorithms on graphs,3.3,Applying Prim's algorithm to a distance matrix,60,6,5,3
+Decision Mathematics 1,Decision,3,Algorithms on graphs,3.4,Using Dijkstra's algorithm to find the shortest path,66,7,5,3
+Decision Mathematics 1,Decision,3,Algorithms on graphs,3.5,Floyd's algorithm,73,6,5,4
+Decision Mathematics 1,Decision,4,Route inspection,4.1,Eulerian graphs,86,3,3,2
+Decision Mathematics 1,Decision,4,Route inspection,4.2,Using the route inspection algorithm,89,5,5,3
+Decision Mathematics 1,Decision,4,Route inspection,4.3,Networks with more than four odd nodes,94,4,4,4
+Decision Mathematics 1,Decision,5,The travelling salesman problem,5.1,The classical and practical travelling salesman problems,103,4,4,3
+Decision Mathematics 1,Decision,5,The travelling salesman problem,5.2,Using a minimum spanning tree method to find an upper bound,107,7,5,4
+Decision Mathematics 1,Decision,5,The travelling salesman problem,5.3,Using a minimum spanning tree method to find a lower bound,114,4,4,4
+Decision Mathematics 1,Decision,5,The travelling salesman problem,5.4,Using the nearest neighbour algorithm to find an upper bound,118,5,5,3
+Decision Mathematics 1,Decision,6,Linear programming,6.1,Linear programming problems,139,6,5,3
+Decision Mathematics 1,Decision,6,Linear programming,6.2,Graphical methods,145,4,4,3
+Decision Mathematics 1,Decision,6,Linear programming,6.3,Locating the optimal point,149,13,5,3
+Decision Mathematics 1,Decision,6,Linear programming,6.4,Solutions with integer values,162,5,5,4
+Decision Mathematics 1,Decision,7,The simplex algorithm,7.1,Formulating linear programming problems,172,4,4,3
+Decision Mathematics 1,Decision,7,The simplex algorithm,7.2,The simplex method,176,20,5,4
+Decision Mathematics 1,Decision,7,The simplex algorithm,7.3,Problems requiring integer solutions,196,3,3,5
+Decision Mathematics 1,Decision,7,The simplex algorithm,7.4,Two-stage simplex method,199,6,5,5
+Decision Mathematics 1,Decision,7,The simplex algorithm,7.5,The Big-M method,205,8,5,5
+Decision Mathematics 1,Decision,8,Critical path analysis,8.1,Modelling a project,222,4,4,2
+Decision Mathematics 1,Decision,8,Critical path analysis,8.2,Dummy activities,226,4,4,3
+Decision Mathematics 1,Decision,8,Critical path analysis,8.3,Early and late event times,230,2,2,3
+Decision Mathematics 1,Decision,8,Critical path analysis,8.4,Critical activities,232,4,4,3
+Decision Mathematics 1,Decision,8,Critical path analysis,8.5,The float of an activity,236,2,2,3
+Decision Mathematics 1,Decision,8,Critical path analysis,8.6,Gantt charts,238,4,4,2
+Decision Mathematics 1,Decision,8,Critical path analysis,8.7,Resource histograms,242,7,5,4
+Decision Mathematics 1,Decision,8,Critical path analysis,8.8,Scheduling diagrams,249,4,4,5
+Decision Mathematics 2,Decision,1,Transportation problems,1.1,The north-west corner method,2,4,4,3
+Decision Mathematics 2,Decision,1,Transportation problems,1.2,Unbalanced problems and degenerate solutions,6,5,5,4
+Decision Mathematics 2,Decision,1,Transportation problems,1.3,Finding an improved solution,11,8,5,4
+Decision Mathematics 2,Decision,1,Transportation problems,1.4,The stepping-stone method,19,9,5,4
+Decision Mathematics 2,Decision,1,Transportation problems,1.5,Linear programming,28,4,4,4
+Decision Mathematics 2,Decision,2,Allocation problems,2.1,The Hungarian algorithm,39,10,5,3
+Decision Mathematics 2,Decision,2,Allocation problems,2.2,Using a dummy,49,2,2,3
+Decision Mathematics 2,Decision,2,Allocation problems,2.3,Maximum profit allocation,51,5,5,3
+Decision Mathematics 2,Decision,2,Allocation problems,2.4,Managing incomplete data,56,6,5,4
+Decision Mathematics 2,Decision,2,Allocation problems,2.5,Linear programming,62,5,5,4
+Decision Mathematics 2,Decision,3,Flows in networks 1,3.1,Flows in networks,73,5,5,3
+Decision Mathematics 2,Decision,3,Flows in networks 1,3.2,Cuts and their capacities,78,7,5,3
+Decision Mathematics 2,Decision,3,Flows in networks 1,3.3,Finding an initial flow,85,3,3,3
+Decision Mathematics 2,Decision,3,Flows in networks 1,3.4,Flow-augmenting routes,88,10,5,4
+Decision Mathematics 2,Decision,3,Flows in networks 1,3.5,Maximum flow - minimum cut theorem,98,6,5,4
+Decision Mathematics 2,Decision,4,Flows in networks 2,4.1,Lower capacities,110,9,5,4
+Decision Mathematics 2,Decision,4,Flows in networks 2,4.2,Sources and sinks,119,9,5,4
+Decision Mathematics 2,Decision,4,Flows in networks 2,4.3,Restricted capacity nodes,128,4,4,4
+Decision Mathematics 2,Decision,5,Dynamic programming,5.1,Shortest and longest path problems,152,9,5,4
+Decision Mathematics 2,Decision,5,Dynamic programming,5.2,Minimax and maximin problems,161,4,4,4
+Decision Mathematics 2,Decision,5,Dynamic programming,5.3,Dynamic programming problems in table form,165,9,5,5
+Decision Mathematics 2,Decision,6,Game theory,6.1,Play-safe strategies and stable solutions,180,11,5,3
+Decision Mathematics 2,Decision,6,Game theory,6.2,Reducing the pay-off matrix,191,3,3,3
+Decision Mathematics 2,Decision,6,Game theory,6.3,Optimal strategies for games with no stable solution,194,9,5,4
+Decision Mathematics 2,Decision,6,Game theory,6.4,Converting games to linear programming problems,203,6,5,4
+Decision Mathematics 2,Decision,7,Recurrence relations,7.1,Forming recurrence relations,215,4,4,3
+Decision Mathematics 2,Decision,7,Recurrence relations,7.2,Solving first-order recurrence relations,219,9,5,4
+Decision Mathematics 2,Decision,7,Recurrence relations,7.3,Solving second-order recurrence relations,228,10,5,5
+Decision Mathematics 2,Decision,8,Decision analysis,8.1,Decision trees,243,9,5,3
+Decision Mathematics 2,Decision,8,Decision analysis,8.2,Utility,252,7,5,4
+Further Mechanics 1,Mechanics,1,Momentum and impulse,1.1,Momentum in one direction,2,2,2,2
+Further Mechanics 1,Mechanics,1,Momentum and impulse,1.2,Conservation of momentum,4,5,5,3
+Further Mechanics 1,Mechanics,1,Momentum and impulse,1.3,Momentum as a vector,9,3,3,3
+Further Mechanics 1,Mechanics,2,"Work, energy and power",2.1,Work done,16,4,4,2
+Further Mechanics 1,Mechanics,2,"Work, energy and power",2.2,Kinetic and potential energy,20,4,4,2
+Further Mechanics 1,Mechanics,2,"Work, energy and power",2.3,Conservation of mechanical energy and the work-energy principle,24,5,5,3
+Further Mechanics 1,Mechanics,2,"Work, energy and power",2.4,Power,29,4,4,3
+Further Mechanics 1,Mechanics,3,Elastic strings and springs,3.1,Hooke's law and equilibrium problems,39,7,5,3
+Further Mechanics 1,Mechanics,3,Elastic strings and springs,3.2,Hooke's law and dynamics problem,46,3,3,4
+Further Mechanics 1,Mechanics,3,Elastic strings and springs,3.3,Elastic energy,49,2,2,3
+Further Mechanics 1,Mechanics,3,Elastic strings and springs,3.4,Problems involving elastic energy,51,5,5,4
+Further Mechanics 1,Mechanics,4,Elastic collisions in one dimension,4.1,Direct impact and Newton's law of restitution,70,6,5,3
+Further Mechanics 1,Mechanics,4,Elastic collisions in one dimension,4.2,Direct collision with a smooth plane,76,3,3,3
+Further Mechanics 1,Mechanics,4,Elastic collisions in one dimension,4.3,Loss of kinetic energy,79,5,5,3
+Further Mechanics 1,Mechanics,4,Elastic collisions in one dimension,4.4,Successive direct impacts,84,7,5,4
+Further Mechanics 1,Mechanics,5,Elastic collisions in two dimensions,5.1,Oblique impact with a fixed surface,96,6,5,4
+Further Mechanics 1,Mechanics,5,Elastic collisions in two dimensions,5.2,Successive oblique impacts,102,6,5,4
+Further Mechanics 1,Mechanics,5,Elastic collisions in two dimensions,5.3,Oblique impact of smooth spheres,108,7,5,5
+Further Mechanics 2,Mechanics,1,Circular motion,1.1,Angular speed,2,3,3,2
+Further Mechanics 2,Mechanics,1,Circular motion,1.2,Acceleration of an object moving on a horizontal circular path,5,6,5,3
+Further Mechanics 2,Mechanics,1,Circular motion,1.3,Three-dimensional problems with objects moving in horizontal circles,11,8,5,4
+Further Mechanics 2,Mechanics,1,Circular motion,1.4,Objects moving in vertical circles,19,7,5,4
+Further Mechanics 2,Mechanics,1,Circular motion,1.5,Objects not constrained on a circular path,26,5,5,5
+Further Mechanics 2,Mechanics,2,Centres of mass of plane figures,2.1,Centre of mass of a set of particles on a straight line,37,2,2,2
+Further Mechanics 2,Mechanics,2,Centres of mass of plane figures,2.2,Centre of mass of a set of particles arranged in a plane,39,4,4,2
+Further Mechanics 2,Mechanics,2,Centres of mass of plane figures,2.3,Centres of mass of standard uniform plane laminas,43,4,4,3
+Further Mechanics 2,Mechanics,2,Centres of mass of plane figures,2.4,Centre of mass of a composite lamina,47,7,5,3
+Further Mechanics 2,Mechanics,2,Centres of mass of plane figures,2.5,Centre of mass of a framework,54,4,4,3
+Further Mechanics 2,Mechanics,2,Centres of mass of plane figures,2.6,Lamina in equilibrium,58,6,5,4
+Further Mechanics 2,Mechanics,2,Centres of mass of plane figures,2.7,Frameworks in equilibrium,64,4,4,4
+Further Mechanics 2,Mechanics,2,Centres of mass of plane figures,2.8,Non-uniform composite laminas and frameworks,68,4,4,4
+Further Mechanics 2,Mechanics,3,Further centres of mass,3.1,Using calculus to find centres of mass,78,9,5,4
+Further Mechanics 2,Mechanics,3,Further centres of mass,3.2,Centre of mass of a uniform body,87,11,5,4
+Further Mechanics 2,Mechanics,3,Further centres of mass,3.3,Non-uniform bodies,98,5,5,4
+Further Mechanics 2,Mechanics,3,Further centres of mass,3.4,Rigid bodies in equilibrium,103,7,5,4
+Further Mechanics 2,Mechanics,3,Further centres of mass,3.5,Toppling and sliding,110,7,5,5
+Further Mechanics 2,Mechanics,4,Kinematics,4.1,Acceleration varying with time,147,8,5,3
+Further Mechanics 2,Mechanics,4,Kinematics,4.2,Acceleration varying with displacement,155,6,5,4
+Further Mechanics 2,Mechanics,4,Kinematics,4.3,Acceleration varying with velocity,161,5,5,4
+Further Mechanics 2,Mechanics,5,Dynamics,5.1,Motion in a straight line with variable force,172,9,5,4
+Further Mechanics 2,Mechanics,5,Dynamics,5.2,Newton's law of gravitation,181,3,3,3
+Further Mechanics 2,Mechanics,5,Dynamics,5.3,Simple harmonic motion,184,9,5,4
+Further Mechanics 2,Mechanics,5,Dynamics,5.4,Horizontal oscillation,193,5,5,4
+Further Mechanics 2,Mechanics,5,Dynamics,5.5,Vertical oscillation,198,8,5,5
+Further Pure Mathematics 1,Further Pure,1,Vectors,1.1,Vector product,2,5,5,3
+Further Pure Mathematics 1,Further Pure,1,Vectors,1.2,Finding areas,7,4,4,3
+Further Pure Mathematics 1,Further Pure,1,Vectors,1.3,Scalar triple product,11,5,5,3
+Further Pure Mathematics 1,Further Pure,1,Vectors,1.4,Straight lines,16,4,4,4
+Further Pure Mathematics 1,Further Pure,1,Vectors,1.5,Solving geometrical problems,20,5,5,4
+Further Pure Mathematics 1,Further Pure,2,Conic sections 1,2.1,Parametric equations,33,2,2,2
+Further Pure Mathematics 1,Further Pure,2,Conic sections 1,2.2,Parabolas,35,7,5,3
+Further Pure Mathematics 1,Further Pure,2,Conic sections 1,2.3,Rectangular hyperbolas,42,3,3,3
+Further Pure Mathematics 1,Further Pure,2,Conic sections 1,2.4,Tangents and normals,45,9,5,4
+Further Pure Mathematics 1,Further Pure,2,Conic sections 1,2.5,Loci,54,3,3,4
+Further Pure Mathematics 1,Further Pure,3,Conic sections 2,3.1,Ellipses,63,2,2,3
+Further Pure Mathematics 1,Further Pure,3,Conic sections 2,3.2,Hyperbolas,65,2,2,3
+Further Pure Mathematics 1,Further Pure,3,Conic sections 2,3.3,Eccentricity,67,7,5,4
+Further Pure Mathematics 1,Further Pure,3,Conic sections 2,3.4,Tangents and normals to an ellipse,74,5,5,4
+Further Pure Mathematics 1,Further Pure,3,Conic sections 2,3.5,Tangents and normals to a hyperbola,79,4,4,4
+Further Pure Mathematics 1,Further Pure,3,Conic sections 2,3.6,Loci,83,4,4,4
+Further Pure Mathematics 1,Further Pure,4,Inequalities,4.1,Algebraic methods,93,3,3,3
+Further Pure Mathematics 1,Further Pure,4,Inequalities,4.2,Using graphs to solve inequalities,96,3,3,3
+Further Pure Mathematics 1,Further Pure,4,Inequalities,4.3,Modulus inequalities,99,3,3,3
+Further Pure Mathematics 1,Further Pure,5,The t-formulae,5.1,The t-formulae,117,3,3,3
+Further Pure Mathematics 1,Further Pure,5,The t-formulae,5.2,Applying the t-formulae to trigonometric identities,120,2,2,3
+Further Pure Mathematics 1,Further Pure,5,The t-formulae,5.3,Solving trigonometric equations,122,2,2,4
+Further Pure Mathematics 1,Further Pure,5,The t-formulae,5.4,Modelling with trigonometry,124,3,3,4
+Further Pure Mathematics 1,Further Pure,6,Taylor series,6.1,Taylor series,132,3,3,3
+Further Pure Mathematics 1,Further Pure,6,Taylor series,6.2,Finding limits,135,4,4,3
+Further Pure Mathematics 1,Further Pure,6,Taylor series,6.3,Series solutions of differential equations,139,4,4,4
+Further Pure Mathematics 1,Further Pure,7,Methods in calculus,7.1,Leibnitz's theorem and nth derivatives,150,2,2,4
+Further Pure Mathematics 1,Further Pure,7,Methods in calculus,7.2,L'Hospital's rule,152,4,4,3
+Further Pure Mathematics 1,Further Pure,7,Methods in calculus,7.3,The Weierstrass substitution,156,2,2,5
+Further Pure Mathematics 1,Further Pure,8,Numerical methods,8.1,Solving first-order differential equations,162,7,5,3
+Further Pure Mathematics 1,Further Pure,8,Numerical methods,8.2,Solving second-order differential equations,169,4,4,4
+Further Pure Mathematics 1,Further Pure,8,Numerical methods,8.3,Simpson's rule,173,2,2,3
+Further Pure Mathematics 1,Further Pure,9,Reducible differential equations,9.1,First-order differential equations,180,3,3,4
+Further Pure Mathematics 1,Further Pure,9,Reducible differential equations,9.2,Second-order differential equations,183,2,2,4
+Further Pure Mathematics 1,Further Pure,9,Reducible differential equations,9.3,Modelling with differential equations,185,2,2,5
+Further Pure Mathematics 2,Further Pure,1,Number theory,1.1,The division algorithm,2,4,4,2
+Further Pure Mathematics 2,Further Pure,1,Number theory,1.2,The Euclidean algorithm,6,6,5,3
+Further Pure Mathematics 2,Further Pure,1,Number theory,1.3,Modular arithmetic,12,6,5,3
+Further Pure Mathematics 2,Further Pure,1,Number theory,1.4,Divisibility tests,18,5,5,3
+Further Pure Mathematics 2,Further Pure,1,Number theory,1.5,Solving congruence equations,23,6,5,4
+Further Pure Mathematics 2,Further Pure,1,Number theory,1.6,Fermat's little theorem,29,6,5,4
+Further Pure Mathematics 2,Further Pure,1,Number theory,1.7,Combinatorics,35,7,5,4
+Further Pure Mathematics 2,Further Pure,2,Groups,2.1,The axioms for a group,46,6,5,3
+Further Pure Mathematics 2,Further Pure,2,Groups,2.2,Cayley tables and finite groups,52,6,5,3
+Further Pure Mathematics 2,Further Pure,2,Groups,2.3,Order and subgroups,58,6,5,4
+Further Pure Mathematics 2,Further Pure,2,Groups,2.4,Isomorphism,64,7,5,4
+Further Pure Mathematics 2,Further Pure,3,Complex numbers,3.1,Loci in an Argand diagram,76,7,5,4
+Further Pure Mathematics 2,Further Pure,3,Complex numbers,3.2,Regions in an Argand diagram,83,5,5,4
+Further Pure Mathematics 2,Further Pure,3,Complex numbers,3.3,Transformations of the complex plane,88,8,5,5
+Further Pure Mathematics 2,Further Pure,4,Recurrence relations,4.1,Forming recurrence relations,101,5,5,3
+Further Pure Mathematics 2,Further Pure,4,Recurrence relations,4.2,Solving first-order recurrence relations,106,6,5,4
+Further Pure Mathematics 2,Further Pure,4,Recurrence relations,4.3,Solving second-order recurrence relations,112,7,5,5
+Further Pure Mathematics 2,Further Pure,4,Recurrence relations,4.4,Proving closed forms,119,5,5,4
+Further Pure Mathematics 2,Further Pure,5,Matrix algebra,5.1,Eigenvalues and eigenvectors,129,9,5,4
+Further Pure Mathematics 2,Further Pure,5,Matrix algebra,5.2,Reducing matrices to diagonal form,138,8,5,4
+Further Pure Mathematics 2,Further Pure,5,Matrix algebra,5.3,The Cayley-Hamilton theorem,146,6,5,4
+Further Pure Mathematics 2,Further Pure,6,Integration techniques,6.1,Reduction formulae,157,8,5,5
+Further Pure Mathematics 2,Further Pure,6,Integration techniques,6.2,Arc length,165,7,5,4
+Further Pure Mathematics 2,Further Pure,6,Integration techniques,6.3,Area of a surface of revolution,172,7,5,4
+Further Statistics 1,Further Statistics,1,Discrete random variables,1.1,Expected value of a discrete random variable,8,3,3,2
+Further Statistics 1,Further Statistics,1,Discrete random variables,1.2,Variance of a discrete random variable,11,2,2,2
+Further Statistics 1,Further Statistics,1,Discrete random variables,1.3,Expected value and variance of a function of X,13,4,4,3
+Further Statistics 1,Further Statistics,1,Discrete random variables,1.4,Solving problems involving random variables,17,3,3,3
+Further Statistics 1,Further Statistics,2,Poisson distributions,2.1,The Poisson distribution,26,3,3,2
+Further Statistics 1,Further Statistics,2,Poisson distributions,2.2,Modelling with the Poisson distribution,29,4,4,3
+Further Statistics 1,Further Statistics,2,Poisson distributions,2.3,Adding Poisson distributions,33,3,3,3
+Further Statistics 1,Further Statistics,2,Poisson distributions,2.4,Mean and variance of a Poisson distribution,36,2,2,2
+Further Statistics 1,Further Statistics,2,Poisson distributions,2.5,Mean and variance of the binomial distribution,38,2,2,2
+Further Statistics 1,Further Statistics,2,Poisson distributions,2.6,Using the Poisson distribution to approximate the binomial distribution,40,4,4,3
+Further Statistics 1,Further Statistics,3,Geometric and negative binomial distributions,3.1,The geometric distribution,50,3,3,3
+Further Statistics 1,Further Statistics,3,Geometric and negative binomial distributions,3.2,Mean and variance of a geometric distribution,53,2,2,2
+Further Statistics 1,Further Statistics,3,Geometric and negative binomial distributions,3.3,The negative binomial distribution,55,3,3,3
+Further Statistics 1,Further Statistics,3,Geometric and negative binomial distributions,3.4,Mean and variance of the negative binomial distribution,58,3,3,3
+Further Statistics 1,Further Statistics,4,Hypothesis testing,4.1,Testing for the mean of a Poisson distribution,65,3,3,3
+Further Statistics 1,Further Statistics,4,Hypothesis testing,4.2,Finding critical regions for a Poisson distribution,68,4,4,4
+Further Statistics 1,Further Statistics,4,Hypothesis testing,4.3,Hypothesis testing for the parameter p of a geometric distribution,72,3,3,4
+Further Statistics 1,Further Statistics,4,Hypothesis testing,4.4,Finding critical regions for a geometric distribution,75,3,3,4
+Further Statistics 1,Further Statistics,5,Central limit theorem,5.1,The central limit theorem,83,3,3,3
+Further Statistics 1,Further Statistics,5,Central limit theorem,5.2,Applying the central limit theorem to other distributions,86,2,2,3
+Further Statistics 1,Further Statistics,6,Chi-squared tests,6.1,Goodness of fit,98,4,4,3
+Further Statistics 1,Further Statistics,6,Chi-squared tests,6.2,Degrees of freedom and the chi-squared family of distributions,102,3,3,3
+Further Statistics 1,Further Statistics,6,Chi-squared tests,6.3,Testing a hypothesis,105,4,4,3
+Further Statistics 1,Further Statistics,6,Chi-squared tests,6.4,Testing the goodness of fit with discrete data,109,10,5,4
+Further Statistics 1,Further Statistics,6,Chi-squared tests,6.5,Using contingency tables,119,6,5,4
+Further Statistics 1,Further Statistics,6,Chi-squared tests,6.6,Apply goodness-of-fit tests to geometric distributions,125,3,3,4
+Further Statistics 1,Further Statistics,7,Probability generating functions,7.1,Probability generating functions,135,3,3,3
+Further Statistics 1,Further Statistics,7,Probability generating functions,7.2,Probability generating functions of standard distributions,138,3,3,3
+Further Statistics 1,Further Statistics,7,Probability generating functions,7.3,Mean and variance of a distribution,141,4,4,4
+Further Statistics 1,Further Statistics,7,Probability generating functions,7.4,Sums of independent random variables,145,4,4,4
+Further Statistics 1,Further Statistics,8,Quality of tests,8.1,Type I and Type II errors,153,6,5,4
+Further Statistics 1,Further Statistics,8,Quality of tests,8.2,Finding Type I and Type II errors using the normal distribution,159,4,4,4
+Further Statistics 1,Further Statistics,8,Quality of tests,8.3,Calculate the size and power of a test,163,5,5,4
+Further Statistics 1,Further Statistics,8,Quality of tests,8.4,The power function,168,5,5,5
+Further Statistics 2,Further Statistics,1,Linear regression,1.1,Least squares linear regression,2,8,5,3
+Further Statistics 2,Further Statistics,1,Linear regression,1.2,Residuals,10,6,5,3
+Further Statistics 2,Further Statistics,2,Correlation,2.1,The product moment correlation coefficient,20,6,5,3
+Further Statistics 2,Further Statistics,2,Correlation,2.2,Spearman's rank correlation coefficient,26,7,5,3
+Further Statistics 2,Further Statistics,2,Correlation,2.3,Hypothesis testing for zero correlation,33,6,5,4
+Further Statistics 2,Further Statistics,3,Continuous distributions,3.1,Continuous random variables,44,6,5,3
+Further Statistics 2,Further Statistics,3,Continuous distributions,3.2,The cumulative distribution function,50,6,5,3
+Further Statistics 2,Further Statistics,3,Continuous distributions,3.3,Mean and variance of a continuous distribution,56,5,5,3
+Further Statistics 2,Further Statistics,3,Continuous distributions,3.4,"Mode, median, percentiles and skewness",61,6,5,4
+Further Statistics 2,Further Statistics,3,Continuous distributions,3.5,The continuous uniform distribution,67,7,5,3
+Further Statistics 2,Further Statistics,4,Combinations of random variables,4.1,Combinations of random variables,79,10,5,4
+Further Statistics 2,Further Statistics,5,"Estimation, confidence intervals and tests using a normal distribution",5.1,"Estimators, bias and standard error",95,8,5,4
+Further Statistics 2,Further Statistics,5,"Estimation, confidence intervals and tests using a normal distribution",5.2,Confidence intervals,103,8,5,4
+Further Statistics 2,Further Statistics,5,"Estimation, confidence intervals and tests using a normal distribution",5.3,Hypothesis testing for the difference between means,111,8,5,4
+Further Statistics 2,Further Statistics,6,Further hypothesis tests,6.1,Variance of a normal distribution,125,5,5,4
+Further Statistics 2,Further Statistics,6,Further hypothesis tests,6.2,Hypothesis testing for the variance of a normal distribution,130,6,5,4
+Further Statistics 2,Further Statistics,6,Further hypothesis tests,6.3,The F-distribution,136,5,5,4
+Further Statistics 2,Further Statistics,6,Further hypothesis tests,6.4,The F-test,141,7,5,4
+Further Statistics 2,Further Statistics,7,Confidence intervals and tests using the t-distribution,7.1,Mean of a normal distribution with unknown variance,154,6,5,4
+Further Statistics 2,Further Statistics,7,Confidence intervals and tests using the t-distribution,7.2,Hypothesis test for the mean of a normal distribution with unknown variance,160,6,5,4
+Further Statistics 2,Further Statistics,7,Confidence intervals and tests using the t-distribution,7.3,The paired t-test,166,6,5,4
+Further Statistics 2,Further Statistics,7,Confidence intervals and tests using the t-distribution,7.4,Difference between two means using the t-distribution,172,8,5,5

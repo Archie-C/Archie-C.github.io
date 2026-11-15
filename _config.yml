@@ -4,3 +4,7 @@ description: Bookmark this to keep an eye on my project updates!
 
 exclude:
   - design_system/
+  - supabase/
+  - a-level/tests/
+  - a-level/tools/
+  - a-level/imports/
