@@ -35,6 +35,7 @@ do $$ begin
  end if;
 end $$;
 alter table public.model_submissions add column if not exists error_detail_code text;
+alter table public.model_submissions add column if not exists replay_manifest jsonb not null default '[]'::jsonb;
 create index if not exists model_submission_history on public.model_submissions(participant_id,exercise_id,created_at desc,id desc);
 create index if not exists model_submission_queue on public.model_submissions(status,queued_at,id) where status in ('queued','running');
 create table if not exists public.model_rate_events (participant_id uuid not null references public.model_participants(id), action text not null, created_at timestamptz not null default now());
@@ -174,7 +175,7 @@ end $$;
 create or replace function public.model_dashboard(p_participant uuid,p_exercise text) returns jsonb language sql stable security definer set search_path=public,pg_temp as $$
  select jsonb_build_object('name',(select display_name from model_participants where id=p_participant),
  'config',(select jsonb_build_object('primary_metric',primary_metric,'secondary_metrics',secondary_metrics,'higher_is_better',higher_is_better,'model_max_bytes',model_max_bytes,'weights_max_bytes',weights_max_bytes) from model_exercises where id=p_exercise),
- 'submissions',coalesce((select jsonb_agg(jsonb_build_object('id',s.id,'status',s.status,'created_at',s.created_at,'queued_at',s.queued_at,'started_at',s.started_at,'completed_at',s.completed_at,'duration_ms',s.duration_ms,'queue_wait_ms',s.queue_wait_ms + case when s.status='running' and s.lease_until<now() then greatest(0,(extract(epoch from (now()-s.lease_until))*1000)::bigint) else 0 end,'metrics',s.result,'error_category',s.error_category,'error_detail_code',s.error_detail_code,'selected',l.submission_id=s.id) order by s.created_at desc,s.id desc) from model_submissions s left join model_leaderboard l on l.participant_id=s.participant_id and l.exercise_id=s.exercise_id where s.participant_id=p_participant and s.exercise_id=p_exercise),'[]'::jsonb),
+ 'submissions',coalesce((select jsonb_agg(jsonb_build_object('id',s.id,'status',s.status,'created_at',s.created_at,'queued_at',s.queued_at,'started_at',s.started_at,'completed_at',s.completed_at,'duration_ms',s.duration_ms,'queue_wait_ms',s.queue_wait_ms + case when s.status='running' and s.lease_until<now() then greatest(0,(extract(epoch from (now()-s.lease_until))*1000)::bigint) else 0 end,'metrics',s.result,'runs',coalesce((select jsonb_agg((r-'path')||jsonb_build_object('replay_available',true) order by (r->>'run_id')::integer) from jsonb_array_elements(s.replay_manifest) r),'[]'::jsonb),'error_category',s.error_category,'error_detail_code',s.error_detail_code,'selected',l.submission_id=s.id) order by s.created_at desc,s.id desc) from model_submissions s left join model_leaderboard l on l.participant_id=s.participant_id and l.exercise_id=s.exercise_id where s.participant_id=p_participant and s.exercise_id=p_exercise),'[]'::jsonb),
  'leaderboard',coalesce((select jsonb_agg(x.row order by x.rn) from (select row_number() over (order by case when c.higher_is_better then -(s.result->>c.primary_metric)::numeric else (s.result->>c.primary_metric)::numeric end, s.created_at, s.id) rn,jsonb_build_object('name',p.display_name,'score',s.result->c.primary_metric,'metrics',(select coalesce(jsonb_object_agg(key,value),'{}'::jsonb) from jsonb_each(s.result) where key=any(c.secondary_metrics)),'duration_ms',s.duration_ms,'created_at',s.created_at,'is_current',l.participant_id=p_participant) row from model_leaderboard l join model_submissions s on s.id=l.submission_id join model_participants p on p.id=l.participant_id join model_exercises c on c.id=l.exercise_id where l.exercise_id=p_exercise and c.leaderboard_visible and jsonb_typeof(s.result->c.primary_metric)='number') x),'[]'::jsonb));
 $$;
 
@@ -201,8 +202,20 @@ begin
  update model_submissions s set lease_until=now()+make_interval(secs=>c.lease_seconds) from model_exercises c where s.id=p_submission and s.exercise_id=c.id and s.status='running' and s.claim_token=p_token and s.lease_until>now();
  return found;
 end $$;
+-- Paths are immutable per claim. An expired worker can never replace the
+-- accepted attempt's recordings. The browser never supplies a storage path.
+create or replace function public.model_worker_replay(p_submission uuid,p_token uuid,p_run integer) returns text language sql stable security definer set search_path=public,pg_temp as $$
+ select s.id::text||'/replays/'||s.claim_token::text||'/run-'||p_run::text||'.json'
+ from model_submissions s where s.id=p_submission and s.exercise_id='nn-rocket'
+ and s.status='running' and s.claim_token=p_token and s.lease_until>now() and p_run between 0 and 3;
+$$;
+create or replace function public.model_replay_info(p_participant uuid,p_submission uuid,p_exercise text,p_run integer) returns text language sql stable security definer set search_path=public,pg_temp as $$
+ select r->>'path' from model_submissions s cross join lateral jsonb_array_elements(s.replay_manifest) r
+ where s.id=p_submission and s.participant_id=p_participant and s.exercise_id=p_exercise
+ and s.status='completed' and (r->>'run_id')::integer=p_run;
+$$;
 create or replace function public.model_finish(p_submission uuid,p_token uuid,p_metrics jsonb,p_duration_ms bigint,p_evaluator_version text,p_test_set_version text,p_error_category text default null,p_metadata jsonb default '{}'::jsonb) returns boolean language plpgsql security definer set search_path=public,pg_temp as $$
-declare s model_submissions; c model_exercises;
+declare s model_submissions; c model_exercises; runs jsonb; r jsonb; manifest jsonb:='[]'; path text; run_number integer; seen integer[]:='{}';
 begin
  select * into s from model_submissions where id=p_submission and status='running' and claim_token=p_token and lease_until>now() for update;
  if not found then return false; end if;
@@ -226,9 +239,26 @@ begin
   if p_error_category not in ('model_loading','invalid_shape','runtime','timeout','resource_limit','evaluation','infrastructure') then raise exception 'Invalid error category'; end if;
   p_metrics:=null;
  end if;
- update model_submissions set status=case when p_error_category is null then 'completed' else 'failed' end,completed_at=now(),evaluated_at=now(),result=p_metrics,duration_ms=p_duration_ms,evaluator_version=p_evaluator_version,test_set_version=p_test_set_version,error_category=p_error_category,error_detail_code=p_metadata->>'public_error_code',evaluation_metadata=p_metadata,claim_token=null,lease_until=null where id=s.id;
+ runs:=coalesce(p_metadata->'public_replays','[]'::jsonb);
+ if jsonb_typeof(runs) is distinct from 'array' then raise exception 'Invalid replay manifest'; end if;
+ if jsonb_array_length(runs)>4 or (jsonb_array_length(runs)>0 and (s.exercise_id<>'nn-rocket' or p_error_category is not null)) then raise exception 'Invalid replay manifest'; end if;
+ for r in select value from jsonb_array_elements(runs) loop
+  if jsonb_typeof(r->'run_id') is distinct from 'number' or (r->>'run_id') !~ '^[0-3]$' then raise exception 'Invalid replay number'; end if;
+  run_number:=(r->>'run_id')::integer;
+  if run_number=any(seen) or r->>'scenario' is distinct from (array['demo_descent','centred_descent','crosswind_diagnostics','near_ground_contact'])[run_number+1]
+   or jsonb_typeof(r->'score') is distinct from 'number' or jsonb_typeof(r->'success') is distinct from 'boolean'
+   or jsonb_typeof(r->'duration') is distinct from 'number' then raise exception 'Invalid public replay'; end if;
+  if (r->>'score')::numeric not between 0 and 100 or (r->>'duration')::numeric not between 0 and 31 then raise exception 'Invalid replay result'; end if;
+  seen:=array_append(seen,run_number);
+  path:=public.model_worker_replay(s.id,p_token,run_number);
+  if path is null or not exists(select 1 from storage.objects o where o.bucket_id='model-artifacts' and o.name=path and (o.metadata->>'size')::bigint between 1 and 8388608) then raise exception 'Replay upload missing'; end if;
+  manifest:=manifest||jsonb_build_array(jsonb_build_object('run_id',run_number,'scenario',r->'scenario','score',r->'score','success',r->'success','duration',r->'duration','path',path));
+ end loop;
+ update model_submissions set status=case when p_error_category is null then 'completed' else 'failed' end,completed_at=now(),evaluated_at=now(),result=p_metrics,replay_manifest=manifest,duration_ms=p_duration_ms,evaluator_version=p_evaluator_version,test_set_version=p_test_set_version,error_category=p_error_category,error_detail_code=p_metadata->>'public_error_code',evaluation_metadata=p_metadata,claim_token=null,lease_until=null where id=s.id;
  return true;
 end $$;
+revoke all on function public.model_worker_replay(uuid,uuid,integer),public.model_replay_info(uuid,uuid,text,integer) from public,anon,authenticated;
+grant execute on function public.model_worker_replay(uuid,uuid,integer),public.model_replay_info(uuid,uuid,text,integer) to service_role;
 revoke all on function public.model_lookup(text), public.model_identity(text), public.model_rate(uuid,text), public.model_create(uuid,text), public.model_upload_info(uuid,uuid,text), public.model_record_upload(uuid,uuid,text,text), public.model_queue(uuid,uuid), public.model_abort(uuid,uuid), public.model_name(uuid,text), public.model_publish(uuid,text,uuid), public.model_dashboard(uuid,text), public.model_claim(text), public.model_worker_artifact(uuid,uuid,text), public.model_heartbeat(uuid,uuid), public.model_finish(uuid,uuid,jsonb,bigint,text,text,text,jsonb) from public,anon,authenticated;
 grant execute on function public.model_lookup(text), public.model_identity(text), public.model_rate(uuid,text), public.model_create(uuid,text), public.model_upload_info(uuid,uuid,text), public.model_record_upload(uuid,uuid,text,text), public.model_queue(uuid,uuid), public.model_abort(uuid,uuid), public.model_name(uuid,text), public.model_publish(uuid,text,uuid), public.model_dashboard(uuid,text), public.model_claim(text), public.model_worker_artifact(uuid,uuid,text), public.model_heartbeat(uuid,uuid), public.model_finish(uuid,uuid,jsonb,bigint,text,text,text,jsonb) to service_role;
 commit;

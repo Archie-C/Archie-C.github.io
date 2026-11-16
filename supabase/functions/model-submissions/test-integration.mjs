@@ -29,6 +29,10 @@ try {
    if(objects.has(name)) return Response.json({error:'exists'},{status:409});
    objects.set(name,new Uint8Array(options.body));await db.query("insert into storage.objects(bucket_id,name,metadata) values('model-artifacts',$1,$2)",[name,{size:options.body.byteLength}]);return Response.json({ok:true});
   }
+  if(url.pathname.startsWith('/storage/v1/object/authenticated/model-artifacts/')) {
+   const path=decodeURIComponent(url.pathname.slice('/storage/v1/object/authenticated/model-artifacts/'.length));
+   return objects.has(path)?new Response(objects.get(path)):new Response(null,{status:404});
+  }
   throw Error(`Unexpected backend path ${url.pathname}`);
  };
  await import('./index.ts');
@@ -51,7 +55,15 @@ try {
  r=await invoke('upload',{cookie:a,method:'POST',id,file:'model.py',body:'late overwrite'});assert.equal(r.status,409);
  const claim=(await db.query("select model_claim('nn-rocket') as value")).rows[0].value;assert.equal(claim.submission_id,id);assert.equal(claim.model_sha256,createHash('sha256').update('model content').digest('hex'));assert.equal(claim.weights_sha256,createHash('sha256').update('weights').digest('hex'));
  assert.equal((await db.query("select model_claim('nn-rocket') as value")).rows[0].value,null);assert.equal((await db.query("select model_record_upload(participant_id,id,'model.py',$1) value from model_submissions where id=$2",['a'.repeat(64),id])).rows[0].value,false);
- assert.equal((await db.query('select model_finish($1,$2,$3,$4,$5,$6,$7) as value',[id,claim.claim_token,{score:42},123,'fixture','test',null])).rows[0].value,true);
+ const replayPath=(await db.query('select model_worker_replay($1,$2,0) path',[id,claim.claim_token])).rows[0].path;
+ const replay={schema:'rocket-run-v1',config:{scenario:'demo_descent'},snapshots:[{time:0}]};
+ const replayBytes=new TextEncoder().encode(JSON.stringify(replay));objects.set(replayPath,replayBytes);
+ await db.query("insert into storage.objects(bucket_id,name,metadata) values('model-artifacts',$1,$2)",[replayPath,{size:replayBytes.length}]);
+ assert.equal((await db.query('select model_finish($1,$2,$3,$4,$5,$6,$7,$8) as value',[id,claim.claim_token,{score:42},123,'fixture','test',null,{public_replays:[{run_id:0,scenario:'demo_descent',score:42,success:true,duration:0}]}])).rows[0].value,true);
+ const getReplay=(cookie,exercise='nn-rocket',run='0')=>handler(new Request(`https://db.example/functions/v1/model-submissions?action=replay&exercise=${exercise}&id=${id}&run=${run}`,{headers:{origin:'https://site.example',cookie}}));
+ r=await getReplay(a);assert.equal(r.status,200);assert.equal(r.headers.get('cache-control'),'no-store');assert.deepEqual(await r.json(),replay);
+ assert.equal((await getReplay(b)).status,404);assert.equal((await getReplay(a,'another-exercise')).status,404);
+ assert.equal((await getReplay(a,'nn-rocket','../0')).status,400);assert.equal((await getReplay(a,'nn-rocket','1')).status,404);
  const dashboard=async(cookie,exercise)=>(await (await invoke('dashboard',{cookie,exercise})).json());
  assert.equal((await dashboard(a)).submissions[0].metrics.score,42);assert.equal((await dashboard(b)).submissions.some(s=>s.id===id),false);
  assert.equal((await post('publish',b,{id})).status,409);assert.equal((await post('publish',a,{id})).status,200);

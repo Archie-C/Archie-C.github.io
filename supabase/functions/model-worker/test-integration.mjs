@@ -13,9 +13,10 @@ try {
  await db.query(`insert into storage.objects(bucket_id,name,metadata) select 'model-artifacts',p,'{"size":4}'::jsonb from model_submissions s,lateral unnest(array[s.model_path,s.weights_path]) p where id=$1`,[id]);
  await db.query('select model_queue($1,$2)',[participant,id]);
  const workerToken='9'.repeat(64);globalThis.Deno={env:{get:k=>({SUPABASE_URL:'https://db.example',SUPABASE_SERVICE_ROLE_KEY:'server-key',MODEL_WORKER_TOKEN:workerToken})[k]},serve:fn=>{handler=fn;}};
- let storageReads=0,backendStatus=null;
+ let storageReads=0,storageWrites=0,backendStatus=null;
  globalThis.fetch=async(input,opts)=>{const url=new URL(input);assert.equal(opts.headers.apikey,'server-key');if(backendStatus)return Response.json({error:'backend'}, {status:backendStatus});
   if(url.pathname.startsWith('/rest/v1/rpc/')){const name=url.pathname.split('/').pop(),args=Object.values(JSON.parse(opts.body));try{const r=await db.query(`select ${name}(${args.map((_,i)=>`$${i+1}`).join(',')}) result`,args);return Response.json(r.rows[0].result);}catch(e){return Response.json({message:e.message},{status:400});}}
+  if(url.pathname.startsWith('/storage/v1/object/model-artifacts/')){storageWrites++;assert.equal(opts.headers['x-upsert'],'false');const path=decodeURIComponent(url.pathname.slice('/storage/v1/object/model-artifacts/'.length));await db.query("insert into storage.objects(bucket_id,name,metadata) values('model-artifacts',$1,$2)",[path,{size:opts.body.byteLength}]);return Response.json({ok:true});}
   if(url.pathname.startsWith('/storage/v1/object/authenticated/model-artifacts/')){storageReads++;return new Response('FILE');}throw Error('Unexpected backend request');};
  await import('./index.ts');
  const call=(action,data,{auth=workerToken,origin,method='POST'}={})=>{const headers={'content-type':'application/json',authorization:`Bearer ${auth}`};if(origin)headers.origin=origin;return handler(new Request(`https://db.example/functions/v1/model-worker?action=${action}`,{method,headers,body:method==='POST'?JSON.stringify(data):undefined}));};
@@ -28,13 +29,33 @@ try {
  assert.equal((await call('artifact',{...args,file:'../model.py'})).status,400);
  assert.equal((await call('artifact',{...args,claim_token:participant,file:'model.py'})).status,409);assert.equal(storageReads,1);
  assert.equal((await (await call('heartbeat',args)).json()).accepted,true);
- r=await call('finish',{...args,metrics:{score:73},duration_ms:100,evaluator_version:'v1',test_set_version:'t1'});assert.equal((await r.json()).accepted,true);
+ const replay={schema:'rocket-run-v1',config:{scenario:'demo_descent'},snapshots:[{time:0}],padding:'x'.repeat(40000)};
+ assert.equal((await call('replay',{...args,run_id:4,replay})).status,400);
+ assert.equal((await call('replay',{...args,run_id:0,replay:{...replay,config:{scenario:'private'}}})).status,400);
+ assert.equal((await call('replay',{...args,claim_token:participant,run_id:0,replay})).status,409);assert.equal(storageWrites,0);
+ const manifest=[{run_id:0,scenario:'demo_descent',score:73,success:true,duration:1}];
+ assert.equal((await call('finish',{...args,metrics:{score:73},duration_ms:100,metadata:{public_replays:manifest}})).status,400);
+ r=await call('replay',{...args,run_id:0,replay});assert.equal(r.status,200);assert.equal((await r.json()).uploaded,true);assert.equal(storageWrites,1);
+ assert.equal((await call('finish',{...args,metrics:{score:73},duration_ms:100,metadata:{public_replays:[...manifest,...manifest]}})).status,400);
+ r=await call('finish',{...args,metrics:{score:73},duration_ms:100,evaluator_version:'v1',test_set_version:'t1',metadata:{public_replays:manifest}});assert.equal((await r.json()).accepted,true);
+ assert.equal((await call('replay',{...args,run_id:1,replay:{...replay,config:{scenario:'centred_descent'}}})).status,409);assert.equal(storageWrites,1);
  assert.equal((await call('artifact',{...args,file:'weights.safetensors'})).status,409);assert.equal((await (await call('heartbeat',args)).json()).accepted,false);
  assert.equal((await (await call('finish',{...args,metrics:{score:99},duration_ms:1})).json()).accepted,false);
  const dash=(await db.query("select model_dashboard($1,'nn-rocket') data",[participant])).rows[0].data;assert.equal(dash.submissions[0].metrics.score,73);
+ assert.deepEqual(dash.submissions[0].runs,[{...manifest[0],replay_available:true}]);assert.ok(!JSON.stringify(dash).includes(claim.claim_token));
+ assert.ok((await db.query("select model_replay_info($1,$2,'nn-rocket',0) path",[participant,id])).rows[0].path);
+ assert.equal((await db.query("select model_replay_info($1,$2,'nn-rocket',0) path",[id,id])).rows[0].path,null);
  const second=(await db.query("select model_create($1,'nn-rocket') data",[participant])).rows[0].data.id;
  await db.query(`insert into storage.objects(bucket_id,name,metadata) select 'model-artifacts',p,'{"size":4}'::jsonb from model_submissions s,lateral unnest(array[s.model_path,s.weights_path]) p where id=$1`,[second]);await db.query('select model_queue($1,$2)',[participant,second]);
- const failed=(await (await call('claim',{exercise:'nn-rocket'})).json()).claim;const failure={submission_id:second,claim_token:failed.claim_token,metrics:null,duration_ms:2,error_category:'invalid_shape'};
+ const stale=(await (await call('claim',{exercise:'nn-rocket'})).json()).claim;
+ await db.query("update model_submissions set lease_until=now()-interval '1 second' where id=$1",[second]);
+ const failed=(await (await call('claim',{exercise:'nn-rocket'})).json()).claim;
+ assert.notEqual(failed.claim_token,stale.claim_token);
+ assert.equal((await call('replay',{submission_id:second,claim_token:stale.claim_token,run_id:0,replay})).status,409);
+ const abandoned=`${second}/replays/${stale.claim_token}/run-0.json`;
+ await db.query("insert into storage.objects(bucket_id,name,metadata) values('model-artifacts',$1,'{\"size\":100}')",[abandoned]);
+ assert.equal((await call('finish',{submission_id:second,claim_token:failed.claim_token,metrics:{score:73},duration_ms:100,metadata:{public_replays:manifest}})).status,400,'A new claim cannot attach the abandoned attempt recordings');
+ const failure={submission_id:second,claim_token:failed.claim_token,metrics:null,duration_ms:2,error_category:'invalid_shape'};
  assert.equal((await call('finish',{...failure,metadata:{public_error_code:'/secret/test/file'}})).status,400);
  assert.equal((await call('finish',{...failure,metadata:{public_error_code:'missing_entrypoint'}})).status,400);
  assert.equal((await (await call('finish',{...failure,metadata:{public_error_code:'non_finite',internal_path:'/secret/test/file'}})).json()).accepted,true);

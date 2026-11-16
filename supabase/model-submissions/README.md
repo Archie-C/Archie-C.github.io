@@ -18,9 +18,35 @@ After `model_queue` succeeds, the submission function sends an authenticated, as
 
 ## Worker contract
 
+Public flight replays are supported by both the event-triggered Modal consumer
+and the standalone worker. For an existing installation, reapply `setup.sql`,
+redeploy both Edge Functions and the Modal app, and publish the website changes.
+See the [replay upgrade instructions](../model-worker/README.md#public-replay-upgrade).
+Old submissions continue to work without recordings.
+
+Before finishing a successful evaluation, upload each public recording with
+`POST ?action=replay` and the body
+`{"submission_id":"<uuid>","claim_token":"<token>","run_id":0,"replay":{...}}`.
+Run numbers 0–3 map to `demo_descent`, `centred_descent`,
+`crosswind_diagnostics`, and `near_ground_contact`. The replay must use
+`rocket-run-v1` and name the matching scenario. Its encoded JSON is limited to
+8 MiB; the enclosing request has an additional 4 KiB allowance. The response is
+`{"uploaded":true}`. Keep heartbeats active while uploading. Then add
+`metadata.public_replays` to `finish`, an array of
+`{"run_id":0,"scenario":"demo_descent","score":75,"success":true,"duration":12.5}`.
+The database checks the manifest and the current claim's uploaded objects before
+accepting completion. Omit the manifest for older workers or failed evaluations.
+
+The owner dashboard includes `submissions[].runs` with these public fields and
+`replay_available`, without storage paths. `GET ?action=replay&exercise=nn-rocket&id=<submission-id>&run=0`
+streams the recording only to the submitting participant cookie. Missing files,
+other owners and mismatched exercises cannot be downloaded. Held-out test runs
+are not available through this API. Recordings stay private when scores are
+published.
+
 A Modal-hosted worker is available in [`../model-worker`](../model-worker/README.md); it evaluates four public and ten seed-derived private landing simulations. Deploy `functions/model-worker` with JWT verification disabled (`supabase functions deploy model-worker --no-verify-jwt`) and configure its `MODEL_WORKER_TOKEN` secret as 64 hexadecimal characters generated from 32 cryptographically random bytes. Set this secret through the Supabase secrets mechanism, not in source control or the website. Supabase supplies `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` to the function. The worker needs only its independent token; it does not need the service-role key. Rotate the token in both locations if it is exposed. The gateway rejects requests containing an `Origin` header and does not grant browser CORS access. It exposes only the following operations; keep the token in the trusted Modal Secret and do not log it or claim tokens.
 
-All operations are `POST` to `/functions/v1/model-worker?action=<action>`, with `Authorization: Bearer <MODEL_WORKER_TOKEN>` and `Content-Type: application/json`. JSON bodies are limited to 32 KiB. Non-success HTTP responses contain a bounded `error` string. Backend failures return 503; validation failures return 400; missing or invalid worker authentication returns 401. Do not expose the worker token, raw exceptions, file contents, or private evaluation data to students. Store and execute untrusted Python only in a separate, appropriately isolated evaluation environment.
+All operations are `POST` to `/functions/v1/model-worker?action=<action>`, with `Authorization: Bearer <MODEL_WORKER_TOKEN>` and `Content-Type: application/json`. JSON bodies are limited to 32 KiB except for the bounded replay-upload action above. Non-success HTTP responses contain a bounded `error` string. Backend failures return 503; validation failures return 400; missing or invalid worker authentication returns 401. Do not expose the worker token, raw exceptions, submitted model files, or private evaluation data to students. Store and execute untrusted Python only in a separate, appropriately isolated evaluation environment.
 
 1. Call `claim` with `{"exercise":"nn-rocket"}`. The response is `{"claim":null}` when no job is available, otherwise `claim` contains `submission_id`, `exercise_id`, `claim_token`, `attempt`, `lease_until`, `bucket`, `model_path`, `weights_path`, `model_sha256`, and `weights_sha256`. Digests may be null if queueing raced the optional metadata update; when present, verify the downloaded bytes against them. The claim atomically changes queued or expired running work to running. Fetch each artifact by calling `artifact` with `{"submission_id":"<uuid>","claim_token":"<token>","file":"model.py"}` or `"weights.safetensors"`. A successful response is the raw file as `application/octet-stream`; a 409 indicates that the claim is no longer current. Artifacts cannot be overwritten or downloaded by browser clients.
 2. Renew an active lease before expiry with `heartbeat` and `{"submission_id":"<uuid>","claim_token":"<token>"}`. The response is `{"accepted":true}` or `{"accepted":false}`. False means the claim is no longer valid; stop work and discard its result. The default lease is 900 seconds; configure `lease_seconds` per exercise. A later claim reclaims an expired job, up to `max_attempts`; once exhausted the next claim marks it failed as infrastructure failure. Claims use row locks with `SKIP LOCKED`, and every reclaim issues a new fencing token.

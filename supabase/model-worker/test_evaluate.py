@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import sys
 import unittest
+import tempfile
 from unittest import mock
 
 try:
@@ -22,12 +23,17 @@ class EvaluationTests(unittest.TestCase):
         model = mock.Mock()
         model.predict.return_value = evaluate.Command(0, 0)
         output = io.StringIO()
-        with mock.patch.object(evaluate, 'private_flights', return_value=[]), \
+        with tempfile.TemporaryDirectory() as directory, \
+             mock.patch.object(evaluate, 'private_flights', return_value=[]), \
              mock.patch.object(evaluate, 'Model', return_value=model), \
              mock.patch.object(evaluate, 'SCENARIOS', ('near_ground_contact',)), \
-             mock.patch.object(sys, 'argv', ['evaluate.py', 'unused', 'unused']), \
+             mock.patch.object(sys, 'argv', ['evaluate.py', 'unused', 'unused', directory]), \
              mock.patch('sys.stdout', output):
             evaluate.main()
+            replay = json.loads((Path(directory) / 'run-0.json').read_bytes())
+            self.assertEqual(replay['schema'], 'rocket-run-v1')
+            self.assertEqual(replay['config']['scenario'], 'near_ground_contact')
+            self.assertTrue(replay['snapshots'])
         metrics = json.loads(output.getvalue())['metrics']
         self.assertTrue(0 <= metrics['score'] <= 100)
         self.assertIn(metrics['landing_success_pct'], (0, 100))
@@ -83,6 +89,25 @@ class EvaluationTests(unittest.TestCase):
             evaluate.main()
         self.assertEqual(json.loads(output.getvalue()), {'error_category': 'infrastructure'})
         model.assert_not_called()
+
+    def test_only_public_flights_are_written_and_all_flights_are_scored(self):
+        responses = [{'replay': {'status': 'completed', 'snapshots': [{'time': 1}], 'case': n},
+                      'scoring': {'score': n, 'success': n % 2 == 0}} for n in range(14)]
+        output = io.StringIO()
+        with tempfile.TemporaryDirectory() as directory, \
+             mock.patch.dict(evaluate.os.environ, {'MODEL_PRIVATE_SEED': 'a' * 64}), \
+             mock.patch.object(evaluate, 'ModalModel', return_value=mock.Mock()), \
+             mock.patch.dict(evaluate.os.environ, {'MODEL_BACKEND': 'modal'}), \
+             mock.patch.object(evaluate, 'evaluate_closed_loop', side_effect=responses), \
+             mock.patch.object(sys, 'argv', ['evaluate.py', 'unused', 'unused', directory]), \
+             mock.patch('sys.stdout', output):
+            evaluate.main()
+            result = json.loads(output.getvalue())
+            self.assertEqual(result['metrics'], {'score': 6.5, 'landing_success_pct': 50})
+            self.assertEqual(len(result['public_replays']), 4)
+            files = sorted(Path(directory).glob('*.json'))
+            self.assertEqual(len(files), 4)
+            self.assertEqual([json.loads(p.read_bytes())['case'] for p in files], list(range(4)))
 
     def test_rejects_out_of_range_model_output(self):
         model = evaluate.Model.__new__(evaluate.Model)

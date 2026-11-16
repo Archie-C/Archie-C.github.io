@@ -47,7 +47,7 @@ Deno.serve(async (request: Request) => {
   const exercise=url.searchParams.get('exercise') ?? 'nn-rocket';
   if (!/^[a-z0-9-]{1,64}$/.test(exercise)) throw new UserError('Invalid exercise');
   if (!['GET','POST'].includes(request.method)) throw new UserError('Method not allowed',405);
-  if ((action==='dashboard') !== (request.method==='GET')) throw new UserError('Method not allowed',405);
+  if ((action==='dashboard' || action==='replay') !== (request.method==='GET')) throw new UserError('Method not allowed',405);
   let secret = request.headers.get('cookie')?.split(';').map(s=>s.trim()).find(s=>s.startsWith(`${cookieName}=`))?.slice(cookieName.length+1);
   const identityNew = !secret || !/^[a-f0-9]{64}$/.test(secret);
   if (identityNew) {
@@ -61,6 +61,15 @@ Deno.serve(async (request: Request) => {
   const participant = await rpc(action==='create' || action==='name' ? 'model_identity' : 'model_lookup',{p_hash:hash});
   if (action==='dashboard') { const data=await rpc('model_dashboard',{p_participant:participant,p_exercise:exercise}); return reply({...data,identity_new:false},200,setCookie); }
   if (!participant) throw new UserError('No submissions found for this browser.',401);
+  if (action==='replay') {
+   const id=getId(url.searchParams.get('id')),run=url.searchParams.get('run');
+   if(run===null || !/^[0-3]$/.test(run))throw new UserError('Invalid public run');
+   const path=await rpc('model_replay_info',{p_participant:participant,p_submission:id,p_exercise:exercise,p_run:Number(run)});
+   if(!path)throw new UserError('Recording unavailable',404);
+   const stored=await fetch(`${base}/storage/v1/object/authenticated/model-artifacts/${path.split('/').map(encodeURIComponent).join('/')}`,{headers});
+   if(!stored.ok)throw new UserError('Recording unavailable',404);
+   return new Response(stored.body,{headers:{...cors,'Content-Type':'application/json','X-Content-Type-Options':'nosniff'}});
+  }
   if (action==='upload') {
    const id=getId(url.searchParams.get('id')), file=request.headers.get('x-model-file');
    if (file!=='model.py' && file!=='weights.safetensors') throw new UserError('Invalid filename');

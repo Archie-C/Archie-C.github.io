@@ -8,6 +8,7 @@ const {pathToFileURL}=require('node:url');
  const file=path.resolve(__dirname,'../../courses/deep-learning-aau/topics/03-neural-networks/exercises/practical-exercise');
  let html=await readFile(path.join(file,'index.html'),'utf8');html=html.replace('<head>','<head><meta name="model-submission-endpoint" content="/api/model-submissions"><meta name="model-submission-exercise" content="second-practical">');
  const client=await readFile(path.join(file,'model-submissions.js'),'utf8');
+ const replayClient=await readFile(path.resolve(file,'../../../../rocket-replay.js'),'utf8');
  const env={SITE_ORIGIN:'https://learn.example',MODEL_FUNCTION_URL:'https://db.example/functions/v1/model-submissions'};
  const cookiesSeen=[];let nextIdentity=0;
  globalThis.fetch=async(url,opts)=>{
@@ -24,6 +25,7 @@ const {pathToFileURL}=require('node:url');
  async function install(context){await context.route('https://learn.example/**',async route=>{
   const rq=route.request(),url=new URL(rq.url());
   if(url.pathname==='/practical/')return route.fulfill({contentType:'text/html',body:html});
+  if(url.pathname==='/rocket-replay.js')return route.fulfill({contentType:'application/javascript',body:replayClient});
   if(url.pathname==='/practical/model-submissions.js')return route.fulfill({contentType:'application/javascript',body:client});
   if(url.pathname==='/api/model-submissions'){
    const init={method:rq.method(),headers:rq.headers()};const data=rq.postDataBuffer();if(data)init.body=data;

@@ -41,12 +41,12 @@ class API:
         self.url, self.token = url, token
         self.opener = urllib.request.build_opener(NoRedirect())
 
-    def call(self, action, body, limit=32768):
+    def call(self, action, body, limit=32768, timeout=15):
         request = urllib.request.Request(self.url + '?action=' + action,
-            data=json.dumps(body, allow_nan=False).encode(), method='POST',
+            data=json.dumps(body, allow_nan=False, separators=(',', ':')).encode(), method='POST',
             headers={'Authorization': 'Bearer ' + self.token, 'Content-Type': 'application/json'})
         try:
-            with self.opener.open(request, timeout=15) as response:
+            with self.opener.open(request, timeout=timeout) as response:
                 data = response.read(limit + 1)
                 if len(data) > limit:
                     raise APIError('response exceeds limit')
@@ -62,6 +62,11 @@ class API:
             return value
         except (ValueError, UnicodeDecodeError) as exc:
             raise APIError('invalid gateway response') from exc
+
+    def upload_replay(self, identity, run_id, replay):
+        value = json.loads(self.call('replay', dict(identity, run_id=run_id, replay=replay), timeout=120))
+        if value.get('uploaded') is not True:
+            raise APIError('replay upload rejected')
 
 def run_job(api, claim, timeout):
     version = test_version(os.environ.get('MODEL_PRIVATE_SEED', ''))
@@ -97,7 +102,8 @@ def run_job(api, claim, timeout):
     thread = threading.Thread(target=heartbeat, daemon=True)
     thread.start()
     try:
-        with tempfile.TemporaryDirectory(prefix='rocket-artifacts-') as directory:
+        with tempfile.TemporaryDirectory(prefix='rocket-artifacts-') as directory, \
+             tempfile.TemporaryDirectory(prefix='rocket-replays-') as replay_directory:
             os.chmod(directory, 0o755)
             for file, digest, limit in (('model.py', 'model_sha256', 131072), ('weights.safetensors', 'weights_sha256', 20971520)):
                 data = api.call('artifact', dict(identity, file=file), limit)
@@ -109,7 +115,7 @@ def run_job(api, claim, timeout):
                 path.chmod(0o644)
                 if lost.is_set() or STOP.is_set():
                     return
-            process = subprocess.Popen([sys.executable, str(ROOT / 'evaluate.py'), directory, name],
+            process = subprocess.Popen([sys.executable, str(ROOT / 'evaluate.py'), directory, name, replay_directory],
                                        stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
             while process.poll() is None:
                 if lost.is_set() or STOP.is_set():
@@ -129,10 +135,24 @@ def run_job(api, claim, timeout):
                         result = {'error_category': 'infrastructure'}
             if lost.is_set() or STOP.is_set():
                 return
+            manifest = result.get('public_replays', []) if result.get('metrics') is not None else []
+            if not isinstance(manifest, list) or len(manifest) > 4:
+                raise APIError('invalid replay manifest')
+            for run in manifest:
+                run_id = run.get('run_id')
+                if type(run_id) is not int or not 0 <= run_id < 4:
+                    raise APIError('invalid replay number')
+                path = Path(replay_directory) / f'run-{run_id}.json'
+                if path.stat().st_size > 8 * 1024 * 1024:
+                    raise APIError('replay exceeds limit')
+                api.upload_replay(identity, run_id, json.loads(path.read_bytes()))
+                if lost.is_set() or STOP.is_set():
+                    return
             body = dict(identity, metrics=result.get('metrics'),
                         error_category=result.get('error_category'),
                         duration_ms=min(86400000, int((time.monotonic() - start) * 1000)),
-                        evaluator_version='rocket-worker-v2', test_set_version=version, metadata={})
+                        evaluator_version='rocket-worker-v2', test_set_version=version,
+                        metadata={'public_replays': manifest})
             if body['metrics'] is None and body['error_category'] is None:
                 body['error_category'] = 'infrastructure'
             if api.json('finish', body).get('accepted') is True:

@@ -157,6 +157,7 @@ class Model:
 
 def main():
     directory, name = sys.argv[1:3]
+    output_directory = Path(sys.argv[3]) if len(sys.argv) > 3 else None
     model = None
     try:
         private = list(private_flights(os.environ.get('MODEL_PRIVATE_SEED', '')))
@@ -164,8 +165,10 @@ def main():
         flights += [(case.scenario, parameters, case.initial, case.constant_wind, case.gusts)
                     for parameters, case in private]
         model = (ModalModel if os.getenv('MODEL_BACKEND') == 'modal' else Model)(directory, name)
-        results = []
-        for item, parameters, state, wind, gusts in flights:
+        results, public_replays = [], []
+        if output_directory is not None:
+            output_directory.mkdir(parents=True, exist_ok=True)
+        for index, (item, parameters, state, wind, gusts) in enumerate(flights):
             failure = []
             def policy(obs):
                 try:
@@ -180,8 +183,20 @@ def main():
             if result['replay']['status'] == 'error':
                 raise EvaluationError('evaluation')
             results.append(result['scoring'])
+            # Only public flights leave the evaluator. Held-out configurations,
+            # trajectories and per-flight scores remain private.
+            if output_directory is not None and index < len(SCENARIOS):
+                replay = result['replay']
+                encoded = json.dumps(replay, allow_nan=False, separators=(',', ':')).encode()
+                if len(encoded) > 8 * 1024 * 1024:
+                    raise EvaluationError('evaluation')
+                (output_directory / f'run-{index}.json').write_bytes(encoded)
+                public_replays.append(dict(run_id=index, scenario=item,
+                    score=result['scoring']['score'], success=bool(result['scoring']['success']),
+                    duration=replay['snapshots'][-1]['time']))
         print(json.dumps({'metrics': {'score': sum(x['score'] for x in results) / len(results),
-              'landing_success_pct': 100 * sum(bool(x['success']) for x in results) / len(results)}}))
+              'landing_success_pct': 100 * sum(bool(x['success']) for x in results) / len(results)},
+              'public_replays': public_replays}))
     except EvaluationError as exc:
         print(json.dumps({'error_category': exc.category}))
     except Exception:

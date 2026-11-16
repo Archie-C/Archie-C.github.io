@@ -64,4 +64,43 @@ The evaluator uses only the existing `touchdown-v1.0` first-contact landing scor
 
 ## Deployment check
 
+### Public replay upgrade
+
+Reapply the rerunnable `supabase/model-submissions/setup.sql` as the project owner,
+then redeploy both Edge Functions before deploying the updated Modal worker:
+
+```sh
+supabase functions deploy model-worker --no-verify-jwt
+supabase functions deploy model-submissions --no-verify-jwt
+modal deploy supabase/model-worker/modal_app.py
+```
+
+Publish the updated website files, including `courses/deep-learning-aau/rocket-replay.js`.
+Keep the existing Modal notification URL and proxy secrets; this works with
+`notify_queued()` spawning `consume_queue()` and requires no polling process,
+schedule, new secret, or Modal Volume. The standalone worker uses the same upload
+code. Existing attempts retain their metrics but have no recordings; submit a new
+attempt to create replays.
+
+The trusted evaluator writes only the four public `rocket-run-v1` recordings to a
+temporary output directory outside the model sandbox. After evaluation, the
+worker uploads each recording through the worker gateway (8 MiB per recording),
+then finishes with a small public-run manifest. Heartbeats continue during
+uploads. Storage paths include the current claim and uploads cannot overwrite
+files. Completion validates that every listed recording exists for the accepted
+claim. Failed uploads leave the job unfinished; recovery follows the existing
+expired-claim/manual-notification policy. Abandoned claim files remain private
+and follow the same operator-controlled retention policy as other artifacts.
+
+The submitting browser can view or download recordings from its completed
+attempt. Downloads check the participant cookie and exercise on every request
+and use `Cache-Control: no-store`; publishing a score does not publish recordings.
+Held-out trajectories and individual held-out results are never uploaded. Overall
+metrics still include all 14 flights.
+
+For a deployed check, submit through the normal page, confirm the Modal
+notification starts the job, and open all four public recordings after completion.
+Check playback and JSON downloads, then verify that another browser profile
+cannot retrieve the same recordings, including after the score is published.
+
 The local unit tests mock the gateway and execution; they cannot validate Modal, the deployed Edge Function, Storage, or real queue concurrency. Before opening submissions, use a controlled submission and confirm it queues, is claimed, completes, displays privately, and is published only when requested. Also test bad weights, invalid output, a slow model, interruption and lease expiry. The example architecture is under `submission-example`; generate matching safetensors weights. Watch Modal logs and billing during the test. Verify that a normal submission starts after its notification, then test manual recovery with an intentionally unavailable trigger and after a lease expires. Check Supabase Edge Function logs for notification failures and Modal logs for consumer errors.

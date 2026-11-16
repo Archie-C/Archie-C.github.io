@@ -4,6 +4,8 @@
  const exercise=document.querySelector('meta[name="model-submission-exercise"]')?.content || 'nn-rocket';
  const $=id=>document.getElementById(id), form=$('model-form'), message=$('model-message'), history=$('model-history'), board=$('model-leaderboard'), progress=$('model-progress');
  let config=null, busy=false, timer=null, lastData=null, paused=false;
+ const viewer=window.createRocketReplayViewer($('model-flight'));
+ let replayRequest=0;
  const errors={upload_error:'The upload did not finish. Please submit again.',model_loading:'The evaluator could not load the model.',invalid_shape:'The model returned an invalid input or output shape.',runtime:'The model raised an exception during evaluation.',timeout:'The evaluation exceeded its time limit.',resource_limit:'The evaluation exceeded its resource limit.',evaluation:'The evaluator could not complete this evaluation.',infrastructure:'The evaluation worker was interrupted. Please submit again.'};
  const errorDetails={missing_entrypoint:'model.py must define create_model().',incompatible_weights:'The saved weights do not match the model architecture.',dependency_missing:'The model uses a dependency unavailable to the evaluator.',input_shape:'The model could not accept the expected input shape.',output_shape:'The model returned an output with the wrong shape.',non_finite:'The model returned a non-finite value.',out_of_range:'The model returned a control value outside the permitted range.',controller_exception:'The model raised an exception during evaluation.',time_limit:'The evaluation exceeded its time limit.',memory_limit:'The evaluation exceeded its memory limit.',evaluation_failed:'The evaluator could not complete this evaluation.',worker_interrupted:'The evaluation worker was interrupted. Please submit again.'};
  const time=v=>v ? new Date(v).toLocaleString() : '—';
@@ -11,10 +13,11 @@
  const span=(start,end)=>start ? duration((end ? Date.parse(end):Date.now())-Date.parse(start)) : '—';
  const queueWait=s=>s.queued_at && Number.isFinite(s.queue_wait_ms) ? duration(s.queue_wait_ms+(s.status==='queued' ? Math.max(0,Date.now()-Date.parse(s.queued_at)) : 0)) : 'unavailable';
  const text=(tag,value)=>{const e=document.createElement(tag);e.textContent=value;return e;};
- async function api(action,body) {
+ async function api(action,body,params={}) {
   const controller=new AbortController(),deadline=setTimeout(()=>controller.abort(),30000);
   try {
-   const r=await fetch(`${endpoint}?action=${encodeURIComponent(action)}&exercise=${encodeURIComponent(exercise)}`,{method:body===undefined?'GET':'POST',credentials:'include',signal:controller.signal,headers:body===undefined?{}:{'Content-Type':'application/json'},body:body===undefined?undefined:JSON.stringify(body)});
+   const query=new URLSearchParams({action,exercise,...params});
+   const r=await fetch(`${endpoint}?${query}`,{method:body===undefined?'GET':'POST',credentials:'include',signal:controller.signal,headers:body===undefined?{}:{'Content-Type':'application/json'},body:body===undefined?undefined:JSON.stringify(body)});
    const data=await r.json().catch(()=>({}));if(!r.ok){const error=Error(data.error || 'The submission service is unavailable.');error.status=r.status;throw error;}return data;
   } catch(error) {if(controller.signal.aborted)throw Error('Request timed out. Check your connection.');throw error;}
   finally{clearTimeout(deadline);}
@@ -57,6 +60,36 @@
     if(metrics.children.length)content.append(metrics);
    }
    if(s.error_category){const error=text('p',errorDetails[s.error_detail_code]||errors[s.error_category]||'Evaluation failed.');error.className='run-error';content.append(error);}
+   if(s.status==='completed') {
+    const flights=document.createElement('div');flights.className='run-flights';
+    if(!s.runs?.length)flights.append(text('p','No flight recordings are available for this attempt.'));
+    else {
+     flights.append(text('p','Public flights only. Overall metrics also include held-out tests.'));
+     for(const run of s.runs) {
+      if(!run.replay_available)continue;
+      const row=document.createElement('div');row.className='run-flight';
+      row.append(text('span',`${run.scenario.replaceAll('_',' ')} · ${Number(run.score.toFixed(2))} / 100 · ${run.success?'Success':'Unsuccessful'}`));
+      for(const download of [false,true]) {
+       const button=text('button',download?'Download JSON':'View flight');button.type='button';
+       button.onclick=async()=>{button.disabled=true;const request=download?null:++replayRequest;
+        try {
+         const recording=await api('replay',undefined,{id:s.id,run:String(run.run_id)});
+         if(download) {
+          const link=document.createElement('a'),url=URL.createObjectURL(new Blob([JSON.stringify(recording)],{type:'application/json'}));
+          link.href=url;link.download=`rocket-${s.id}-run-${run.run_id}.json`;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+         } else if(request===replayRequest) {
+          await viewer.load(recording);$('model-flight').scrollIntoView({behavior:'smooth',block:'start'});
+          $('message').textContent=`${run.scenario.replaceAll('_',' ')} loaded. Use Play replay to watch it.`;
+         }
+        } catch(error){message.textContent=error.message;}finally{button.disabled=false;}
+       };
+       row.append(button);
+      }
+      flights.append(row);
+     }
+    }
+    content.append(flights);
+   }
    const identifier=text('p',`Attempt ${s.id}`);identifier.className='run-id';content.append(identifier);
    if(s.status==='uploading') {
     const retry=text('button','Retry queueing');retry.type='button';retry.className='model-retry';retry.disabled=busy;retry.onclick=async()=>{retry.disabled=true;try{await api('queue',{id:s.id});await refresh();message.textContent='Your attempt is queued.';}catch(e){const data=await refresh();const attempt=data?.submissions.find(item=>item.id===s.id);if(attempt && (['queued','running','completed'].includes(attempt.status) || (attempt.status==='failed' && attempt.error_category!=='upload_error')))message.textContent=`Upload completed; evaluation is ${attempt.status}.`;else if(!data)message.textContent='Queue confirmation was lost. Check your history when the connection returns.';else message.textContent=e.message;}finally{retry.disabled=false;}};content.append(retry);

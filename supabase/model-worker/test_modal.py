@@ -72,6 +72,12 @@ class ModalTests(unittest.TestCase):
         with mock.patch.dict(sys.modules, {'modal': modal}):
             spec.loader.exec_module(module)
             self.assertEqual(module.notify_queued(), {'accepted': True})
+            worker = types.SimpleNamespace(test_version=mock.Mock(), API=mock.Mock(), run_job=mock.Mock())
+            worker.API.return_value.json.return_value = {'claim': {'submission_id': 'queued-job'}}
+            with mock.patch.dict(sys.modules, {'worker': worker}), mock.patch.dict(module.os.environ, {}, clear=False):
+                module.consume_queue()
+                self.assertEqual(module.os.environ['MODEL_BACKEND'], 'modal')
+            worker.run_job.assert_called_once_with(worker.API.return_value, {'submission_id': 'queued-job'}, 1800)
         module.consume_queue.spawn.assert_called_once_with()
         for call in image.add_local_file.call_args_list:
             self.assertTrue(call.args[1].startswith('/'), call.args[1])

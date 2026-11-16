@@ -4,6 +4,7 @@ import importlib.util
 import json
 from pathlib import Path
 import unittest
+import types
 from unittest import mock
 
 spec = importlib.util.spec_from_file_location('worker', Path(__file__).with_name('worker.py'))
@@ -59,6 +60,43 @@ class WorkerTests(unittest.TestCase):
         self.assertEqual(finish[0]['metrics']['score'], 75)
         self.assertEqual(finish[0]['claim_token'], 'claim')
         self.assertEqual(finish[0]['test_set_version'], worker.test_version('a' * 64))
+
+    def test_public_replays_upload_before_finish_on_both_backends(self):
+        for backend in ('docker', 'modal'):
+            with self.subTest(backend=backend):
+                api = FakeAPI()
+                api.upload_replay = mock.Mock(side_effect=lambda identity, run, replay: api.calls.append(('replay', replay)))
+                manifest = [dict(run_id=0, scenario='demo_descent', score=75, success=True, duration=1)]
+                process = mock.Mock(returncode=0)
+                process.poll.return_value = 0
+                process.communicate.return_value = (json.dumps({'metrics': {'score': 75}, 'public_replays': manifest}).encode(), b'')
+                def spawn(args, **kwargs):
+                    # Output lives outside the submission directory mounted into the sandbox.
+                    self.assertNotEqual(args[2], args[4])
+                    (Path(args[4]) / 'run-0.json').write_text('{"schema":"rocket-run-v1"}')
+                    return process
+                modal = types.SimpleNamespace(Sandbox=mock.Mock())
+                with mock.patch.dict(worker.os.environ, {'MODEL_BACKEND': backend}), \
+                     mock.patch.dict('sys.modules', {'modal': modal}), \
+                     mock.patch.object(worker.subprocess, 'Popen', side_effect=spawn), \
+                     mock.patch.object(worker.subprocess, 'run'):
+                    worker.run_job(api, self.claim, 10)
+                self.assertEqual([action for action, _ in api.calls][-2:], ['replay', 'finish'])
+                self.assertEqual(api.calls[-1][1]['metadata']['public_replays'], manifest)
+
+    def test_failed_replay_upload_does_not_finish_submission(self):
+        api = FakeAPI()
+        api.upload_replay = mock.Mock(side_effect=worker.APIError('upload failed'))
+        process = mock.Mock(returncode=0)
+        process.poll.return_value = 0
+        process.communicate.return_value = (b'{"metrics":{"score":75},"public_replays":[{"run_id":0}]}', b'')
+        def spawn(args, **kwargs):
+            (Path(args[4]) / 'run-0.json').write_text('{}')
+            return process
+        with mock.patch.object(worker.subprocess, 'Popen', side_effect=spawn), mock.patch.object(worker.subprocess, 'run'):
+            with self.assertRaises(worker.APIError):
+                worker.run_job(api, self.claim, 10)
+        self.assertFalse(any(action == 'finish' for action, _ in api.calls))
 
     def test_expired_lease_does_not_download_or_finish(self):
         api = FakeAPI()
