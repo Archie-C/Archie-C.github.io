@@ -1,6 +1,6 @@
 # Rocket regression exercise
 
-The Python `Controller` class implements `predict_action(observation)`, returning `(thrust, gimbal)`: finite normalized values in `[0, 1]` and `[-1, 1]`. The observation contains the 12 values listed on the exercise page. Optional `load(path)` loads uploaded weights. Browser evaluation uses four simulator scenarios.
+Submit `model.py` and `weights.safetensors` for server-side evaluation. `create_model()` must return a PyTorch module accepting batches of the 12 observations listed on the exercise page and returning finite thrust and gimbal values in `[0, 1]` and `[-1, 1]`.
 
 ## Continuous MPC expert
 
@@ -26,7 +26,7 @@ python rocket_expert.py --random-runs 100 --seed 42 --dataset /path/to/landings.
 
 Random starts vary position, velocity, tilt, angular rate, fuel and constant wind. A seed makes these starts reproducible. The CSV contains `run_id`, `step`, the 12 observation columns, continuous targets `thrust` and `gimbal`, and the final flight `success` flag. `run_id`, `step` and `success` are metadata rather than model inputs. Failed flights are retained with `success=0`; the command returns a nonzero exit code if any flight fails. No classification datasets or prerecorded flights are bundled.
 
-For local simulation, use `expert.command` with `evaluate_closed_loop(..., control_mode='continuous')`. For the exercise upload, use `rocket_expert.py` directly; the browser worker loads NumPy and SciPy. Browser timing depends on the machine; the native solver is intended primarily for generating expert demonstrations offline.
+For local research and dataset generation, use `expert.command` with `evaluate_closed_loop(..., control_mode='continuous')`. The expert is intended primarily for generating demonstrations offline; exercise submissions use the PyTorch model interface.
 
 Validation on the four predefined scenarios produced four successful landings scoring 99.60–99.70/100. Solver time was approximately 2–19 seconds per complete flight in the tested native Python environment. Six additional starts with varied position, velocity, attitude, fuel and wind also landed successfully, scoring 99.47–99.69/100. These results characterize the tested starts, not all possible initial states.
 

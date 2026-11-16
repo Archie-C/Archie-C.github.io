@@ -1,4 +1,4 @@
-"""Simulation recording primitives shared by browser evaluation."""
+"""Simulation and recording primitives used by the rocket evaluator."""
 from dataclasses import asdict
 from pathlib import Path
 import hashlib

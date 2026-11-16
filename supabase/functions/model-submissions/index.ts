@@ -17,6 +17,19 @@ async function rpc(name: string, data: object) {
  }
  return r.status===204 ? null : await r.json();
 }
+// Best-effort wake-up: the database queue remains authoritative. A failed
+// notification requires a later trigger or manual intervention.
+async function notifyModal() {
+ const endpoint = Deno.env.get('MODEL_MODAL_TRIGGER_URL') || '';
+ const proxyKey = Deno.env.get('MODEL_MODAL_PROXY_KEY') || '';
+ const proxySecret = Deno.env.get('MODEL_MODAL_PROXY_SECRET') || '';
+ try {
+  const url = new URL(endpoint);
+  if (url.protocol !== 'https:' || !url.hostname.endsWith('.modal.run') || url.username || url.password || url.port || url.search || url.hash || !proxyKey || !proxySecret) throw Error();
+  const response = await fetch(url.href, {method:'POST', headers:{'Modal-Key':proxyKey,'Modal-Secret':proxySecret}, redirect:'error', signal:AbortSignal.timeout(25000)});
+  if (!response.ok) throw Error();
+ } catch { console.error('Modal notification failed; queued work requires another trigger or manual intervention'); }
+}
 async function readJson(request: Request) {
  const reader=request.body?.getReader(); const chunks: Uint8Array[]=[]; let size=0;
  if (reader) while(true) { const {done,value}=await reader.read(); if(done) break; size+=value.length; if(size>4096){await reader.cancel();throw new UserError('Request too large',413);} chunks.push(value); }
@@ -70,7 +83,7 @@ Deno.serve(async (request: Request) => {
   }
   const data=await readJson(request);
   if (action==='create') return reply(await rpc('model_create',{p_participant:participant,p_exercise:exercise}));
-  if (action==='queue' || action==='abort') { if(action==='queue') await rpc('model_rate',{p_participant:participant,p_action:'queue'}); await rpc(`model_${action}`,{p_participant:participant,p_submission:getId(data.id)}); return reply({ok:true}); }
+  if (action==='queue' || action==='abort') { if(action==='queue') await rpc('model_rate',{p_participant:participant,p_action:'queue'}); await rpc(`model_${action}`,{p_participant:participant,p_submission:getId(data.id)}); if(action==='queue') EdgeRuntime.waitUntil(notifyModal()); return reply({ok:true}); }
   if (action==='name') { if(typeof data.name!=='string') throw new UserError('Invalid name'); await rpc('model_name',{p_participant:participant,p_name:data.name}); return reply({ok:true}); }
   if (action==='publish') { const id=data.id===null?null:getId(data.id); await rpc('model_publish',{p_participant:participant,p_exercise:exercise,p_submission:id}); return reply({ok:true}); }
   throw new UserError('Unknown action',404);

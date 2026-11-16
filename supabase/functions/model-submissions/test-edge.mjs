@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict';
-let handler, calls=[];
-globalThis.Deno={env:{get:key=>({MODEL_SITE_ORIGIN:'https://site.example',SUPABASE_URL:'https://db.example',SUPABASE_SERVICE_ROLE_KEY:'server-secret'})[key]},serve:fn=>{handler=fn;}};
-globalThis.fetch=async(url,options)=>{const action=new URL(url).pathname.split('/').pop();const body=JSON.parse(options.body);calls.push({action,body});assert.equal(options.headers.apikey,'server-secret');if(action==='model_identity'||action==='model_lookup')return Response.json('11111111-1111-4111-8111-111111111111');if(action==='model_dashboard')return Response.json({name:'Anonymous',config:{},submissions:[],leaderboard:[]});if(action==='model_create')return Response.json({id:'22222222-2222-4222-8222-222222222222'});return new Response(null,{status:204});};
+let handler, calls=[], pending=[], notifications=[], notifyStatus=200, failQueue=false;
+const settings={MODEL_SITE_ORIGIN:'https://site.example',SUPABASE_URL:'https://db.example',SUPABASE_SERVICE_ROLE_KEY:'server-secret',MODEL_MODAL_TRIGGER_URL:'https://workspace--app-notify-queued.modal.run',MODEL_MODAL_PROXY_KEY:'proxy-key',MODEL_MODAL_PROXY_SECRET:'proxy-secret'};
+globalThis.EdgeRuntime={waitUntil:promise=>pending.push(promise)};
+globalThis.Deno={env:{get:key=>settings[key]},serve:fn=>{handler=fn;}};
+globalThis.fetch=async(url,options)=>{if(new URL(url).hostname.endsWith('.modal.run')){notifications.push({url,options});return new Response(null,{status:notifyStatus});}const action=new URL(url).pathname.split('/').pop();const body=JSON.parse(options.body);calls.push({action,body});if(action==='model_queue' && failQueue)return Response.json({message:'Submission cannot be queued'},{status:400});assert.equal(options.headers.apikey,'server-secret');if(action==='model_identity'||action==='model_lookup')return Response.json('11111111-1111-4111-8111-111111111111');if(action==='model_dashboard')return Response.json({name:'Anonymous',config:{},submissions:[],leaderboard:[]});if(action==='model_create')return Response.json({id:'22222222-2222-4222-8222-222222222222'});return new Response(null,{status:204});};
 await import('./index.ts');
 const req=(action,opts={})=>new Request(`https://db.example/functions/v1/model-submissions?action=${action}`,{headers:{origin:'https://site.example',...opts.headers},method:opts.method||'GET',body:opts.body});
 let response=await handler(req('dashboard'));assert.equal(response.status,200);const cookie=response.headers.get('set-cookie');assert.match(cookie,/HttpOnly/);assert.match(cookie,/Secure/);assert.match(cookie,/Partitioned/);assert.equal((await response.json()).identity_new,true);
@@ -14,4 +16,11 @@ response=await handler(req('create',{method:'POST',headers:{cookie:cookiePair},b
 response=await handler(req('create',{method:'POST',headers:{cookie:cookiePair},body:'x'.repeat(5000)}));assert.equal(response.status,413);
 response=await handler(req('dashboard',{headers:{origin:'https://evil.example'}}));assert.equal(response.status,403);
 response=await handler(req('queue',{method:'POST',headers:{cookie:cookiePair},body:JSON.stringify({id:'not-a-uuid'})}));assert.equal(response.status,400);
+const validId='22222222-2222-4222-8222-222222222222';
+const queue=()=>handler(req('queue',{method:'POST',headers:{cookie:cookiePair},body:JSON.stringify({id:validId})}));
+response=await queue();assert.equal(response.status,200);await Promise.all(pending.splice(0));
+assert.equal(notifications.length,1);assert.equal(notifications[0].options.headers['Modal-Key'],'proxy-key');assert.equal(notifications[0].options.headers['Modal-Secret'],'proxy-secret');assert.equal(notifications[0].options.redirect,'error');assert.equal(notifications[0].options.body,undefined);
+failQueue=true;response=await queue();assert.equal(response.status,409);assert.equal(notifications.length,1);failQueue=false;
+notifyStatus=503;response=await queue();assert.equal(response.status,200);await Promise.all(pending.splice(0));assert.equal(notifications.length,2);
+settings.MODEL_MODAL_TRIGGER_URL='https://evil.example/steal';response=await queue();assert.equal(response.status,200);await Promise.all(pending.splice(0));assert.equal(notifications.length,2);
 console.log('Model submissions gateway tests passed');

@@ -13,6 +13,7 @@ try {
   create table storage.objects(id uuid primary key default gen_random_uuid(),bucket_id text,name text,metadata jsonb,unique(bucket_id,name)); alter table storage.objects enable row level security;`);
  const sql=(await readFile(new URL('../../model-submissions/setup.sql',import.meta.url),'utf8')).replace('create extension if not exists pgcrypto with schema extensions;','');
  await db.exec(sql);
+ globalThis.EdgeRuntime={waitUntil:promise=>{void promise;}};
  globalThis.Deno={env:{get:key=>({MODEL_SITE_ORIGIN:'https://site.example',SUPABASE_URL:'https://db.example',SUPABASE_SERVICE_ROLE_KEY:'server-secret'})[key]},serve:fn=>{handler=fn;}};
  const objects=new Map();
  globalThis.fetch=async(input,options)=>{
