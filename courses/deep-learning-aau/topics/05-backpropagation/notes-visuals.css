@@ -5,4 +5,11 @@
 .flow figcaption { font-family: var(--font-sans); font-size: 13px; line-height: 1.5; margin-top: 12px; color: var(--fg-3); }
 .body table { display: block; overflow-x: auto; border-collapse: collapse; font-size: 14px; }
 .body th, .body td { padding: 8px; border-bottom: 1px solid var(--rule); text-align: left; vertical-align: top; }
-.katex-display { overflow-x: auto; overflow-y: hidden; padding: 4px 0; }
+/* One block owns the vertical rhythm; retain the design-system equation card. */
+.body .equation { margin: 1.25em 0; }
+.body .equation .katex-display {
+  margin: 0 !important;
+  padding: var(--space-4);
+  overflow-x: auto;
+  overflow-y: hidden;
+}
