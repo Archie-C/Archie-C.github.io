@@ -23,6 +23,8 @@ async function createDatabase({removeQuestionMetadata=true}={}) {
   await db.exec(fs.readFileSync(path.join(root,'supabase/revision/11-question-coverage.sql'),'utf8'));
   await db.exec(fs.readFileSync(path.join(root,'supabase/revision/12-queue-performance.sql'),'utf8'));
   await db.exec(fs.readFileSync(path.join(root,'supabase/revision/12-queue-performance.sql'),'utf8'));
+  await db.exec(fs.readFileSync(path.join(root,'supabase/revision/13-receipt-retention.sql'),'utf8'));
+  await db.exec(fs.readFileSync(path.join(root,'supabase/revision/13-receipt-retention.sql'),'utf8'));
   await db.exec(fs.readFileSync(path.join(root,'supabase/revision/05-verification.sql'),'utf8'));
   return db;
 }
