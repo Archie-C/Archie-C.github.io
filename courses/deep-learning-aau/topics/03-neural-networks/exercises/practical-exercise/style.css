@@ -165,3 +165,63 @@ body { background: var(--bg-2); }
 .model-name input { padding: 8px; max-width: 100%; }
 .model-panel tr.own { background: var(--bg-2); }
 .model-panel .exercise-help pre { max-width: 100%; overflow-x: auto; padding: 12px; background: var(--bg-2); font-size: 12px; }
+
+/* Submission layout and run history */
+.course-content main { gap: 24px; }
+.model-panel, .controller-panel { padding: clamp(20px, 3vw, 32px); }
+.model-panel > .hint { max-width: 76ch; }
+.model-panel > .hint + .hint { margin-top: 8px; }
+.model-panel > .exercise-help { margin: 20px 0; }
+.model-panel > form#model-form { margin-top: 24px; }
+#model-form > button { margin-top: 16px; }
+.model-drop { min-width: 0; gap: 10px; padding: 20px; }
+.model-section { border-top: 1px solid var(--rule); margin-top: 32px; padding-top: 28px; }
+.model-section-heading { display: flex; justify-content: space-between; align-items: start; gap: 20px; margin-bottom: 20px; }
+.model-section-heading h2 { margin: 4px 0 0; }
+.model-section-heading .hint { margin: 6px 0 0; }
+.section-label { color: var(--fg-4); font: 10px/1.4 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; }
+.run-count { white-space: nowrap; color: var(--fg-3); font: 12px/1.5 var(--font-mono); padding-top: 3px; }
+.model-history { display: grid; gap: 10px; }
+.model-empty { margin: 0; padding: 24px; border: 1px dashed var(--rule-strong); border-radius: 6px; background: var(--bg-2); color: var(--fg-3); }
+.model-attempt { padding: 0; border: 1px solid var(--rule); border-radius: 6px; background: var(--bg); overflow: hidden; }
+.model-attempt[open] { border-color: var(--rule-strong); }
+.model-attempt summary.run-summary { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 18px; list-style: none; cursor: pointer; }
+.run-summary::-webkit-details-marker { display: none; }
+.run-summary:hover { background: var(--bg-2); }
+.run-identity { display: flex; flex-direction: column; min-width: 0; gap: 3px; }
+.run-title { color: var(--fg); font: 600 14px/1.4 var(--font-sans); }
+.run-date { color: var(--fg-3); font: 11px/1.4 var(--font-mono); }
+.run-overview { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 10px; }
+.run-status, .run-published { display: inline-flex; align-items: center; border: 1px solid var(--rule); border-radius: 4px; padding: 3px 7px; background: var(--bg-2); color: var(--fg-2); font: 600 10px/1.4 var(--font-mono); }
+.status-completed { color: var(--success); }
+.status-failed { color: var(--danger); }
+.status-running, .status-queued { color: var(--accent); }
+.run-published { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.run-score-group { display: flex; flex-direction: column; align-items: end; color: var(--fg-3); font: 10px/1.3 var(--font-mono); }
+.run-score { color: var(--fg); font: 600 16px/1.2 var(--font-mono); font-variant-numeric: tabular-nums; }
+.run-toggle { color: var(--fg-3); font: 18px/1 var(--font-mono); width: 16px; text-align: center; }
+.model-attempt[open] .run-toggle { transform: rotate(45deg); }
+.run-content { border-top: 1px solid var(--rule); padding: 18px; }
+.run-timing { display: flex; flex-wrap: wrap; gap: 6px 20px; color: var(--fg-2); }
+.model-attempt .run-timing p { margin: 0; font: 11px/1.6 var(--font-mono); }
+.run-metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin: 18px 0 0; }
+.run-metrics > div { padding: 12px; background: var(--bg-2); border-radius: 4px; }
+.run-metrics dt { color: var(--fg-3); font: 11px/1.4 var(--font-mono); }
+.run-metrics dd { margin: 5px 0 0; font: 600 18px/1.3 var(--font-mono); color: var(--fg); }
+.model-attempt .run-error { margin: 16px 0 0; color: var(--danger); }
+.model-attempt .run-id { margin: 18px 0 0; color: var(--fg-3); font: 10px/1.5 var(--font-mono); overflow-wrap: anywhere; }
+.run-content button { margin-top: 14px; }
+.model-name { display: flex; flex-wrap: wrap; align-items: end; gap: 10px; margin: 0 0 18px; }
+.model-name label { display: grid; gap: 6px; font-size: 12px; color: var(--fg-2); }
+.model-name input { width: min(100%, 300px); min-width: 220px; border: 1px solid var(--rule); border-radius: var(--radius-sm); background: var(--bg-2); color: var(--fg); }
+@media (max-width: 600px) {
+ .model-panel, .controller-panel { padding: 20px; }
+ .model-section { margin-top: 26px; padding-top: 24px; }
+ .model-attempt summary.run-summary { align-items: start; gap: 12px; padding: 14px; }
+ .run-overview { gap: 6px; }
+ .run-score-group { min-width: 48px; }
+ .run-content { padding: 14px; }
+ .model-name { align-items: stretch; flex-direction: column; }
+ .model-name input { width: 100%; min-width: 0; }
+ .model-name button { align-self: start; }
+}

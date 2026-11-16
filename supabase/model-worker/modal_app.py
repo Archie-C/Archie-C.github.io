@@ -5,25 +5,33 @@ import sys
 
 import modal
 
-ROOT = Path(__file__).resolve().parents[2]
-WORKER = ROOT / "supabase/model-worker"
-PRACTICAL = ROOT / "courses/deep-learning-aau/topics/03-neural-networks/exercises/practical-exercise"
 REMOTE_ROOT = PurePosixPath("/opt/rocket-repo")
 REMOTE_WORKER = REMOTE_ROOT / "supabase/model-worker"
 REMOTE_PRACTICAL = REMOTE_ROOT / "courses/deep-learning-aau/topics/03-neural-networks/exercises/practical-exercise"
 app = modal.App("rocket-model-worker")
 
-sandbox_image = (modal.Image.debian_slim(python_version="3.11")
-    .run_commands("pip install --index-url https://download.pytorch.org/whl/cpu torch==2.5.1")
-    .pip_install("safetensors==0.4.5")
-    .add_local_file(WORKER / "sandbox.py", "/opt/worker/sandbox.py", copy=True))
-
-worker_image = modal.Image.debian_slim(python_version="3.11").pip_install("numpy==1.26.4", "modal==1.6.4")
-for filename in ("worker.py", "evaluate.py", "modal_app.py", "sandbox.py", "private_cases.py"):
-    worker_image = worker_image.add_local_file(WORKER / filename, str(REMOTE_WORKER / filename), copy=True)
-for filename in ("rocket_closed_loop.py", "rocket_runtime.py", "rocket_physics.py",
-                 "rocket_scoring.py", "rocket_wind.py", "rocket_calibration.py", "rocket_sampling.py"):
-    worker_image = worker_image.add_local_file(PRACTICAL / filename, str(REMOTE_PRACTICAL / filename), copy=True)
+# Modal imports this module from /root in each Function container, including the
+# lightweight web endpoint, which does not contain the repository. Only build
+# image recipes where the repository exists: on the deployment machine and in
+# the evaluator subprocess, which runs from the worker image's copied checkout.
+if modal.is_local():
+    ROOT = Path(__file__).resolve().parents[2]
+    WORKER = ROOT / "supabase/model-worker"
+    PRACTICAL = ROOT / "courses/deep-learning-aau/topics/03-neural-networks/exercises/practical-exercise"
+    sandbox_image = (modal.Image.debian_slim(python_version="3.11")
+        .run_commands("pip install --index-url https://download.pytorch.org/whl/cpu torch==2.5.1")
+        .pip_install("safetensors==0.4.5")
+        .add_local_file(WORKER / "sandbox.py", "/opt/worker/sandbox.py", copy=True))
+    worker_image = modal.Image.debian_slim(python_version="3.11").pip_install("numpy==1.26.4", "modal==1.6.4")
+    for filename in ("worker.py", "evaluate.py", "modal_app.py", "sandbox.py", "private_cases.py"):
+        worker_image = worker_image.add_local_file(WORKER / filename, str(REMOTE_WORKER / filename), copy=True)
+    for filename in ("rocket_closed_loop.py", "rocket_runtime.py", "rocket_physics.py",
+                     "rocket_scoring.py", "rocket_wind.py", "rocket_calibration.py", "rocket_sampling.py"):
+        worker_image = worker_image.add_local_file(PRACTICAL / filename, str(REMOTE_PRACTICAL / filename), copy=True)
+else:
+    # The images are already selected when the deployed Functions start.
+    sandbox_image = None
+    worker_image = modal.Image.debian_slim(python_version="3.11")
 
 
 
