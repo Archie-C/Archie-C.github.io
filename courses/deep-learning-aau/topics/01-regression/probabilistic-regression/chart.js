@@ -128,7 +128,7 @@ window.addEventListener("DOMContentLoaded", () => {
       sigmaInput.setAttribute("aria-valuetext", `σ = ${sigma.toFixed(1)}`);
       if (sigmaValue) sigmaValue.value = sigma.toFixed(1);
       if (readout) {
-        readout.value = `Variance σ² = ${(sigma ** 2).toFixed(2)} · density at t = 3.5: ${density.toFixed(3)}`;
+        readout.value = `Variance σ² = ${(sigma ** 2).toFixed(2)} · density at y = 3.5: ${density.toFixed(3)}`;
       }
     }
 

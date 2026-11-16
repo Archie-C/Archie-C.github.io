@@ -60,16 +60,16 @@ window.addEventListener("DOMContentLoaded", () => {
 
   const sigmoidCanvas = document.getElementById("sigmoidChart");
   if (sigmoidCanvas) {
-    const ref = makeOptions("linear score a", "σ(a)", -8, 8, 0, 1, {
-      title: (items) => items.length ? `a = ${items[0].parsed.x.toFixed(2)}` : "",
-      label: (item) => `σ(a) = ${item.parsed.y.toFixed(3)}`
+    const ref = makeOptions("linear score z", "σ(z)", -8, 8, 0, 1, {
+      title: (items) => items.length ? `z = ${items[0].parsed.x.toFixed(2)}` : "",
+      label: (item) => `σ(z) = ${item.parsed.y.toFixed(3)}`
     });
     new Chart(sigmoidCanvas, {
       type: "scatter",
       data: { datasets: [
-        { label: "σ(a)", data: sigmoidData, showLine: true, borderColor: colour.accent, borderWidth: 2, pointRadius: 0, tension: 0.15 },
+        { label: "σ(z)", data: sigmoidData, showLine: true, borderColor: colour.accent, borderWidth: 2, pointRadius: 0, tension: 0.15 },
         { label: "0.5", data: [{ x: -8, y: 0.5 }, { x: 8, y: 0.5 }], showLine: true, borderColor: colour.rule, borderWidth: 1, borderDash: [4, 4], pointRadius: 0 },
-        { label: "a = 0", data: [{ x: 0, y: 0 }, { x: 0, y: 1 }], showLine: true, borderColor: colour.rule, borderWidth: 1, borderDash: [4, 4], pointRadius: 0 }
+        { label: "z = 0", data: [{ x: 0, y: 0 }, { x: 0, y: 1 }], showLine: true, borderColor: colour.rule, borderWidth: 1, borderDash: [4, 4], pointRadius: 0 }
       ] },
       options: ref
     });
@@ -120,8 +120,8 @@ window.addEventListener("DOMContentLoaded", () => {
         { label: "Current scale", data: scaledData(), showLine: true, borderColor: colour.accent, borderWidth: 2, pointRadius: 0 },
         { label: "Scale 1", data: baseData, showLine: true, borderColor: colour.fg3, borderWidth: 1, borderDash: [4, 4], pointRadius: 0 }
       ] },
-      options: makeOptions("linear score a", "probability", -8, 8, 0, 1, {
-        title: (items) => items.length ? `a = ${items[0].parsed.x.toFixed(2)}` : "",
+      options: makeOptions("linear score z", "probability", -8, 8, 0, 1, {
+        title: (items) => items.length ? `z = ${items[0].parsed.x.toFixed(2)}` : "",
         label: (item) => `${item.dataset.label}: ${item.parsed.y.toFixed(3)}`
       })
     });

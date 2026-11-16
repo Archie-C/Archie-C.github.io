@@ -75,7 +75,7 @@
     for(const n of chosen) s+=path(results[n].losses.map((v,i)=>[55+i*590/100,190-(Math.log10(Math.max(v,1e-12))+12)*180/18]),colors[n]);
     s+='</g><text x="5" y="20" fill="var(--fg-2)" font-size="11">10⁶</text><text x="5" y="190" fill="var(--fg-2)" font-size="11">10⁻¹²</text><text x="575" y="215" fill="var(--fg-2)" font-size="12">iteration → 100</text>';
     svg('loss',s);
-    $('paths-readout').textContent=chosen.length?chosen.map(n=>`${labels[n]}: E = ${fmt(results[n].losses.at(-1))}`).join(' · '):'Select at least one optimiser.';
+    $('paths-readout').textContent=chosen.length?chosen.map(n=>`${labels[n]}: L = ${fmt(results[n].losses.at(-1))}`).join(' · '):'Select at least one optimiser.';
   }
   inputs(['rate','mu','cmp-beta','cmp-b1','cmp-b2','iterations','rotation'],comparison); $('method-controls').addEventListener('change',comparison);
   let timer=null; function stop(){if(timer!==null){clearInterval(timer);timer=null; $('play').textContent='Play';}}

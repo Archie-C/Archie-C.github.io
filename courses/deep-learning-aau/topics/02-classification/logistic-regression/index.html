@@ -106,56 +106,56 @@
 
         <h2>Turning a score into a probability</h2>
         <p>In the previous note, we used the linear decision function</p>
-        <p>$$a(\mathbf{x}) = \mathbf{w}^T\mathbf{x} + w_0.$$</p>
+        <p>$$z(\mathbf{x}) = \mathbf{w}^T\mathbf{x} + b.$$</p>
         <p>It can return any real number:</p>
-        <p>$$-\infty < a(\mathbf{x}) < \infty.$$</p>
-        <p>We only used its sign: a positive score meant class 1, and a negative score meant class 0. But a score such as $3.7$ or $-1.4$ is not itself a probability. For binary classification, we would like the model to give us $p(t=1\mid\mathbf{x})$, a value between 0 and 1.</p>
+        <p>$$-\infty < z(\mathbf{x}) < \infty.$$</p>
+        <p>We only used its sign: a positive score meant class 1, and a negative score meant class 0. But a score such as $3.7$ or $-1.4$ is not itself a probability. For binary classification, we would like the model to give us $p(y=1\mid\mathbf{x})$, a value between 0 and 1.</p>
 
         <h2>The logistic sigmoid</h2>
         <p>The logistic sigmoid takes any real-valued score and maps it into that interval:</p>
-        <p>$$\sigma(a) = \frac{1}{1 + e^{-a}}.$$</p>
+        <p>$$\sigma(z) = \frac{1}{1 + e^{-z}}.$$</p>
         <p>Very negative scores are mapped close to 0. A score of 0 maps to 0.5, and very positive scores are mapped close to 1.</p>
         <figure class="chart-card"><div class="eyebrow">01 &middot; function</div><h3>The logistic sigmoid</h3><div class="chart-frame"><canvas id="sigmoidChart" aria-label="Plot of the logistic sigmoid from minus eight to eight" role="img"></canvas></div><figcaption class="chart-caption"><span class="label">fig 1</span> The sigmoid maps any real-valued score into the interval $(0, 1)$.</figcaption></figure>
         <div class="note important"><span class="tag">important</span><p>The sigmoid does not change the ordering of scores. A larger linear score still gives a larger output.</p></div>
 
         <h2>The logistic regression model</h2>
         <p>We can combine the linear decision function with the sigmoid. Let</p>
-        <p>$$a(\mathbf{x}) = \mathbf{w}^T\mathbf{x} + w_0$$</p>
+        <p>$$z(\mathbf{x}) = \mathbf{w}^T\mathbf{x} + b$$</p>
         <p>and define</p>
-        <p>$$y(\mathbf{x}) = \sigma(a(\mathbf{x}))$$</p>
+        <p>$$\hat{p}(\mathbf{x}) = \sigma(z(\mathbf{x}))$$</p>
         <p>or, written out,</p>
-        <p>$$y(\mathbf{x}) = \frac{1}{1+\exp\left(- (\mathbf{w}^T\mathbf{x}+w_0)\right)}.$$</p>
+        <p>$$\hat{p}(\mathbf{x}) = \frac{1}{1+\exp\left(- (\mathbf{w}^T\mathbf{x}+b)\right)}.$$</p>
         <p>We interpret this output as the probability of class 1:</p>
-        <p>$$y(\mathbf{x}) = p(t=1\mid\mathbf{x}).$$</p>
+        <p>$$\hat{p}(\mathbf{x}) = p(y=1\mid\mathbf{x}).$$</p>
         <p>For the other class,</p>
-        <p>$$p(t=0\mid\mathbf{x}) = 1-y(\mathbf{x}).$$</p>
+        <p>$$p(y=0\mid\mathbf{x}) = 1-\hat{p}(\mathbf{x}).$$</p>
         <p>This model is called logistic regression.</p>
         <div class="note"><span class="tag">note</span><p>Logistic regression is used for classification. The name comes from constructing a continuous linear score and transforming it with the logistic function.</p></div>
 
         <h2>Interpreting the output</h2>
-        <p>Suppose a particular input has score $a(\mathbf{x})=1.5$. Its predicted probability of class 1 is</p>
+        <p>Suppose a particular input has score $z(\mathbf{x})=1.5$. Its predicted probability of class 1 is</p>
         <p>$$\sigma(1.5)=\frac{1}{1+e^{-1.5}}\approx 0.82.$$</p>
-        <p>So we read this as $p(t=1\mid\mathbf{x})\approx 0.82$.</p>
-        <p>With a negative score, say $a(\mathbf{x})=-1.5$, the output is about $0.18$. The sigmoid is symmetric around 0.5:</p>
-        <p>$$\sigma(-a)=1-\sigma(a).$$</p>
+        <p>So we read this as $p(y=1\mid\mathbf{x})\approx 0.82$.</p>
+        <p>With a negative score, say $z(\mathbf{x})=-1.5$, the output is about $0.18$. The sigmoid is symmetric around 0.5:</p>
+        <p>$$\sigma(-z)=1-\sigma(z).$$</p>
 
         <h2>Making predictions</h2>
         <p>To turn the probability into a class prediction, we use a threshold of 0.5:</p>
-        <p>$$\hat{t}=\begin{cases}1 & y(\mathbf{x}) \geq 0.5 \\ 0 & y(\mathbf{x}) < 0.5.\end{cases}$$</p>
+        <p>$$\hat{y}=\begin{cases}1 & \hat{p}(\mathbf{x}) \geq 0.5 \\ 0 & \hat{p}(\mathbf{x}) < 0.5.\end{cases}$$</p>
         <p>Since $\sigma(0)=0.5$, the output is 0.5 exactly when</p>
-        <p>$$\mathbf{w}^T\mathbf{x}+w_0=0.$$</p>
+        <p>$$\mathbf{w}^T\mathbf{x}+b=0.$$</p>
         <p>That is the same linear decision boundary we introduced in the previous note.</p>
         <div class="note important"><span class="tag">important</span><p>Applying the sigmoid changes how we interpret the model output, but it does not change the location of the 0.5 decision boundary.</p></div>
 
         <h2>Applying this to our admissions example</h2>
         <p>Let us return to the fictional admissions data. We will use a fixed model for now; how to learn its weights comes later. Choose</p>
-        <p>$$a(\mathbf{x})=0.12x_1+0.08x_2-11.2.$$</p>
+        <p>$$z(\mathbf{x})=0.12x_1+0.08x_2-11.2.$$</p>
         <p>The boundary is still the same line from the previous note, just with all terms scaled by one tenth. A student on the line has predicted probability 0.5; students on either side get probabilities below or above 0.5.</p>
         <figure class="chart-card"><div class="eyebrow">02 &middot; admissions probabilities</div><h3>Predicted probability and the 0.5 boundary</h3><div class="chart-legend"><span class="item"><span class="swatch swatch--dot" style="background:var(--c-cat-2)"></span>rejected</span><span class="item"><span class="swatch swatch--dot" style="background:var(--c-cat-1)"></span>admitted</span><span class="item"><span class="swatch" style="background:var(--c-cat-3)"></span>p(admitted) = 0.5</span></div><div class="chart-frame"><canvas id="logisticAdmissionsChart" aria-label="Admissions data with logistic regression probabilities and a 0.5 decision boundary" role="img"></canvas></div><figcaption class="chart-caption"><span class="label">fig 2</span> The sigmoid turns the linear score into a gradual change in predicted probability, while the 0.5 contour remains a straight line.</figcaption></figure>
 
         <h2>How the score affects the probability</h2>
         <p>Points in the positive direction of the weight vector get larger linear scores and therefore larger probabilities. The chain is</p>
-        <p>$$\mathbf{x} \rightarrow a(\mathbf{x}) \rightarrow \sigma(a) \rightarrow p(t=1\mid\mathbf{x}).$$</p>
+        <p>$$\mathbf{x} \rightarrow z(\mathbf{x}) \rightarrow \sigma(z) \rightarrow p(y=1\mid\mathbf{x}).$$</p>
         <p>The score is what matters here; probability is not simply Euclidean distance from the boundary.</p>
         <div class="note"><span class="tag">note</span><p>Multiplying all weights and the bias by the same positive constant leaves the boundary in the same place, but changes how quickly probabilities move towards 0 and 1.</p></div>
         <figure class="chart-card"><div class="eyebrow">03 &middot; interactive</div><h3>Scale the linear score</h3><div class="scale-controls"><label><span>scale = <strong id="scaleValue">1</strong></span><input id="scaleSlider" type="range" min="0.25" max="4" step="0.25" value="1" aria-label="Scale the linear score"></label></div><div class="chart-frame"><canvas id="sigmoidScaleChart" aria-label="Interactive sigmoid with adjustable score scale" role="img"></canvas></div><figcaption class="chart-caption"><span class="label">fig 3</span> Each curve crosses $(0, 0.5)$. Increasing the scale sharpens the transition without moving the threshold.</figcaption></figure>

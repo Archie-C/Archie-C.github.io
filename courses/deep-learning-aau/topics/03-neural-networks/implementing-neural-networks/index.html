@@ -63,7 +63,7 @@
       <div class="body">
         <h2>Mathematical equations in code</h2>
         <p>We have seen how a neural network builds a prediction by composing layers. Each fully connected layer takes its inputs, forms weighted sums, adds biases and applies an activation function:</p>
-        <p>$$\mathbf{z}=h(\mathbf{W}\mathbf{x}+\mathbf{b}).$$</p>
+        <p>$$\mathbf{a}=\sigma(\mathbf{W}\mathbf{x}+\mathbf{b}).$$</p>
         <p>To implement this calculation, we need numerical arrays for the inputs, weights, biases and activations, and operations to combine them. The hidden units are the learnable basis functions we met earlier: their parameter values determine the features passed to the next layer.</p>
         <p><strong>PyTorch</strong> is a Python library for numerical computation and deep learning. It provides tools for building networks and calculating gradients automatically. We will explore automatic differentiation later. PyTorch can perform calculations on CPUs and supported GPUs, but we will use the CPU in this note. The mathematics stays the same; PyTorch gives us convenient ways to express and execute it.</p>
 
@@ -99,25 +99,25 @@ print(array, tensor)</code></pre>
 
         <h2>Implementing a neuron manually</h2>
         <p>Let's start with one neuron. It takes a weighted sum of its inputs, adds a bias and applies an activation function:</p>
-        <p>$$z=h(\mathbf{w}^{\top}\mathbf{x}+b).$$</p>
+        <p>$$a=\sigma(\mathbf{w}^{\top}\mathbf{x}+b).$$</p>
 <pre><code class="language-python">import torch
 
 x = torch.tensor([1.0, 2.0])
 w = torch.tensor([0.5, -1.0])
 b = torch.tensor(2.0)
 weighted_sum = w @ x          # 0.5(1) - 1(2) = -1.5
-a = weighted_sum + b         # 0.5
-z = torch.relu(a)            # max(0, 0.5)
-print(z)                     # tensor(0.5000)</code></pre>
+z = weighted_sum + b         # 0.5
+a = torch.relu(z)            # max(0, 0.5)
+print(a)                     # tensor(0.5000)</code></pre>
         <p>The <code>@</code> operation calculates $\mathbf{w}^{\top}\mathbf{x}$, then we add $b$. Finally, <code>torch.relu</code> applies ReLU, returning zero for a negative value and the value itself otherwise. We chose the weights and bias by hand; later we will learn how to find them from data.</p>
         <figure class="chart-card"><div class="eyebrow">01 &middot; a neuron in code</div><h3>The operations of a neuron</h3>
-          <svg viewBox="0 0 720 120" width="100%" height="auto" role="img" aria-labelledby="neuron-title neuron-desc"><title id="neuron-title">A neuron in mathematics and code</title><desc id="neuron-desc">The dot product, bias addition and ReLU in the equation correspond to w at x, plus b and torch.relu in code.</desc><g font-family="var(--font-mono)" font-size="14" text-anchor="middle" fill="var(--fg)"><text x="120" y="30">weighted sum</text><text x="360" y="30">add bias</text><text x="600" y="30">activation</text><rect x="30" y="45" width="180" height="50" rx="6" fill="var(--bg-sunk)" stroke="var(--rule-strong)"/><rect x="270" y="45" width="180" height="50" rx="6" fill="var(--bg-sunk)" stroke="var(--rule-strong)"/><rect x="510" y="45" width="180" height="50" rx="6" fill="var(--accent-soft)" stroke="var(--accent)"/><text x="120" y="76">w @ x</text><text x="360" y="76">+ b</text><text x="600" y="76">torch.relu(a)</text><path d="M210 70 H270 M450 70 H510" fill="none" stroke="var(--fg-2)" stroke-width="2"/></g></svg>
+          <svg viewBox="0 0 720 120" width="100%" height="auto" role="img" aria-labelledby="neuron-title neuron-desc"><title id="neuron-title">A neuron in mathematics and code</title><desc id="neuron-desc">The dot product, bias addition and ReLU in the equation correspond to w at x, plus b and torch.relu in code.</desc><g font-family="var(--font-mono)" font-size="14" text-anchor="middle" fill="var(--fg)"><text x="120" y="30">weighted sum</text><text x="360" y="30">add bias</text><text x="600" y="30">activation</text><rect x="30" y="45" width="180" height="50" rx="6" fill="var(--bg-sunk)" stroke="var(--rule-strong)"/><rect x="270" y="45" width="180" height="50" rx="6" fill="var(--bg-sunk)" stroke="var(--rule-strong)"/><rect x="510" y="45" width="180" height="50" rx="6" fill="var(--accent-soft)" stroke="var(--accent)"/><text x="120" y="76">w @ x</text><text x="360" y="76">+ b</text><text x="600" y="76">torch.relu(z)</text><path d="M210 70 H270 M450 70 H510" fill="none" stroke="var(--fg-2)" stroke-width="2"/></g></svg>
           <figcaption class="chart-caption"><span class="label">fig 1</span> Each operation corresponds to a part of the neuron equation.</figcaption></figure>
         <div class="exercise"><span class="tag">try it</span><p>Change the second input to 1. Before running the code, calculate the new weighted sum and predict the output after ReLU.</p></div>
 
         <h2>Implementing a hidden layer manually</h2>
         <p>A layer performs the same calculation for several neurons in parallel. For two inputs and three hidden neurons, we can put one neuron's weights in each row of $\mathbf{W}^{(1)}$:</p>
-        <p>$$\mathbf{z}=h(\mathbf{W}^{(1)}\mathbf{x}+\mathbf{b}^{(1)}).$$</p>
+        <p>$$\mathbf{a}=\sigma(\mathbf{W}^{(1)}\mathbf{x}+\mathbf{b}^{(1)}).$$</p>
 <pre><code class="language-python">import torch
 
 x = torch.tensor([1.0, 2.0])                    # (2,)
@@ -125,24 +125,24 @@ W1 = torch.tensor([[0.5, -1.0],                # (3, 2)
                    [1.0, 1.0],
                    [-1.0, 0.5]])
 b1 = torch.tensor([2.0, -1.0, -1.0])           # (3,)
-a1 = W1 @ x + b1                               # (3,): [0.5, 2.0, -1.0]
-z = torch.relu(a1)                             # (3,): [0.5, 2.0, 0.0]
-print(z)  # tensor([0.5000, 2.0000, 0.0000])</code></pre>
+z1 = W1 @ x + b1                               # (3,): [0.5, 2.0, -1.0]
+a = torch.relu(z1)                             # (3,): [0.5, 2.0, 0.0]
+print(a)  # tensor([0.5000, 2.0000, 0.0000])</code></pre>
         <p>Each row of <code>W1</code> contains the two weights for one neuron, and each entry of <code>b1</code> is its bias. One matrix multiplication calculates all three weighted sums. ReLU then acts elementwise, giving three hidden features. We can check the first neuron against the calculation above.</p>
 
         <h2>Adding an output layer</h2>
         <p>We can use those three features as inputs to an output neuron. For regression, we use an identity output activation, leaving the output layer's weighted sum unchanged:</p>
-        <p>$$\hat{y}=\mathbf{W}^{(2)}h(\mathbf{W}^{(1)}\mathbf{x}+\mathbf{b}^{(1)})+\mathbf{b}^{(2)}.$$</p>
+        <p>$$\hat{y}=\mathbf{W}^{(2)}\sigma(\mathbf{W}^{(1)}\mathbf{x}+\mathbf{b}^{(1)})+\mathbf{b}^{(2)}.$$</p>
 <pre><code class="language-python"># Continue from the hidden-layer example above
 W2 = torch.tensor([[1.0, -0.5, 2.0]])  # (1, 3)
 b2 = torch.tensor([0.5])               # (1,)
-prediction = W2 @ z + b2               # (1,)
+prediction = W2 @ a + b2               # (1,)
 print(prediction)  # tensor([0.])</code></pre>
-        <p>Here <code>z</code> is the hidden layer's output and the output layer's input. The result is $1(0.5)-0.5(2)+2(0)+0.5=0$. A network can produce a prediction before its parameters have been trained, but there is no reason to expect that prediction to be useful yet.</p>
+        <p>Here <code>a</code> is the hidden layer's output and the output layer's input. The result is $1(0.5)-0.5(2)+2(0)+0.5=0$. A network can produce a prediction before its parameters have been trained, but there is no reason to expect that prediction to be useful yet.</p>
 
         <h2>Introducing <code>torch.nn</code></h2>
         <p>Creating every weight matrix and bias vector ourselves becomes inconvenient as networks grow. <code>torch.nn</code> provides a collection of neural-network components. One of these is <code>nn.Linear</code>, which performs the affine transformation</p>
-        <p>$$\mathbf{a}=\mathbf{W}\mathbf{x}+\mathbf{b}.$$</p>
+        <p>$$\mathbf{z}=\mathbf{W}\mathbf{x}+\mathbf{b}.$$</p>
         <p>Its <code>in_features</code> argument is the number of input features and <code>out_features</code> is the number of outputs. It does not apply an activation function; we add one separately, for example with <code>nn.ReLU()</code>.</p>
 <pre><code class="language-python">import torch
 from torch import nn
@@ -151,9 +151,9 @@ layer = nn.Linear(in_features=2, out_features=3)
 x = torch.tensor([1.0, 2.0])
 print(layer.weight, layer.weight.shape)  # weights: (3, 2)
 print(layer.bias, layer.bias.shape)      # biases: (3,)
-a = layer(x)                             # affine transformation
-z = nn.ReLU()(a)                         # apply ReLU
-print(a, z)</code></pre>
+z = layer(x)                             # affine transformation
+a = nn.ReLU()(z)                         # apply ReLU
+print(z, a)</code></pre>
         <p>PyTorch initialises the weights and biases automatically, so their values and the output will generally differ between runs. Their shapes still match the manual layer: one row of weights and one bias per output.</p>
 
         <h2>Building a network with <code>nn.Sequential</code></h2>
@@ -187,12 +187,12 @@ print(manual, model(x))          # both tensor([0.])
 print(torch.allclose(manual, model(x)))  # True</code></pre>
         <p><code>torch.allclose</code> checks whether two tensors agree within a numerical tolerance. The modules now have the same architecture <em>and</em> parameter values as the manual network.</p>
         <figure class="chart-card"><div class="eyebrow">03 &middot; equivalent calculations</div><h3>Manual tensors and modules</h3>
-          <svg viewBox="0 0 720 145" width="100%" height="auto" role="img" aria-labelledby="compare-title compare-desc"><title id="compare-title">Manual and sequential implementations</title><desc id="compare-desc">The manual affine transformation, ReLU and output affine transformation correspond to Linear, ReLU and Linear modules.</desc><g font-family="var(--font-mono)" font-size="12" text-anchor="middle" fill="var(--fg)"><text x="90" y="30">manual</text><text x="90" y="96">Sequential</text><rect x="160" y="8" width="165" height="40" rx="5" fill="var(--bg-sunk)" stroke="var(--rule-strong)"/><rect x="345" y="8" width="115" height="40" rx="5" fill="var(--accent-soft)" stroke="var(--accent)"/><rect x="480" y="8" width="180" height="40" rx="5" fill="var(--bg-sunk)" stroke="var(--rule-strong)"/><text x="242" y="33">W1 @ x + b1</text><text x="402" y="33">relu</text><text x="570" y="33">W2 @ z + b2</text><rect x="160" y="74" width="165" height="40" rx="5" fill="var(--bg-sunk)" stroke="var(--rule-strong)"/><rect x="345" y="74" width="115" height="40" rx="5" fill="var(--accent-soft)" stroke="var(--accent)"/><rect x="480" y="74" width="180" height="40" rx="5" fill="var(--bg-sunk)" stroke="var(--rule-strong)"/><text x="242" y="99">Linear(2, 3)</text><text x="402" y="99">ReLU()</text><text x="570" y="99">Linear(3, 1)</text></g></svg>
+          <svg viewBox="0 0 720 145" width="100%" height="auto" role="img" aria-labelledby="compare-title compare-desc"><title id="compare-title">Manual and sequential implementations</title><desc id="compare-desc">The manual affine transformation, ReLU and output affine transformation correspond to Linear, ReLU and Linear modules.</desc><g font-family="var(--font-mono)" font-size="12" text-anchor="middle" fill="var(--fg)"><text x="90" y="30">manual</text><text x="90" y="96">Sequential</text><rect x="160" y="8" width="165" height="40" rx="5" fill="var(--bg-sunk)" stroke="var(--rule-strong)"/><rect x="345" y="8" width="115" height="40" rx="5" fill="var(--accent-soft)" stroke="var(--accent)"/><rect x="480" y="8" width="180" height="40" rx="5" fill="var(--bg-sunk)" stroke="var(--rule-strong)"/><text x="242" y="33">W1 @ x + b1</text><text x="402" y="33">relu</text><text x="570" y="33">W2 @ a + b2</text><rect x="160" y="74" width="165" height="40" rx="5" fill="var(--bg-sunk)" stroke="var(--rule-strong)"/><rect x="345" y="74" width="115" height="40" rx="5" fill="var(--accent-soft)" stroke="var(--accent)"/><rect x="480" y="74" width="180" height="40" rx="5" fill="var(--bg-sunk)" stroke="var(--rule-strong)"/><text x="242" y="99">Linear(2, 3)</text><text x="402" y="99">ReLU()</text><text x="570" y="99">Linear(3, 1)</text></g></svg>
           <figcaption class="chart-caption"><span class="label">fig 3</span> With identical parameters, the two sequences of operations give the same prediction.</figcaption></figure>
 
         <h2>Working with batches of observations</h2>
-        <p>We often process several observations together. For $N$ observations with $D$ features each, we arrange one observation per row:</p>
-        <p>$$\mathbf{X}\in\mathbb{R}^{N\times D}.$$</p>
+        <p>We often process several observations together. For $n$ observations with $d$ features each, we arrange one observation per row:</p>
+        <p>$$\mathbf{X}\in\mathbb{R}^{n\times d}.$$</p>
         <p>The first dimension is the <strong>batch dimension</strong>. A single input vector has shape <code>(2,)</code>; a batch of three observations with two features has shape <code>(3, 2)</code>:</p>
 <pre><code class="language-python"># Continue with model from above
 X = torch.tensor([[1.0, 2.0],
@@ -202,14 +202,14 @@ predictions = model(X)
 print(X.shape)            # torch.Size([3, 2])
 print(predictions.shape)  # torch.Size([3, 1])
 print(predictions)        # [[0.], [1.5], [3.]] (values shown without grad information)</code></pre>
-        <p><code>nn.Linear</code> transforms the last, feature dimension and preserves the batch dimension. With one output neuron, the result has shape <code>(N, 1)</code>. In matrix notation for a batch, the first affine operation is $\mathbf{X}(\mathbf{W}^{(1)})^\top+\mathbf{b}^{(1)}$, with the bias added to each row.</p>
+        <p><code>nn.Linear</code> transforms the last, feature dimension and preserves the batch dimension. With one output neuron, the result has shape <code>(n, 1)</code>. In matrix notation for a batch, the first affine operation is $\mathbf{X}(\mathbf{W}^{(1)})^\top+\mathbf{b}^{(1)}$, with the bias added to each row.</p>
         <figure class="chart-card"><div class="eyebrow">04 &middot; tensor shapes</div><h3>Following a batch through the network</h3>
-          <svg viewBox="0 0 720 125" width="100%" height="auto" role="img" aria-labelledby="shapes-title shapes-desc"><title id="shapes-title">Batch tensor shapes through the network</title><desc id="shapes-desc">A batch of N observations with two features becomes N by three after the first linear layer and ReLU, then N by one after the second linear layer.</desc><g font-family="var(--font-mono)" font-size="13" text-anchor="middle" fill="var(--fg)"><rect x="20" y="30" width="160" height="58" rx="6" fill="var(--bg-sunk)" stroke="var(--rule-strong)"/><rect x="280" y="30" width="160" height="58" rx="6" fill="var(--accent-soft)" stroke="var(--accent)"/><rect x="540" y="30" width="160" height="58" rx="6" fill="var(--bg-sunk)" stroke="var(--rule-strong)"/><text x="100" y="54">input</text><text x="100" y="74">(N, 2)</text><text x="360" y="54">hidden</text><text x="360" y="74">(N, 3)</text><text x="620" y="54">output</text><text x="620" y="74">(N, 1)</text><text x="230" y="24">Linear + ReLU</text><text x="490" y="24">Linear</text><path d="M180 59 H280 M440 59 H540" fill="none" stroke="var(--fg-2)" stroke-width="2"/></g></svg>
+          <svg viewBox="0 0 720 125" width="100%" height="auto" role="img" aria-labelledby="shapes-title shapes-desc"><title id="shapes-title">Batch tensor shapes through the network</title><desc id="shapes-desc">A batch of n observations with two features becomes n by three after the first linear layer and ReLU, then n by one after the second linear layer.</desc><g font-family="var(--font-mono)" font-size="13" text-anchor="middle" fill="var(--fg)"><rect x="20" y="30" width="160" height="58" rx="6" fill="var(--bg-sunk)" stroke="var(--rule-strong)"/><rect x="280" y="30" width="160" height="58" rx="6" fill="var(--accent-soft)" stroke="var(--accent)"/><rect x="540" y="30" width="160" height="58" rx="6" fill="var(--bg-sunk)" stroke="var(--rule-strong)"/><text x="100" y="54">input</text><text x="100" y="74">(n, 2)</text><text x="360" y="54">hidden</text><text x="360" y="74">(n, 3)</text><text x="620" y="54">output</text><text x="620" y="74">(n, 1)</text><text x="230" y="24">Linear + ReLU</text><text x="490" y="24">Linear</text><path d="M180 59 H280 M440 59 H540" fill="none" stroke="var(--fg-2)" stroke-width="2"/></g></svg>
           <figcaption class="chart-caption"><span class="label">fig 4</span> The number of observations stays the same while the feature dimension changes.</figcaption></figure>
         <p>A common mistake is to confuse the number of observations with the number of features. <code>nn.Linear(2, 3)</code> expects two features in the last dimension, regardless of batch size. Transposing this example to shape <code>(2, 3)</code> would give it three features per observation and cause a shape error.</p>
 
         <h2>Computing a loss function</h2>
-        <p>A prediction can be compared with a target using a loss function. For our regression network, <code>nn.MSELoss()</code> calculates the mean squared error introduced in the <a href="../output-layers-and-loss-functions/">outputs and loss functions note</a>: $\frac{1}{N}\sum_{n=1}^{N}(\hat{y}_n-y_n)^2$ for one output per observation.</p>
+        <p>A prediction can be compared with a target using a loss function. For our regression network, <code>nn.MSELoss()</code> calculates the mean squared error introduced in the <a href="../output-layers-and-loss-functions/">outputs and loss functions note</a>: $\frac{1}{n}\sum_{i=1}^{n}(\hat{y}_i-y_i)^2$ for one output per observation.</p>
 <pre><code class="language-python"># Continue with model and X from above
 predictions = model(X)                       # (3, 1)
 targets = torch.tensor([[1.0], [0.0], [2.0]])  # (3, 1)
@@ -237,8 +237,8 @@ for name, parameter in model.named_parameters():
 
 count = sum(p.numel() for p in model.parameters() if p.requires_grad)
 print(count)  # 13</code></pre>
-        <p><code>requires_grad=True</code> means PyTorch tracks operations on that parameter so that gradients can be calculated for it. <code>numel()</code> counts the entries in a tensor. For $D=2$ inputs, $M=3$ hidden neurons and $K=1$ output, this agrees with our earlier parameter-count formula:</p>
-        <p>$$P=M(D+1)+K(M+1)=3(2+1)+1(3+1)=13.$$</p>
+        <p><code>requires_grad=True</code> means PyTorch tracks operations on that parameter so that gradients can be calculated for it. <code>numel()</code> counts the entries in a tensor. For $d=2$ inputs, $d_1=3$ hidden neurons and $d_2=1$ output, this agrees with our earlier parameter-count formula:</p>
+        <p>$$P=d_1(d+1)+d_2(d_1+1)=3(2+1)+1(3+1)=13.$$</p>
         <p>Training aims to find parameter values that minimise a loss. PyTorch can calculate the gradients needed for this automatically; we will use that capability shortly.</p>
 
         <h2>Worked example: a complete neural network</h2>

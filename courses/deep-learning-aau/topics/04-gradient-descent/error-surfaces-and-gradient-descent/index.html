@@ -108,14 +108,14 @@
               (Backpropagation) we will look at the details of training. In
               general, training means finding parameter values that reduce the
               loss. The notation we will use for this section is as follows: The
-              loss for a model with parameters $\mathbf{w}$ is denoted as
-              $E(\mathbf{w})$, keeping the training data fixed.
+              loss for a model with parameters $\boldsymbol{\theta}$ is denoted as
+              $L(\boldsymbol{\theta})$, keeping the training data fixed. The vector includes all learnable parameters. In examples containing only weights, its coordinates are written $w_1,w_2,\ldots$.
             </p>
             <p>
               Additionally, it is useful to distinguish the
               <strong>input space</strong>, where each point is an input
               $\mathbf{x}$, from the <strong>parameter space</strong>, where
-              each point is a choice of $\mathbf{w}$. When we evaluate a trained
+              each point is a choice of $\boldsymbol{\theta}$. When we evaluate a trained
               model on different inputs, we move through input space while
               keeping the parameters fixed. When we train the model, we instead
               change the parameters and evaluate the resulting predictions on
@@ -131,12 +131,12 @@
               surface, but for an example lets consider a model with just two
               parameters:
             </p>
-            <p>$$E(w_1,w_2)=(w_1-2)^2+4(w_2+1)^2.$$</p>
+            <p>$$L(w_1,w_2)=(w_1-2)^2+4(w_2+1)^2.$$</p>
             <p>
               In this example, both terms are non-negative which means the
               smallest possible loss is zero. Which occurs when $w_1=2$ and
               $w_2=-1$, so we can say the global minimum is
-              $\mathbf{w}^*=(2,-1)^\top$. Other parameter values give us a
+              $\boldsymbol{\theta}^*=(2,-1)^\top$. Other parameter values give us a
               positive loss, on a "higher" point of the resulting surface.
             </p>
             <p>
@@ -151,7 +151,7 @@
               below. They are narrower in the $w_2$ direction because changing
               $w_2$ by the same amount as $w_1$, increases the loss four times
               as much. Here the centre of the plot is the global minimum
-              $\mathbf{w}^*$.
+              $\boldsymbol{\theta}^*$.
             </p>
             <figure class="chart-card">
               <div class="eyebrow">01 &middot; error surface</div>
@@ -172,7 +172,7 @@
             <p>
               At a differentiable <strong>stationary point</strong>, all first
               partial derivatives are zero, so $\nabla
-              E(\mathbf{w})=\mathbf{0}$. This means the surface is locally flat
+              L(\boldsymbol{\theta})=\mathbf{0}$. This means the surface is locally flat
               to first order at such a point. Using this we can find where a
               function's differentiable stationary points are. However, as not
               all stationary points are minima, we will need the second
@@ -190,11 +190,11 @@
               surface rises in some directions and falls in others.
             </p>
             <p>
-              To see the distinction, consider $E(w)=(w^2-1)^2$. Differentiating
+              To see the distinction, consider $L(w)=(w^2-1)^2$. Differentiating
               and setting the result to zero gives:
             </p>
             <p>
-              $$\frac{dE}{dw}=4w(w^2-1)=0 \qquad\Longrightarrow\qquad
+              $$\frac{dL}{dw}=4w(w^2-1)=0 \qquad\Longrightarrow\qquad
               w=-1,\;0,\;1.$$
             </p>
             <p>
@@ -257,8 +257,8 @@
               represented as a vector of $M$ partial derivatives:
             </p>
             <p>
-              $$\nabla E(\mathbf{w})=\begin{pmatrix}\frac{\partial E}{\partial
-              w_1}\\\vdots\\\frac{\partial E}{\partial w_M}\end{pmatrix}.$$
+              $$\nabla L(\boldsymbol{\theta})=\begin{pmatrix}\frac{\partial L}{\partial
+              w_1}\\\vdots\\\frac{\partial L}{\partial w_M}\end{pmatrix}.$$
             </p>
             <p>
               Where each component tells us how the loss changes when we vary
@@ -270,33 +270,33 @@
             <p>
               When we update the parameters in the network we may change several
               at once. For a small parameter change (displacement)
-              $\Delta\mathbf{w}$, we can approximate the change in loss using a
+              $\Delta\boldsymbol{\theta}$, we can approximate the change in loss using a
               first-order Taylor expansion:
             </p>
             <p>
-              $$E(\mathbf{w}+\Delta\mathbf{w})\approx E(\mathbf{w})+\nabla
-              E(\mathbf{w})^\top\Delta\mathbf{w}.$$
+              $$L(\boldsymbol{\theta}+\Delta\boldsymbol{\theta})\approx L(\boldsymbol{\theta})+\nabla
+              L(\boldsymbol{\theta})^\top\Delta\boldsymbol{\theta}.$$
             </p>
             <p>
               The dot product is just the same as adding the contribution from
               each parameter in a sum: $\nabla
-              E(\mathbf{w})^\top\Delta\mathbf{w}=\sum_{j=1}^M (\partial
-              E/\partial w_j)\Delta w_j$. This expansion approximates the change
+              L(\boldsymbol{\theta})^\top\Delta\boldsymbol{\theta}=\sum_{j=1}^M (\partial
+              L/\partial w_j)\Delta w_j$. This expansion approximates the change
               in loss, when the derivatives are evaluated at the starting point
-              $\mathbf{w}$. The idea is that we can use it to ask which small
+              $\boldsymbol{\theta}$. The idea is that we can use it to ask which small
               displacement reduces the loss most.
             </p>
             <p>
               Suppose we fix the displacement's length at $\epsilon&gt;0$ and
-              write $\Delta\mathbf{w}=\epsilon\mathbf{u}$, where
+              write $\Delta\boldsymbol{\theta}=\epsilon\mathbf{u}$, where
               $\|\mathbf{u}\|=1$ is the unit vector in the direction of the
               displacement. The approximate change (using the definition of the
               dot product) is then:
             </p>
             <p>
-              $$\Delta E\approx\epsilon\nabla
-              E(\mathbf{w})^\top\mathbf{u}=\epsilon\|\nabla
-              E(\mathbf{w})\|\cos\theta.$$
+              $$\Delta L\approx\epsilon\nabla
+              L(\boldsymbol{\theta})^\top\mathbf{u}=\epsilon\|\nabla
+              L(\boldsymbol{\theta})\|\cos\theta.$$
             </p>
             <p>
               Here $\theta$ is the angle between the gradient and the
@@ -308,8 +308,8 @@
               The direction of steepest local decrease is therefore:
             </p>
             <p>
-              $$\mathbf{u}=-\frac{\nabla E(\mathbf{w})}{\|\nabla
-              E(\mathbf{w})\|}.$$
+              $$\mathbf{u}=-\frac{\nabla L(\boldsymbol{\theta})}{\|\nabla
+              L(\boldsymbol{\theta})\|}.$$
             </p>
             <p>
               A displacement that is tangent to a contour line has zero dot
@@ -384,12 +384,12 @@
               direction:
             </p>
             <p>
-              $$\boxed{\mathbf{w}_{t+1}=\mathbf{w}_t-\eta\nabla
-              E(\mathbf{w}_t)}$$
+              $$\boxed{\boldsymbol{\theta}_{t+1}=\boldsymbol{\theta}_t-\eta\nabla
+              L(\boldsymbol{\theta}_t)}$$
             </p>
             <p>
-              Here $\mathbf{w}_t$ is the parameter vector at iteration $t$,
-              $\nabla E(\mathbf{w}_t)$ is the gradient evaluated at that vector,
+              Here $\boldsymbol{\theta}_t$ is the parameter vector at iteration $t$,
+              $\nabla L(\boldsymbol{\theta}_t)$ is the gradient evaluated at that vector,
               and $\eta&gt;0$ is the <strong>learning rate</strong>. We subtract
               the gradient because it points uphill. After taking a step, we
               calculate a new gradient at the new parameter vector and use that
@@ -400,7 +400,7 @@
             <p>
               The update scales the negative gradient rather than normalising
               it. This means that the step length is $\eta\|\nabla
-              E(\mathbf{w}_t)\|$ which depends on both the learning rate and the
+              L(\boldsymbol{\theta}_t)\|$ which depends on both the learning rate and the
               magnitude of the gradient. Therefore, in a steep region the same
               learning rate gives a larger step than in a flat region.
             </p>
@@ -414,15 +414,15 @@
             </p>
             <pre><code>Choose initial parameters w and learning rate η
 Repeat until a stopping condition is met:
-    Calculate the gradient ∇E(w)
-    Update w ← w − η∇E(w)
+    Calculate the gradient ∇L(w)
+    Update w ← w − η∇L(w)
 Return w</code></pre>
             <h2>Worked example</h2>
             <p>
-              Consider $E(w)=(w-3)^2$ which is obviously convex and solvable
+              Consider $L(w)=(w-3)^2$ which is obviously convex and solvable
               analytically, however its a good example to illustrate the
               behaviour. The loss is zero at $w=3$ and positive elsewhere, so we
-              know the minimum in advance. Its derivative is $dE/dw=2(w-3)$,
+              know the minimum in advance. Its derivative is $dL/dw=2(w-3)$,
               which gives the update:
             </p>
             <p>$$w_{t+1}=w_t-2\eta(w_t-3).$$</p>
@@ -451,7 +451,7 @@ Return w</code></pre>
                   <tr>
                     <th scope="col">Iteration $t$</th>
                     <th scope="col">Parameter $w_t$</th>
-                    <th scope="col">Loss $E(w_t)$</th>
+                    <th scope="col">Loss $L(w_t)$</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -480,7 +480,7 @@ Return w</code></pre>
             </div>
             <p>
               The loss values come from substituting each parameter back into
-              $E(w)$. For example, $E(1.08)=(1.08-3)^2=3.6864$. As you can see,
+              $L(w)$. For example, $L(1.08)=(1.08-3)^2=3.6864$. As you can see,
               derivative's magnitude becomes smaller as we approach the minimum
               because the slope of the surface is shallower.
             </p>
@@ -576,7 +576,7 @@ Return w</code></pre>
               away from the minimum, the two distances repeat indefinitely.
             </p>
             <p>
-              This range is specific to the loss function $E(w)=(w-3)^2$. With
+              This range is specific to the loss function $L(w)=(w-3)^2$. With
               different loss functions, the gradients and hence the suitable
               learning rates will be different. The condition $0&lt;\eta&lt;1$
               is not a universal rule. A learning rate that works for one loss
@@ -629,19 +629,19 @@ Return w</code></pre>
             </p>
             <p>
               $$\nabla
-              E(\mathbf{w})=\begin{pmatrix}2(w_1-2)\\8(w_2+1)\end{pmatrix}.$$
+              L(\boldsymbol{\theta})=\begin{pmatrix}2(w_1-2)\\8(w_2+1)\end{pmatrix}.$$
             </p>
             <p>
-              Starting at $\mathbf{w}_0=(0,0)^\top$ with $\eta=0.1$, the first
+              Starting at $\boldsymbol{\theta}_0=(0,0)^\top$ with $\eta=0.1$, the first
               gradient and update are:
             </p>
             <p>
-              $$\nabla E(\mathbf{w}_0)=\begin{pmatrix}-4\\8\end{pmatrix},\qquad
-              \mathbf{w}_1=\begin{pmatrix}0\\0\end{pmatrix}-0.1\begin{pmatrix}-4\\8\end{pmatrix}=\begin{pmatrix}0.4\\-0.8\end{pmatrix}.$$
+              $$\nabla L(\boldsymbol{\theta}_0)=\begin{pmatrix}-4\\8\end{pmatrix},\qquad
+              \boldsymbol{\theta}_1=\begin{pmatrix}0\\0\end{pmatrix}-0.1\begin{pmatrix}-4\\8\end{pmatrix}=\begin{pmatrix}0.4\\-0.8\end{pmatrix}.$$
             </p>
             <p>If we do this again then we get:</p>
             <p>
-              $$\begin{aligned}\mathbf{w}_2&amp;=\begin{pmatrix}0.4\\-0.8\end{pmatrix}-0.1\begin{pmatrix}-3.2\\1.6\end{pmatrix}=\begin{pmatrix}0.72\\-0.96\end{pmatrix},\\[4pt]\mathbf{w}_3&amp;=\begin{pmatrix}0.72\\-0.96\end{pmatrix}-0.1\begin{pmatrix}-2.56\\0.32\end{pmatrix}=\begin{pmatrix}0.976\\-0.992\end{pmatrix}.\end{aligned}$$
+              $$\begin{aligned}\boldsymbol{\theta}_2&amp;=\begin{pmatrix}0.4\\-0.8\end{pmatrix}-0.1\begin{pmatrix}-3.2\\1.6\end{pmatrix}=\begin{pmatrix}0.72\\-0.96\end{pmatrix},\\[4pt]\boldsymbol{\theta}_3&amp;=\begin{pmatrix}0.72\\-0.96\end{pmatrix}-0.1\begin{pmatrix}-2.56\\0.32\end{pmatrix}=\begin{pmatrix}0.976\\-0.992\end{pmatrix}.\end{aligned}$$
             </p>
 
             <p>

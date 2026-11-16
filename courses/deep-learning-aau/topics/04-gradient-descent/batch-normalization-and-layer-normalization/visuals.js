@@ -10,7 +10,7 @@
   };
   const norm = (x, s) => (x - s.mean) / Math.sqrt(s.variance + eps);
   const input = $('matrix-input');
-  input.innerHTML = '<div class="matrix-label">Original A · examples ↓, features →</div>' + [[1, 3, 5], [5, 9, 1]].map((row, n) => '<div class="matrix-row">' + row.map((value, i) => `<label><span class="sr-only">Example ${n + 1}, feature ${i + 1}</span><input type="number" step="1" value="${value}" data-n="${n}" data-i="${i}"></label>`).join('') + '</div>').join('');
+  input.innerHTML = '<div class="matrix-label">Original Z · examples ↓, features →</div>' + [[1, 3, 5], [5, 9, 1]].map((row, n) => '<div class="matrix-row">' + row.map((value, i) => `<label><span class="sr-only">Example ${n + 1}, feature ${i + 1}</span><input type="number" step="1" value="${value}" data-n="${n}" data-i="${i}"></label>`).join('') + '</div>').join('');
   const fields = [...input.querySelectorAll('input')];
   function updateGroups() {
     const count = $('method').value === 'batch' ? 3 : 2;

@@ -1,0 +1,8 @@
+/* Figures and wide mathematical expressions in the backpropagation notes. */
+.flow { margin: 28px 0; padding: 20px; border: 1px solid var(--rule); color: var(--fg-2); font-family: var(--font-mono); font-size: 13px; line-height: 2; overflow-x: auto; }
+.flow div { white-space: nowrap; }
+.flow svg { display: block; width: 100%; height: auto; min-width: 300px; }
+.flow figcaption { font-family: var(--font-sans); font-size: 13px; line-height: 1.5; margin-top: 12px; color: var(--fg-3); }
+.body table { display: block; overflow-x: auto; border-collapse: collapse; font-size: 14px; }
+.body th, .body td { padding: 8px; border-bottom: 1px solid var(--rule); text-align: left; vertical-align: top; }
+.katex-display { overflow-x: auto; overflow-y: hidden; padding: 4px 0; }

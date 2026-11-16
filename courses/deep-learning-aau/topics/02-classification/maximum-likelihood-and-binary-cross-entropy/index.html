@@ -76,25 +76,25 @@
 
         <h2>Starting from logistic regression</h2>
         <p>In the previous note, we used logistic regression to turn a linear score into a probability:</p>
-        <p>$$y(\mathbf{x})=\sigma(\mathbf{w}^T\mathbf{x}+w_0),$$</p>
-        <p>where $y(\mathbf{x})=p(t=1\mid\mathbf{x})$. The target for each example is binary, so $t\in\{0,1\}$. Until now, we have treated the weights as if they were already known. We now need an objective that tells us whether a particular choice of weights explains the labels well.</p>
+        <p>$$\hat{p}(\mathbf{x})=\sigma(\mathbf{w}^T\mathbf{x}+b),$$</p>
+        <p>where $\hat{p}(\mathbf{x})=p(y=1\mid\mathbf{x})$. The target for each example is binary, so $y\in\{0,1\}$. Until now, we have treated the weights as if they were already known. We now need an objective that tells us whether a particular choice of weights explains the labels well.</p>
 
         <h2>The probability of one observation</h2>
-        <p>For observation $n$, let $y_n=p(t_n=1\mid\mathbf{x}_n)$. The probability of target 1 is $y_n$, and the probability of target 0 is $1-y_n$.</p>
+        <p>For observation $i$, let $\hat{p}_i=p(y_i=1\mid\mathbf{x}_i)$. The probability of target 1 is $\hat{p}_i$, and the probability of target 0 is $1-\hat{p}_i$.</p>
         <p>We can write both cases in one expression:</p>
-        <p>$$p(t_n\mid\mathbf{x}_n,\mathbf{w})=y_n^{t_n}(1-y_n)^{1-t_n}.$$</p>
-        <p>For $t_n=1$, this becomes</p>
-        <p>$$y_n^1(1-y_n)^0=y_n,$$</p>
-        <p>and for $t_n=0$, it becomes</p>
-        <p>$$y_n^0(1-y_n)^1=1-y_n.$$</p>
+        <p>$$p(y_i\mid\mathbf{x}_i,\mathbf{w},b)=\hat{p}_i^{y_i}(1-\hat{p}_i)^{1-y_i}.$$</p>
+        <p>For $y_i=1$, this becomes</p>
+        <p>$$\hat{p}_i^1(1-\hat{p}_i)^0=\hat{p}_i,$$</p>
+        <p>and for $y_i=0$, it becomes</p>
+        <p>$$\hat{p}_i^0(1-\hat{p}_i)^1=1-\hat{p}_i.$$</p>
         <div class="note important"><span class="tag">important</span><p>This compact expression just selects the probability assigned to the target that actually occurred.</p></div>
-        <p>This is a Bernoulli model: there are two possible outcomes, 0 and 1, with probabilities $1-y_n$ and $y_n$.</p>
+        <p>This is a Bernoulli model: there are two possible outcomes, 0 and 1, with probabilities $1-\hat{p}_i$ and $\hat{p}_i$.</p>
 
         <h2>The likelihood of the dataset</h2>
         <p>Suppose our dataset is</p>
-        <p>$$\mathcal{D}=\{(\mathbf{x}_n,t_n)\}_{n=1}^{N}.$$</p>
+        <p>$$\mathcal{D}=\{(\mathbf{x}_i,y_i)\}_{i=1}^{n}.$$</p>
         <p>If the observations are independent given the model parameters, their probabilities multiply. The likelihood of all the observed targets is therefore</p>
-        <p>$$p(\mathbf{t}\mid\mathbf{X},\mathbf{w})=\prod_{n=1}^{N}y_n^{t_n}(1-y_n)^{1-t_n}.$$</p>
+        <p>$$p(\mathbf{y}\mid\mathbf{X},\mathbf{w},b)=\prod_{i=1}^{n}\hat{p}_i^{y_i}(1-\hat{p}_i)^{1-y_i}.$$</p>
         <p>Each observation contributes the probability the model assigned to the class that occurred. Multiplying these probabilities gives a measure of how plausible the whole dataset is under the model.</p>
         <p>For example, take true labels $[1,0,1]$ and predicted probabilities for class 1 of $[0.9,0.2,0.7]$. The likelihood is</p>
         <p>$$0.9\times(1-0.2)\times0.7=0.504.$$</p>
@@ -102,45 +102,45 @@
         <figure class="chart-card"><div class="eyebrow">01 &middot; illustrative comparison</div><h3>Likelihood on a tiny dataset</h3><div class="chart-frame"><canvas id="likelihoodComparisonChart" aria-label="Illustrative likelihood values for four models on the same three examples" role="img"></canvas></div><figcaption class="chart-caption"><span class="label">fig 1</span> These values are illustrative. Models that assign higher probability to the observed labels achieve higher likelihood.</figcaption></figure>
 
         <h2>Why use the log-likelihood?</h2>
-        <p>When many probabilities between 0 and 1 are multiplied, the result can become extremely small. Products are also awkward to work with, so we take the logarithm. Using $\log(ab)=\log a+\log b$ turns the product into a sum:</p>
-        <p>$$\begin{aligned}\log p(\mathbf{t}\mid\mathbf{X},\mathbf{w})&=\log\prod_{n=1}^{N} y_n^{t_n}(1-y_n)^{1-t_n}\\&=\sum_{n=1}^{N}\left[t_n\log y_n+(1-t_n)\log(1-y_n)\right].\end{aligned}$$</p>
+        <p>When many probabilities between 0 and 1 are multiplied, the result can become extremely small. Products are also awkward to work with, so we take the logarithm. Using $\log(uv)=\log u+\log v$ turns the product into a sum:</p>
+        <p>$$\begin{aligned}\log p(\mathbf{y}\mid\mathbf{X},\mathbf{w},b)&=\log\prod_{i=1}^{n} \hat{p}_i^{y_i}(1-\hat{p}_i)^{1-y_i}\\&=\sum_{i=1}^{n}\left[y_i\log \hat{p}_i+(1-y_i)\log(1-\hat{p}_i)\right].\end{aligned}$$</p>
         <p>The log-likelihood is easier to calculate and optimise, and it ranks models in the same order as the likelihood.</p>
         <div class="note important"><span class="tag">important</span><p>The logarithm is strictly increasing, so the parameters that maximise the likelihood also maximise the log-likelihood.</p></div>
 
         <h2>Maximum likelihood and the loss function</h2>
         <p>Maximum likelihood asks us to maximise the log-likelihood. Optimisation is often written as minimisation, so we instead minimise its negative:</p>
-        <p>$$\mathcal{L}=-\sum_{n=1}^{N}\left[t_n\log y_n+(1-t_n)\log(1-y_n)\right].$$</p>
+        <p>$$S=-\sum_{i=1}^{n}\left[y_i\log \hat{p}_i+(1-y_i)\log(1-\hat{p}_i)\right].$$</p>
         <p>This is the binary cross-entropy loss. It is also common to use the mean over the examples:</p>
-        <p>$$\mathcal{L}_{\mathrm{BCE}}=-\frac{1}{N}\sum_{n=1}^{N}\left[t_n\log y_n+(1-t_n)\log(1-y_n)\right].$$</p>
+        <p>$$L_{\mathrm{BCE}}=-\frac{1}{n}\sum_{i=1}^{n}\left[y_i\log \hat{p}_i+(1-y_i)\log(1-\hat{p}_i)\right].$$</p>
         <p>The sum and mean have the same minimiser. The mean just makes loss values easier to compare across datasets of different sizes.</p>
         <div class="note important"><span class="tag">important</span><p>Binary cross-entropy is not an arbitrary loss function. For logistic regression, it follows directly from maximum likelihood under a Bernoulli model for the targets.</p></div>
 
         <h2>The loss for one observation</h2>
-        <p>For a positive example, where $t=1$, the loss reduces to $-\log y$. For a negative example, where $t=0$, it is $-\log(1-y)$.</p>
+        <p>For a positive example, where $y=1$, the loss reduces to $-\log \hat{p}$. For a negative example, where $y=0$, it is $-\log(1-\hat{p})$.</p>
         <p>A correct, confident prediction gives a small loss. An uncertain prediction gives a moderate loss. A confidently wrong prediction gives a very large loss.</p>
-        <figure class="chart-card"><div class="eyebrow">02 &middot; binary cross-entropy</div><h3>Loss for one observation</h3><div class="chart-legend"><span class="item"><span class="swatch" style="background:var(--c-cat-1)"></span>target t = 1</span><span class="item"><span class="swatch" style="background:var(--c-cat-2)"></span>target t = 0</span></div><div class="chart-frame"><canvas id="binaryCrossEntropyChart" aria-label="Binary cross-entropy for positive and negative targets over predicted probability" role="img"></canvas></div><figcaption class="chart-caption"><span class="label">fig 2</span> For a positive example, predicting 1 is rewarded and predicting 0 is heavily penalised; the reverse holds for a negative example. The true loss tends to infinity at a confidently wrong prediction.</figcaption></figure>
+        <figure class="chart-card"><div class="eyebrow">02 &middot; binary cross-entropy</div><h3>Loss for one observation</h3><div class="chart-legend"><span class="item"><span class="swatch" style="background:var(--c-cat-1)"></span>target y = 1</span><span class="item"><span class="swatch" style="background:var(--c-cat-2)"></span>target y = 0</span></div><div class="chart-frame"><canvas id="binaryCrossEntropyChart" aria-label="Binary cross-entropy for positive and negative targets over predicted probability" role="img"></canvas></div><figcaption class="chart-caption"><span class="label">fig 2</span> For a positive example, predicting 1 is rewarded and predicting 0 is heavily penalised; the reverse holds for a negative example. The true loss tends to infinity at a confidently wrong prediction.</figcaption></figure>
 
         <h2>Why not squared error?</h2>
         <p>In regression, squared error follows naturally when we model the targets with a Gaussian distribution. Here the targets are binary, so a Bernoulli distribution is a better fit. For logistic regression, maximum likelihood under that Bernoulli model gives us cross-entropy.</p>
         <p>We could use squared error for a binary task, but it is not the natural probabilistic objective for the model we have defined.</p>
 
         <h2>The loss as a function of the score</h2>
-        <p>Recall that $y=\sigma(a)$. For a positive example the loss is $-\log\sigma(a)$; for a negative example it is $-\log(1-\sigma(a))$.</p>
+        <p>Recall that $\hat{p}=\sigma(z)$. For a positive example the loss is $-\log\sigma(z)$; for a negative example it is $-\log(1-\sigma(z))$.</p>
         <p>Large positive scores are good for class 1, while large negative scores are good for class 0. A score far in the wrong direction gives a large loss.</p>
-        <figure class="chart-card"><div class="eyebrow">03 &middot; score and loss</div><h3>Binary cross-entropy against the linear score</h3><div class="chart-legend"><span class="item"><span class="swatch" style="background:var(--c-cat-1)"></span>target t = 1</span><span class="item"><span class="swatch" style="background:var(--c-cat-2)"></span>target t = 0</span></div><div class="chart-frame"><canvas id="lossVsScoreChart" aria-label="Binary cross-entropy loss against linear score for targets zero and one" role="img"></canvas></div><figcaption class="chart-caption"><span class="label">fig 3</span> The loss encourages the score to become positive for class 1 and negative for class 0.</figcaption></figure>
+        <figure class="chart-card"><div class="eyebrow">03 &middot; score and loss</div><h3>Binary cross-entropy against the linear score</h3><div class="chart-legend"><span class="item"><span class="swatch" style="background:var(--c-cat-1)"></span>target y = 1</span><span class="item"><span class="swatch" style="background:var(--c-cat-2)"></span>target y = 0</span></div><div class="chart-frame"><canvas id="lossVsScoreChart" aria-label="Binary cross-entropy loss against linear score for targets zero and one" role="img"></canvas></div><figcaption class="chart-caption"><span class="label">fig 3</span> The loss encourages the score to become positive for class 1 and negative for class 0.</figcaption></figure>
 
         <h2>Optimising logistic regression</h2>
         <p>To find the best weights, we could set the gradients of the loss to zero and solve for them. Unlike ordinary least squares, this does not give us a general closed-form solution: the equations contain the sigmoid of expressions involving the unknown weights, so we cannot usually rearrange them to isolate the weights.</p>
         <p>Instead, we use numerical optimisation to search for weights that minimise the loss. Gradient descent is one such method: it uses the gradients to make repeated updates. Other methods, such as Newton's method, are also possible; here we use gradient descent because its updates follow directly from the gradients we have derived.</p>
-        <p>For one example, write the loss in terms of the score $a$:</p>
-        <p>$$\ell=-t\log y-(1-t)\log(1-y),\qquad y=\sigma(a).$$</p>
-        <p>The sigmoid derivative is $\frac{dy}{da}=y(1-y)$. Applying the chain rule gives</p>
-        <p>$$\frac{d\ell}{da}=\left(-\frac{t}{y}+\frac{1-t}{1-y}\right)y(1-y)=y-t.$$</p>
-        <p>Since $a=\mathbf{w}^T\mathbf{x}+w_0$, the score changes by $\mathbf{x}$ when we change the weights, and by 1 when we change the bias. So for the summed loss:</p>
-        <p>$$\frac{\partial\mathcal{L}}{\partial\mathbf{w}}=\sum_{n=1}^{N}(y_n-t_n)\mathbf{x}_n,\qquad\frac{\partial\mathcal{L}}{\partial w_0}=\sum_{n=1}^{N}(y_n-t_n).$$</p>
-        <p>For the mean BCE, divide both gradients by $N$. Each example contributes its prediction error, $y_n-t_n$, multiplied by its input. This prediction error times input pattern will appear again in neural networks.</p>
+        <p>For one example, write the loss in terms of the score $z$:</p>
+        <p>$$\ell=-y\log \hat{p}-(1-y)\log(1-\hat{p}),\qquad \hat{p}=\sigma(z).$$</p>
+        <p>The sigmoid derivative is $\frac{d\hat{p}}{dz}=\hat{p}(1-\hat{p})$. Applying the chain rule gives</p>
+        <p>$$\frac{d\ell}{dz}=\left(-\frac{y}{\hat{p}}+\frac{1-y}{1-\hat{p}}\right)\hat{p}(1-\hat{p})=\hat{p}-y.$$</p>
+        <p>Since $z=\mathbf{w}^T\mathbf{x}+b$, the score changes by $\mathbf{x}$ when we change the weights, and by 1 when we change the bias. So for the summed loss:</p>
+        <p>$$\frac{\partial S}{\partial\mathbf{w}}=\sum_{i=1}^{n}(\hat{p}_i-y_i)\mathbf{x}_i,\qquad\frac{\partial S}{\partial b}=\sum_{i=1}^{n}(\hat{p}_i-y_i).$$</p>
+        <p>For the mean BCE, divide both gradients by $n$. Each example contributes its prediction error, $\hat{p}_i-y_i$, multiplied by its input. This prediction error times input pattern will appear again in neural networks.</p>
         <p>Gradient descent turns these gradients into actual parameter updates. With learning rate $\eta$, subtract the gradient from each parameter:</p>
-        <p>$$\mathbf{w}\leftarrow\mathbf{w}-\eta\frac{1}{N}\sum_{n=1}^{N}(y_n-t_n)\mathbf{x}_n,\qquad w_0\leftarrow w_0-\eta\frac{1}{N}\sum_{n=1}^{N}(y_n-t_n).$$</p>
+        <p>$$\mathbf{w}\leftarrow\mathbf{w}-\eta\frac{1}{n}\sum_{i=1}^{n}(\hat{p}_i-y_i)\mathbf{x}_i,\qquad b\leftarrow b-\eta\frac{1}{n}\sum_{i=1}^{n}(\hat{p}_i-y_i).$$</p>
         <p>The gradient points in the direction that increases the loss, so subtracting it moves the parameters downhill. The learning rate $\eta$ controls the size of each step: if it is too large, we can jump past a good solution; if it is small, learning takes longer. In the code below, <code>dw</code> and <code>db</code> are the two gradients, and the last two lines apply exactly these updates.</p>
         <p>We repeat the following steps:</p>
         <ol><li>Initialise the weights and bias.</li><li>Compute the predicted probabilities.</li><li>Compute the BCE and its gradients.</li><li>Update the weights and bias.</li><li>Repeat for a number of epochs.</li></ol>

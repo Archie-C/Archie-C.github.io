@@ -110,22 +110,22 @@
               In the previous note, we used the gradient of a loss to update the
               parameters. In regression, classification and neural networks,
               that loss is often built from contributions of individual training
-              examples. If $E_n(\mathbf{w})$ is the loss for example $n$, we can
-              write the training objective for $N$ examples as:
+              examples. If $\ell_i(\boldsymbol{\theta})$ is the loss for example $i$, we can
+              write the training objective for $n$ examples as:
             </p>
-            <p>$$E(\mathbf{w})=\frac{1}{N}\sum_{n=1}^{N}E_n(\mathbf{w}).$$</p>
+            <p>$$L(\boldsymbol{\theta})=\frac{1}{n}\sum_{i=1}^{n}\ell_i(\boldsymbol{\theta}).$$</p>
             <p>
               We use the mean loss throughout this note. Bishop and Bishop
-              sometimes use a sum instead however, its gradient is just $N$
+              sometimes use a sum instead however, its gradient is just $n$
               times the mean gradient, so the scaling can be absorbed into the
               learning rate.
             </p>
             <p>
               Let's unpack this expression. For each training example, we make a
               prediction using the current parameters and calculate a loss
-              $E_n(\mathbf{w})$ from that prediction and its target. We then add
+              $\ell_i(\boldsymbol{\theta})$ from that prediction and its target. We then add
               those losses together and divide by the number of examples. So
-              $E(\mathbf{w})$ gives us one number that measures the model's
+              $L(\boldsymbol{\theta})$ gives us one number that measures the model's
               performance over the training dataset as a whole.
             </p>
             <p>
@@ -134,7 +134,7 @@
               Importantly, it does not change which parameter values minimise
               the corresponding sum for a fixed dataset, but it does change the
               size of the gradient. For example, a step using the sum with
-              learning rate $\eta/N$ is the same as a step using the mean with
+              learning rate $\eta/n$ is the same as a step using the mean with
               learning rate $\eta$.
             </p>
             <p>
@@ -142,8 +142,8 @@
               fact that differentiation distributes over the sum:
             </p>
             <p>
-              $$\nabla E(\mathbf{w})=\frac{1}{N}\sum_{n=1}^{N}\nabla
-              E_n(\mathbf{w}).$$
+              $$\nabla L(\boldsymbol{\theta})=\frac{1}{n}\sum_{i=1}^{n}\nabla
+              \ell_i(\boldsymbol{\theta}).$$
             </p>
             <p>
               Therefore, the gradient of the complete objective is the average
@@ -199,8 +199,8 @@
               note gives:
             </p>
             <p>
-              $$\mathbf{w}_{t+1}=\mathbf{w}_t-\eta\frac{1}{N}\sum_{n=1}^{N}\nabla
-              E_n(\mathbf{w}_t).$$
+              $$\boldsymbol{\theta}_{t+1}=\boldsymbol{\theta}_t-\eta\frac{1}{n}\sum_{i=1}^{n}\nabla
+              \ell_i(\boldsymbol{\theta}_t).$$
             </p>
             <p>
               For a fixed dataset and parameter vector, this gradient is
@@ -211,7 +211,7 @@
             </p>
             <p>
               We can think of one update as two stages. First, keep
-              $\mathbf{w}_t$ fixed while calculating the gradient for every
+              $\boldsymbol{\theta}_t$ fixed while calculating the gradient for every
               example. Then average those gradients and use the result to update
               the parameters once. We <strong>do not</strong> update the
               parameters after each example, only after each step.
@@ -225,7 +225,7 @@
               and the total work depends on both quantities.
             </p>
             <h2>Worked example: a regression model</h2>
-            <p>Consider $y(x,w)=wx$ and the following four observations:</p>
+            <p>Consider $\hat{y}(x,w)=wx$ and the following four observations:</p>
             <div
               class="table-wrap"
               role="region"
@@ -238,9 +238,9 @@
                 </caption>
                 <thead>
                   <tr>
-                    <th scope="col">Example $n$</th>
-                    <th scope="col">$x_n$</th>
-                    <th scope="col">$t_n$</th>
+                    <th scope="col">Example $i$</th>
+                    <th scope="col">$x_i$</th>
+                    <th scope="col">$y_i$</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -272,18 +272,18 @@
               are:
             </p>
             <p>
-              $$E(w)=\frac{1}{2N}\sum_{n=1}^{N}(wx_n-t_n)^2,\qquad
-              \frac{dE}{dw}=\frac{1}{N}\sum_{n=1}^{N}(wx_n-t_n)x_n.$$
+              $$L(w)=\frac{1}{2n}\sum_{i=1}^{n}(wx_i-y_i)^2,\qquad
+              \frac{dL}{dw}=\frac{1}{n}\sum_{i=1}^{n}(wx_i-y_i)x_i.$$
             </p>
             <p>
               This means that an individual example's contribution to the
-              derivative is $g_n=(wx_n-t_n)x_n$. For example, if we start at
+              derivative is $g_i=(wx_i-y_i)x_i$. For example, if we start at
               $w=0$, the four individual derivatives are $g_1=-1$, $g_2=-4$,
               $g_3=-6$ and $g_4=-16$. Their average and the update for
               $\eta=0.1$ are:
             </p>
             <p>
-              $$\frac{dE}{dw}=\frac{-1-4-6-16}{4}=-6.75,\qquad
+              $$\frac{dL}{dw}=\frac{-1-4-6-16}{4}=-6.75,\qquad
               w_1=0-0.1(-6.75)=0.675.$$
             </p>
             <p>
@@ -307,17 +307,17 @@
               example for each update:
             </p>
             <p>
-              $$\mathbf{w}_{t+1}=\mathbf{w}_t-\eta\nabla
-              E_{n_t}(\mathbf{w}_t),$$
+              $$\boldsymbol{\theta}_{t+1}=\boldsymbol{\theta}_t-\eta\nabla
+              \ell_{i_t}(\boldsymbol{\theta}_t),$$
             </p>
             <p>
-              where $n_t$ identifies the example selected at iteration $t$. Its
+              where $i_t$ identifies the example selected at iteration $t$. Its
               gradient describes that example's loss, not the complete
               objective. It is a noisy estimate of the full gradient: different
               examples generally give different directions and magnitudes. If
-              $n_t$ is sampled uniformly from the $N$ examples at a fixed
-              $\mathbf{w}$, its expected gradient is exactly their average,
-              $\mathbb{E}[\nabla E_{n_t}(\mathbf{w})]=\nabla E(\mathbf{w})$. The
+              $i_t$ is sampled uniformly from the $n$ examples at a fixed
+              $\boldsymbol{\theta}$, its expected gradient is exactly their average,
+              $\mathbb{E}[\nabla \ell_{i_t}(\boldsymbol{\theta})]=\nabla L(\boldsymbol{\theta})$. The
               estimate is therefore unbiased.
             </p>
             <p>
@@ -351,7 +351,7 @@
               For the regression example, suppose the fourth observation is
               selected first. At $w_0=0$:
             </p>
-            <p>$$g_4=(wx_4-t_4)x_4=(0-4)(4)=-16,\qquad w_1=0-0.1(-16)=1.6.$$</p>
+            <p>$$g_4=(wx_4-y_4)x_4=(0-4)(4)=-16,\qquad w_1=0-0.1(-16)=1.6.$$</p>
             <p>
               The batch update gave $w_1=0.675$. The two steps differ because
               one uses just the fourth gradient while the other averages all
@@ -381,13 +381,13 @@
             </p>
             <p>
               $$\nabla
-              E_{\mathcal{B}_t}(\mathbf{w}_t)=\frac{1}{B}\sum_{n\in\mathcal{B}_t}\nabla
-              E_n(\mathbf{w}_t),\qquad
-              \boxed{\mathbf{w}_{t+1}=\mathbf{w}_t-\eta\nabla
-              E_{\mathcal{B}_t}(\mathbf{w}_t)}.$$
+              L_{\mathcal{B}_t}(\boldsymbol{\theta}_t)=\frac{1}{B}\sum_{i\in\mathcal{B}_t}\nabla
+              \ell_i(\boldsymbol{\theta}_t),\qquad
+              \boxed{\boldsymbol{\theta}_{t+1}=\boldsymbol{\theta}_t-\eta\nabla
+              L_{\mathcal{B}_t}(\boldsymbol{\theta}_t)}.$$
             </p>
             <p>
-              With $B=1$ this is single-example SGD; with $B=N$ and the whole
+              With $B=1$ this is single-example SGD; with $B=n$ and the whole
               dataset it is full-batch gradient descent. Intermediate values
               give <strong>mini-batch gradient descent</strong>. In deep
               learning, the name SGD is also frequently used for mini-batch SGD.
@@ -494,8 +494,8 @@
               at a fixed parameter vector; actual gradients change as parameters
               change. For uniform sampling without replacement from a finite
               dataset, the variance also has the finite-population correction
-              $(N-B)/(N-1)$ when $\sigma_g^2$ is the population variance with
-              denominator $N$. At $B=N$ the estimate is the exact full gradient.
+              $(n-B)/(n-1)$ when $\sigma_g^2$ is the population variance with
+              denominator $n$. At $B=n$ the estimate is the exact full gradient.
             </p>
             <p>
               Let's see where the factor of $B^2$ comes from. The average
@@ -511,7 +511,7 @@
               the average. Sampling without replacement is one example: once an
               observation has been selected, it cannot appear again in that
               batch. The correction accounts for this dependence and goes to
-              zero when the batch contains every example. For $N=1$, the full
+              zero when the batch contains every example. For $n=1$, the full
               gradient is already known from the single example.
             </p>
             <p>
@@ -579,15 +579,15 @@
               dataset. If each example is used once and the last incomplete
               batch is retained, the number of updates in an epoch is:
             </p>
-            <p>$$\left\lceil\frac{N}{B}\right\rceil.$$</p>
+            <p>$$\left\lceil\frac{n}{B}\right\rceil.$$</p>
             <p>
               If the final incomplete batch is discarded instead, there are
-              $\lfloor N/B\rfloor$ updates; the discarded examples are not used
+              $\lfloor n/B\rfloor$ updates; the discarded examples are not used
               in that pass. Its gradient, when retained, is averaged over its
               actual number of examples.
             </p>
             <p>
-              For example, if $N=103$ and $B=10$, ten batches contain ten
+              For example, if $n=103$ and $B=10$, ten batches contain ten
               examples each and one batch contains the remaining three. Keeping
               that final batch gives eleven updates. Dropping it gives ten
               updates and leaves three examples unused in that pass. Which
@@ -661,8 +661,8 @@
               Shuffling does not change the sum of the individual losses: the
               same examples still contribute to the same complete objective. It
               can nevertheless change the path through parameter space, because
-              averaging gradients at a fixed $\mathbf{w}$ is different from
-              updating $\mathbf{w}$ between batches. A fixed seed makes a chosen
+              averaging gradients at a fixed $\boldsymbol{\theta}$ is different from
+              updating $\boldsymbol{\theta}$ between batches. A fixed seed makes a chosen
               sequence reproducible in the same environment; it does not make
               every possible training run identical.
             </p>
@@ -675,7 +675,7 @@
             >
               <table>
                 <caption>
-                  One pass through $N$ examples, retaining the last batch
+                  One pass through $n$ examples, retaining the last batch
                 </caption>
                 <thead>
                   <tr>
@@ -688,7 +688,7 @@
                 <tbody>
                   <tr>
                     <td>Examples per update</td>
-                    <td>$N$</td>
+                    <td>$n$</td>
                     <td>1</td>
                     <td>$B$</td>
                   </tr>
@@ -707,8 +707,8 @@
                   <tr>
                     <td>Updates per epoch</td>
                     <td>1</td>
-                    <td>$N$</td>
-                    <td>$\lceil N/B\rceil$</td>
+                    <td>$n$</td>
+                    <td>$\lceil n/B\rceil$</td>
                   </tr>
                   <tr>
                     <td>Parallel processing</td>
@@ -763,16 +763,16 @@ Return w</code></pre>
               In this algorithm, one pass through the inner loop is one
               iteration. Once all retained batches have been processed, we have
               completed an epoch and can choose a new order for the next one.
-              The gradient is recalculated at the current $\mathbf{w}$ for every
+              The gradient is recalculated at the current $\boldsymbol{\theta}$ for every
               batch; it is not a collection of gradients saved at the beginning
               of the epoch.
             </p>
             <p>
               We can compare trajectories on a two-parameter objective made from
               four example losses
-              $E_n(\mathbf{w})=\frac12\|\mathbf{w}-\mathbf{a}_n\|^2$, with
+              $\ell_i(\boldsymbol{\theta})=\frac12\|\boldsymbol{\theta}-\mathbf{c}_i\|^2$, with
               centres $(1,1)$, $(3,1)$, $(1,3)$ and $(3,3)$. Each example
-              gradient is $\mathbf{w}-\mathbf{a}_n$; the full objective is their
+              gradient is $\boldsymbol{\theta}-\mathbf{c}_i$; the full objective is their
               mean. Both paths start at $(0,0)$ with $\eta=0.25$. Each step uses
               the next batch in a fixed order, while the full-batch path uses
               all four examples every time.

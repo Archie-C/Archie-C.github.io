@@ -237,37 +237,37 @@
 
         <p>$$
 
-a(\mathbf{x}) = w_1x_1 + w_2x_2 + w_0.
+z(\mathbf{x}) = w_1x_1 + w_2x_2 + b.
 
 $$</p>
 
-        <p>where $w_1$ and $w_2$ control the orientation of the line and $w_0$ controls its position.</p>
+        <p>where $w_1$ and $w_2$ control the orientation of the line and $b$ controls its position.</p>
 
-        <p>The decision boundary occurs wherever $a(\mathbf{x}) = 0$. Therefore:</p>
+        <p>The decision boundary occurs wherever $z(\mathbf{x}) = 0$. Therefore:</p>
 
         <p>$$
 
-w_1x_1 + w_2x_2 + w_0 = 0
+w_1x_1 + w_2x_2 + b = 0
 
 $$</p>
           <h2>Making a prediction</h2>
           <p>Once we have a defined a decision boundary, classification becomes quite simple.</p>
           <p>If</p>
-          <p>$$ a(\mathbf{x}) > 0, $$</p>
+          <p>$$ z(\mathbf{x}) > 0, $$</p>
           <p>we assign the input to one class, and if</p>
-          <p>$$ a(\mathbf{x}) < 0, $$</p>
+          <p>$$ z(\mathbf{x}) < 0, $$</p>
           <p>we assign it to the other class.</p>
           <p>For example,</p>
           <p>$$
-\hat{t} =
+\hat{y} =
 \begin{cases}
-1 & \text{if } a(\mathbf{x}) \geq 0, \\
-0 & \text{if } a(\mathbf{x}) < 0.
+1 & \text{if } z(\mathbf{x}) \geq 0, \\
+0 & \text{if } z(\mathbf{x}) < 0.
 \end{cases}
 $$</p>
           <p>The decision boundary itself corresponds to</p>
           <p>$$
-a(\mathbf{x}) = 0.
+z(\mathbf{x}) = 0.
 $$</p>
 
         <figure class="chart-card">
@@ -290,7 +290,7 @@ $$</p>
 
           <span class="tag">important</span>
 
-          <p>The function $a(\mathbf{x})$ does not yet give us a probability. It simply gives us a score. The sign of this score tells us which side of the decision boundary a point lies on.</p>
+          <p>The function $z(\mathbf{x})$ does not yet give us a probability. It simply gives us a score. The sign of this score tells us which side of the decision boundary a point lies on.</p>
 
         </div>
 
@@ -302,7 +302,7 @@ $$</p>
         <p>So this is simply a straight line.</p>
         <p>The weight vector is</p>
         <p>$$\mathbf{w} = \begin{bmatrix} 1.2 \\ 0.8 \end{bmatrix}.$$</p>
-        <p>An important geometric property is that the weight vector is perpendicular to the decision boundary. This means that changing $\mathbf{w}$ will rotate the decision boundary, while changing $w_0$ will shift it along its normal direction.</p>
+        <p>An important geometric property is that the weight vector is perpendicular to the decision boundary. This means that changing $\mathbf{w}$ will rotate the decision boundary, while changing $b$ will shift it along its normal direction.</p>
         <figure class="chart-card">
   <div class="eyebrow">03 &middot; geometry</div>
   <h3>The weight vector is normal to the boundary</h3>
@@ -335,20 +335,20 @@ $$</p>
 0.8
 \end{pmatrix},
 \qquad
-w_0 = -112.
+b = -112.
 $$</p>
 
         <p>The decision function is therefore</p>
         <p>$$
-a(\mathbf{x})
+z(\mathbf{x})
 =
 1.2x_1 + 0.8x_2 - 112.
 $$</p>
 
         <p>Any student with</p>
-        <p>$$a(\mathbf{x}) \geq 0$$</p>
+        <p>$$z(\mathbf{x}) \geq 0$$</p>
         <p>is classified as admitted, while students with</p>
-        <p>$$a(\mathbf{x}) < 0$$</p>
+        <p>$$z(\mathbf{x}) < 0$$</p>
         <p>are classified as rejected.</p>
 
 <figure class="chart-card">
@@ -389,7 +389,7 @@ $$</p>
 
     <label>
       <span>
-        w<sub>0</sub> =
+        b =
         <strong id="w0Value">-112</strong>
       </span>
 
@@ -424,7 +424,7 @@ $$</p>
   <p>Change the weights and bias in the example above and observe how the decision boundary changes.</p>
   <p>What happens when:</p>
   <ul>
-    <li>you change only $w_0$?</li>
+    <li>you change only $b$?</li>
     <li>you change the ratio between $w_1$ and $w_2$?</li>
     <li>you multiply all weights and the bias by the same positive constant?</li>
   </ul>
@@ -436,11 +436,11 @@ $$</p>
         <p>So far we have considered two input features because they are easy to visualise.</p>
         <p>If the input has $D$ features, then we write</p>
         <p>$$
-a(\mathbf{x}) = \mathbf{w}^T\mathbf{x} + w_0.
+z(\mathbf{x}) = \mathbf{w}^T\mathbf{x} + b.
 $$</p>
         <p>The decision boundary is then</p>
         <p>$$
-\mathbf{w}^T\mathbf{x} + w_0 = 0.
+\mathbf{w}^T\mathbf{x} + b = 0.
 $$</p>
         <p>With two input dimensions, this boundary is a line.</p>
         <p>With three input dimensions, it is a plane.</p>

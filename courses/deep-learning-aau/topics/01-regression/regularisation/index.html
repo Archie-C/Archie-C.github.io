@@ -110,15 +110,15 @@
         </p>
         <h2>L1 Regularisation (Lasso)</h2>
         <p>L1 regularisation uses the L1 norm of the weight vector as a penalty term. The L1 norm is just the sum of the absolute values of the weights.</p>
-        <p>$$ \mathcal{L}_{\text{L1}} = \mathcal{L} + \lambda \sum_{i=1}^n |w_i| $$</p>
+        <p>$$ L_{\text{L1}}(\boldsymbol{\theta}) = L(\boldsymbol{\theta}) + \lambda \sum_{j=1}^d |w_j| $$</p>
         <p>We can tune the hyperparameter $\lambda$ to control the strength of the regularisation. For this, there is no closed-form solution, so we need to use a numerical optimisation method.</p>
 
         <h2>L2 Regularisation (Ridge)</h2>
         <p>L2 regularisation uses the L2 norm of the weight vector as a penalty term. The L2 norm is just the sum of the squares of the weights.</p>
-        <p>$$ \mathcal{L}_{\text{L2}} = \mathcal{L} + \lambda \sum_{i=1}^n w_i^2 $$</p>
+        <p>$$ L_{\text{L2}}(\boldsymbol{\theta}) = L(\boldsymbol{\theta}) + \lambda \sum_{j=1}^d w_j^2 $$</p>
         <p>Again, we can tune the hyperparameter $\lambda$ to control the strength of the regularisation. There is a closed-form solution for this case. It is given by:</p>
-        <p>$$ \mathbf{\theta}_{\text{L2}} = (\mathbf{X}^\top \mathbf{X} + \lambda \mathbf{I})^{-1} \mathbf{X}^\top \mathbf{y} $$</p>
-        <p>where $\mathbf{I}$ is the identity matrix. This also has a nice property that it guarantees a unique solution even when $\mathbf{X}^\top \mathbf{X}$ is not invertible, which can happen when we have more features than data points.</p>
+        <p>$$ \boldsymbol{\theta}_{\text{L2}} = (\tilde{\mathbf X}^\top \tilde{\mathbf X} + n\lambda \mathbf R)^{-1} \tilde{\mathbf X}^\top \mathbf y $$</p>
+        <p>Here $L$ is the mean squared error over $n$ examples, $\tilde{\mathbf X}$ includes a column of ones, and $\mathbf R=\operatorname{diag}(0,1,\ldots,1)$ leaves the bias unpenalised. The factor $n$ follows from using the mean loss. With $\lambda>0$ and at least one example, this matrix is invertible even when the unregularised design is rank deficient.</p>
         </p>
         <div class="exercise">
           <span class="tag">exercise &middot; 1.5.1 <b>Derivation of Ridge Regression Solution</b></span>

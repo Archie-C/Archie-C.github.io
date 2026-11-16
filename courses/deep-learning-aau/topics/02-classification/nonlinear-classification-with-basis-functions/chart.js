@@ -137,16 +137,16 @@ window.addEventListener("DOMContentLoaded", () => {
         lineDataset("Threshold", thresholdLine)
       ] },
       options: {
-        ...makeOptions("z = x₁² + x₂²", "", 0, 3.3, -0.48, 0.48, {
+        ...makeOptions("q = x₁² + x₂²", "", 0, 3.3, -0.48, 0.48, {
           title: (items) => items.length ? items[0].dataset.label : "",
-          label: (item) => `z = ${item.parsed.x.toFixed(2)}`
+          label: (item) => `q = ${item.parsed.x.toFixed(2)}`
         }),
         scales: {
           x: {
             type: "linear", min: 0, max: 3.3,
             grid: { display: false }, border: { color: colour.fg2 },
             ticks: { color: colour.fg3, font: { family: colour.mono, size: 11 } },
-            title: { display: true, text: "z = x₁² + x₂²", align: "end", color: colour.fg3, font: { family: colour.mono, size: 10 } }
+            title: { display: true, text: "q = x₁² + x₂²", align: "end", color: colour.fg3, font: { family: colour.mono, size: 10 } }
           },
           y: {
             min: -0.48, max: 0.48,

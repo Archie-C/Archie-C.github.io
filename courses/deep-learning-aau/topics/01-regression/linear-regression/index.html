@@ -91,40 +91,40 @@
 
         <h2>Defining the line</h2>
         <p>You should be familiar with the equation of a line from school, which is given by:</p>
-        <p>$$ y = mx + c $$</p>
+        <p>$$ \hat{y} = mx + c $$</p>
         <p>where $m$ is the slope and $c$ is the y-intercept.</p>
         <p>Here we want a more general formulation so that later we can model the relationship between multiple features and the target variable. So instead lets rewrite the equation as:</p>
-        <p>$$ y = w_1 x + w_0 $$</p>
+        <p>$$ \hat{y} = w_1 x + b $$</p>
 
         <div class="note important">
           <span class="tag">important</span>
-          <p>The notation changes, but the idea has not: $w_1$ is still the slope and $w_0$ is still the intercept. We use $w$ because the same notation will scale to many input features.</p>
+          <p>The notation changes, but the idea has not: $w_1$ is still the slope and $b$ is still the intercept. We use $w$ because the same notation will scale to many input features.</p>
         </div>
 
         <h2>Fitting the line</h2>
-        <p>Now that we have the equation of the line, we need to find the optimal values for the weights $w_0$ and $w_1$.</p>
+        <p>Now that we have the equation of the line, we need to find the optimal values for the bias $b$ and weight $w_1$.</p>
         <p>To do this, we define a loss function that measures how close our line is to the data points. We can then minimise this function to find the optimal parameters. For this example, the loss function is quite trivial, we just want to minimise the distance between the line and the data points.</p>
         <p>In practice, we often use the squared error loss function:</p>
-        <p>$$ \mathcal{L} = \sum_{i=1}^n (y_i - \hat{y}_i)^2 $$</p>
-        <p>where $y_i$ is the true value and $\hat{y}_i$ is the predicted value from our model.</p>
+        <p>$$ S = \sum_{i=1}^n (y_i - \hat{y}_i)^2 $$</p>
+        <p>where $y_i$ is the true value and $\hat{y}_i$ is the predicted value from our model. We denote this sum by $S$; the empirical mean loss is $L=S/n$, which has the same minimiser for a fixed dataset.</p>
         <p>This loss also has a probabilistic interpretation. If each target differs from the prediction by independent Gaussian noise with fixed variance, $y_i = \hat{y}_i + \epsilon_i$ where $\epsilon_i \sim \mathcal{N}(0, \sigma^2)$, then the negative log-likelihood is the squared error scaled by a positive constant, plus a constant. So minimising the negative log-likelihood gives the same weights as minimising squared error.</p>
         <p>For the full likelihood derivation and its assumptions, see the extra note on <a href="../probabilistic-regression/">regression as probabilistic modelling</a>.</p>
         <p>Nicely, the minimisation of this function has a closed form solution, which means we can find the optimal parameters without having to use gradient descent or any other iterative optimisation tricks.</p>
 
         <h2>Deriving the 1D solution</h2>
         <p>
-          Since we have two parameters, we need to find the minimum of this function with respect to both $w_0$ and $w_1$. We can do this by taking the partial derivatives of the loss function with respect to each parameter and setting them to zero.
+          Since we have two parameters, we need to find the minimum of this function with respect to both $b$ and $w_1$. We can do this by taking the partial derivatives of the loss function with respect to each parameter and setting them to zero.
         </p>
         <p>First, let's write the function in terms of the weights:</p>
-        <p>$$ \mathcal{L} = \sum_{i=1}^n (y_i - (w_1 x_i + w_0))^2 $$</p>
+        <p>$$ S = \sum_{i=1}^n (y_i - (w_1 x_i + b))^2 $$</p>
         <p>Now we take partial derivatives:</p>
         <p>
         $$
         \begin{aligned}
-        \frac{\partial \mathcal{L}}{\partial w_0}
-        &= -2 \sum_{i=1}^n (y_i - (w_1 x_i + w_0)) = 0 \\
-        \frac{\partial \mathcal{L}}{\partial w_1}
-        &= -2 \sum_{i=1}^n x_i (y_i - (w_1 x_i + w_0)) = 0
+        \frac{\partial S}{\partial b}
+        &= -2 \sum_{i=1}^n (y_i - (w_1 x_i + b)) = 0 \\
+        \frac{\partial S}{\partial w_1}
+        &= -2 \sum_{i=1}^n x_i (y_i - (w_1 x_i + b)) = 0
         \end{aligned}
         $$
         </p>
@@ -136,24 +136,24 @@
         <p>
         $$
         \begin{aligned}
-        \sum_{i=1}^n y_i - \sum_{i=1}^n w_1 x_i - \sum_{i=1}^n w_0 = 0 \\
-        \sum_{i=1}^n x_i y_i - \sum_{i=1}^n w_1 x_i^2 - \sum_{i=1}^n w_0 x_i = 0
+        \sum_{i=1}^n y_i - \sum_{i=1}^n w_1 x_i - \sum_{i=1}^n b = 0 \\
+        \sum_{i=1}^n x_i y_i - \sum_{i=1}^n w_1 x_i^2 - \sum_{i=1}^n b x_i = 0
         \end{aligned}
         $$
         </p>
         <p>Lets work on the first equation:</p>
-        <p>If we rearrange the first equation for $w_0$, we get:</p>
-        <p>$$ w_0 = \frac{1}{n} \sum_{i=1}^n y_i - w_1 \frac{1}{n} \sum_{i=1}^n x_i $$</p>
+        <p>If we rearrange the first equation for $b$, we get:</p>
+        <p>$$ b = \frac{1}{n} \sum_{i=1}^n y_i - w_1 \frac{1}{n} \sum_{i=1}^n x_i $$</p>
         <p>note that $\frac{1}{n} \sum_{i=1}^n x_i$ is just the mean of the $x_i$ values, often denoted as $\bar{x}$. Similarly, $\frac{1}{n} \sum_{i=1}^n y_i$ is the mean of the $y_i$ values, denoted as $\bar{y}$.</p>
         <p>So we can rewrite the equation as:</p>
-        <p>$$ w_0 = \bar{y} - w_1 \bar{x} $$</p>
-        <p>Which is a much nicer form than what we had before. Now let's tackle the second equation. We can simplify the $\sum_{i=1}^n x_i$ as $n\bar{x}$ and then substitute our expression for $w_0$:</p>
+        <p>$$ b = \bar{y} - w_1 \bar{x} $$</p>
+        <p>Which is a much nicer form than what we had before. Now let's tackle the second equation. We can simplify the $\sum_{i=1}^n x_i$ as $n\bar{x}$ and then substitute our expression for $b$:</p>
         <p>
         $$\sum_{i=1}^n x_i y_i - w_1 \sum_{i=1}^n x_i^2 - (\bar{y} - w_1 \bar{x}) n \bar{x} = 0$$
         </p>
-        <p>Then with some rearrangement, which I will leave out as an exercise. We are left with two analytical solutions for $w_0$ and $w_1$.</p>
+        <p>Then with some rearrangement, which I will leave out as an exercise. We are left with two analytical solutions for $b$ and $w_1$.</p>
         <p>$$w_1 = \frac{\sum_{i=1}^n (x_i - \bar{x})(y_i - \bar{y})}{\sum_{i=1}^n (x_i - \bar{x})^2}$$</p>
-        <p>$$w_0 = \bar{y} - w_1 \bar{x}$$</p>
+        <p>$$b = \bar{y} - w_1 \bar{x}$$</p>
 
         <h2>Implementation</h2>
         <p>Now that we have the analytical solution, we can implement it in code. First, set up a virtual python environment:</p>
@@ -187,7 +187,7 @@ import matplotlib.pyplot as plt
         <p>First, let's define the constructor:</p>
 <pre><code class="language-python">class LinearRegression(Regression):
     def __init__(self):
-        self.w0 = None
+        self.b = None
         self.w1 = None
 </code></pre>
         <p>We set the weights to <code>None</code> initially and will update them in the <code>fit</code> method. As we have an analytical solution,
@@ -197,7 +197,7 @@ import matplotlib.pyplot as plt
         We will also specify two helper functions to make the implementation cleaner:</p>
 <pre><code class="language-python">def fit(self, X, y):
     self.w1 = self._learn_w1(X, y)
-    self.w0 = self._learn_w0(X, y)
+    self.b = self._learn_b(X, y)
 </code></pre>
         <p>Now we can implement the two helper functions using the two formulas derived earlier:</p>
 <pre><code class="language-python">def _learn_w1(self, X, y):
@@ -207,29 +207,29 @@ import matplotlib.pyplot as plt
     denominator = np.sum((X - x_bar) ** 2)
     return numerator / denominator if denominator != 0 else 0
 
-def _learn_w0(self, X, y):
+def _learn_b(self, X, y):
     x_bar = np.mean(X)
     y_bar = np.mean(y)
     return y_bar - self.w1 * x_bar
 </code></pre>
         <div class="note important">
           <span class="tag">important</span>
-          <p>The order in which we call the two helper functions is very important. We must call <code>_learn_w1</code> before <code>_learn_w0</code> because <code>_learn_w0</code> depends on the value of <code>self.w1</code>.</p>
+          <p>The order in which we call the two helper functions is very important. We must call <code>_learn_w1</code> before <code>_learn_b</code> because <code>_learn_b</code> depends on the value of <code>self.w1</code>.</p>
         </div>
         <h2>Making predictions</h2>
         <p>After fitting, prediction is straightforward:</p>
 <pre><code class="language-python">def predict(self, X):
-    return self.w0 + self.w1 * X
+    return self.b + self.w1 * X
 </code></pre>
         <p>And with that, the complete class should look something like this:</p>
 <pre><code class="language-python">class LinearRegression(Regression):
     def __init__(self):
-        self.w0 = None
+        self.b = None
         self.w1 = None
 
     def fit(self, X, y):
         self.w1 = self._learn_w1(X, y)
-        self.w0 = self._learn_w0(X, y)
+        self.b = self._learn_b(X, y)
 
     def _learn_w1(self, X, y):
         x_bar = np.mean(X)
@@ -238,17 +238,17 @@ def _learn_w0(self, X, y):
         denominator = np.sum((X - x_bar) ** 2)
         return numerator / denominator if denominator != 0 else 0
 
-    def _learn_w0(self, X, y):
+    def _learn_b(self, X, y):
         x_bar = np.mean(X) 
         y_bar = np.mean(y)
         return y_bar - self.w1 * x_bar
 
     def predict(self, X):
-        return self.w0 + self.w1 * X
+        return self.b + self.w1 * X
 </code></pre>
         <h2>Applying this to our school example</h2>
-        <p>If we go ahead and apply our model to our school experiment data, we find that the optimal parameters are roughly $ w_0 = 80 $ and $ w_1 = 6 $ (rounded to integers). Which means the line of best fit is given by:</p>
-        <p>$$ y = 6x + 80 $$</p>
+        <p>If we go ahead and apply our model to our school experiment data, we find that the optimal parameters are roughly $ b = 80 $ and $ w_1 = 6 $ (rounded to integers). Which means the line of best fit is given by:</p>
+        <p>$$ \hat{y} = 6x + 80 $$</p>
         <p>And the loss (e.g the error between the line and the data points) is around 20 (using the rounded values). Looking at the plot below, it looks like a pretty good fit, the line is close to all the data points.</p>
         <figure class="chart-card">
           <div class="eyebrow">02 &middot; line of best fit</div>

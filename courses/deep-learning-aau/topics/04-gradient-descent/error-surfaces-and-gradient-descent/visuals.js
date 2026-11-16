@@ -65,7 +65,7 @@
     el(group,'circle',{cx:X(2),cy:Y(-1),r:3,fill:'var(--fg-3)'}); label(svg,X(2)+8,Y(-1)-8,'minimum');
     const scale=68/(Math.hypot(dx,dy)||1); arrow(group,X(x),Y(y),dx*scale,dy*scale,'var(--accent)'); arrow(group,X(x),Y(y),-dx*scale,-dy*scale,'var(--c-cat-2)');
     el(group,'circle',{cx:X(x),cy:Y(y),r:4,fill:'var(--fg)'}); $('point1-value').textContent=fmt(x);$('point2-value').textContent=fmt(y);
-    $('gradient-readout').textContent=`w = (${fmt(x)}, ${fmt(y)}) · ∇E = (${fmt(g[0])}, ${fmt(g[1])}) · E = ${fmt(loss2(x,y))}`;
+    $('gradient-readout').textContent=`w = (${fmt(x)}, ${fmt(y)}) · ∇L = (${fmt(g[0])}, ${fmt(g[1])}) · L = ${fmt(loss2(x,y))}`;
   }
   function oneChart(id,values) {
     const svg=$(id);svg.replaceChildren();const maxDist=Math.max(5,...values.map(v=>Math.abs(v-3)))*1.15;
@@ -74,11 +74,11 @@
     let pts=[];for(let i=0;i<=160;i++){let x=xmin+(xmax-xmin)*i/160;pts.push([X(x),Y(loss(x))]);}path(svg,pts,{stroke:'var(--fg-2)','stroke-width':2});
     path(svg,values.map(w=>[X(w),Y(loss(w))]),{stroke:'var(--accent)','stroke-width':1.5,'stroke-dasharray':'4 3'});
     values.forEach((w,i)=>el(svg,'circle',{cx:X(w),cy:Y(loss(w)),r:i===values.length-1?5:3,fill:'var(--accent)'}));
-    label(svg,55,265,fmt(xmin));label(svg,625,265,fmt(xmax),{'text-anchor':'end'});label(svg,340,285,'w',{'text-anchor':'middle'});label(svg,12,30,'E(w)');label(svg,60,35,fmt(ymax));
+    label(svg,55,265,fmt(xmin));label(svg,625,265,fmt(xmax),{'text-anchor':'end'});label(svg,340,285,'w',{'text-anchor':'middle'});label(svg,12,30,'L(w)');label(svg,60,35,fmt(ymax));
   }
   function oneDemo(prefix, chart, initial, eta) {
     let values=[initial()];
-    function render(){oneChart(chart,values);const w=values[values.length-1];$(prefix+'-readout').textContent=`iteration ${values.length-1} · w = ${fmt(w)} · E(w) = ${fmt(loss(w))}`;}
+    function render(){oneChart(chart,values);const w=values[values.length-1];$(prefix+'-readout').textContent=`iteration ${values.length-1} · w = ${fmt(w)} · L(w) = ${fmt(loss(w))}`;}
     function reset(){values=[initial()];render();}
     $(prefix+'-step').addEventListener('click',()=>{if(values.length>=101)return;const w=values[values.length-1], next=w-2*eta()*(w-3);if(Number.isFinite(loss(next))) values.push(next);render();});
     $(prefix+'-reset').addEventListener('click',reset);render();$(prefix+'-controls').hidden=false;return reset;
@@ -92,7 +92,7 @@
       values.forEach(([x,y])=>el(group,'circle',{cx:X(x),cy:Y(y),r:3,fill:'var(--accent)'}));
       const [x,y]=values[values.length-1],g=gradient(x,y),dx=-g[0]*520/(2*extent),dy=g[1]*235/extent,scale=55/(Math.hypot(dx,dy)||1);
       arrow(group,X(x),Y(y),dx*scale,dy*scale,'var(--accent)');el(group,'circle',{cx:X(x),cy:Y(y),r:5,fill:'var(--fg)'});
-      $('two-rate-value').textContent=fmt(+$('two-rate').value);$('two-readout').textContent=`iteration ${values.length-1} · w = (${fmt(x)}, ${fmt(y)}) · ∇E = (${fmt(g[0])}, ${fmt(g[1])}) · E = ${fmt(loss2(x,y))}`;
+      $('two-rate-value').textContent=fmt(+$('two-rate').value);$('two-readout').textContent=`iteration ${values.length-1} · w = (${fmt(x)}, ${fmt(y)}) · ∇L = (${fmt(g[0])}, ${fmt(g[1])}) · L = ${fmt(loss2(x,y))}`;
     }
     function reset(){values=[[0,0]];render();}
     $('two-step').addEventListener('click',()=>{if(values.length>=101)return;const [x,y]=values[values.length-1],g=gradient(x,y),eta=+$('two-rate').value,next=[x-eta*g[0],y-eta*g[1]];if(Number.isFinite(loss2(...next)))values.push(next);render();});

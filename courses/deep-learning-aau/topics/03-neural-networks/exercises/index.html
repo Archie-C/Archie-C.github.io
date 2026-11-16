@@ -42,15 +42,15 @@
             <h2 class="question-title" id="question-1">Question 1</h2>
             <div class="question-content">
               <p>Consider a neural network with two inputs, two ReLU hidden neurons and one linear output:</p>
-              <p>$$\mathbf{z} = W^{(1)}\mathbf{x} + \mathbf{b}^{(1)}, \qquad \mathbf{h} = \operatorname{ReLU}(\mathbf{z}), \qquad y = W^{(2)}\mathbf{h} + b^{(2)}.$$</p>
+              <p>$$\mathbf{z} = \mathbf{W}^{(1)}\mathbf{x} + \mathbf{b}^{(1)}, \qquad \mathbf{a} = \operatorname{ReLU}(\mathbf{z}), \qquad \hat{y} = \mathbf{W}^{(2)}\mathbf{a} + b^{(2)}.$$</p>
               <p>For $\mathbf{x} = \begin{pmatrix} 1 \\ 2 \end{pmatrix}$, use</p>
-              <p>$$W^{(1)} = \begin{pmatrix} 1 &amp; -1 \\ 2 &amp; 1 \end{pmatrix}, \quad \mathbf{b}^{(1)} = \begin{pmatrix} 0 \\ -1 \end{pmatrix}, \quad W^{(2)} = \begin{pmatrix} 2 &amp; -1 \end{pmatrix}, \quad b^{(2)} = 1.$$</p>
+              <p>$$\mathbf{W}^{(1)} = \begin{pmatrix} 1 &amp; -1 \\ 2 &amp; 1 \end{pmatrix}, \quad \mathbf{b}^{(1)} = \begin{pmatrix} 0 \\ -1 \end{pmatrix}, \quad \mathbf{W}^{(2)} = \begin{pmatrix} 2 &amp; -1 \end{pmatrix}, \quad b^{(2)} = 1.$$</p>
               <ol type="a">
-                <li>Calculate the network output $y$, showing $\mathbf{z}$ and $\mathbf{h}$.</li>
+                <li>Calculate the network output $\hat{y}$, showing $\mathbf{z}$ and $\mathbf{a}$.</li>
                 <li>Calculate the total number of trainable parameters.</li>
                 <li>Recalculate the output if the hidden neurons use identity activations instead of ReLU.</li>
-                <li>For the ReLU network, compute the gradients of $y$ with respect to $W^{(1)}$ and $\mathbf{b}^{(1)}$ at this input.</li>
-                <li>Using your answer to the previous part, state how a gradient descent step on this input changes the parameters of the first hidden neuron. Name the problem that arises if the same holds for every training input.</li>
+                <li>For the ReLU network, compute the gradients of $\hat{y}$ with respect to $\mathbf{W}^{(1)}$ and $\mathbf{b}^{(1)}$ at this input.</li>
+                <li>Suppose the loss is differentiable with respect to the output and has no direct parameter penalty. Using your previous answer, state how a gradient descent step on this input changes the parameters of the first hidden neuron. Name the problem that arises if the same holds for every training input.</li>
               </ol>
             </div>
           </div>
@@ -78,12 +78,12 @@
             <h2 class="question-title" id="question-3">Question 3*</h2>
             <div class="question-content">
               <p>Consider a single-hidden-layer network with scalar input and output:</p>
-              <p>$$f(x) = b + \sum_{j=1}^{M} v_j h(w_j x + b_j).$$</p>
+              <p>$$f(x) = b + \sum_{j=1}^{d_1} v_j \sigma(w_j x + b_j).$$</p>
               <ol type="a">
-                <li>Prove that if $h$ is the identity activation, the network reduces to an affine function $f(x) = ax + c$. Give $a$ and $c$ in terms of the parameters.</li>
-                <li>Find weights and biases for a ReLU network with $M = 2$ that represents $f(x) = |x|$ exactly.</li>
-                <li>Prove that no function of the form $ax + c$ equals $|x|$ for all real $x$.</li>
-                <li>Show that with ReLU activations, $f$ is piecewise linear with at most $M + 1$ linear pieces.</li>
+                <li>Prove that if $\sigma$ is the identity activation, the network reduces to an affine function $f(x) = mx + c$. Give $m$ and $c$ in terms of the parameters.</li>
+                <li>Find weights and biases for a ReLU network with $d_1 = 2$ that represents $f(x) = |x|$ exactly.</li>
+                <li>Prove that no function of the form $mx + c$ equals $|x|$ for all real $x$.</li>
+                <li>Show that with ReLU activations, $f$ is piecewise linear with at most $d_1 + 1$ linear pieces.</li>
                 <li>The universal approximation theorem says one hidden layer can approximate any continuous function on a compact set. Using the previous part, explain why this does not make deep networks unnecessary.</li>
                 <li>Does universal approximation guarantee that training will find a good approximation? Explain.</li>
               </ol>

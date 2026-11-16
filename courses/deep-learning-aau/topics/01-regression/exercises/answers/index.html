@@ -83,12 +83,12 @@
                     <p><strong>Fit the model.</strong></p>
                     <div class="answer">
                       <p>Minimise the sum of squared errors:</p>
-                      <p>$$ \hat{y}_i = mx_i + c, \qquad L(m,c) = \sum_{i=1}^{n} (y_i - mx_i - c)^2. $$</p>
-                      <p>Set both partial derivatives to zero:</p>
+                      <p>$$ \hat{y}_i = mx_i + c, \qquad S(m,c) = \sum_{i=1}^{n} (y_i - mx_i - c)^2. $$</p>
+                      <p>The empirical mean is $L=S/n$. Set both partial derivatives to zero:</p>
                       <p>$$
                         \begin{aligned}
-                          \frac{\partial L}{\partial m} &amp;= -2\sum_i x_i(y_i-mx_i-c)=0, \\
-                          \frac{\partial L}{\partial c} &amp;= -2\sum_i (y_i-mx_i-c)=0.
+                          \frac{\partial S}{\partial m} &amp;= -2\sum_i x_i(y_i-mx_i-c)=0, \\
+                          \frac{\partial S}{\partial c} &amp;= -2\sum_i (y_i-mx_i-c)=0.
                         \end{aligned}
                       $$</p>
                       <p>Writing $\bar{x}=\frac{1}{n}\sum_i x_i$ and $\bar{y}=\frac{1}{n}\sum_i y_i$, the second equation gives:</p>
@@ -156,33 +156,33 @@
                   <li>
                     <p><strong>Derive the solution.</strong></p>
                     <div class="answer">
-                      <p>We have $X \in \mathbb{R}^{n \times (d+1)}$, $y \in \mathbb{R}^n$ and $\theta \in \mathbb{R}^{d+1}$. Which means the prediction is $\hat{y} = X\theta$. Therefore, the loss is:</p>
-                      <p>$$L(\theta) = \frac{1}{2} \| y - X\theta \|^2$$</p>
+                      <p>We have $\tilde{\mathbf X} \in \mathbb{R}^{n \times (d+1)}$, $\mathbf y \in \mathbb{R}^n$ and $\boldsymbol{\theta} \in \mathbb{R}^{d+1}$. Which means the prediction is $\hat{\mathbf y} = \tilde{\mathbf X}\boldsymbol{\theta}$. The summed half-squared error is $S$; the empirical mean is $L=S/n$:</p>
+                      <p>$$S(\boldsymbol{\theta}) = \frac{1}{2} \| \mathbf y - \tilde{\mathbf X}\boldsymbol{\theta} \|^2$$</p>
                       <p>You can omit the constant $\frac{1}{2}$ in the derivation if you like, but it's often included for convenience.</p>
                       <p>There are two ways to go about this. We can derive the norm directly or we can expand the norm then derive the expanding terms:</p>
                       <p>Method 1: Expand the norm and then derive each term:</p>
                       <p>The norm can be written as:</p>
-                      <p>$$L(\theta) = \frac{1}{2} (y - X\theta)^T (y - X\theta)$$</p>
+                      <p>$$S(\boldsymbol{\theta}) = \frac{1}{2} (\mathbf y - \tilde{\mathbf X}\boldsymbol{\theta})^T (\mathbf y - \tilde{\mathbf X}\boldsymbol{\theta})$$</p>
                       <p>Which if we expand we get:</p>
-                      <p>$$L(\theta) = \frac{1}{2} (y^T y - y^T X\theta - \theta^T X^T y + \theta^T X^T X\theta)$$</p>
-                      <p>Then as $y^T X\theta = \theta^T X^T y$ because they are both scalars and the transpose of a scalar is the scalar itself, we can simplify:</p>
-                      <p>$$L(\theta) = \frac{1}{2} (y^T y - 2\theta^T X^T y + \theta^T X^T X\theta)$$</p>
-                      <p>To find the optimal $\theta$, we take the derivative and set it to zero:</p>
-                      <p>$$\nabla_\theta L(\theta) = -X^Ty + X^T X\theta = 0$$</p>
+                      <p>$$S(\boldsymbol{\theta}) = \frac{1}{2} (\mathbf y^T \mathbf y - \mathbf y^T \tilde{\mathbf X}\boldsymbol{\theta} - \boldsymbol{\theta}^T \tilde{\mathbf X}^T \mathbf y + \boldsymbol{\theta}^T \tilde{\mathbf X}^T \tilde{\mathbf X}\boldsymbol{\theta})$$</p>
+                      <p>Then as $\mathbf y^T \tilde{\mathbf X}\boldsymbol{\theta} = \boldsymbol{\theta}^T \tilde{\mathbf X}^T \mathbf y$ because they are both scalars and the transpose of a scalar is the scalar itself, we can simplify:</p>
+                      <p>$$S(\boldsymbol{\theta}) = \frac{1}{2} (\mathbf y^T \mathbf y - 2\boldsymbol{\theta}^T \tilde{\mathbf X}^T \mathbf y + \boldsymbol{\theta}^T \tilde{\mathbf X}^T \tilde{\mathbf X}\boldsymbol{\theta})$$</p>
+                      <p>To find the optimal $\boldsymbol{\theta}$, we take the derivative and set it to zero:</p>
+                      <p>$$\nabla_{\boldsymbol{\theta}} S(\boldsymbol{\theta}) = -\tilde{\mathbf X}^T\mathbf y + \tilde{\mathbf X}^T \tilde{\mathbf X}\boldsymbol{\theta} = 0$$</p>
                       <p>Method 2: Derive the norm directly:</p>
-                      <p>$$\nabla_\theta L(\theta) = \nabla_\theta \frac{1}{2} \| y - X\theta \|^2 = \nabla_\theta \frac{1}{2} (y - X\theta)^T (y - X\theta)$$</p>
-                      <p>$$\nabla_\theta L(\theta) = -X^T(y - X\theta) = 0$$</p>
+                      <p>$$\nabla_{\boldsymbol{\theta}} S(\boldsymbol{\theta}) = \nabla_{\boldsymbol{\theta}} \frac{1}{2} \| \mathbf y - \tilde{\mathbf X}\boldsymbol{\theta} \|^2 = \nabla_{\boldsymbol{\theta}} \frac{1}{2} (\mathbf y - \tilde{\mathbf X}\boldsymbol{\theta})^T (\mathbf y - \tilde{\mathbf X}\boldsymbol{\theta})$$</p>
+                      <p>$$\nabla_{\boldsymbol{\theta}} S(\boldsymbol{\theta}) = -\tilde{\mathbf X}^T(\mathbf y - \tilde{\mathbf X}\boldsymbol{\theta}) = 0$$</p>
                       <p>Both of these lead to the same result:</p>
-                      <p>$$X^T X\theta = X^T y$$</p>
+                      <p>$$\tilde{\mathbf X}^T \tilde{\mathbf X}\boldsymbol{\theta} = \tilde{\mathbf X}^T \mathbf y$$</p>
                       <p>Which are the normal equations.</p>
-                      <p>We can solve for $\theta$ by multiplying both sides by the inverse of $X^TX$:</p>
-                      <p>$$\theta = (X^TX)^{-1} X^T y$$</p>
+                      <p>We can solve for $\boldsymbol{\theta}$ by multiplying both sides by the inverse of $\tilde{\mathbf X}^T\tilde{\mathbf X}$:</p>
+                      <p>$$\boldsymbol{\theta} = (\tilde{\mathbf X}^T\tilde{\mathbf X})^{-1} \tilde{\mathbf X}^T \mathbf y$$</p>
                     </div>
                   </li>
                   <li>
                     <p><strong>State the failure conditions.</strong></p>
                     <div class="answer">
-                      <p>The normal equations fail when the matrix $X^T X$ is singular, and therefore has no inverse.</p>
+                      <p>The inverse formula fails when the matrix $\tilde{\mathbf X}^T \tilde{\mathbf X}$ is singular, and therefore has no inverse. The normal equations still have solutions, but they are not unique.</p>
                     </div>
                   </li>
                   <li>
@@ -190,12 +190,12 @@
                     <div class="answer">
                       <p>There are many practical fixes:</p>
                       <p><strong>01</strong>: Use regularisation (e.g., Ridge regression) to make the matrix invertible.</p>
-                      <p>This is essentially adding a small value to the diagonal of the matrix which we do by adding a penalty to the loss function:</p>
-                      <p>$$L(\theta) = \frac{1}{2} \| y - X\theta \|^2 + \lambda \|\theta\|^2$$</p>
+                      <p>For $\lambda&gt;0$, penalising all parameters, including the bias, adds a positive value to the diagonal:</p>
+                      <p>$$S(\boldsymbol{\theta}) = \frac{1}{2} \| \mathbf y - \tilde{\mathbf X}\boldsymbol{\theta} \|^2 + \frac{\lambda}{2} \|\boldsymbol{\theta}\|^2$$</p>
                       <p>If you carry this through the derivation you find the normal equations become:</p>
-                      <p>$$X^T X\theta + \lambda \theta = X^T y$$</p>
+                      <p>$$\tilde{\mathbf X}^T \tilde{\mathbf X}\boldsymbol{\theta} + \lambda \boldsymbol{\theta} = \tilde{\mathbf X}^T \mathbf y$$</p>
                       <p>and therefore:</p>
-                      <p>$$\theta = (X^T X + \lambda I)^{-1} X^T y$$</p>
+                      <p>$$\boldsymbol{\theta} = (\tilde{\mathbf X}^T \tilde{\mathbf X} + \lambda I)^{-1} \tilde{\mathbf X}^T \mathbf y$$</p>
                       <p>The parameter $\lambda$ controls the amount of regularisation (more regularisation means larger weights are penalised more and therefore is more stable, but also can reduce the ability of the model to fit the data well).</p>
                       <p><strong>02</strong>: Use a pseudo-inverse such as the Moore-Penrose pseudo-inverse to solve the system of equations. (out of the scope of this course)</p>
                       <p><strong>03</strong>: Use a different optimisation algorithm that doesn't rely on the normal equations, such as gradient descent (this will come later in the course).</p>

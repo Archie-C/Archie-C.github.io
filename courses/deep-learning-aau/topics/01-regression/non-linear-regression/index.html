@@ -84,15 +84,15 @@
         <p>A basis function is a function that maps the input features into some other space. For example, we could use a polynomial basis function, which takes the input features and raise them to some power.
             For example, if we have a single input feature x, we could use the following basis function:
         </p>
-        <p>$$ \phi(x) = \begin{bmatrix} 1 \\ x \\ x^2 \\ \vdots \\ x^d \end{bmatrix} $$</p>
-        <p>What this does is returns a vector of transformed features up to degree $d$. One can imagine that this model will be much more expressive than the simple linear case.
+        <p>$$ \phi(x) = \begin{bmatrix} 1 \\ x \\ x^2 \\ \vdots \\ x^p \end{bmatrix} $$</p>
+        <p>What this does is returns a vector of transformed features up to degree $p$. One can imagine that this model will be much more expressive than the simple linear case.
             This allows us to capture non-linear relationships between the input and the target variables.
         </p>
         <p>There are many different types of basis functions:</p>
         <ul>
         <li><div>
             <p>Polynomial basis functions</p>
-            <p>$\phi(x) = [ 1,  x, x^2, \cdots,  x^d ]$</p>
+            <p>$\phi(x) = [ 1,  x, x^2, \cdots,  x^p ]$</p>
         </div></li>
         <li><div>
             <p>Fourier basis functions</p>
@@ -114,33 +114,16 @@
         <p>to list a few...</p>
         <p>In practice, the choice of the basis function is crucial for the performance of the model.</p>
         <h2>The model</h2>
-        <p>We will use a second order polynomial basis function for the rest of the example for simplicity. The steps are the same with any basis function.</p>
-        <p>First, lets extend it to multi-input and multi-output scenarios. In this case our basis function looks something like this:</p>
-        <p>$$ \phi(\mathbf{x}) = [ 1, x_1, x_2, \cdots, x_n, x_1^2, x_2^2, \cdots, x_n^2 ] $$</p>
-        <div class="note important">
-            <span class="tag">important</span>
-          <p>We choose to omit the cross terms here but they can be included if needed. The above does not fully define a quadratic surface but is simpler. Instead it defines separable quadratic surfaces.</p>
-        </div>
-        <p>Like before, we can define the design matrix and target matrix in this new feature space and apply the same least squares method. The design matrix is given by:</p>
-        <p>
-            $$
-\mathbf{\Phi} = \begin{bmatrix}
-1 & x_1^{(1)} & x_2^{(1)} & \cdots & (x_1^{(1)})^2 & (x_2^{(1)})^2 & \cdots \\
-1 & x_1^{(2)} & x_2^{(2)} & \cdots & (x_1^{(2)})^2 & (x_2^{(2)})^2 & \cdots \\
-\vdots & \vdots & \vdots & \ddots & \vdots & \vdots & \ddots \\
-1 & x_1^{(m)} & x_2^{(m)} & \cdots & (x_1^{(m)})^2 & (x_2^{(m)})^2 & \cdots \\
-\end{bmatrix}$$
-        </p>
-        <p>here we use $x^{(m)}$ to denote the $m$-th training example and $x_n$ to denote the $n$-th input feature.</p>
-        <p>Now that is very long, so we typically use a more compact notation like this:</p>
-        <p>$$ \mathbf{\Phi} = \begin{bmatrix} \phi(\mathbf{x}^{(1)}) \\ \phi(\mathbf{x}^{(2)}) \\ \vdots \\ \phi(\mathbf{x}^{(m)}) \end{bmatrix} $$</p>
-        <p>The target matrix is defined as before with $l$ being the number of output dimensions. This is pretty much the same as the multiple output case, however now that we have transformed our input space into more dimensions, the weight matrix also needs those dimensions.</p>
-        <p>In this example, we have $1$ bias term, then $n$ linear terms, and $n$ quadratic terms, for a total of $1 + n + n = 1 + 2n$ features. So the weight matrix becomes $\mathbf{\Theta} \in \mathbb{R}^{(1 + 2n) \times l}$. 
-            Which, conveniently, is the same shape as the design matrix transposed times the target matrix, which is what we need for the closed form solution.
-        </p>
+        <p>For a multi-input example, let $\mathbf x\in\mathbb R^d$ and use the following second-order feature vector:</p>
+        <p>$$\boldsymbol\phi(\mathbf x)=\begin{pmatrix}1&amp;x_1&amp;\cdots&amp;x_d&amp;x_1^2&amp;\cdots&amp;x_d^2\end{pmatrix}^{\top}.$$</p>
+        <div class="note important"><span class="tag">important</span><p>We omit cross terms for simplicity. They can be included if the problem calls for them.</p></div>
+        <p>There are $q=1+2d$ features including the constant. For $n$ examples, the design matrix stacks their transposed feature vectors as rows:</p>
+        <p>$$\mathbf\Phi=\begin{pmatrix}\boldsymbol\phi(\mathbf x_1)^\top\\\boldsymbol\phi(\mathbf x_2)^\top\\\vdots\\\boldsymbol\phi(\mathbf x_n)^\top\end{pmatrix}\in\mathbb R^{n\times q}.$$</p>
+        <p>With $m$ outputs, collect the targets in $\mathbf Y\in\mathbb R^{n\times m}$. As in the previous note, use one row per output in the augmented weight matrix $\widetilde{\mathbf W}\in\mathbb R^{m\times q}$. Its first column contains the biases. Predictions for all examples are $\hat{\mathbf Y}=\mathbf\Phi\widetilde{\mathbf W}^{\top}$.</p>
         <h2>The optimal weights</h2>
-        <p>With all that, we can apply the same least squares method to find the optimal weights:</p>
-        <p>$$ \mathbf{\Theta} = (\mathbf{\Phi}^\top \mathbf{\Phi})^{-1} \mathbf{\Phi}^\top \mathbf{Y} $$</p>
+        <p>If $\mathbf\Phi$ has full column rank, the least-squares solution is</p>
+        <p>$$\widetilde{\mathbf W}^{\top}=(\mathbf\Phi^\top\mathbf\Phi)^{-1}\mathbf\Phi^\top\mathbf Y.$$</p>
+        <p>For a rank-deficient design matrix the inverse is unavailable; a pseudoinverse or another suitable solver can be used. The transformation is nonlinear in the original inputs, but the prediction remains linear in these weights.</p>
         <h2>Implementation</h2>
         <p>The implementation is straightforward, the only challenge is defining the basis functions and constructing the design matrix. We can set up the class and call the constructor the same as before:</p>
 <pre><code>class NonLinearRegression:
@@ -148,7 +131,7 @@
         self.degree = degree
         self.theta = None</code></pre>
         <p>The only difference from the linear case is the addition of the `degree` parameter to specify the polynomial degree.</p>
-        <p>Then we need to implement the <code>fit</code> method in which we will construct the design matrix and solve for $\mathbf{\Theta}$:</p>
+        <p>Then we need to implement the <code>fit</code> method in which we will construct the design matrix and solve for $\widetilde{\mathbf W}^{\top}$, stored as <code>self.theta</code>:</p>
 <pre><code>def fit(self, X, Y):
     design_matrix = self._construct_design_matrix(X)
     self.theta = np.linalg.inv(design_matrix.T @ design_matrix) @ design_matrix.T @ Y</code></pre>

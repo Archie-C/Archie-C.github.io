@@ -81,9 +81,9 @@
           First, we calculate a weighted sum of the last hidden layer's outputs and add a bias,
           just as we did in the other layers:
         </p>
-        <p>$$\mathbf{a}^{(L)}=\mathbf{W}^{(L)}\mathbf{z}^{(L-1)}+\mathbf{b}^{(L)}.$$</p>
+        <p>$$\mathbf{z}^{(L)}=\mathbf{W}^{(L)}\mathbf{a}^{(L-1)}+\mathbf{b}^{(L)}.$$</p>
         <p>
-          Here $\mathbf{z}^{(L-1)}$ contains the hidden features, and $\mathbf{W}^{(L)}$ and
+          Here $\mathbf{a}^{(L-1)}$ contains the hidden features, and $\mathbf{W}^{(L)}$ and
           $\mathbf{b}^{(L)}$ are the final weights and biases. We call the resulting values
           <strong>output pre-activations</strong>, or usually <strong>logits</strong> when we are
           doing classification. We have not yet applied an output activation.
@@ -115,20 +115,19 @@
           </figcaption>
         </figure>
         <p>
-          I use $y_n$ for the true target, $\hat{y}_n$ for a regression prediction, and $p_n$ for
-          a predicted probability. In the earlier classification notes these were written as
-          $t_n$ for the target and $y_n$ for the probability. Here $N$ is the number of data points,
+          We use $y_i$ for the true target, $\hat{y}_i$ for a regression prediction, and $\hat{p}_i$ for
+          a predicted probability. Here $n$ is the number of data points,
           and $\log$ means the natural logarithm.
         </p>
 
         <h2>Regression</h2>
         <p>
           Suppose we want to predict a house price using the property's features. We need one
-          number as the prediction, so we use one output neuron. Here $\mathbf{a}^{(L)}$ has just
-          one component, $a_1^{(L)}$: the weighted sum of the last hidden layer's outputs plus
+          number as the prediction, so we use one output neuron. Here $\mathbf{z}^{(L)}$ has just
+          one component, $z_1^{(L)}$: the weighted sum of the last hidden layer's outputs plus
           the output bias. For an unrestricted real-valued output, we can return this value unchanged:
         </p>
-        <p>$$\hat{y}=a_1^{(L)}=\sum_j W_{1j}^{(L)}z_j^{(L-1)}+b_1^{(L)}.$$</p>
+        <p>$$\hat{y}=z_1^{(L)}=\sum_j W_{1j}^{(L)}a_j^{(L-1)}+b_1^{(L)}.$$</p>
         <p>
           This is called an <strong>identity activation</strong>. It puts no restriction on the
           output, so it can also return a negative number. For house prices this is a limitation
@@ -139,7 +138,7 @@
           <a href="../../01-regression/linear-regression/">linear regression</a>.
           Taking the mean over our data points gives mean squared error:
         </p>
-        <p>$$\mathcal{L}_{\mathrm{MSE}}=\frac{1}{N}\sum_{n=1}^{N}(y_n-\hat{y}_n)^2.$$</p>
+        <p>$$L_{\mathrm{MSE}}=\frac{1}{n}\sum_{i=1}^{n}(y_i-\hat{y}_i)^2.$$</p>
         <p>
           Squaring means that larger errors receive a larger penalty. If we double an error,
           its contribution to the loss becomes four times as large.
@@ -148,7 +147,7 @@
           As we saw in <a href="../../01-regression/probabilistic-regression/">probabilistic regression</a>,
           minimising this loss gives the maximum likelihood prediction parameters if we assume
           independent Gaussian noise with constant variance. Using MSE does not itself make that
-          assumption true. Mean absolute error, $\frac{1}{N}\sum_n|y_n-\hat{y}_n|$, is another option.
+          assumption true. Mean absolute error, $\frac{1}{n}\sum_i|y_i-\hat{y}_i|$, is another option.
         </p>
         <p>
           So even though the hidden layers change how we construct the prediction, we can still use the regression losses from the earlier notes.
@@ -160,13 +159,13 @@
           $y=1$ for spam and $y=0$ for not spam. Again we need just one output neuron, but this
           time we want a probability. Like before in logistic regression, we apply sigmoid:
         </p>
-        <p>$$p(C_1\mid\mathbf{x})=\sigma(a_1^{(L)}).$$</p>
+        <p>$$p(C_1\mid\mathbf{x})=\sigma(z_1^{(L)}).$$</p>
         <p>
           This gives a value between zero and one, which we interpret as the probability of spam.
-          If we write $p_n=p(C_1\mid\mathbf{x}_n)$, the mean binary cross-entropy loss is:
+          If we write $\hat{p}_i=p(C_1\mid\mathbf{x}_i)$, the mean binary cross-entropy loss is:
         </p>
-        <p>$$\mathcal{L}_{\mathrm{BCE}}=-\frac{1}{N}\sum_{n=1}^{N}
-          \left[y_n\log p_n+(1-y_n)\log(1-p_n)\right].$$</p>
+        <p>$$L_{\mathrm{BCE}}=-\frac{1}{n}\sum_{i=1}^{n}
+          \left[y_i\log \hat{p}_i+(1-y_i)\log(1-\hat{p}_i)\right].$$</p>
         <p>
           This is the negative log-likelihood of a Bernoulli model, averaged over the data points.
           We derived it in the <a href="../../02-classification/maximum-likelihood-and-binary-cross-entropy/">classification notes</a>.
@@ -175,7 +174,7 @@
         </p>
         <p>
           Let's take one email that is actually spam, so $y=1$. The second term disappears and
-          the loss is $-\log p$. Substituting three different probabilities gives:
+          the loss is $-\log \hat{p}$. Substituting three different probabilities gives:
         </p>
         <div class="output-table-wrap" role="region" aria-label="Binary cross-entropy numerical comparison" tabindex="0">
           <table class="output-table">
@@ -206,7 +205,7 @@
               <path class="axis" d="M54 34V254H636"/>
               <g text-anchor="end"><text x="44" y="258">0</text><text x="44" y="216">1</text><text x="44" y="174">2</text><text x="44" y="132">3</text><text x="44" y="90">4</text><text x="44" y="48">5</text></g>
               <g text-anchor="middle"><text x="54" y="275">0</text><text x="199.5" y="275">0.25</text><text x="345" y="275">0.5</text><text x="490.5" y="275">0.75</text><text x="636" y="275">1</text></g>
-              <text x="54" y="20">loss per observation</text><text x="636" y="297" text-anchor="end">predicted probability p</text>
+              <text x="54" y="20">loss per observation</text><text x="636" y="297" text-anchor="end">predicted probability p&#770;</text>
               <path class="positive-curve" d="M 59.82 60.58 L 62.20 74.96 L 64.57 85.66 L 66.95 94.17 L 69.33 101.25 L 71.70 107.30 L 74.08 112.59 L 76.46 117.29 L 78.83 121.52 L 81.21 125.36 L 83.59 128.87 L 85.96 132.12 L 88.34 135.13 L 90.71 137.94 L 93.09 140.58 L 95.47 143.05 L 97.84 145.40 L 100.22 147.61 L 102.60 149.72 L 104.97 151.72 L 107.35 153.64 L 109.73 155.47 L 112.10 157.22 L 114.48 158.91 L 116.86 160.52 L 119.23 162.08 L 121.61 163.59 L 123.99 165.04 L 126.36 166.44 L 128.74 167.80 L 131.12 169.11 L 133.49 170.39 L 135.87 171.62 L 138.24 172.82 L 140.62 173.99 L 143.00 175.13 L 145.37 176.24 L 147.75 177.31 L 150.13 178.37 L 152.50 179.39 L 154.88 180.39 L 157.26 181.37 L 159.63 182.33 L 162.01 183.26 L 164.39 184.18 L 166.76 185.07 L 169.14 185.95 L 171.52 186.80 L 173.89 187.65 L 176.27 188.47 L 178.64 189.28 L 181.02 190.07 L 183.40 190.85 L 185.77 191.61 L 188.15 192.36 L 190.53 193.10 L 192.90 193.83 L 195.28 194.54 L 197.66 195.24 L 200.03 195.93 L 202.41 196.61 L 204.79 197.27 L 207.16 197.93 L 209.54 198.58 L 211.92 199.21 L 214.29 199.84 L 216.67 200.46 L 219.05 201.07 L 221.42 201.67 L 223.80 202.26 L 226.18 202.85 L 228.55 203.42 L 230.93 203.99 L 233.30 204.55 L 235.68 205.10 L 238.06 205.65 L 240.43 206.19 L 242.81 206.72 L 245.19 207.24 L 247.56 207.76 L 249.94 208.28 L 252.32 208.78 L 254.69 209.28 L 257.07 209.78 L 259.45 210.27 L 261.82 210.75 L 264.20 211.23 L 266.58 211.70 L 268.95 212.17 L 271.33 212.63 L 273.71 213.08 L 276.08 213.54 L 278.46 213.98 L 280.83 214.43 L 283.21 214.86 L 285.59 215.30 L 287.96 215.73 L 290.34 216.15 L 292.72 216.57 L 295.09 216.99 L 297.47 217.40 L 299.85 217.81 L 302.22 218.21 L 304.60 218.61 L 306.98 219.01 L 309.35 219.40 L 311.73 219.79 L 314.11 220.17 L 316.48 220.56 L 318.86 220.93 L 321.24 221.31 L 323.61 221.68 L 325.99 222.05 L 328.36 222.42 L 330.74 222.78 L 333.12 223.14 L 335.49 223.49 L 337.87 223.85 L 340.25 224.20 L 342.62 224.54 L 345.00 224.89 L 347.38 225.23 L 349.75 225.57 L 352.13 225.90 L 354.51 226.24 L 356.88 226.57 L 359.26 226.90 L 361.64 227.22 L 364.01 227.55 L 366.39 227.87 L 368.76 228.18 L 371.14 228.50 L 373.52 228.81 L 375.89 229.13 L 378.27 229.43 L 380.65 229.74 L 383.02 230.05 L 385.40 230.35 L 387.78 230.65 L 390.15 230.95 L 392.53 231.24 L 394.91 231.54 L 397.28 231.83 L 399.66 232.12 L 402.04 232.41 L 404.41 232.69 L 406.79 232.97 L 409.17 233.26 L 411.54 233.54 L 413.92 233.82 L 416.30 234.09 L 418.67 234.37 L 421.05 234.64 L 423.42 234.91 L 425.80 235.18 L 428.18 235.45 L 430.55 235.71 L 432.93 235.98 L 435.31 236.24 L 437.68 236.50 L 440.06 236.76 L 442.44 237.02 L 444.81 237.27 L 447.19 237.53 L 449.57 237.78 L 451.94 238.03 L 454.32 238.28 L 456.70 238.53 L 459.07 238.78 L 461.45 239.02 L 463.82 239.27 L 466.20 239.51 L 468.58 239.75 L 470.95 239.99 L 473.33 240.23 L 475.71 240.47 L 478.08 240.71 L 480.46 240.94 L 482.84 241.17 L 485.21 241.41 L 487.59 241.64 L 489.97 241.87 L 492.34 242.09 L 494.72 242.32 L 497.10 242.55 L 499.47 242.77 L 501.85 243.00 L 504.23 243.22 L 506.60 243.44 L 508.98 243.66 L 511.35 243.88 L 513.73 244.10 L 516.11 244.31 L 518.48 244.53 L 520.86 244.74 L 523.24 244.95 L 525.61 245.17 L 527.99 245.38 L 530.37 245.59 L 532.74 245.80 L 535.12 246.01 L 537.50 246.21 L 539.87 246.42 L 542.25 246.62 L 544.63 246.83 L 547.00 247.03 L 549.38 247.23 L 551.76 247.43 L 554.13 247.63 L 556.51 247.83 L 558.88 248.03 L 561.26 248.23 L 563.64 248.42 L 566.01 248.62 L 568.39 248.81 L 570.77 249.01 L 573.14 249.20 L 575.52 249.39 L 577.90 249.58 L 580.27 249.77 L 582.65 249.96 L 585.03 250.15 L 587.40 250.34 L 589.78 250.52 L 592.16 250.71 L 594.53 250.90 L 596.91 251.08 L 599.29 251.26 L 601.66 251.45 L 604.04 251.63 L 606.42 251.81 L 608.79 251.99 L 611.17 252.17 L 613.54 252.35 L 615.92 252.53 L 618.30 252.70 L 620.67 252.88 L 623.05 253.05 L 625.43 253.23 L 627.80 253.40 L 630.18 253.58"/>
               <path class="negative-curve" d="M 59.82 253.58 L 62.20 253.40 L 64.57 253.23 L 66.95 253.05 L 69.33 252.88 L 71.70 252.70 L 74.08 252.53 L 76.46 252.35 L 78.83 252.17 L 81.21 251.99 L 83.59 251.81 L 85.96 251.63 L 88.34 251.45 L 90.71 251.26 L 93.09 251.08 L 95.47 250.90 L 97.84 250.71 L 100.22 250.52 L 102.60 250.34 L 104.97 250.15 L 107.35 249.96 L 109.73 249.77 L 112.10 249.58 L 114.48 249.39 L 116.86 249.20 L 119.23 249.01 L 121.61 248.81 L 123.99 248.62 L 126.36 248.42 L 128.74 248.23 L 131.12 248.03 L 133.49 247.83 L 135.87 247.63 L 138.24 247.43 L 140.62 247.23 L 143.00 247.03 L 145.37 246.83 L 147.75 246.62 L 150.13 246.42 L 152.50 246.21 L 154.88 246.01 L 157.26 245.80 L 159.63 245.59 L 162.01 245.38 L 164.39 245.17 L 166.76 244.95 L 169.14 244.74 L 171.52 244.53 L 173.89 244.31 L 176.27 244.10 L 178.64 243.88 L 181.02 243.66 L 183.40 243.44 L 185.77 243.22 L 188.15 243.00 L 190.53 242.77 L 192.90 242.55 L 195.28 242.32 L 197.66 242.09 L 200.03 241.87 L 202.41 241.64 L 204.79 241.41 L 207.16 241.17 L 209.54 240.94 L 211.92 240.71 L 214.29 240.47 L 216.67 240.23 L 219.05 239.99 L 221.42 239.75 L 223.80 239.51 L 226.18 239.27 L 228.55 239.02 L 230.93 238.78 L 233.30 238.53 L 235.68 238.28 L 238.06 238.03 L 240.43 237.78 L 242.81 237.53 L 245.19 237.27 L 247.56 237.02 L 249.94 236.76 L 252.32 236.50 L 254.69 236.24 L 257.07 235.98 L 259.45 235.71 L 261.82 235.45 L 264.20 235.18 L 266.58 234.91 L 268.95 234.64 L 271.33 234.37 L 273.71 234.09 L 276.08 233.82 L 278.46 233.54 L 280.83 233.26 L 283.21 232.97 L 285.59 232.69 L 287.96 232.41 L 290.34 232.12 L 292.72 231.83 L 295.09 231.54 L 297.47 231.24 L 299.85 230.95 L 302.22 230.65 L 304.60 230.35 L 306.98 230.05 L 309.35 229.74 L 311.73 229.43 L 314.11 229.13 L 316.48 228.81 L 318.86 228.50 L 321.24 228.18 L 323.61 227.87 L 325.99 227.55 L 328.36 227.22 L 330.74 226.90 L 333.12 226.57 L 335.49 226.24 L 337.87 225.90 L 340.25 225.57 L 342.62 225.23 L 345.00 224.89 L 347.38 224.54 L 349.75 224.20 L 352.13 223.85 L 354.51 223.49 L 356.88 223.14 L 359.26 222.78 L 361.64 222.42 L 364.01 222.05 L 366.39 221.68 L 368.76 221.31 L 371.14 220.93 L 373.52 220.56 L 375.89 220.17 L 378.27 219.79 L 380.65 219.40 L 383.02 219.01 L 385.40 218.61 L 387.78 218.21 L 390.15 217.81 L 392.53 217.40 L 394.91 216.99 L 397.28 216.57 L 399.66 216.15 L 402.04 215.73 L 404.41 215.30 L 406.79 214.86 L 409.17 214.43 L 411.54 213.98 L 413.92 213.54 L 416.30 213.08 L 418.67 212.63 L 421.05 212.17 L 423.42 211.70 L 425.80 211.23 L 428.18 210.75 L 430.55 210.27 L 432.93 209.78 L 435.31 209.28 L 437.68 208.78 L 440.06 208.28 L 442.44 207.76 L 444.81 207.24 L 447.19 206.72 L 449.57 206.19 L 451.94 205.65 L 454.32 205.10 L 456.70 204.55 L 459.07 203.99 L 461.45 203.42 L 463.82 202.85 L 466.20 202.26 L 468.58 201.67 L 470.95 201.07 L 473.33 200.46 L 475.71 199.84 L 478.08 199.21 L 480.46 198.58 L 482.84 197.93 L 485.21 197.27 L 487.59 196.61 L 489.97 195.93 L 492.34 195.24 L 494.72 194.54 L 497.10 193.83 L 499.47 193.10 L 501.85 192.36 L 504.23 191.61 L 506.60 190.85 L 508.98 190.07 L 511.35 189.28 L 513.73 188.47 L 516.11 187.65 L 518.48 186.80 L 520.86 185.95 L 523.24 185.07 L 525.61 184.18 L 527.99 183.26 L 530.37 182.33 L 532.74 181.37 L 535.12 180.39 L 537.50 179.39 L 539.87 178.37 L 542.25 177.31 L 544.63 176.24 L 547.00 175.13 L 549.38 173.99 L 551.76 172.82 L 554.13 171.62 L 556.51 170.39 L 558.88 169.11 L 561.26 167.80 L 563.64 166.44 L 566.01 165.04 L 568.39 163.59 L 570.77 162.08 L 573.14 160.52 L 575.52 158.91 L 577.90 157.22 L 580.27 155.47 L 582.65 153.64 L 585.03 151.72 L 587.40 149.72 L 589.78 147.61 L 592.16 145.40 L 594.53 143.05 L 596.91 140.58 L 599.29 137.94 L 601.66 135.13 L 604.04 132.12 L 606.42 128.87 L 608.79 125.36 L 611.17 121.52 L 613.54 117.29 L 615.92 112.59 L 618.30 107.30 L 620.67 101.25 L 623.05 94.17 L 625.43 85.66 L 627.80 74.96 L 630.18 60.58"/>
               <circle cx="345" cy="224.89" r="4" fill="var(--fg)"/>
@@ -214,14 +213,14 @@
             </svg>
           </div>
           <figcaption class="chart-caption"><span class="label">fig 2</span>
-            For $y=1$, the loss is $-\log p$; for $y=0$, it is $-\log(1-p)$. The curves
-            are drawn over $0.01\leq p\leq0.99$. As we approach a confidently wrong prediction,
+            For $y=1$, the loss is $-\log \hat{p}$; for $y=0$, it is $-\log(1-\hat{p})$. The curves
+            are drawn over $0.01\leq \hat{p}\leq0.99$. As we approach a confidently wrong prediction,
             the loss keeps increasing without a finite limit.
           </figcaption>
         </figure>
         <p>
-          To make a class decision, we can choose spam when $p\geq0.5$. But we do not apply this
-          threshold before calculating the loss. For example, $p=0.4$ and $p=0.01$ both give the
+          To make a class decision, we can choose spam when $\hat{p}\geq0.5$. But we do not apply this
+          threshold before calculating the loss. For example, $\hat{p}=0.4$ and $\hat{p}=0.01$ both give the
           decision not spam, but BCE tells us that the second is a much worse prediction for a spam email.
         </p>
 
@@ -234,25 +233,25 @@
         <p>
           We use one output neuron for each class. For $K$ classes, this gives a vector of scores:
         </p>
-        <p>$$\mathbf{a}^{(L)}\in\mathbb{R}^{K}.$$</p>
+        <p>$$\mathbf{z}^{(L)}\in\mathbb{R}^{K}.$$</p>
         <p>
           We could apply sigmoid to each score, but then several outputs could be close to one.
           They would not necessarily add up to one, which we need for a distribution over mutually
           exclusive classes. Instead, we use <strong>softmax</strong>. Dropping the layer
           superscript for brevity:
         </p>
-        <p>$$p_k=\frac{\exp(a_k)}{\sum_{j=1}^{K}\exp(a_j)}.$$</p>
+        <p>$$\hat{p}_k=\frac{\exp(z_k)}{\sum_{j=1}^{K}\exp(z_j)}.$$</p>
         <p>
           First, we exponentiate each score to make it positive. Then we divide by the sum, so the resulting probabilities add up to one:
         </p>
-        <p>$$p_k&gt;0,\qquad \sum_{k=1}^{K}p_k=
-          \frac{\sum_{k=1}^{K}\exp(a_k)}{\sum_{j=1}^{K}\exp(a_j)}=1.$$</p>
+        <p>$$\hat{p}_k&gt;0,\qquad \sum_{k=1}^{K}\hat{p}_k=
+          \frac{\sum_{k=1}^{K}\exp(z_k)}{\sum_{j=1}^{K}\exp(z_j)}=1.$$</p>
         <p>
           For a small example, suppose the scores for three classes are $(2,1,0)$.
           Their exponentials are approximately $(7.389,2.718,1)$. Adding these gives $11.107$,
           so the probabilities are:
         </p>
-        <p>$$\mathbf{p}\approx\left(\frac{7.389}{11.107},\frac{2.718}{11.107},
+        <p>$$\hat{\mathbf{p}}\approx\left(\frac{7.389}{11.107},\frac{2.718}{11.107},
           \frac{1}{11.107}\right)=(0.665,0.245,0.090).$$</p>
         <p>
           We normally choose the class with the highest probability, which here is class 1.
@@ -294,12 +293,12 @@
           correct, $\mathbf{y}=(0,1,0)$. This is called <strong>one-hot encoding</strong>.
         </p>
         <p>The corresponding loss is categorical cross-entropy, averaged over the data points:</p>
-        <p>$$\mathcal{L}_{\mathrm{CE}}=-\frac{1}{N}\sum_{n=1}^{N}
-          \sum_{k=1}^{K}y_{nk}\log p_{nk}.$$</p>
+        <p>$$L_{\mathrm{CE}}=-\frac{1}{n}\sum_{i=1}^{n}
+          \sum_{k=1}^{K}y_{ik}\log \hat{p}_{ik}.$$</p>
         <p>
           For each data point, all the target values except one are zero. So only the probability
-          of the correct class contributes to the loss. If the correct class is $c_n$, this is
-          just $-\log p_{n,c_n}$. Like the binary case, we get this loss by taking the negative
+          of the correct class contributes to the loss. If the correct class is $c_i$, this is
+          just $-\log \hat{p}_{i,c_i}$. Like the binary case, we get this loss by taking the negative
           log-likelihood, this time using a categorical distribution.
         </p>
 
@@ -314,18 +313,18 @@
           Softmax would force the probabilities to share a total of one. Here we want to allow
           high probabilities for several labels, so we apply sigmoid separately to each score:
         </p>
-        <p>$$p_k=\sigma(a_k).$$</p>
+        <p>$$\hat{p}_k=\sigma(z_k).$$</p>
         <p>
           With scores $(2,1,0)$ we get approximately $(0.881,0.731,0.500)$, which does not sum
           to one. The target could be $(1,1,0)$ if the photograph contains a dog and a person,
           but no bicycle. Unlike the one-hot target, it can contain more than one entry equal to $1$.
         </p>
         <p>
-          We calculate BCE for each label. With $K$ labels and $N$ data points, we can average
+          We calculate BCE for each label. With $K$ labels and $n$ data points, we can average
           over both:
         </p>
-        <p>$$\mathcal{L}_{\mathrm{ML}}=-\frac{1}{NK}\sum_{n=1}^{N}\sum_{k=1}^{K}
-          \left[y_{nk}\log p_{nk}+(1-y_{nk})\log(1-p_{nk})\right].$$</p>
+        <p>$$L_{\mathrm{ML}}=-\frac{1}{NK}\sum_{i=1}^{n}\sum_{k=1}^{K}
+          \left[y_{ik}\log \hat{p}_{ik}+(1-y_{ik})\log(1-\hat{p}_{ik})\right].$$</p>
         <p>
           This models the labels as conditionally independent Bernoulli variables given the
           input. They still use the same hidden features, so their predicted probabilities can
@@ -357,10 +356,10 @@
         </p>
         <p>
           One useful rearrangement is the <strong>log-sum-exp trick</strong>. First, subtract
-          the largest score, $m=\max_j a_j$, before exponentiating. Then all the exponentials
+          the largest score, $m=\max_j z_j$, before exponentiating. Then all the exponentials
           are at most one. We account for the subtraction outside the logarithm:
         </p>
-        <p>$$\log\sum_j e^{a_j}=m+\log\sum_j e^{a_j-m}.$$</p>
+        <p>$$\log\sum_j e^{z_j}=m+\log\sum_j e^{z_j-m}.$$</p>
         <p>
           This is why a model may return raw scores during training even when we interpret its predictions as probabilities. If the loss expects logits, we pass them in directly. We can then apply sigmoid or softmax separately to inspect the probabilities.
         </p>
@@ -396,7 +395,7 @@
         <h2>Worked example</h2>
         <p>
           Let's take a network whose last hidden layer has eight neurons, so
-          $\mathbf{z}^{(L-1)}\in\mathbb{R}^{8}$. We can use the same hidden architecture for
+          $\mathbf{a}^{(L-1)}\in\mathbb{R}^{8}$. We can use the same hidden architecture for
           three different tasks by changing the output layer and loss.
         </p>
         <p>
@@ -418,19 +417,19 @@
           First, suppose we are predicting one continuous value and the output is $2.5$.
           If the true target is $y=3$, we subtract the prediction and square the error:
         </p>
-        <p>$$\mathcal{L}_{\mathrm{MSE}}=(3-2.5)^2=0.25.$$</p>
+        <p>$$L_{\mathrm{MSE}}=(3-2.5)^2=0.25.$$</p>
         <p>
           Now suppose we are choosing one of three classes. The scores $(2,1,0)$ give us the
           softmax probabilities calculated earlier. If class 2 is correct, we take the negative
           logarithm of its probability. Using the unrounded value:
         </p>
-        <p>$$\mathcal{L}_{\mathrm{CE}}=-\log\left(\frac{e^1}{e^2+e^1+e^0}\right)\approx1.408.$$</p>
+        <p>$$L_{\mathrm{CE}}=-\log\left(\frac{e^1}{e^2+e^1+e^0}\right)\approx1.408.$$</p>
         <p>
           Finally, suppose the three outputs are separate binary labels and the target is
           $(1,1,0)$. We use sigmoid and take a binary loss for each label, then average them:
         </p>
         <p>$$\begin{aligned}
-          \mathcal{L}_{\mathrm{ML}}&amp;=-\frac{1}{3}
+          L_{\mathrm{ML}}&amp;=-\frac{1}{3}
           \left[\log\sigma(2)+\log\sigma(1)+\log(1-\sigma(0))\right]\\
           &amp;\approx\frac{0.127+0.313+0.693}{3}\approx0.378.
           \end{aligned}$$</p>
