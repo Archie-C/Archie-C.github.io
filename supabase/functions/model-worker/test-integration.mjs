@@ -1,0 +1,44 @@
+import assert from 'node:assert/strict';
+import {createRequire} from 'node:module';
+import {readFile} from 'node:fs/promises';
+const require=createRequire(new URL('../../../a-level/tests/package.json',import.meta.url));
+const {PGlite}=require('@electric-sql/pglite');const db=new PGlite();let handler;
+try {
+ await db.exec(`create role anon;create role authenticated;create role service_role;create schema storage;
+ create table storage.buckets(id text primary key,name text,public boolean,file_size_limit bigint);
+ create table storage.objects(id uuid primary key default gen_random_uuid(),bucket_id text,name text,metadata jsonb); alter table storage.objects enable row level security;`);
+ await db.exec((await readFile(new URL('../../model-submissions/setup.sql',import.meta.url),'utf8')).replace('create extension if not exists pgcrypto with schema extensions;',''));
+ const participant=(await db.query('select model_identity($1) id',['a'.repeat(64)])).rows[0].id;
+ const id=(await db.query("select model_create($1,'nn-rocket') data",[participant])).rows[0].data.id;
+ await db.query(`insert into storage.objects(bucket_id,name,metadata) select 'model-artifacts',p,'{"size":4}'::jsonb from model_submissions s,lateral unnest(array[s.model_path,s.weights_path]) p where id=$1`,[id]);
+ await db.query('select model_queue($1,$2)',[participant,id]);
+ const workerToken='9'.repeat(64);globalThis.Deno={env:{get:k=>({SUPABASE_URL:'https://db.example',SUPABASE_SERVICE_ROLE_KEY:'server-key',MODEL_WORKER_TOKEN:workerToken})[k]},serve:fn=>{handler=fn;}};
+ let storageReads=0,backendStatus=null;
+ globalThis.fetch=async(input,opts)=>{const url=new URL(input);assert.equal(opts.headers.apikey,'server-key');if(backendStatus)return Response.json({error:'backend'}, {status:backendStatus});
+  if(url.pathname.startsWith('/rest/v1/rpc/')){const name=url.pathname.split('/').pop(),args=Object.values(JSON.parse(opts.body));try{const r=await db.query(`select ${name}(${args.map((_,i)=>`$${i+1}`).join(',')}) result`,args);return Response.json(r.rows[0].result);}catch(e){return Response.json({message:e.message},{status:400});}}
+  if(url.pathname.startsWith('/storage/v1/object/authenticated/model-artifacts/')){storageReads++;return new Response('FILE');}throw Error('Unexpected backend request');};
+ await import('./index.ts');
+ const call=(action,data,{auth=workerToken,origin,method='POST'}={})=>{const headers={'content-type':'application/json',authorization:`Bearer ${auth}`};if(origin)headers.origin=origin;return handler(new Request(`https://db.example/functions/v1/model-worker?action=${action}`,{method,headers,body:method==='POST'?JSON.stringify(data):undefined}));};
+ assert.equal((await call('claim',{exercise:'nn-rocket'},{auth:'0'.repeat(64)})).status,401);
+ assert.equal((await call('claim',{exercise:'nn-rocket'},{origin:'https://site.example'})).status,401);
+ backendStatus=401;assert.equal((await call('claim',{exercise:'nn-rocket'})).status,503);backendStatus=null;
+ let r=await call('claim',{exercise:'nn-rocket'});assert.equal(r.status,200);const claim=(await r.json()).claim;assert.equal(claim.submission_id,id);assert.equal((await (await call('claim',{exercise:'nn-rocket'})).json()).claim,null);
+ const args={submission_id:id,claim_token:claim.claim_token};
+ r=await call('artifact',{...args,file:'model.py'});assert.equal(await r.text(),'FILE');assert.equal(storageReads,1);
+ assert.equal((await call('artifact',{...args,file:'../model.py'})).status,400);
+ assert.equal((await call('artifact',{...args,claim_token:participant,file:'model.py'})).status,409);assert.equal(storageReads,1);
+ assert.equal((await (await call('heartbeat',args)).json()).accepted,true);
+ r=await call('finish',{...args,metrics:{score:73},duration_ms:100,evaluator_version:'v1',test_set_version:'t1'});assert.equal((await r.json()).accepted,true);
+ assert.equal((await call('artifact',{...args,file:'weights.safetensors'})).status,409);assert.equal((await (await call('heartbeat',args)).json()).accepted,false);
+ assert.equal((await (await call('finish',{...args,metrics:{score:99},duration_ms:1})).json()).accepted,false);
+ const dash=(await db.query("select model_dashboard($1,'nn-rocket') data",[participant])).rows[0].data;assert.equal(dash.submissions[0].metrics.score,73);
+ const second=(await db.query("select model_create($1,'nn-rocket') data",[participant])).rows[0].data.id;
+ await db.query(`insert into storage.objects(bucket_id,name,metadata) select 'model-artifacts',p,'{"size":4}'::jsonb from model_submissions s,lateral unnest(array[s.model_path,s.weights_path]) p where id=$1`,[second]);await db.query('select model_queue($1,$2)',[participant,second]);
+ const failed=(await (await call('claim',{exercise:'nn-rocket'})).json()).claim;const failure={submission_id:second,claim_token:failed.claim_token,metrics:null,duration_ms:2,error_category:'invalid_shape'};
+ assert.equal((await call('finish',{...failure,metadata:{public_error_code:'/secret/test/file'}})).status,400);
+ assert.equal((await call('finish',{...failure,metadata:{public_error_code:'missing_entrypoint'}})).status,400);
+ assert.equal((await (await call('finish',{...failure,metadata:{public_error_code:'non_finite',internal_path:'/secret/test/file'}})).json()).accepted,true);
+ const owner=(await db.query("select model_dashboard($1,'nn-rocket') data",[participant])).rows[0].data;const visible=owner.submissions.find(x=>x.id===second);assert.equal(visible.error_detail_code,'non_finite');assert.ok(!JSON.stringify(owner).includes('/secret/test/file'));
+ await db.exec('set role anon');await assert.rejects(db.query("select model_worker_artifact($1,$2,'model.py')",[id,claim.claim_token]),/permission denied/);
+ console.log('Least-privilege worker gateway tests passed');
+} finally {await db.close();}

@@ -149,3 +149,19 @@ body { background: var(--bg-2); }
 #leaderboard-body tr.own td:first-child,
 #leaderboard-body tr.own td:nth-child(3) { color: var(--accent); }
 .own-badge { display: inline-block; margin-left: 6px; padding: 1px 5px; border-radius: 3px; background: var(--accent); color: var(--bg); font: 600 9px/1.5 var(--font-mono); letter-spacing: .06em; text-transform: uppercase; vertical-align: middle; }
+.model-panel > h2:not(:first-child) { margin-top: 28px; }
+.model-panel > form { margin-top: 16px; }
+.model-drop { display: flex; flex-direction: column; gap: 8px; padding: 18px; border: 1.5px dashed var(--rule-strong); border-radius: 8px; background: var(--bg-2); }
+.model-drop.dragover { border-color: var(--accent); }
+.model-drop span { color: var(--fg-3); font-size: 13px; }
+.model-drop input { width: 100%; }
+.model-panel progress { display: block; width: min(100%, 400px); margin-top: 12px; }
+.model-panel progress[hidden] { display: none; }
+.model-panel #model-message { margin-top: 12px; }
+.model-attempt { border-bottom: 1px solid var(--rule); padding: 14px 0; }
+.model-attempt summary { cursor: pointer; font-weight: 600; }
+.model-attempt p { margin: 8px 0; overflow-wrap: anywhere; }
+.model-attempt pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 12px; }
+.model-name input { padding: 8px; max-width: 100%; }
+.model-panel tr.own { background: var(--bg-2); }
+.model-panel .exercise-help pre { max-width: 100%; overflow-x: auto; padding: 12px; background: var(--bg-2); font-size: 12px; }
