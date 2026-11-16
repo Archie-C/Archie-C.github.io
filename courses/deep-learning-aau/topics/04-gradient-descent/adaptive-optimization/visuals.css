@@ -1,0 +1,3 @@
+#method-controls label { display: flex; flex: 0 1 auto; align-items: center; gap: 6px; }
+#method-controls input { width: auto; }
+.controls select { font: inherit; color: var(--fg); background: var(--bg); border: 1px solid var(--rule-strong); padding: 7px; }

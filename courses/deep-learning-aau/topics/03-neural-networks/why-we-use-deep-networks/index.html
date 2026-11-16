@@ -183,11 +183,11 @@
         <p>
           With more layers, the calculation in each layer is the same as before:
         </p>
-        <p>$$\mathbf{z}^{(\ell)}=h^{(\ell)}\!\left(\mathbf{W}^{(\ell)}\mathbf{z}^{(\ell-1)}+\mathbf{b}^{(\ell)}\right),
-          \qquad \mathbf{z}^{(0)}=\mathbf{x}.$$</p>
+        <p>$$\mathbf{a}^{(\ell)}=\sigma^{(\ell)}\!\left(\mathbf{W}^{(\ell)}\mathbf{a}^{(\ell-1)}+\mathbf{b}^{(\ell)}\right),
+          \qquad \mathbf{a}^{(0)}=\mathbf{x}.$$</p>
         <p>
           Here $\mathbf{W}^{(\ell)}$ and $\mathbf{b}^{(\ell)}$ are the weights and biases for layer
-          $\ell$, and $h^{(\ell)}$ is its activation function. The difference is that the inputs
+          $\ell$, and $\sigma^{(\ell)}$ is its activation function. The difference is that the inputs
           are now the outputs of the previous layer, rather than the original input features.
         </p>
         <p>
@@ -378,7 +378,7 @@
           learn new features using the features we have already learned.
         </p>
         <p>
-          The vector $\mathbf{z}^{(\ell)}(\mathbf{x})$ is therefore a
+          The vector $\mathbf{a}^{(\ell)}(\mathbf{x})$ is therefore a
           <strong>learned representation</strong> of the input. It contains the outputs of the
           neurons in layer $\ell$. The next layer works with these values instead of the original
           pixels, so the representation needs to keep the information useful for the task.

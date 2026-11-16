@@ -124,13 +124,13 @@
 
         <h2>Adding noise to the prediction</h2>
         <p>Think back to the <a href="../linear-regression/">height and age example</a>. Students of the same age do not all have the same height. A regression line gives a useful prediction, but it cannot describe that variation on its own.</p>
-        <p>We can write the prediction for an input $\mathbf{x}$ as $y(\mathbf{x},\mathbf{w})$, where $\mathbf{w}$ contains the model parameters. For a single continuous target $t$, suppose the observation is this prediction plus some noise:</p>
-        <p>$$ t = y(\mathbf{x},\mathbf{w}) + \epsilon,
+        <p>We can write the prediction for an input $\mathbf{x}$ as $\hat{y}(\mathbf{x},\boldsymbol{\theta})$, where $\boldsymbol{\theta}$ contains the model parameters. For a single continuous target $y$, suppose the observation is this prediction plus some noise:</p>
+        <p>$$ y = \hat{y}(\mathbf{x},\boldsymbol{\theta}) + \epsilon,
         \qquad \epsilon \sim \mathcal{N}(0,\sigma^2). $$</p>
         <p>The noise has mean zero and variance $\sigma^2$. Adding it to the prediction gives a Gaussian distribution centred on that prediction:</p>
-        <p>$$ p(t\mid\mathbf{x},\mathbf{w},\sigma^2)
-        = \mathcal{N}\!\left(t\mid y(\mathbf{x},\mathbf{w}),\sigma^2\right). $$</p>
-        <p>So $y(\mathbf{x},\mathbf{w})$ is the <strong>conditional mean</strong>: which is the average value the model predicts for this input. The standard deviation $\sigma$ describes how widely observations vary around it. This works for a linear regression function, a polynomial, or a neural network.</p>
+        <p>$$ p(y\mid\mathbf{x},\boldsymbol{\theta},\sigma^2)
+        = \mathcal{N}\!\left(y\mid \hat{y}(\mathbf{x},\boldsymbol{\theta}),\sigma^2\right). $$</p>
+        <p>So $\hat{y}(\mathbf{x},\boldsymbol{\theta})$ is the <strong>conditional mean</strong>: which is the average value the model predicts for this input. The standard deviation $\sigma$ describes how widely observations vary around it. This works for a linear regression function, a polynomial, or a neural network.</p>
 
         <figure class="chart-card">
           <div class="eyebrow">the observation model</div>
@@ -138,7 +138,7 @@
           <div class="chart-legend">
             <span class="item"><span class="swatch" style="background:var(--c-cat-1)"></span>Gaussian density</span>
             <span class="item"><span class="swatch swatch--dash"></span>mean = 2</span>
-            <span class="item"><span class="swatch swatch--dot" style="background:var(--c-cat-2)"></span>density at t = 3.5</span>
+            <span class="item"><span class="swatch swatch--dot" style="background:var(--c-cat-2)"></span>density at y = 3.5</span>
           </div>
           <div class="chart-frame">
             <canvas id="gaussianPredictionChart" role="img" aria-label="Gaussian target density centred at 2. Increasing the noise standard deviation makes the curve wider and lower." aria-describedby="gaussianCaption gaussianReadout">A Gaussian density has its peak at the predicted mean. More noise spreads the density over a wider range of targets.</canvas>
@@ -148,42 +148,42 @@
             <input id="noiseSigma" type="range" min="0.5" max="2" step="0.1" value="1" aria-describedby="gaussianCaption"/>
             <output id="noiseSigmaValue" for="noiseSigma">1.0</output>
           </div>
-          <output class="chart-readout" id="gaussianReadout" for="noiseSigma">Variance σ² = 1.00 · density at t = 3.5: 0.130</output>
+          <output class="chart-readout" id="gaussianReadout" for="noiseSigma">Variance σ² = 1.00 · density at y = 3.5: 0.130</output>
           <figcaption class="chart-caption" id="gaussianCaption"><span class="label">fig 1</span> An illustrative prediction with mean 2. Adjust σ to change the spread while keeping the mean fixed. The vertical axis is a density; probabilities come from areas under the curve.</figcaption>
         </figure>
 
         <h2>The likelihood of the data</h2>
-        <p>Now suppose there are $N$ observed input–target pairs, $\mathcal{D}=\{(\mathbf{x}_n,t_n)\}_{n=1}^{N}$. Assume the targets are conditionally independent given their inputs and the model parameters. The joint density is then the product of their individual densities:</p>
-        <p>$$ p(\mathbf{t}\mid\mathbf{X},\mathbf{w},\sigma^2)
-        = \prod_{n=1}^{N}\mathcal{N}\!\left(t_n\mid y(\mathbf{x}_n,\mathbf{w}),\sigma^2\right). $$</p>
-        <p>Once the data are observed, hold them fixed and treat this expression as a function of $\mathbf{w}$. This is the <strong>likelihood</strong> of the targets given the data and the model parameters. Maximum likelihood chooses the weights that maximise this likelihood. For now, we will keep $\sigma^2$ fixed too.</p>
+        <p>Now suppose there are $n$ observed input–target pairs, $\mathcal{D}=\{(\mathbf{x}_i,y_i)\}_{i=1}^{n}$. Assume the targets are conditionally independent given their inputs and the model parameters. The joint density is then the product of their individual densities:</p>
+        <p>$$ p(\mathbf{y}\mid\mathbf{X},\boldsymbol{\theta},\sigma^2)
+        = \prod_{i=1}^{n}\mathcal{N}\!\left(y_i\mid \hat{y}(\mathbf{x}_i,\boldsymbol{\theta}),\sigma^2\right). $$</p>
+        <p>Once the data are observed, hold them fixed and treat this expression as a function of $\boldsymbol{\theta}$. This is the <strong>likelihood</strong> of the targets given the data and the model parameters. Maximum likelihood chooses the weights that maximise this likelihood. For now, we will keep $\sigma^2$ fixed too.</p>
         <div class="note">
           <span class="tag">density and likelihood</span>
           <p>The same expression has two uses. With the parameters fixed, it describes the density of possible targets for different inputs. With the data fixed, it compares parameter choices. A likelihood is not a probability distribution over the weights.</p>
         </div>
 
         <h2>Likelihood and squared error</h2>
-        <p>If we write $\hat{t}_n=y(\mathbf{x}_n,\mathbf{w})$ as the prediction of target $t_n$. The Gaussian density for one observation is:</p>
-        <p>$$ p(t_n\mid\mathbf{x}_n,\mathbf{w},\sigma^2)
+        <p>If we write $\hat{y}_i=\hat{y}(\mathbf{x}_i,\boldsymbol{\theta})$ as the prediction of target $y_i$. The Gaussian density for one observation is:</p>
+        <p>$$ p(y_i\mid\mathbf{x}_i,\boldsymbol{\theta},\sigma^2)
         = \frac{1}{\sqrt{2\pi\sigma^2}}
-        \exp\!\left(-\frac{(t_n-\hat{t}_n)^2}{2\sigma^2}\right). $$</p>
+        \exp\!\left(-\frac{(y_i-\hat{y}_i)^2}{2\sigma^2}\right). $$</p>
         <p>If we take the logarithm of this expression, we get:</p>
-        <p>$$ \log p(t_n\mid\mathbf{x}_n,\mathbf{w},\sigma^2)
+        <p>$$ \log p(y_i\mid\mathbf{x}_i,\boldsymbol{\theta},\sigma^2)
         = -\frac{1}{2}\log(2\pi\sigma^2)
-        -\frac{(t_n-\hat{t}_n)^2}{2\sigma^2}. $$</p>
+        -\frac{(y_i-\hat{y}_i)^2}{2\sigma^2}. $$</p>
         <p>A nice property of the logarithm is that it turns the product for the whole dataset into a sum. Also, negating it gives the <strong>negative log likelihood</strong>, which we can use as an objective function to minimise:</p>
         <p>$$
         \begin{aligned}
-        -\log p(\mathbf{t}\mid\mathbf{X},\mathbf{w},\sigma^2)
-        &= -\sum_{n=1}^{N}\log p(t_n\mid\mathbf{x}_n,\mathbf{w},\sigma^2) \\
-        &= \frac{1}{2\sigma^2}\sum_{n=1}^{N}(t_n-\hat{t}_n)^2 \\
-        &\quad + \frac{N}{2}\log(2\pi\sigma^2).
+        -\log p(\mathbf{y}\mid\mathbf{X},\boldsymbol{\theta},\sigma^2)
+        &= -\sum_{i=1}^{n}\log p(y_i\mid\mathbf{x}_i,\boldsymbol{\theta},\sigma^2) \\
+        &= \frac{1}{2\sigma^2}\sum_{i=1}^{n}(y_i-\hat{y}_i)^2 \\
+        &\quad + \frac{n}{2}\log(2\pi\sigma^2).
         \end{aligned}
         $$</p>
         <p>With $\sigma^2$ fixed, the last term is constant with respect to the weights. The factor $1/(2\sigma^2)$ is positive, so it changes the scale of the objective without changing its minimum. We can remove the constant term and the factor $1/(2\sigma^2)$, and still get the same optimum. So, this leaves the same squared-error problem as before:</p>
-        <p>$$ \mathbf{w}_{\mathrm{ML}} = \arg\min_{\mathbf{w}}\;
-        \frac{1}{2}\sum_{n=1}^{N}\left(\hat{t}_n-t_n\right)^2. $$</p>
-        <p>We leave the factor $1/2$ in the objective function for convenience when taking derivatives. Dividing the sum by $N$ to use mean squared error also gives the same optimum.</p>
+        <p>$$ \boldsymbol{\theta}_{\mathrm{ML}} = \arg\min_{\boldsymbol{\theta}}\;
+        \frac{1}{2}\sum_{i=1}^{n}\left(\hat{y}_i-y_i\right)^2. $$</p>
+        <p>We leave the factor $1/2$ in the objective function for convenience when taking derivatives. Dividing the sum by $n$ to use mean squared error also gives the same optimum.</p>
 
         <h2>A small example</h2>
         <p>Suppose the observed targets are $1$, $2$, and $3$, and the model predicts the same value $\mu$ for all three. Keep $\sigma=1$. Moving $\mu$ changes both the likelihood and the squared error:</p>
@@ -204,7 +204,7 @@
           </figure>
         </div>
         <p class="chart-caption" id="objectiveCaption"><span class="label">fig 2–3</span> The likelihood peaks and squared error reaches its minimum at $\mu=2$, the mean of the targets. Each dot marks this same fit. The curves use different vertical scales.</p>
-        <p>For this example, the negative log likelihood is $\frac{1}{2}\sum_n(t_n-\mu)^2+\frac{3}{2}\log(2\pi)$. It is the squared-error curve shifted upwards by a constant, so its minimum stays at $\mu=2$.</p>
+        <p>For this example, the negative log likelihood is $\frac{1}{2}\sum_i(y_i-\mu)^2+\frac{3}{2}\log(2\pi)$. It is the squared-error curve shifted upwards by a constant, so its minimum stays at $\mu=2$.</p>
 
         <h2>The assumptions behind the loss</h2>
         <p>The derivation depends on the observation model:</p>
@@ -221,7 +221,7 @@
         </div>
 
         <h2>What does a prediction tell you?</h2>
-        <p>A point prediction reports the conditional mean. The Gaussian observation model also describes the spread of possible targets around it. With fitted weights and a known noise standard deviation, about 95% of that distribution lies within $y(\mathbf{x},\mathbf{w})\pm1.96\sigma$.</p>
+        <p>A point prediction reports the conditional mean. The Gaussian observation model also describes the spread of possible targets around it. With fitted weights and a known noise standard deviation, about 95% of that distribution lies within $\hat{y}(\mathbf{x},\boldsymbol{\theta})\pm1.96\sigma$.</p>
         <p>This spread describes observation noise with the weights held fixed. It does not account for uncertainty about the fitted weights themselves.</p>
         <div class="note important">
           <span class="tag">key takeaway</span>

@@ -1072,8 +1072,8 @@ svg.chart .f-6          { fill: var(--c-cat-6); }
         <p class="example-label">Answers &middot; Question 1</p>
         <h2 id="linear-definition-title">What do we mean by linear regression?</h2>
         <p>Generally, linear regression is any regression model that is <strong>linear in its parameters</strong>.</p>
-        $$ \hat{y}=\theta_0+\theta_1\phi_1(x)+\cdots+\theta_d\phi_d(x). $$
-        <p>The functions of the inputs can be nonlinear, for example $x^2$ or $\sin(x)$.</p>
+        $$ \hat{y}=b+w_1\phi_1(x)+\cdots+w_q\phi_q(x). $$
+        <p>Here $q$ is the number of basis functions and $b$ is the bias. The functions of the inputs can be nonlinear, for example $x^2$ or $\sin(x)$.</p>
         <p class="fragment">It is also reasonable to call a model using only linear relationships between inputs and outputs &ldquo;linear regression&rdquo;, and the broader case &ldquo;linear regression with nonlinear basis functions&rdquo;.</p>
         <aside class="notes">The answer to this depends somewhat on the notation used. Generally, linear regression is any regression model that is linear in the parameters. However, it is also reasonable to define linear regression as a model that models only linear relationships between input and output features and define the case that uses basis functions as linear regression with non-linear basis functions.</aside>
       </section>
@@ -1111,11 +1111,11 @@ svg.chart .f-6          { fill: var(--c-cat-6); }
       <section class="answer-slide" aria-labelledby="scalar-loss-title" data-answer-source="question-2">
         <p class="example-label">Answers &middot; Question 2a</p>
         <h2 id="scalar-loss-title">Minimising the sum of squared errors</h2>
-        $$ \hat{y}_i=mx_i+c,\qquad L(m,c)=\sum_{i=1}^n(y_i-mx_i-c)^2. $$
-        <p>Set both partial derivatives to zero:</p>
+        $$ \hat{y}_i=mx_i+c,\qquad S(m,c)=\sum_{i=1}^n(y_i-mx_i-c)^2. $$
+        <p>The empirical mean is $L=S/n$. Set both partial derivatives to zero:</p>
         $$ \begin{aligned}
-          \frac{\partial L}{\partial m}&amp;=-2\sum_i x_i(y_i-mx_i-c)=0,\\[0.5em]
-          \frac{\partial L}{\partial c}&amp;=-2\sum_i(y_i-mx_i-c)=0.
+          \frac{\partial S}{\partial m}&amp;=-2\sum_i x_i(y_i-mx_i-c)=0,\\[0.5em]
+          \frac{\partial S}{\partial c}&amp;=-2\sum_i(y_i-mx_i-c)=0.
         \end{aligned} $$
         <aside class="notes">This is the sum-of-squares loss from the written answer. Differentiating with respect to both slope and intercept gives two equations to solve together.</aside>
       </section>
@@ -1203,34 +1203,34 @@ svg.chart .f-6          { fill: var(--c-cat-6); }
       <section class="answer-slide" aria-labelledby="ols-setup-title" data-answer-source="question-3">
         <p class="example-label">Answers &middot; Question 3a</p>
         <h2 id="ols-setup-title">The model and objective</h2>
-        <p>$X\in\mathbb{R}^{n\times(d+1)}$, $y\in\mathbb{R}^{n}$, and $\theta\in\mathbb{R}^{d+1}$.</p>
+        <p>$\tilde{\mathbf X}\in\mathbb{R}^{n\times(d+1)}$, $\mathbf y\in\mathbb{R}^{n}$, and $\boldsymbol{\theta}\in\mathbb{R}^{d+1}$.</p>
         <p>There are $n$ observations, $d$ features, and an intercept column.</p>
-        $$ \hat{y}=X\theta,\qquad L(\theta)=\frac12\lVert y-X\theta\rVert_2^2. $$
-        <p class="answer-small">The factor $\tfrac12$ makes the derivative simpler. Omitting it gives the same minimiser.</p>
+        $$ \hat{\mathbf y}=\tilde{\mathbf X}\boldsymbol{\theta},\qquad S(\boldsymbol{\theta})=\frac12\lVert \mathbf y-\tilde{\mathbf X}\boldsymbol{\theta}\rVert_2^2. $$
+        <p class="answer-small">Here $S$ is the summed half-squared error; the empirical mean is $L=S/n$. The factor $\tfrac12$ makes the derivative simpler. Omitting it gives the same minimiser.</p>
         <aside class="notes">There are two ways to go about the derivation: expand the squared norm and differentiate each term, or differentiate the squared norm directly. Both lead to the same normal equations.</aside>
       </section>
 
       <section class="answer-slide derivation-slide" aria-labelledby="ols-matrices-title" data-answer-source="question-3">
         <p class="example-label">Answers &middot; Question 3a</p>
         <h2 id="ols-matrices-title">Writing out the matrices</h2>
-        $$ X=\begin{bmatrix}
+        $$ \tilde{\mathbf X}=\begin{bmatrix}
           1 &amp; x_{11} &amp; \cdots &amp; x_{1d}\\
           1 &amp; x_{21} &amp; \cdots &amp; x_{2d}\\
           \vdots &amp; \vdots &amp; \ddots &amp; \vdots\\
           1 &amp; x_{n1} &amp; \cdots &amp; x_{nd}
         \end{bmatrix},\quad
-        \theta=\begin{bmatrix}\theta_0\\\theta_1\\\vdots\\\theta_d\end{bmatrix},\quad
-        y=\begin{bmatrix}y_1\\y_2\\\vdots\\y_n\end{bmatrix}. $$
-        <p>The first column gives the intercept. Multiplying each row by $\theta$ gives one prediction.</p>
+        \boldsymbol{\theta}=\begin{bmatrix}b\\w_1\\\vdots\\w_d\end{bmatrix},\quad
+        \mathbf y=\begin{bmatrix}y_1\\y_2\\\vdots\\y_n\end{bmatrix}. $$
+        <p>The first column gives the intercept. Multiplying each row by $\boldsymbol{\theta}$ gives one prediction.</p>
       </section>
 
       <section class="answer-slide derivation-slide cross-term-slide" aria-labelledby="ols-expansion-title" data-answer-source="question-3">
         <p class="example-label">Answers &middot; Question 3a &middot; Method 1</p>
         <h2 id="ols-expansion-title">Expanding the squared norm</h2>
         $$ \begin{aligned}
-          L(\theta)&amp;=\frac12(y-X\theta)^T(y-X\theta)\\[0.5em]
-          &amp;=\frac12\left(y^Ty-y^TX\theta-\theta^TX^Ty+\theta^TX^TX\theta\right)\\[0.5em]
-          &amp;=\frac12\left(y^Ty-2\theta^TX^Ty+\theta^TX^TX\theta\right).
+          S(\boldsymbol{\theta})&amp;=\frac12(\mathbf y-\tilde{\mathbf X}\boldsymbol{\theta})^T(\mathbf y-\tilde{\mathbf X}\boldsymbol{\theta})\\[0.5em]
+          &amp;=\frac12\left(\mathbf y^T\mathbf y-\mathbf y^T\tilde{\mathbf X}\boldsymbol{\theta}-\boldsymbol{\theta}^T\tilde{\mathbf X}^T\mathbf y+\boldsymbol{\theta}^T\tilde{\mathbf X}^T\tilde{\mathbf X}\boldsymbol{\theta}\right)\\[0.5em]
+          &amp;=\frac12\left(\mathbf y^T\mathbf y-2\boldsymbol{\theta}^T\tilde{\mathbf X}^T\mathbf y+\boldsymbol{\theta}^T\tilde{\mathbf X}^T\tilde{\mathbf X}\boldsymbol{\theta}\right).
         \end{aligned} $$
         <p class="answer-small">The two cross-terms are equal because they are scalars. We can combine them.</p>
       </section>
@@ -1238,11 +1238,11 @@ svg.chart .f-6          { fill: var(--c-cat-6); }
       <section class="answer-slide" aria-labelledby="ols-scalar-transpose-title" data-answer-source="question-3">
         <p class="example-label">Answers &middot; Question 3a &middot; Method 1</p>
         <h2 id="ols-scalar-transpose-title">Why are the cross-terms equal?</h2>
-        <p>The term $y^TX\theta$ is a $1\times1$ scalar. Its transpose is the same value:</p>
+        <p>The term $\mathbf y^T\tilde{\mathbf X}\boldsymbol{\theta}$ is a $1\times1$ scalar. Its transpose is the same value:</p>
         $$ \begin{aligned}
-          y^TX\theta&amp;=(y^TX\theta)^T\\
-                    &amp;=\theta^TX^T(y^T)^T\\
-                    &amp;=\theta^TX^Ty.
+          \mathbf y^T\tilde{\mathbf X}\boldsymbol{\theta}&amp;=(\mathbf y^T\tilde{\mathbf X}\boldsymbol{\theta})^T\\
+                    &amp;=\boldsymbol{\theta}^T\tilde{\mathbf X}^T(\mathbf y^T)^T\\
+                    &amp;=\boldsymbol{\theta}^T\tilde{\mathbf X}^T\mathbf y.
         \end{aligned} $$
         <p class="answer-small">Taking a transpose reverses the order: $(ABC)^T=C^TB^TA^T$.</p>
       </section>
@@ -1250,21 +1250,21 @@ svg.chart .f-6          { fill: var(--c-cat-6); }
       <section class="answer-slide" aria-labelledby="ols-expanded-gradient-title" data-answer-source="question-3">
         <p class="example-label">Answers &middot; Question 3a &middot; Method 1</p>
         <h2 id="ols-expanded-gradient-title">Differentiating the expanded terms</h2>
-        $$ L(\theta)=\frac12\left(y^Ty-2\theta^TX^Ty+\theta^TX^TX\theta\right). $$
-        <p>Differentiate with respect to $\theta$ and set the gradient to zero:</p>
-        $$ \nabla_\theta L=-X^Ty+X^TX\theta=0. $$
-        $$ \boxed{X^TX\theta=X^Ty}. $$
+        $$ S(\boldsymbol{\theta})=\frac12\left(\mathbf y^T\mathbf y-2\boldsymbol{\theta}^T\tilde{\mathbf X}^T\mathbf y+\boldsymbol{\theta}^T\tilde{\mathbf X}^T\tilde{\mathbf X}\boldsymbol{\theta}\right). $$
+        <p>Differentiate with respect to $\boldsymbol{\theta}$ and set the gradient to zero:</p>
+        $$ \nabla_{\boldsymbol{\theta}} S=-\tilde{\mathbf X}^T\mathbf y+\tilde{\mathbf X}^T\tilde{\mathbf X}\boldsymbol{\theta}=0. $$
+        $$ \boxed{\tilde{\mathbf X}^T\tilde{\mathbf X}\boldsymbol{\theta}=\tilde{\mathbf X}^T\mathbf y}. $$
       </section>
 
       <section class="answer-slide derivation-slide" aria-labelledby="ols-direct-gradient-title" data-answer-source="question-3">
         <p class="example-label">Answers &middot; Question 3a &middot; Method 2</p>
         <h2 id="ols-direct-gradient-title">Differentiating the norm directly</h2>
-        $$ \nabla_\theta L=\nabla_\theta\frac12\lVert y-X\theta\rVert_2^2
-          =\nabla_\theta\frac12(y-X\theta)^T(y-X\theta). $$
-        <p>Using the derivative of the residual vector, $y-X\theta$:</p>
-        $$ \nabla_\theta L=-X^T(y-X\theta)=0. $$
+        $$ \nabla_{\boldsymbol{\theta}} S=\nabla_{\boldsymbol{\theta}}\frac12\lVert \mathbf y-\tilde{\mathbf X}\boldsymbol{\theta}\rVert_2^2
+          =\nabla_{\boldsymbol{\theta}}\frac12(\mathbf y-\tilde{\mathbf X}\boldsymbol{\theta})^T(\mathbf y-\tilde{\mathbf X}\boldsymbol{\theta}). $$
+        <p>Using the derivative of the residual vector, $\mathbf y-\tilde{\mathbf X}\boldsymbol{\theta}$:</p>
+        $$ \nabla_{\boldsymbol{\theta}} S=-\tilde{\mathbf X}^T(\mathbf y-\tilde{\mathbf X}\boldsymbol{\theta})=0. $$
         <p>Rearranging gives the same normal equations:</p>
-        $$ \boxed{X^TX\theta=X^Ty}. $$
+        $$ \boxed{\tilde{\mathbf X}^T\tilde{\mathbf X}\boldsymbol{\theta}=\tilde{\mathbf X}^T\mathbf y}. $$
         <aside class="notes">This is the second method in the written answer. The derivative of one-half the squared Euclidean norm of a vector is the vector itself; the residual's derivative contributes the factor minus X transpose.</aside>
       </section>
 
@@ -1272,16 +1272,16 @@ svg.chart .f-6          { fill: var(--c-cat-6); }
         <p class="example-label">Answers &middot; Question 3a</p>
         <h2 id="ols-solution-title">Solving the normal equations</h2>
         <p>Both methods lead to:</p>
-        $$ X^TX\theta=X^Ty. $$
-        <p>If $X^TX$ is invertible, multiply both sides by its inverse:</p>
-        $$ \boxed{\hat{\theta}=(X^TX)^{-1}X^Ty}. $$
+        $$ \tilde{\mathbf X}^T\tilde{\mathbf X}\boldsymbol{\theta}=\tilde{\mathbf X}^T\mathbf y. $$
+        <p>If $\tilde{\mathbf X}^T\tilde{\mathbf X}$ is invertible, multiply both sides by its inverse:</p>
+        $$ \boxed{\hat{\boldsymbol{\theta}}=(\tilde{\mathbf X}^T\tilde{\mathbf X})^{-1}\tilde{\mathbf X}^T\mathbf y}. $$
       </section>
 
       <section class="answer-slide" aria-labelledby="ols-rank-title" data-answer-source="question-3">
         <p class="example-label">Answers &middot; Question 3b</p>
         <h2 id="ols-rank-title">When does the inverse formula fail?</h2>
-        <p>When $X^TX$ is <strong>singular</strong>, it has no inverse.</p>
-        $$ \operatorname{rank}(X)&lt;d+1\quad\Longrightarrow\quad X^TX\text{ is singular}. $$
+        <p>When $\tilde{\mathbf X}^T\tilde{\mathbf X}$ is <strong>singular</strong>, it has no inverse.</p>
+        $$ \operatorname{rank}(\tilde{\mathbf X})&lt;d+1\quad\Longrightarrow\quad \tilde{\mathbf X}^T\tilde{\mathbf X}\text{ is singular}. $$
         <ul><li>One column is an exact linear combination of others.</li><li>There are more parameters than observations: $n&lt;d+1$.</li></ul>
         <p class="answer-small">Least-squares solutions still exist, but the parameters are not unique.</p>
       </section>
@@ -1290,27 +1290,27 @@ svg.chart .f-6          { fill: var(--c-cat-6); }
         <p class="example-label">Answers &middot; Question 3c &middot; Fix 1</p>
         <h2 id="ols-ridge-title">Adding regularisation</h2>
         <p>Add a penalty on the weights, with $\lambda&gt;0$:</p>
-        $$ L_\lambda(\theta)=\frac12\lVert y-X\theta\rVert_2^2+\frac{\lambda}{2}\lVert\theta\rVert_2^2. $$
+        $$ S_\lambda(\boldsymbol{\theta})=\frac12\lVert \mathbf y-\tilde{\mathbf X}\boldsymbol{\theta}\rVert_2^2+\frac{\lambda}{2}\lVert\boldsymbol{\theta}\rVert_2^2. $$
         <p>Setting the gradient to zero gives:</p>
-        $$ X^TX\theta+\lambda\theta=X^Ty. $$
-        $$ \boxed{\hat{\theta}_\lambda=(X^TX+\lambda I)^{-1}X^Ty}. $$
-        <aside class="notes">The written answer uses one-half on the residual loss but lambda times the weight norm squared, then writes a gradient with lambda theta. Strictly that penalty differentiates to 2 lambda theta. Here the penalty is lambda over two so the stated normal equations and solution are consistent. This only changes the convention for naming the tuning parameter. As in the written formula, the identity matrix here penalises every parameter, including the intercept.</aside>
+        $$ \tilde{\mathbf X}^T\tilde{\mathbf X}\boldsymbol{\theta}+\lambda\boldsymbol{\theta}=\tilde{\mathbf X}^T\mathbf y. $$
+        $$ \boxed{\hat{\boldsymbol{\theta}}_\lambda=(\tilde{\mathbf X}^T\tilde{\mathbf X}+\lambda I)^{-1}\tilde{\mathbf X}^T\mathbf y}. $$
+        <aside class="notes">The identity matrix here penalises every parameter, including the intercept; the regularisation note also discusses leaving the bias unpenalised.</aside>
       </section>
 
       <section class="answer-slide" aria-labelledby="ols-identical-features-title" data-answer-source="question-3">
         <p class="example-label">Answers &middot; Question 3c &middot; Regularisation example</p>
         <h2 id="ols-identical-features-title">Two identical features</h2>
-        $$ \hat{y}=\theta_0+\theta_1x_1+\theta_2x_2. $$
+        $$ \hat{y}=b+w_1x_1+w_2x_2. $$
         <p>If $x_1=x_2=x$, then:</p>
-        $$ \hat{y}=\theta_0+(\theta_1+\theta_2)x. $$
-        <p>Only the sum $\theta_1+\theta_2$ affects their contribution. The individual weights are not identified by the data.</p>
+        $$ \hat{y}=b+(w_1+w_2)x. $$
+        <p>Only the sum $w_1+w_2$ affects their contribution. The individual weights are not identified by the data.</p>
       </section>
 
       <section class="answer-slide" aria-labelledby="ols-ridge-proof-title" data-answer-source="question-3">
         <p class="example-label">Answers &middot; Question 3c &middot; Regularisation example</p>
         <h2 id="ols-ridge-proof-title">The penalty distinguishes equivalent weights</h2>
-        <p>With $\theta_0=0$, all three choices below predict $4x$.</p>
-        <table class="ridge-example" aria-label="Equal predictions with different squared weight norms"><thead><tr><th scope="col">$\theta_1$</th><th scope="col">$\theta_2$</th><th scope="col">Prediction</th><th scope="col">$\lVert\theta\rVert_2^2$</th></tr></thead><tbody><tr><td>$1$</td><td>$3$</td><td>$4x$</td><td>$10$</td></tr><tr class="smaller-penalty"><td>$2$</td><td>$2$</td><td>$4x$</td><td>$8$</td></tr><tr><td>$3$</td><td>$1$</td><td>$4x$</td><td>$10$</td></tr></tbody></table>
+        <p>With $b=0$, all three choices below predict $4x$.</p>
+        <table class="ridge-example" aria-label="Equal predictions with different squared weight norms"><thead><tr><th scope="col">$w_1$</th><th scope="col">$w_2$</th><th scope="col">Prediction</th><th scope="col">$\lVert\boldsymbol{\theta}\rVert_2^2$</th></tr></thead><tbody><tr><td>$1$</td><td>$3$</td><td>$4x$</td><td>$10$</td></tr><tr class="smaller-penalty"><td>$2$</td><td>$2$</td><td>$4x$</td><td>$8$</td></tr><tr><td>$3$</td><td>$1$</td><td>$4x$</td><td>$10$</td></tr></tbody></table>
         <p>Among these equivalent fits, ridge prefers $(2,2)$ because it has the smallest squared weight norm.</p>
         <aside class="notes">The penalty is lambda over two times the final column, under the convention used in the preceding slides. The preference for the smaller squared norm is unchanged. Ridge can also change the total coefficient sum rather than preserving the unregularised fit.</aside>
       </section>

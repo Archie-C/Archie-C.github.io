@@ -78,45 +78,45 @@
         <h2>The model</h2>
         <p>So far we have only looked at the case where each data point has a single feature (i.e. it is just one number). But what if we have multiple features? For example, the price of a house, we might have features like the size of the house, the number of bedrooms, the location, etc. In this case, we can extend our linear regression model to handle multiple input dimensions:
         </p>
-        <p>$$\hat{y} = w_0 + w_1 x_1 + w_2 x_2 + ... + w_n x_n$$</p>
-        <p>Conceptually, it is the same. Each feature has a corresponding weight that needs to be learned and a bias term $w_0$ that allows us to shift the line up or down.</p>
+        <p>$$\hat{y} = b + w_1 x_1 + w_2 x_2 + ... + w_d x_d$$</p>
+        <p>Conceptually, it is the same. Each feature has a corresponding weight that needs to be learned and a bias term $b$ that allows us to shift the line up or down.</p>
         <p>Even though we can't easily visualise this in more than 3 dimensions, we can still find the optimal parameters using the same least squares function as before.
-            However, the 2D formula was long enough, so if we try to write them out as before we would have $n$ simultaneous equations and it would be a nightmare to solve. Luckily, we can use some linear algebra to write this in a much more compact form.</p>
+            However, the 2D formula was long enough, so if we try to write them out as before we would have $d+1$ simultaneous equations and it would be a nightmare to solve. Luckily, we can use some linear algebra to write this in a much more compact form.</p>
         </p>
-        <p>We can define the input vector and the weight vector as follows:</p>
-        <p>$$\mathbf{x} = \begin{bmatrix} 1 \\ x_1 \\ x_2 \\ \vdots \\ x_n \end{bmatrix}, \quad \mathbf{\theta} = \begin{bmatrix} w_0 \\ w_1 \\ w_2 \\ \vdots \\ w_n \end{bmatrix}$$</p>
+        <p>We append a constant feature to the input and collect the bias and weights into one parameter vector:</p>
+        <p>$$\tilde{\mathbf{x}} = \begin{bmatrix} 1 \\ x_1 \\ x_2 \\ \vdots \\ x_d \end{bmatrix}, \quad \boldsymbol{\theta} = \begin{bmatrix} b \\ w_1 \\ w_2 \\ \vdots \\ w_d \end{bmatrix}$$</p>
         <div class="note important">
           <span class="tag">important</span>
-          <p>The vector $\mathbf{x}$ includes a 1 in the first position to account for the bias term $w_0$. This means that both vectors are now length $n+1$ (including the bias term).</p>
+          <p>The vector $\tilde{\mathbf{x}}$ includes a 1 in the first position to account for the bias term $b$. This means that both vectors are now length $d+1$ (including the bias term).</p>
         </div>
-        <p>We transition to the more typical notiation of $\mathbf{\theta}$ for the weight vector. Then the model can be written in vector form as:</p>
-        <p>$$\hat{y}(\mathbf{x}, \mathbf{\theta}) = \mathbf{\theta}^\top \mathbf{x}$$</p>
+        <p>We transition to the more typical notiation of $\boldsymbol{\theta}$ for the parameter vector. Then the model can be written in vector form as:</p>
+        <p>$$\hat{y}(\tilde{\mathbf{x}}, \boldsymbol{\theta}) = \boldsymbol{\theta}^\top \tilde{\mathbf{x}}$$</p>
         <h2>The objective function</h2>
-        <p>This gives quite a concise least squares formulation:</p>
-        <p>$$\mathcal{L}(\mathbf{\theta}) = \sum_{i=1}^M (y_i - \mathbf{\theta}^\top \mathbf{x}_i)^2$$</p>
+        <p>This gives quite a concise least squares formulation. We write $S$ for the sum of squared errors; the empirical mean loss is $L=S/n$.</p>
+        <p>$$S(\boldsymbol{\theta}) = \sum_{i=1}^n (y_i - \boldsymbol{\theta}^\top \tilde{\mathbf{x}}_i)^2$$</p>
         <p>But we can make it even more compact by using matrix notation. For multiple data points, we can define a design matrix. Which is essentially just the input vectors stacked on top of each other:</p>
-        <p>$$ \mathbf{X} = \begin{bmatrix} 
-        1 & x_{11} & x_{12} & \cdots & x_{1n} \\
-        1 & x_{21} & x_{22} & \cdots & x_{2n} \\
+        <p>$$ \tilde{\mathbf{X}} = \begin{bmatrix}
+        1 & x_{11} & x_{12} & \cdots & x_{1d} \\
+        1 & x_{21} & x_{22} & \cdots & x_{2d} \\
         \vdots & \vdots & \vdots & \ddots & \vdots \\
-        1 & x_{M1} & x_{M2} & \cdots & x_{Mn}
-      \end{bmatrix}, \quad \mathbf{y} = \begin{bmatrix} y_1 \\ y_2 \\ \vdots \\ y_M \end{bmatrix} $$</p>
-      <p>Here, $M$ is the number of data points and $n$ is the number of input features. Using this notation, and the same weight vector as before, we can write the objective function even more concisely:</p>
-      <p>$$\mathcal{L}(\mathbf{\theta}) = \|\mathbf{y} - \mathbf{X} \mathbf{\theta}\|^2$$</p>
+        1 & x_{n1} & x_{n2} & \cdots & x_{nd}
+      \end{bmatrix}, \quad \mathbf{y} = \begin{bmatrix} y_1 \\ y_2 \\ \vdots \\ y_n \end{bmatrix} $$</p>
+      <p>Here, $n$ is the number of data points and $d$ is the number of input features. Using this notation, and the same weight vector as before, we can write the objective function even more concisely:</p>
+      <p>$$S(\boldsymbol{\theta}) = \|\mathbf{y} - \tilde{\mathbf{X}} \boldsymbol{\theta}\|^2$$</p>
       <p>Where $\|\cdot\|^2$ denotes the L2 norm, which is the sum of the squares of the elements of a vector.</p>
       <p>Before we find the minimum of this function we need to do some rearrangement. The first thing to note is that the above is just equal to the transpose of the difference multiplied by the difference:</p>
-      <p>$$\mathcal{L}(\mathbf{\theta}) = (\mathbf{y} - \mathbf{X} \mathbf{\theta})^\top (\mathbf{y} - \mathbf{X} \mathbf{\theta})$$</p>
+      <p>$$S(\boldsymbol{\theta}) = (\mathbf{y} - \tilde{\mathbf{X}} \boldsymbol{\theta})^\top (\mathbf{y} - \tilde{\mathbf{X}} \boldsymbol{\theta})$$</p>
       <p>Which we can expand out to:</p>
-    <p>$$\mathcal{L}(\mathbf{\theta}) = \mathbf{y}^\top \mathbf{y} - 2 \mathbf{y}^\top \mathbf{X} \mathbf{\theta} + \mathbf{\theta}^\top \mathbf{X}^\top \mathbf{X} \mathbf{\theta}$$</p>
+    <p>$$S(\boldsymbol{\theta}) = \mathbf{y}^\top \mathbf{y} - 2 \mathbf{y}^\top \tilde{\mathbf{X}} \boldsymbol{\theta} + \boldsymbol{\theta}^\top \tilde{\mathbf{X}}^\top \tilde{\mathbf{X}} \boldsymbol{\theta}$$</p>
         <div class="exercise">
           <span class="tag">exercise &middot; 1.2.1 <b>Expanding the objective function</b></span>
           <p>Go through the above expansion step by step and verify that you get the same result.</p>
         </div>
         <p>
-        Now we can take the gradient of this with respect to $\mathbf{\theta}$ and set it equal to zero to find the minimum:</p>
-        <p>$$\nabla_\mathbf{\theta} \mathcal{L}(\mathbf{\theta}) = -2 \mathbf{X}^\top \mathbf{y} + 2 \mathbf{X}^\top \mathbf{X} \mathbf{\theta} = 0$$</p>
-        <p>Again, I omit the detailed derivation here as I emplore you to work through it yourself. From this, it is actually trivial to rearrange for $\mathbf{\theta}$:</p>
-        <p>$$\mathbf{\theta} = (\mathbf{X}^\top \mathbf{X})^{-1} \mathbf{X}^\top \mathbf{y}$$</p>
+        Now we can take the gradient of this with respect to $\boldsymbol{\theta}$ and set it equal to zero to find the minimum:</p>
+        <p>$$\nabla_{\boldsymbol{\theta}} S(\boldsymbol{\theta}) = -2 \tilde{\mathbf{X}}^\top \mathbf{y} + 2 \tilde{\mathbf{X}}^\top \tilde{\mathbf{X}} \boldsymbol{\theta} = 0$$</p>
+        <p>Again, I omit the detailed derivation here as I emplore you to work through it yourself. From this, it is actually trivial to rearrange for $\boldsymbol{\theta}$:</p>
+        <p>$$\boldsymbol{\theta} = (\tilde{\mathbf{X}}^\top \tilde{\mathbf{X}})^{-1} \tilde{\mathbf{X}}^\top \mathbf{y}$$</p>
         <div class="exercise">
           <span class="tag">exercise &middot; 1.2.2 <b>Finding the optimal weights</b></span>
           <p>Go through the derivation of the optimal weights step by step and verify that you get the same result.</p>
@@ -126,7 +126,7 @@
         <p>So first, we need a class that inherits from <code>Regression</code>:</p>
 <pre><code class="language-python">class MultivariateLinearRegression(Regression):
 </code></pre>
-        <p>Then we can implement the constructor which only needs one variable this time, the vector $\mathbf{\theta}$:</p>
+        <p>Then we can implement the constructor which only needs one variable this time, the vector $\boldsymbol{\theta}$:</p>
 <pre><code class="language-python">def __init__(self):
     self.theta = None
 </code></pre>

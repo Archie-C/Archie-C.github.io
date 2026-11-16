@@ -78,11 +78,11 @@
         </p>
         <p>$$ \phi_1(x) = x, \quad \phi_2(x) = x^2, \quad \phi_3(x) = x^3 $$</p>
         <p>Which resulted in this model:</p>
-        <p>$$ y(x, \mathbf{w}) = w_0 + w_1 \phi_1(x) + w_2 \phi_2(x) + w_3 \phi_3(x) $$</p>
+        <p>$$ \hat{y}(x, \mathbf{w}) = b + w_1 \phi_1(x) + w_2 \phi_2(x) + w_3 \phi_3(x) $$</p>
         <p>
           Similarly, for classification we can, using logistic regression, write:
         </p>
-        <p>$$ p(C_1 | x) = \sigma(w_0 + w_1 \phi_1(x) + w_2 \phi_2(x) + w_3 \phi_3(x)) $$</p>
+        <p>$$ p(C_1 | x) = \sigma(b + w_1 \phi_1(x) + w_2 \phi_2(x) + w_3 \phi_3(x)) $$</p>
         <p>
           However, in both of these examples, the basis functions were chosen by us before we fitted the model.
           Which raises an interesting question: <strong>Why do we have to decide in advance which features are useful?</strong>
@@ -149,7 +149,7 @@ We can use these basis functions in exactly the same linear model as before:
 
 $$
 y(\mathbf{x},\mathbf{w}) =
-w_0+\sum_{j=1}^{M}w_j\phi_j(\mathbf{x}).
+b+\sum_{j=1}^{M}w_j\phi_j(\mathbf{x}).
 $$
 
 Since each observation belongs to exactly one region, the model can learn a different prediction for each region.
@@ -264,8 +264,8 @@ regions, and therefore 100 basis functions.
         <h2>Learning the basis functions</h2>
         <p>So how can we use this structure? One approach is to allow the model to learn the basis functions themselves. Instead of having:</p>
         <p>$$ \phi_j(x)$$</p>
-        where the basis function is fixed, we can define a basis function with learnable parameters $\theta$:
-        <p>$$ \phi_j(x, \theta_j)$$</p>
+        where the basis function is fixed, we can define a basis function with learnable parameters $\boldsymbol{\theta}$:
+        <p>$$ \phi_j(x, \boldsymbol{\theta}_j)$$</p>
         <p>
           For example, consider a Gaussian basis function:
         </p>
@@ -303,10 +303,10 @@ regions, and therefore 100 basis functions.
         <p>
           Returning to our original regression model, we can now write:
         </p>
-        <p>$$ y(x, \mathbf{w}, \theta) = w_0 + \sum_{j=1}^{M} w_j \phi_j(x, \theta_j) $$</p>
+        <p>$$ \hat{y}(x, \mathbf{w}, \boldsymbol{\theta}) = b + \sum_{j=1}^{M} w_j \phi_j(x, \boldsymbol{\theta}_j) $$</p>
         <p>
           where the output $y$ is now a function of both the weights of the functions 
-          $\mathbf{w}$ and the learnable parameters $\theta$ that control the behaviour of the functions themselves .
+          $\mathbf{w}$ and the learnable parameters $\boldsymbol{\theta}$ that control the behaviour of the functions themselves .
         </p>
         <p>
           This is the idea behind neural networks: instead of choosing all the features ourselves, we can learn useful features from the data.

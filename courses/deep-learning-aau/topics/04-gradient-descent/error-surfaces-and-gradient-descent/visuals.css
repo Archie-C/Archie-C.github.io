@@ -1,0 +1,19 @@
+.lecture article, .chart-card { min-width: 0; }
+.body .katex-display { overflow-x: auto; }
+.chart-card svg { width: 100%; height: auto; }
+.controls { display: flex; flex-wrap: wrap; gap: 14px 24px; align-items: end; border-top: 1px solid var(--rule); padding: 12px 0; font: 11px var(--font-mono); color: var(--fg-2); }
+.controls[hidden] { display: none; }
+.controls label { display: grid; gap: 6px; flex: 1 1 200px; }
+.controls input { width: 100%; accent-color: var(--accent); }
+.controls output { color: var(--accent); }
+.controls button { font: 11px var(--font-mono); color: var(--fg); background: var(--bg); border: 1px solid var(--rule-strong); border-radius: 3px; padding: 8px 12px; cursor: pointer; }
+.controls button:hover { border-color: var(--accent); color: var(--accent); }
+.controls :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.readout { font: 11px/1.7 var(--font-mono); color: var(--fg-2); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.table-wrap { overflow-x: auto; margin: 1.4em 0; }
+.table-wrap:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.table-wrap table { width: 100%; min-width: 410px; border-collapse: collapse; font: 13px/1.5 var(--font-sans); color: var(--fg-2); font-variant-numeric: tabular-nums; }
+.table-wrap caption { padding-bottom: 10px; text-align: left; font: 14px var(--font-serif); }
+.table-wrap th, .table-wrap td { padding: 10px 12px; text-align: right; vertical-align: top; border-bottom: 1px solid var(--rule); }
+.table-wrap th:first-child, .table-wrap td:first-child { text-align: left; }
+.table-wrap thead th { background: var(--bg-sunk); border-top: 1px solid var(--rule); color: var(--fg); font-weight: 600; }

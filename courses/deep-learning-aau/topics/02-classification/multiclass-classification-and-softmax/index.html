@@ -75,26 +75,26 @@
         <p>Here $K$ is the number of classes. In our flower example, $K=3$.</p>
 
         <h2>One score per class</h2>
-        <p>For binary classification, we calculated one linear score, $a(\mathbf{x})=\mathbf{w}^T\mathbf{x}+w_0$. For multiclass classification, we give each class its own score:</p>
-        <p>$$a_k(\mathbf{x})=\mathbf{w}_k^T\mathbf{x}+w_{k0},\qquad k=1,\ldots,K.$$</p>
-        <p>Each class gets its own weights and therefore its own score. With three classes, we have $a_1(\mathbf{x})$, $a_2(\mathbf{x})$, and $a_3(\mathbf{x})$. A larger score means the model considers that class more plausible.</p>
+        <p>For binary classification, we calculated one linear score, $z(\mathbf{x})=\mathbf{w}^T\mathbf{x}+b$. For multiclass classification, we give each class its own score:</p>
+        <p>$$z_k(\mathbf{x})=\mathbf{w}_k^T\mathbf{x}+b_k,\qquad k=1,\ldots,K.$$</p>
+        <p>Each class gets its own weights and therefore its own score. With three classes, we have $z_1(\mathbf{x})$, $z_2(\mathbf{x})$, and $z_3(\mathbf{x})$. A larger score means the model considers that class more plausible.</p>
         <p>For example, the scores might be</p>
-        <p>$$a_1=1.2,\qquad a_2=3.1,\qquad a_3=-0.4.$$</p>
+        <p>$$z_1=1.2,\qquad z_2=3.1,\qquad z_3=-0.4.$$</p>
         <p>Class 2 has the largest score, but these are unrestricted real numbers, not probabilities. We need to turn them into values between 0 and 1 that add up to one.</p>
 
         <h2>The softmax function</h2>
         <p>For each class, softmax exponentiates its score and divides by the sum of all the exponentials:</p>
-        <p>$$y_k=\frac{\exp(a_k)}{\sum_{j=1}^{K}\exp(a_j)}.$$</p>
-        <p>The exponential makes each value positive. Dividing by their sum normalises the values, so $0&lt;y_k&lt;1$ and $\sum_{k=1}^{K}y_k=1$. We can then read each output as a class probability:</p>
-        <p>$$y_k=p(\mathcal{C}_k\mid\mathbf{x}).$$</p>
+        <p>$$\hat{p}_k=\frac{\exp(z_k)}{\sum_{j=1}^{K}\exp(z_j)}.$$</p>
+        <p>The exponential makes each value positive. Dividing by their sum normalises the values, so $0&lt;\hat{p}_k&lt;1$ and $\sum_{k=1}^{K}\hat{p}_k=1$. We can then read each output as a class probability:</p>
+        <p>$$\hat{p}_k=p(\mathcal{C}_k\mid\mathbf{x}).$$</p>
         <div class="note important"><span class="tag">important</span><p>Softmax takes the set of class scores and turns them into a probability distribution over the classes.</p></div>
 
         <h2>A small softmax example</h2>
         <p>Let's use the scores from above. Their exponentials are approximately $3.320$, $22.198$, and $0.670$. Their sum is about $26.188$, so the probabilities are</p>
-        <p>$$\begin{aligned}y_1&=3.320/26.188\approx0.127,\\y_2&=22.198/26.188\approx0.848,\\y_3&=0.670/26.188\approx0.026.\end{aligned}$$</p>
+        <p>$$\begin{aligned}\hat{p}_1&=3.320/26.188\approx0.127,\\\hat{p}_2&=22.198/26.188\approx0.848,\\\hat{p}_3&=0.670/26.188\approx0.026.\end{aligned}$$</p>
         <p>As expected, class 2 has the largest probability. To make a prediction, we choose the class with the largest probability:</p>
-        <p>$$\hat{k}=\arg\max_k y_k.$$</p>
-        <p>In plain English, this means “choose the index of the largest probability.” Softmax preserves the ordering of scores, so it is also the class with the largest score: $\hat{k}=\arg\max_k a_k$.</p>
+        <p>$$\hat{k}=\arg\max_k \hat{p}_k.$$</p>
+        <p>In plain English, this means “choose the index of the largest probability.” Softmax preserves the ordering of scores, so it is also the class with the largest score: $\hat{k}=\arg\max_k z_k$.</p>
         <figure class="chart-card"><div class="eyebrow">02 &middot; softmax</div><h3>Class scores and probabilities</h3><div class="chart-frame"><canvas id="softmaxExampleChart" aria-label="Softmax probabilities for three class scores" role="img"></canvas></div><figcaption class="chart-caption"><span class="label">fig 2</span> Softmax turns the three scores into probabilities that sum to one. Hover to see each raw score.</figcaption></figure>
 
         <h2>Why not apply sigmoid to every class?</h2>
@@ -103,25 +103,25 @@
 
         <h2>Decision boundaries</h2>
         <p>The model predicts whichever class has the largest score. The boundary between classes $i$ and $j$ is where their scores are equal:</p>
-        <p>$$a_i(\mathbf{x})=a_j(\mathbf{x}).$$</p>
+        <p>$$z_i(\mathbf{x})=z_j(\mathbf{x}).$$</p>
         <p>Substituting the linear scores and rearranging gives</p>
-        <p>$$ (\mathbf{w}_i-\mathbf{w}_j)^T\mathbf{x}+(w_{i0}-w_{j0})=0. $$</p>
+        <p>$$ (\mathbf{w}_i-\mathbf{w}_j)^T\mathbf{x}+(b_i-b_j)=0. $$</p>
         <p>This is still a linear boundary. A multiclass linear classifier divides the input space into regions, with one predicted class in each region.</p>
         <figure class="chart-card"><div class="eyebrow">03 &middot; decision boundaries</div><h3>One region for each class</h3><div class="chart-legend"><span class="item"><span class="swatch swatch--dot" style="background:var(--c-cat-5)"></span>red flowers</span><span class="item"><span class="swatch swatch--dot" style="background:var(--c-cat-2)"></span>blue flowers</span><span class="item"><span class="swatch swatch--dot" style="background:var(--c-cat-4)"></span>yellow flowers</span><span class="item"><span class="swatch" style="background:var(--c-cat-1)"></span>pairwise boundaries</span></div><div class="chart-frame"><canvas id="multiclassBoundaryChart" aria-label="Three flower classes with illustrative linear decision boundaries" role="img"></canvas></div><figcaption class="chart-caption"><span class="label">fig 3</span> The largest score changes across each boundary, dividing the space into decision regions.</figcaption></figure>
 
         <h2>Representing the target</h2>
         <p>During training, we know which class each observation belongs to. For a flower in class 2, we can represent the target as</p>
-        <p>$$\mathbf{t}=\begin{pmatrix}0\\1\\0\end{pmatrix}.$$</p>
+        <p>$$\mathbf{y}=\begin{pmatrix}0\\1\\0\end{pmatrix}.$$</p>
         <p>Exactly one element is 1 because exactly one class is correct. For $K$ classes, we can write each target value as</p>
-        <p>$$t_k=\begin{cases}1 & \text{if the observation belongs to class }k,\\0 & \text{otherwise.}\end{cases}$$</p>
+        <p>$$y_k=\begin{cases}1 & \text{if the observation belongs to class }k,\\0 & \text{otherwise.}\end{cases}$$</p>
         <p>This representation is commonly called one-hot encoding.</p>
 
         <h2>Multiclass cross-entropy</h2>
         <p>We already used binary cross-entropy to reward a model for assigning high probability to the class that occurred. The same idea extends naturally to $K$ classes. For one observation, the loss is</p>
-        <p>$$\mathcal{L}=-\sum_{k=1}^{K}t_k\log y_k.$$</p>
-        <p>Only one target value is 1, so all the other terms disappear. If class 2 is correct, for example, then $\mathcal{L}=-\log y_2$. The loss is the negative log probability assigned to the correct class.</p>
-        <p>For a dataset of $N$ observations, we add the loss for each observation, or take its mean:</p>
-        <p>$$\mathcal{L}=-\sum_{n=1}^{N}\sum_{k=1}^{K}t_{nk}\log y_{nk},\qquad \mathcal{L}_{\mathrm{mean}}=-\frac{1}{N}\sum_{n=1}^{N}\sum_{k=1}^{K}t_{nk}\log y_{nk}.$$</p>
+        <p>$$\ell=-\sum_{k=1}^{K}y_k\log \hat{p}_k.$$</p>
+        <p>Only one target value is 1, so all the other terms disappear. If class 2 is correct, for example, then $\ell=-\log \hat{p}_2$. The loss is the negative log probability assigned to the correct class.</p>
+        <p>For a dataset of $n$ observations, we add the loss for each observation, or take its mean:</p>
+        <p>$$S=-\sum_{i=1}^{n}\sum_{k=1}^{K}y_{ik}\log \hat{p}_{ik},\qquad L=-\frac{1}{n}\sum_{i=1}^{n}\sum_{k=1}^{K}y_{ik}\log \hat{p}_{ik}.$$</p>
         <p>This is the multiclass version of the cross-entropy loss derived in the previous note.</p>
         <div class="note important"><span class="tag">important</span><p>Because the target is one-hot encoded, multiclass cross-entropy is simply the negative log probability assigned to the correct class.</p></div>
 
@@ -133,7 +133,7 @@
 
         <h2>Numerical stability</h2>
         <p>Softmax contains exponentials, which can become very large for large scores. In practice, we subtract the largest score before exponentiating:</p>
-        <p>$$y_k=\frac{\exp(a_k-\max_j a_j)}{\sum_j\exp(a_j-\max_j a_j)}.$$</p>
+        <p>$$\hat{p}_k=\frac{\exp(z_k-\max_j z_j)}{\sum_j\exp(z_j-\max_j z_j)}.$$</p>
         <p>Subtracting the same value from every score does not change the probabilities. It simply keeps the exponentials smaller and easier to calculate.</p>
 
         <h2>Implementation</h2>
@@ -151,7 +151,7 @@ def softmax(scores):
         <p>The <code>keepdims=True</code> argument keeps the row dimension so NumPy can divide each score by the sum for its observation.</p>
 
         <h2>Setting up the classifier</h2>
-        <p>With $D$ input features and $K$ classes, we use a weight matrix $W\in\mathbb{R}^{D\times K}$ and a bias vector $\mathbf{b}\in\mathbb{R}^{K}$. For a matrix of inputs $X$, the score matrix is $A=XW+\mathbf{b}$, and the probabilities are $Y=\operatorname{softmax}(A)$.</p>
+        <p>With $d$ input features and $K$ classes, use $\mathbf{W}\in\mathbb{R}^{K\times d}$, with one row per class, and $\mathbf{b}\in\mathbb{R}^{K}$. For a batch $\mathbf{X}\in\mathbb{R}^{n\times d}$, the score matrix is $\mathbf{Z}=\mathbf{X}\mathbf{W}^\top+\mathbf{b}$, where the bias is added to every row. Applying softmax row by row gives the probability matrix $\hat{\mathbf{P}}$.</p>
         <p>Here is the start of a classifier. We initialise the weights once we know how many input features and classes there are. In the code below, class labels are integer indices starting at 0.</p>
         <pre><code class="language-python">class SoftmaxClassifier:
     def __init__(self, learning_rate=0.1, epochs=1000):
@@ -172,7 +172,7 @@ def softmax(scores):
         )</code></pre>
         <p>The matrix product gives one score per class. Softmax then converts each row of scores into a row of probabilities:</p>
         <pre><code class="language-python">    def decision_function(self, X):
-        return X @ self.weights + self.bias
+        return X @ self.weights.T + self.bias
 
     def predict_proba(self, X):
         return self._softmax(
@@ -195,7 +195,7 @@ def softmax(scores):
 
         <h2>Training the model</h2>
         <p>The gradient keeps the same familiar prediction-minus-target form as in logistic regression. Here both values are vectors, one entry per class. We convert the integer labels to one-hot rows so that we can subtract them from the predicted probabilities.</p>
-        <p>For the mean loss, the parameter gradients are $\nabla_W\mathcal{L}=X^T(Y-T)/N$ and $\nabla_{\mathbf{b}}\mathcal{L}=\operatorname{mean}(Y-T)$. We can therefore adapt the same gradient-descent update:</p>
+        <p>Write $\mathbf{Y}$ for the one-hot target matrix. For the mean loss, the parameter gradients are $\nabla_{\mathbf{W}}L=(\hat{\mathbf{P}}-\mathbf{Y})^\top\mathbf{X}/n$ and $\nabla_{\mathbf{b}}L=\operatorname{mean}(\hat{\mathbf{P}}-\mathbf{Y})$, where the mean is taken over rows. We can therefore adapt the same gradient-descent update:</p>
         <pre><code class="language-python">    def fit(self, X, y):
         n_samples, n_features = X.shape
         y = np.asarray(y, dtype=int)
@@ -203,7 +203,7 @@ def softmax(scores):
         targets = np.eye(n_classes)[y]
 
         self.weights = np.zeros(
-            (n_features, n_classes)
+            (n_classes, n_features)
         )
         self.bias = np.zeros(n_classes)
         self.loss_history = []
@@ -214,7 +214,7 @@ def softmax(scores):
                 cross_entropy(y, probabilities)
             )
             error = probabilities - targets
-            dw = X.T @ error / n_samples
+            dw = error.T @ X / n_samples
             db = np.mean(error, axis=0)
             self.weights -= self.learning_rate * dw
             self.bias -= self.learning_rate * db</code></pre>

@@ -156,9 +156,9 @@ window.addEventListener("DOMContentLoaded", () => {
         lineDataset("Target t = 1", target1, colours.class1),
         lineDataset("Target t = 0", target0, colours.class0)
       ] },
-      options: sharedOptions("linear score a", "loss", -8, 8, 0, 8, {
+      options: sharedOptions("linear score z", "loss", -8, 8, 0, 8, {
         title: (items) => items.length ? items[0].dataset.label : "",
-        label: (item) => `a = ${item.parsed.x.toFixed(2)}, loss = ${item.parsed.y.toFixed(3)}`
+        label: (item) => `z = ${item.parsed.x.toFixed(2)}, loss = ${item.parsed.y.toFixed(3)}`
       })
     });
   }

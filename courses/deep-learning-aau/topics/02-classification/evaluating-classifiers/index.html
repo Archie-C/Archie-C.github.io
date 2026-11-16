@@ -67,8 +67,8 @@
         <p>For a more formal treatment, see <a href="https://www.bishopbook.com/">Deep learning: Foundations and Concepts</a>.</p>
 
         <h2>A small example</h2>
-        <p>Suppose a classifier is used to detect whether a patient has a disease. For each patient, the true target is $t\in\{0,1\}$: $1$ means the disease is present, and $0$ means it is absent.</p>
-        <p>The classifier gives us a probability for the positive class, $y(\mathbf{x})=p(t=1\mid\mathbf{x})$. To make a class prediction, we use a threshold. For now, predict positive whenever $y(\mathbf{x})\geq 0.5$.</p>
+        <p>Suppose a classifier is used to detect whether a patient has a disease. For each patient, the true target is $y\in\{0,1\}$: $1$ means the disease is present, and $0$ means it is absent.</p>
+        <p>The classifier gives us a probability for the positive class, $\hat{p}(\mathbf{x})=p(y=1\mid\mathbf{x})$. To make a class prediction, we use a threshold. For now, predict positive whenever $\hat{p}(\mathbf{x})\geq 0.5$.</p>
         <p>Here are fourteen patients. The predicted class in the table uses this threshold.</p>
         <table class="matrix" aria-label="True classes, predicted probabilities, and predicted classes for fourteen patients">
           <thead><tr><th>Patient</th><th>True class</th><th>Predicted probability</th><th>Predicted class</th></tr></thead>

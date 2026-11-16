@@ -76,9 +76,9 @@
 
         <h2>The limitation of a linear classifier</h2>
         <p>In the previous notes, we used logistic regression to turn a linear score into a probability:</p>
-        <p>$$y(\mathbf{x})=\sigma(\mathbf{w}^T\mathbf{x}+w_0).$$</p>
+        <p>$$\hat{p}(\mathbf{x})=\sigma(\mathbf{w}^T\mathbf{x}+b).$$</p>
         <p>The predicted probability is useful, but the score still has a limitation. Its 0.5 boundary occurs when</p>
-        <p>$$\mathbf{w}^T\mathbf{x}+w_0=0.$$</p>
+        <p>$$\mathbf{w}^T\mathbf{x}+b=0.$$</p>
         <p>If $\mathbf{x}$ contains the original input variables, this equation is linear in those variables. With two inputs, it describes a straight line.</p>
         <p>Now consider a simple dataset with one class near the centre and another spread around it. No matter where we draw a straight line, it cannot put all of the central points on one side and all of the surrounding points on the other. The issue is not that logistic regression cannot give useful probabilities. Its linear score is too restrictive for this pattern.</p>
         <figure class="chart-card"><div class="eyebrow">01 &middot; nonlinear data</div><h3>A problem a straight line cannot solve</h3><div class="chart-legend"><span class="item"><span class="swatch swatch--dot" style="background:var(--c-cat-2)"></span>class 0</span><span class="item"><span class="swatch swatch--dot" style="background:var(--c-cat-1)"></span>class 1</span></div><div class="chart-frame"><canvas id="nonlinearDataChart" aria-label="Two-dimensional data with class zero near the centre and class one around the outside, without a decision boundary" role="img"></canvas></div><figcaption class="chart-caption"><span class="label">fig 1</span> No single linear decision boundary can perfectly separate these two classes.</figcaption></figure>
@@ -87,10 +87,10 @@
         <p>In <a href="../../01-regression/non-linear-regression/">nonlinear regression</a>, we transformed the inputs with basis functions before fitting a linear model. We can use the same idea here. Instead of applying logistic regression directly to $\mathbf{x}$, first map it to a feature vector:</p>
         <p>$$\mathbf{x}\longrightarrow\boldsymbol{\phi}(\mathbf{x}).$$</p>
         <p>The score is now a weighted sum of the transformed features, plus a bias:</p>
-        <p>$$a(\mathbf{x})=\mathbf{w}^T\boldsymbol{\phi}(\mathbf{x})+w_0.$$</p>
+        <p>$$z(\mathbf{x})=\mathbf{w}^T\boldsymbol{\phi}(\mathbf{x})+b.$$</p>
         <p>We then pass that score through the same sigmoid as before:</p>
-        <p>$$y(\mathbf{x})=\sigma\left(\mathbf{w}^T\boldsymbol{\phi}(\mathbf{x})+w_0\right)=p(t=1\mid\mathbf{x}).$$</p>
-        <p>The 0.5 boundary is still where the score is zero, so $\mathbf{w}^T\boldsymbol{\phi}(\mathbf{x})+w_0=0$.</p>
+        <p>$$\hat{p}(\mathbf{x})=\sigma\left(\mathbf{w}^T\boldsymbol{\phi}(\mathbf{x})+b\right)=p(y=1\mid\mathbf{x}).$$</p>
+        <p>The 0.5 boundary is still where the score is zero, so $\mathbf{w}^T\boldsymbol{\phi}(\mathbf{x})+b=0$.</p>
         <div class="note important"><span class="tag">important</span><p>The classifier is still linear in the transformed features $\boldsymbol{\phi}(\mathbf{x})$, but its decision boundary does not need to be linear in the original input $\mathbf{x}$.</p></div>
 
         <h2>A simple nonlinear transformation</h2>
@@ -98,29 +98,29 @@
         <p>$$\phi(\mathbf{x})=x_1^2+x_2^2.$$</p>
         <p>This is the squared distance from the origin. Points near the centre have small values; points farther away have larger values. So the two classes that overlap when we look at $(x_1,x_2)$ separately can become easy to distinguish using this one feature.</p>
         <p>For example, use the score</p>
-        <p>$$a(\mathbf{x})=w_1(x_1^2+x_2^2)+w_0.$$</p>
+        <p>$$z(\mathbf{x})=w_1(x_1^2+x_2^2)+b.$$</p>
         <p>The decision boundary occurs when the score is zero:</p>
-        <p>$$w_1(x_1^2+x_2^2)+w_0=0.$$</p>
+        <p>$$w_1(x_1^2+x_2^2)+b=0.$$</p>
         <p>If $w_1\ne 0$, rearranging gives</p>
-        <p>$$x_1^2+x_2^2=-\frac{w_0}{w_1}.$$</p>
+        <p>$$x_1^2+x_2^2=-\frac{b}{w_1}.$$</p>
         <p>This is the equation of a circle centred at the origin. The model itself has not become a complicated nonlinear algorithm. We have changed the features supplied to the same logistic classifier.</p>
         <figure class="chart-card"><div class="eyebrow">02 &middot; nonlinear boundary</div><h3>A linear classifier after transformation</h3><div class="chart-legend"><span class="item"><span class="swatch swatch--dot" style="background:var(--c-cat-2)"></span>class 0</span><span class="item"><span class="swatch swatch--dot" style="background:var(--c-cat-1)"></span>class 1</span><span class="item"><span class="swatch" style="background:var(--c-cat-3)"></span>decision boundary</span></div><div class="chart-frame"><canvas id="circularBoundaryChart" aria-label="The centre and surrounding classes separated by a circular decision boundary" role="img"></canvas></div><figcaption class="chart-caption"><span class="label">fig 2</span> The classifier is linear in $x_1^2+x_2^2$, but its boundary is circular in the original input space.</figcaption></figure>
 
         <h2>Feature space</h2>
-        <p>The space made by the transformed features is called <strong>feature space</strong>. For the feature $z=x_1^2+x_2^2$, each original observation $(x_1,x_2)$ is represented by a single number, $z$.</p>
-        <p>In this new space, the centre points have small $z$ values and the surrounding points have large ones. A threshold $c$ can separate them: one class has $z&lt;c$, while the other has $z&gt;c$. The curved separation in the original view has become a simple linear threshold in feature space.</p>
+        <p>The space made by the transformed features is called <strong>feature space</strong>. For the feature $q=x_1^2+x_2^2$, each original observation $(x_1,x_2)$ is represented by a single number, $q$.</p>
+        <p>In this new space, the centre points have small $q$ values and the surrounding points have large ones. A threshold $c$ can separate them: one class has $q&lt;c$, while the other has $q&gt;c$. The curved separation in the original view has become a simple linear threshold in feature space.</p>
         <figure class="chart-card"><div class="eyebrow">03 &middot; feature space</div><h3>The same data after transformation</h3><div class="chart-legend"><span class="item"><span class="swatch swatch--dot" style="background:var(--c-cat-2)"></span>class 0</span><span class="item"><span class="swatch swatch--dot" style="background:var(--c-cat-1)"></span>class 1</span><span class="item"><span class="swatch" style="background:var(--c-cat-3)"></span>threshold</span></div><div class="chart-frame"><canvas id="featureSpaceChart" aria-label="The same observations arranged by squared distance, separated by a vertical threshold" role="img"></canvas></div><figcaption class="chart-caption"><span class="label">fig 3</span> The transformation turns the nonlinear separation problem into a threshold in feature space; the vertical positions only spread overlapping points out for display.</figcaption></figure>
 
         <h2>Polynomial basis functions</h2>
         <p>We chose the radial feature because it suited this particular dataset. A more general choice is to include polynomial terms for both inputs. One degree-2 basis is</p>
         <p>$$\boldsymbol{\phi}(\mathbf{x})=\begin{pmatrix}1\\x_1\\x_2\\x_1^2\\x_1x_2\\x_2^2\end{pmatrix}.$$</p>
         <p>The score becomes</p>
-        <p>$$a(\mathbf{x})=\mathbf{w}^T\boldsymbol{\phi}(\mathbf{x})=w_0+w_1x_1+w_2x_2+w_3x_1^2+w_4x_1x_2+w_5x_2^2.$$</p>
-        <p>The boundary is still found by setting $a(\mathbf{x})=0$, but it can now be curved. Depending on the weights, it can describe circles, ellipses, parabolas, and other quadratic curves. The main point is the added flexibility; we do not need to study each curve in detail.</p>
+        <p>$$z(\mathbf{x})=\mathbf{w}^T\boldsymbol{\phi}(\mathbf{x})=b+w_1x_1+w_2x_2+w_3x_1^2+w_4x_1x_2+w_5x_2^2.$$</p>
+        <p>The boundary is still found by setting $z(\mathbf{x})=0$, but it can now be curved. Depending on the weights, it can describe circles, ellipses, parabolas, and other quadratic curves. The main point is the added flexibility; we do not need to study each curve in detail.</p>
         <figure class="chart-card"><div class="eyebrow">04 &middot; polynomial features</div><h3>A more flexible decision boundary</h3><div class="chart-legend"><span class="item"><span class="swatch swatch--dot" style="background:var(--c-cat-2)"></span>class 0</span><span class="item"><span class="swatch swatch--dot" style="background:var(--c-cat-1)"></span>class 1</span><span class="item"><span class="swatch" style="background:var(--c-cat-3)"></span>polynomial boundary</span></div><div class="chart-frame"><canvas id="polynomialBoundaryChart" aria-label="Two classes separated by a curved quadratic decision boundary" role="img"></canvas></div><figcaption class="chart-caption"><span class="label">fig 4</span> Adding polynomial basis functions lets a linear classifier in feature space produce a curved boundary in the original inputs.</figcaption></figure>
 
         <h2>Linear in the parameters</h2>
-        <p>Compare $w_0+w_1x$ with $w_0+w_1x+w_2x^2$. The second score is nonlinear in the input $x$, because it contains $x^2$. But both expressions are linear in their parameters: each weight appears only as a coefficient, not inside a nonlinear function.</p>
+        <p>Compare $b+w_1x$ with $b+w_1x+w_2x^2$. The second score is nonlinear in the input $x$, because it contains $x^2$. But both expressions are linear in their parameters: each weight appears only as a coefficient, not inside a nonlinear function.</p>
         <p>This is the same distinction we made for nonlinear regression. We can use the word “linear” for the relationship to the parameters even when the curve in the original input space is not a straight line.</p>
         <div class="note important"><span class="tag">important</span><p>A linear model does not necessarily produce a straight line in the original input space. It is called linear because the parameters enter the model linearly.</p></div>
 

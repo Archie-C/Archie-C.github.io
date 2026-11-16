@@ -72,8 +72,8 @@
         <h2>Predictions and representations</h2>
         <p>In <a href="../introduction-to-learning-features/">Introduction to learning features</a>, we started with basis functions that we chose ourselves. For example, we could add $x^2$ as a feature in a regression model. We then introduced learnable basis functions so that the model could find useful features from the data.</p>
         <p>In a neural network, the hidden layers give us a way to learn these transformations. Recall that the output of layer $\ell$ is:</p>
-        <p>$$\mathbf{z}^{(\ell)} = h^{(\ell)}\left(\mathbf{W}^{(\ell)}\mathbf{z}^{(\ell-1)} + \mathbf{b}^{(\ell)}\right), \qquad \mathbf{z}^{(0)}=\mathbf{x}.$$</p>
-        <p>Here $\mathbf{W}^{(\ell)}$ and $\mathbf{b}^{(\ell)}$ are the weights and biases of the layer, and $h^{(\ell)}$ is its activation function. The vector $\mathbf{z}^{(\ell)}$ contains the features calculated by that layer. We call it a <strong>learned representation</strong> of the original input $\mathbf{x}$.</p>
+        <p>$$\mathbf{a}^{(\ell)} = \sigma^{(\ell)}\left(\mathbf{W}^{(\ell)}\mathbf{a}^{(\ell-1)} + \mathbf{b}^{(\ell)}\right), \qquad \mathbf{a}^{(0)}=\mathbf{x}.$$</p>
+        <p>Here $\mathbf{W}^{(\ell)}$ and $\mathbf{b}^{(\ell)}$ are the weights and biases of the layer, and $\sigma^{(\ell)}$ is its activation function. The vector $\mathbf{a}^{(\ell)}$ contains the features calculated by that layer. We call it a <strong>learned representation</strong> of the original input $\mathbf{x}$.</p>
         <p>Each hidden layer receives the representation from the previous layer, so different layers can represent the same input in different ways. The output layer then uses the final hidden representation to make a prediction.</p>
         <figure class="chart-card">
           <div class="eyebrow">01 &middot; representation</div><h3>Inputs, representations and predictions</h3>
@@ -84,7 +84,7 @@
               <path d="M132 70 H165 M158 64 L165 70 L158 76" fill="none" stroke="var(--fg-2)" stroke-width="2"/>
               <rect x="170" y="38" width="130" height="65" rx="6" fill="var(--bg-sunk)" stroke="var(--rule-strong)"/><text x="235" y="75">hidden layers</text>
               <path d="M300 70 H333 M326 64 L333 70 L326 76" fill="none" stroke="var(--fg-2)" stroke-width="2"/>
-              <rect x="338" y="38" width="145" height="65" rx="6" fill="var(--accent-soft)" stroke="var(--accent)"/><text x="410" y="65">representation</text><text x="410" y="87">z</text>
+              <rect x="338" y="38" width="145" height="65" rx="6" fill="var(--accent-soft)" stroke="var(--accent)"/><text x="410" y="65">representation</text><text x="410" y="87">a</text>
               <path d="M483 70 H516 M509 64 L516 70 L509 76" fill="none" stroke="var(--fg-2)" stroke-width="2"/>
               <rect x="521" y="38" width="115" height="65" rx="6" fill="var(--bg-sunk)" stroke="var(--rule-strong)"/><text x="578" y="75">output layer</text>
               <path d="M636 70 H658 M651 64 L658 70 L651 76" fill="none" stroke="var(--fg-2)" stroke-width="2"/><text x="687" y="66">class</text><text x="687" y="85">score</text>
@@ -116,21 +116,21 @@
 
         <h2>Embeddings and representation spaces</h2>
         <p>We often call a vector representation of an input an <strong>embedding</strong>. If we write the hidden layers as a function $f_{\boldsymbol{\theta}}$, with parameters $\boldsymbol{\theta}$, we can write:</p>
-        <p>$$\mathbf{z}=f_{\boldsymbol{\theta}}(\mathbf{x}).$$</p>
-        <p>The input is $\mathbf{x}$, and the embedding $\mathbf{z}$ is the feature vector returned by the learned transformation. The set of possible vectors is the representation space, often called the <strong>embedding space</strong>. The embedding is not yet a class prediction; we can use it as an input to a classifier.</p>
+        <p>$$\mathbf{a}=f_{\boldsymbol{\theta}}(\mathbf{x}).$$</p>
+        <p>The input is $\mathbf{x}$, and the embedding $\mathbf{a}$ is the feature vector returned by the learned transformation. The set of possible vectors is the representation space, often called the <strong>embedding space</strong>. The embedding is not yet a class prediction; we can use it as an input to a classifier.</p>
         <p>For example, a $28\times28$ image has 784 pixel values. A network could map it into a vector with 16 components:</p>
         <p>$$f_{\boldsymbol{\theta}}:\mathbb{R}^{784}\rightarrow\mathbb{R}^{16}.$$</p>
         <p>The 16 components are learned combinations of the inputs; they do not need to correspond to individual pixels or have an obvious interpretation. Embeddings are not limited to two or three dimensions as in our plot. They can contain hundreds or thousands of components. The transformation can reduce the number of dimensions, as above, but it can also keep the same number or increase it.</p>
         <p>One way to compare two embeddings is Euclidean distance:</p>
-        <p>$$d(\mathbf{z}_i,\mathbf{z}_j)=\|\mathbf{z}_i-\mathbf{z}_j\|_2.$$</p>
+        <p>$$d(\mathbf{a}_i,\mathbf{a}_j)=\|\mathbf{a}_i-\mathbf{a}_j\|_2.$$</p>
         <p>This measures the distance between the two points. Another common measure is cosine similarity:</p>
-        <p>$$\operatorname{sim}(\mathbf{z}_i,\mathbf{z}_j)=\frac{\mathbf{z}_i^\top\mathbf{z}_j}{\|\mathbf{z}_i\|_2\|\mathbf{z}_j\|_2}.$$</p>
+        <p>$$\operatorname{sim}(\mathbf{a}_i,\mathbf{a}_j)=\frac{\mathbf{a}_i^\top\mathbf{a}_j}{\|\mathbf{a}_i\|_2\|\mathbf{a}_j\|_2}.$$</p>
         <p>Cosine similarity compares the directions of two nonzero vectors, rather than the distance between their endpoints. It is undefined if either vector is zero. Two vectors pointing in the same direction have cosine similarity 1, even if their lengths differ.</p>
         <div class="note important"><span class="tag">important</span><p>Neither distance nor cosine similarity is automatically meaningful just because the vectors came from a network. We need to consider the data and objective used to learn the representation, and whether they support the comparison we want to make.</p></div>
 
         <h2>Learning representations through supervised learning</h2>
         <p>We do not need to tell a network explicitly to find a particular edge or curve. Instead, we can train it to make a prediction and let it learn features that help with that task. For a classifier, we can separate the hidden layers and output layer as:</p>
-        <p>$$\mathbf{z}=f_{\boldsymbol{\theta}}(\mathbf{x}), \qquad \hat{\mathbf{y}}=g_{\mathbf{w}}(\mathbf{z}).$$</p>
+        <p>$$\mathbf{a}=f_{\boldsymbol{\theta}}(\mathbf{x}), \qquad \hat{\mathbf{y}}=g_{\mathbf{w}}(\mathbf{a}).$$</p>
         <p>Here $f_{\boldsymbol{\theta}}$ produces the representation and $g_{\mathbf{w}}$ uses it to produce the prediction. The parameters $\boldsymbol{\theta}$ belong to the hidden layers and $\mathbf{w}$ denotes the output layer's parameters, including its biases.</p>
         <p>For a digit classifier, $\hat{\mathbf{y}}$ could contain the predicted probabilities for the ten digits. During training, we compare these probabilities with the labels using multiclass cross-entropy, as in the <a href="../output-layers-and-loss-functions/">previous note</a>. The loss provides a learning signal for both the output layer and the hidden layers. We will look at how parameters are updated later.</p>
         <p>As the network learns to distinguish digits, its hidden features can become useful for that distinction. We do not prescribe those features individually, and a different prediction task or loss can lead to a different representation of the same images.</p>
@@ -185,14 +185,14 @@
 
         <h2>Worked example: using an embedding for a new task</h2>
         <p>Suppose a digit classifier maps each $28\times28$ image to a 16-dimensional representation and then predicts one of ten digits. We can write its original pipeline as:</p>
-        <p>$$\mathbf{x}\in\mathbb{R}^{784}\ \xrightarrow{\ f_{\boldsymbol{\theta}}\ }\ \mathbf{z}\in\mathbb{R}^{16}\ \xrightarrow{\ g_{\mathbf{w}}\ }\ \hat{\mathbf{y}}\in\mathbb{R}^{10}.$$</p>
-        <p>Now suppose our new task is to predict whether a digit is even or odd. We remove the original output layer, extract $\mathbf{z}$ from the hidden network, and attach a new binary classifier:</p>
-        <p>$$\mathbf{x}\in\mathbb{R}^{784}\ \xrightarrow{\ f_{\boldsymbol{\theta}}\ }\ \mathbf{z}\in\mathbb{R}^{16}\ \xrightarrow{\ g_{\mathbf{v}}\ }\ p(\text{even}\mid\mathbf{x})\in(0,1).$$</p>
-        <p>For example, the new classifier could apply sigmoid to $\mathbf{v}^\top\mathbf{z}+b$. It uses 16 learned features rather than 784 pixel values. We can freeze $f_{\boldsymbol{\theta}}$ and train only $\mathbf{v}$ and $b$, or fine-tune some or all of $f_{\boldsymbol{\theta}}$ as well. We should still check performance on held-out examples for the new task.</p>
+        <p>$$\mathbf{x}\in\mathbb{R}^{784}\ \xrightarrow{\ f_{\boldsymbol{\theta}}\ }\ \mathbf{a}\in\mathbb{R}^{16}\ \xrightarrow{\ g_{\mathbf{w}}\ }\ \hat{\mathbf{y}}\in\mathbb{R}^{10}.$$</p>
+        <p>Now suppose our new task is to predict whether a digit is even or odd. We remove the original output layer, extract $\mathbf{a}$ from the hidden network, and attach a new binary classifier:</p>
+        <p>$$\mathbf{x}\in\mathbb{R}^{784}\ \xrightarrow{\ f_{\boldsymbol{\theta}}\ }\ \mathbf{a}\in\mathbb{R}^{16}\ \xrightarrow{\ g_{\mathbf{v}}\ }\ p(\text{even}\mid\mathbf{x})\in(0,1).$$</p>
+        <p>For example, the new classifier could apply sigmoid to $\mathbf{v}^\top\mathbf{a}+b$. It uses 16 learned features rather than 784 pixel values. We can freeze $f_{\boldsymbol{\theta}}$ and train only $\mathbf{v}$ and $b$, or fine-tune some or all of $f_{\boldsymbol{\theta}}$ as well. We should still check performance on held-out examples for the new task.</p>
         <p>To see how we might compare embeddings, let's use two-dimensional vectors for a small calculation. These are only illustrative; the digit network above uses 16 dimensions. Suppose:</p>
-        <p>$$\mathbf{z}_1=\begin{bmatrix}1\\2\end{bmatrix},\qquad \mathbf{z}_2=\begin{bmatrix}2\\2\end{bmatrix}.$$</p>
+        <p>$$\mathbf{a}_1=\begin{bmatrix}1\\2\end{bmatrix},\qquad \mathbf{a}_2=\begin{bmatrix}2\\2\end{bmatrix}.$$</p>
         <p>Their Euclidean distance and cosine similarity are:</p>
-        <p>$$d(\mathbf{z}_1,\mathbf{z}_2)=\sqrt{(1-2)^2+(2-2)^2}=1,\qquad \operatorname{sim}(\mathbf{z}_1,\mathbf{z}_2)=\frac{6}{\sqrt{5}\sqrt{8}}\approx0.949.$$</p>
+        <p>$$d(\mathbf{a}_1,\mathbf{a}_2)=\sqrt{(1-2)^2+(2-2)^2}=1,\qquad \operatorname{sim}(\mathbf{a}_1,\mathbf{a}_2)=\frac{6}{\sqrt{5}\sqrt{8}}\approx0.949.$$</p>
         <p>The points are one unit apart, and their vectors point in similar directions. Whether either number tells us anything useful about the images depends on how the representation was learned.</p>
 
         <h2>Limitations of learned representations</h2>

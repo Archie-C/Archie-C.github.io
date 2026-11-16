@@ -73,18 +73,16 @@
         <p>For a more formal definition, see <a href="https://www.bishopbook.com/">Deep learning: Foundations and Concepts</a></p>
 
         <h2>The model</h2>
-        <p>In the previous section (<a href="../multiple-input-dimensions/">multiple input dimensions</a>), we extended the linear regression model to handle multiple input features. Now we extend it further to handle multiple targets too.</p>
-        <p>We can write a target vector for a single data point as:</p>
-        <p>$$ \mathbf{y} = \begin{bmatrix} y_1 \\ y_2 \\ \vdots \\ y_l \end{bmatrix} $$</p>
-        <p>where $l$ is the number of target variables. To predict this vector, we can use a weight matrix instead of a weight vector:</p>
-        <p>$$ \mathbf{\Theta} = \begin{bmatrix} w_{01} & w_{02} & \cdots & w_{0l} \\ w_{11} & w_{12} & \cdots & w_{1l} \\ \vdots & \vdots & \ddots & \vdots \\ w_{n1} & w_{n2} & \cdots & w_{nl} \end{bmatrix} $$</p>
-        <p>Here, $w_{ij}$ represents the weight connecting the $i$-th input feature to the $j$-th target variable.</p>
-        <p>We can also use the same trick as before and create a target matrix that covers all data points:</p>
-        <p>$$ \mathbf{Y} = \begin{bmatrix} y_{11} & y_{12} & \cdots & y_{1l} \\ y_{21} & y_{22} & \cdots & y_{2l} \\ \vdots & \vdots & \ddots & \vdots \\ y_{m1} & y_{m2} & \cdots & y_{ml} \end{bmatrix} $$</p>
-        <p>Again, $m$ is the number of data points and $l$ is the number of target variables.</p>
+        <p>In the <a href="../multiple-input-dimensions/">previous note</a>, we used several input features to predict one target. Now suppose each example has $m$ target values. For one example, the target and prediction are vectors in $\mathbb R^m$:</p>
+        <p>$$\mathbf y=\begin{pmatrix}y_1\\\vdots\\y_m\end{pmatrix},\qquad \hat{\mathbf y}=\begin{pmatrix}\hat y_1\\\vdots\\\hat y_m\end{pmatrix}.$$</p>
+        <p>For each output we need its own weights and bias. As in the previous note, append a one to the input to form $\tilde{\mathbf x}=(1,x_1,\ldots,x_d)^\top$. Put the bias and input weights for output $k$ in row $k$ of an augmented matrix:</p>
+        <p>$$\widetilde{\mathbf W}=\begin{pmatrix}b_1&amp;w_{11}&amp;\cdots&amp;w_{1d}\\b_2&amp;w_{21}&amp;\cdots&amp;w_{2d}\\\vdots&amp;\vdots&amp;\ddots&amp;\vdots\\b_m&amp;w_{m1}&amp;\cdots&amp;w_{md}\end{pmatrix}\in\mathbb R^{m\times(d+1)},\qquad \hat{\mathbf y}=\widetilde{\mathbf W}\tilde{\mathbf x}.$$</p>
+        <p>The entry $w_{kj}$ connects input feature $j$ to output $k$. Without the augmented input, the same expression is $\hat{\mathbf y}=\mathbf W\mathbf x+\mathbf b$, with $\mathbf W\in\mathbb R^{m\times d}$ and $\mathbf b\in\mathbb R^m$. This row-per-output convention is also used for neural-network layers.</p>
+        <p>For $n$ examples, stack the target vectors as rows of $\mathbf Y\in\mathbb R^{n\times m}$ and the augmented inputs as rows of $\tilde{\mathbf X}\in\mathbb R^{n\times(d+1)}$. The prediction matrix is $\hat{\mathbf Y}=\tilde{\mathbf X}\widetilde{\mathbf W}^{\top}$.</p>
         <h2>The objective function</h2>
-        <p>Luckily, the rest of the formulation is the same as before so we can write the closed-form solution for the optimal weights as:</p>
-        <p>$$ \mathbf{\Theta} = (\mathbf{X}^T \mathbf{X})^{-1} \mathbf{X}^T \mathbf{Y} $$</p>
+        <p>We can sum the squared errors for every observation and output, or divide that sum by $n$ for the mean over observations. The two objectives have the same minimiser. If $\tilde{\mathbf X}$ has full column rank, solving the least-squares equations gives</p>
+        <p>$$\widetilde{\mathbf W}^{\top}=(\tilde{\mathbf X}^{\top}\tilde{\mathbf X})^{-1}\tilde{\mathbf X}^{\top}\mathbf Y.$$</p>
+        <p>Each column of the right-hand side solves the same least-squares problem for one output. If the design matrix is rank deficient, the displayed inverse does not exist; a pseudoinverse or another suitable solver can be used instead.</p>
         <div class="note important">
             <span class="tag">important</span>
             <p>
