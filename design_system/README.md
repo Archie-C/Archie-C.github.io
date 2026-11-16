@@ -141,7 +141,7 @@ are the same across all three — only the values change.
 
 | Palette | Background | Ink | Accent | Mood |
 | --- | --- | --- | --- | --- |
-| **Paper** (default) | `#FAF7F2` warm cream | `#1A1814` warm near-black | `#C7522A` terracotta | Anthropic-adjacent, academic warmth |
+| **Paper** (default) | `#F6F1E7` warm cream | `#15120B` warm near-black | `#6B2C5C` aubergine | Anthropic-adjacent, academic warmth |
 | **Slate** | `#F4F4F1` cool paper | `#15171C` blue-black | `#2A5FB0` ink blue | Cooler, more clinical, journal-feel |
 | **Mono** | `#FFFFFF` true white | `#000000` true black | `#C8102E` single red | High contrast, Swiss, fewer choices |
 
@@ -223,6 +223,21 @@ Quiet. The brand should not feel like it's selling itself.
   (`0 1px 0 var(--rule)`). `--shadow-2` is a soft drop for modals and
   popovers (`0 8px 24px -8px rgba(20, 19, 14, 0.18)`). No other shadows.
 - Cards on the canvas are bordered (1 px rule), not shadowed.
+
+### Site navigation standard
+
+The main site uses the same ordered links on every page: home, research,
+courses, A-level revision, projects, CV and contact. Mark the current page
+with `aria-current="page"`. The wordmark links home. The rail becomes a
+wrapping horizontal menu on small screens; its shared rules live in
+[`site-navigation.css`](./site-navigation.css). Use relative links so the
+site also works when served from a subdirectory.
+
+Course pages retain their course-specific top bar and topic navigation, with
+breadcrumbs back to the syllabus and topic. Lists of related notes should
+include every published section, and the current note should be identified
+visually and with `aria-current="page"`. Exercise and slide interfaces may
+use their own local navigation while preserving a route back to the course.
 
 ### Layout
 

@@ -25,6 +25,8 @@ Open the project's **SQL Editor**. Paste and run these complete files in order, 
 | 9 | `09-chapter-import.sql` | Allows chapter CSVs to omit `book_id` by inferring the specification from the chapter ID. Run after 08. |
 | 10 | `10-question-metadata.sql` | Removes question source/licence metadata and cleans existing question-import audits. Preserves content and student history. Run after 09, before publishing the current frontend. |
 | 11 | `11-question-coverage.sql` | Adds admin-only subtopic question counts for the Question coverage dashboard. Run after 10. |
+| 12 | `12-queue-performance.sql` | Speeds up daily queue planning and the dashboard snapshot for large question banks. Replaces scheduler functions only; same question choices, no data changes. Run after 11. |
+| 13 | `13-receipt-retention.sql` | Deletes replay receipts older than 30 days, now and automatically on each new receipt. Attempts and progress are untouched. Run after 12. |
 
 Each installation script is transactional. If one fails, fix the reported error and rerun that file before proceeding. Migration 10 is rerunnable and intentionally removes the retired question metadata. Apply scripts in order; rerunning an older function script afterwards can restore outdated APIs. They do not replace proper `ALTER TABLE` migrations for future schema changes.
 
@@ -138,7 +140,7 @@ The local suite tests the PostgreSQL functions and the browser with an emulated 
 - **Client/server upgrades:** preserve existing API compatibility until the matching frontend is available. Apply explicit schema migrations; initial installation scripts do not perform arbitrary upgrades.
 - **Lost response:** reconnect and retry the exact pending request. The receipt returns its committed result. Do not clear browser storage as the first recovery step.
 - **Version conflict:** pause competing tabs and use “Review latest saved session.” Preserve local drafts if the active question changed incompatibly; investigate before manually clearing an outbox.
-- **Receipt growth:** checkpoints produce receipts. Monitor `revision_private.receipts` during the pilot. Keep receipts while any client may still retry them; any retention policy must exceed the supported offline period and preserve attempt history. No automatic pruning is enabled.
+- **Receipt growth:** checkpoints produce receipts. Migration 13 deletes receipts older than 30 days. A device retrying a save older than that is not replayed: it gets `SESSION_CONFLICT` and the saved-work review, and `revision_attempts.idempotency_key` still prevents a duplicate attempt. Attempt history and progress are never pruned. To change the window, edit both `30 days` intervals in `13-receipt-retention.sql` and rerun it.
 
 ## Troubleshooting
 

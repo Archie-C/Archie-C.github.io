@@ -37,7 +37,7 @@ ask otherwise.
 ## Hard rules
 
 - No emoji, anywhere.
-- No orange. Purple (`#5B2A86`) is the single accent on the Paper palette.
+- No orange. Purple (`#6B2C5C`) is the single accent on the Paper palette.
 - Sentence case for everything — including buttons and nav.
 - First person ("I research…"), never the royal "we".
 - Headlines in JetBrains Mono. Body in Inter. Long-form / quotes / math in Source Serif 4.

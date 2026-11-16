@@ -24,6 +24,6 @@ clicking a nav item swaps the content column in place.
   `--page-max`).
 - All headings in JetBrains Mono. All body in Inter.
 - Hover on a nav item: background fades to `--bg-2`. The active item
-  has a 2-px terracotta indicator on the left edge.
+  has a 2-px aubergine indicator on the left edge.
 - "Now" line on the homepage is set in serif italic — the only place
   serif appears on this surface.

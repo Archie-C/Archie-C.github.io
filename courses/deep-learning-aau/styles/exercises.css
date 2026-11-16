@@ -197,3 +197,9 @@
 .exercise-nav a { text-decoration: none; }
 .exercise-nav a:hover { text-decoration: underline; }
 .exercise-nav a[aria-current="page"] { color: var(--fg); font-weight: 600; }
+
+/* Course-level navigation matches the other notes and topic pages. */
+.topbar nav { margin-left: auto; display: flex; flex-wrap: wrap; gap: 16px; }
+.topbar nav a { font-family: var(--font-mono); font-size: 13px; color: var(--fg-2); text-decoration: none; }
+.topbar nav a:hover { color: var(--accent); }
+@media (max-width: 720px) { .topbar { flex-wrap: wrap; } .topbar nav { margin-left: 0; } }
