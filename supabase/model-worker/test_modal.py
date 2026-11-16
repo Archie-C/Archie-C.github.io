@@ -55,6 +55,7 @@ class ModalTests(unittest.TestCase):
         modal.Image = mock.Mock()
         modal.Image.debian_slim.return_value = image
         modal.Secret = mock.Mock()
+        modal.is_local = mock.Mock(return_value=True)
         modal.fastapi_endpoint = mock.Mock(side_effect=lambda **kwargs: lambda function: function)
         app = mock.Mock()
         registered = []
@@ -78,6 +79,26 @@ class ModalTests(unittest.TestCase):
         self.assertNotIn('schedule', dict(registered)['consume_queue'])
         modal.fastapi_endpoint.assert_called_once_with(method='POST', requires_proxy_auth=True)
         self.assertEqual(dict(registered)['consume_queue']['max_containers'], 1)
+
+    def test_modal_container_import_needs_no_repository_files(self):
+        modal = types.ModuleType('modal')
+        image = mock.Mock()
+        image.pip_install.return_value = image
+        modal.Image = mock.Mock()
+        modal.Image.debian_slim.return_value = image
+        modal.Secret = mock.Mock()
+        modal.is_local = mock.Mock(return_value=False)
+        modal.fastapi_endpoint = mock.Mock(side_effect=lambda **kwargs: lambda function: function)
+        app = mock.Mock()
+        app.function.side_effect = lambda **kwargs: lambda function: function
+        modal.App = mock.Mock(return_value=app)
+        source = Path(__file__).with_name('modal_app.py').read_text()
+        namespace = {'__file__': '/root/modal_app.py', '__name__': 'container_import_test'}
+        with mock.patch.dict(sys.modules, {'modal': modal}):
+            exec(compile(source, namespace['__file__'], 'exec'), namespace)
+        image.add_local_file.assert_not_called()
+        self.assertIsNone(namespace['sandbox_image'])
+        self.assertTrue(callable(namespace['notify_queued']))
 
     def test_invalid_output_is_rejected(self):
         with self.assertRaises(self.evaluate.EvaluationError) as error:

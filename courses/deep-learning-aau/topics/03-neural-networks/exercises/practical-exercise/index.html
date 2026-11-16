@@ -75,11 +75,15 @@
 <button class="primary" type="submit">Submit for evaluation</button>
 <progress id="model-progress" max="100" value="0" hidden aria-label="Upload progress"></progress>
 </form><p id="model-message" class="hint" role="status" aria-live="polite">Loading submissions…</p>
-<h2>Your submissions</h2><p class="hint">Only this browser can see your attempts. Publishing an eligible attempt is optional.</p>
-<div id="model-history"></div>
-<h2>Leaderboard</h2><p class="hint">Ranked by evaluation score; ties are ordered by submission time.</p>
+<section class="model-section" aria-labelledby="runs-title">
+<div class="model-section-heading"><div><p class="section-label">Evaluation history</p><h2 id="runs-title">Your runs</h2><p class="hint">Only this browser can see your attempts. Open a run to see its details or publish it.</p></div><span id="model-run-count" class="run-count" aria-live="polite"></span></div>
+<div id="model-history" class="model-history"></div>
+</section>
+<section class="model-section" aria-labelledby="leaderboard-title">
+<div class="model-section-heading"><div><p class="section-label">Class standings</p><h2 id="leaderboard-title">Leaderboard</h2><p class="hint">Ranked by evaluation score; ties are ordered by submission time.</p></div></div>
 <form id="model-name-form" class="model-name"><label>Public display name <input id="model-name" maxlength="40" required autocomplete="nickname"></label> <button type="submit">Save name</button></form>
 <div class="result-table"><table><thead><tr><th>Rank</th><th>Name</th><th>Score</th><th>Execution</th><th>Submitted</th></tr></thead><tbody id="model-leaderboard"><tr><td colspan="5">Loading…</td></tr></tbody></table></div>
+</section>
 </section>
 
 </main>

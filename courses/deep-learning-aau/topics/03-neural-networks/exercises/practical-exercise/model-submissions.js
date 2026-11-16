@@ -28,25 +28,46 @@
  function render(data) {
   config=data.config; lastData=data;
   if(document.activeElement!==$('model-name')) $('model-name').value=data.name || '';
+  const active=document.activeElement, focusedRun=active?.closest('.model-attempt');
+  const focusState=focusedRun ? {id:focusedRun.dataset.id, summary:active.tagName==='SUMMARY', label:active.tagName==='BUTTON'?active.textContent:null} : null;
   const opened=new Set(Array.from(history.querySelectorAll('details[open]'),e=>e.dataset.id)); history.replaceChildren();
-  if(!data.submissions.length) history.append(text('p','No attempts yet.'));
-  for(const s of data.submissions) {
+  $('model-run-count').textContent=data.submissions.length ? `${data.submissions.length} ${data.submissions.length===1?'run':'runs'}` : '';
+  if(!data.submissions.length) {const empty=text('p','No attempts yet.');empty.className='model-empty';history.append(empty);}
+  for(const [index,s] of data.submissions.entries()) {
    const details=document.createElement('details');details.className='model-attempt';details.dataset.id=s.id;details.open=opened.has(s.id);
-   const score=s.metrics && s.metrics[config.primary_metric]; const label=`${time(s.created_at)} | ${s.status}${typeof score==='number'?` | ${config.primary_metric}: ${score}`:''}${s.selected?' | published':''}`;
-   details.append(text('summary',label));
-   details.append(text('p',`Attempt ${s.id}`));
-   details.append(text('p',`Queue wait: ${queueWait(s)} · ${s.status==='running'?'Running elapsed':'Execution'}: ${s.status==='running'?span(s.started_at,null):duration(s.duration_ms)} · Total: ${span(s.created_at,s.completed_at)}`));
-   if(s.metrics && typeof s.metrics==='object') {const pre=text('pre',JSON.stringify(s.metrics,null,2));details.append(pre);}
-   if(s.error_category)details.append(text('p',errorDetails[s.error_detail_code]||errors[s.error_category]||'Evaluation failed.'));
+   const score=s.metrics && s.metrics[config.primary_metric];
+   const labels={uploading:'Uploading',queued:'Queued',running:'Running',completed:'Completed',failed:'Failed'};
+   const summary=document.createElement('summary');summary.className='run-summary';
+   const identity=document.createElement('span');identity.className='run-identity';
+   const title=text('span',`Run ${String(data.submissions.length-index).padStart(2,'0')}`);title.className='run-title';
+   const date=text('span',time(s.created_at));date.className='run-date';identity.append(title,date);
+   const overview=document.createElement('span');overview.className='run-overview';
+   if(typeof score==='number' && Number.isFinite(score)){const value=text('span',`${Number(score.toFixed(2))}`);value.className='run-score';const group=document.createElement('span');group.className='run-score-group';group.append(text('span','Score'),value);overview.append(group);}
+   const badge=text('span',labels[s.status]||'Unknown');badge.className=`run-status status-${Object.hasOwn(labels,s.status)?s.status:'unknown'}`;overview.append(badge);
+   if(s.selected){const published=text('span','Published');published.className='run-published';overview.append(published);}
+   const arrow=text('span','+');arrow.className='run-toggle';arrow.setAttribute('aria-hidden','true');overview.append(arrow);
+   summary.append(identity,overview);details.append(summary);
+   const content=document.createElement('div');content.className='run-content';details.append(content);
+   const timing=document.createElement('div');timing.className='run-timing';
+   for(const [label,value] of [['Queue wait',queueWait(s)],[s.status==='running'?'Running elapsed':'Execution',s.status==='running'?span(s.started_at,null):duration(s.duration_ms)],['Total',span(s.created_at,s.completed_at)]]){timing.append(text('p',`${label}: ${value}`));}
+   content.append(timing);
+   if(s.metrics && typeof s.metrics==='object') {
+    const metrics=document.createElement('dl');metrics.className='run-metrics';
+    for(const [key,value] of Object.entries(s.metrics)){if(typeof value!=='number'||!Number.isFinite(value))continue;const item=document.createElement('div');const label=key==='landing_success_pct'?'Landing success':key===config.primary_metric?'Score':key.replaceAll('_',' ');item.append(text('dt',label),text('dd',`${Number(value.toFixed(2))}${key==='landing_success_pct'?'%':''}`));metrics.append(item);}
+    if(metrics.children.length)content.append(metrics);
+   }
+   if(s.error_category){const error=text('p',errorDetails[s.error_detail_code]||errors[s.error_category]||'Evaluation failed.');error.className='run-error';content.append(error);}
+   const identifier=text('p',`Attempt ${s.id}`);identifier.className='run-id';content.append(identifier);
    if(s.status==='uploading') {
-    const retry=text('button','Retry queueing');retry.type='button';retry.className='model-retry';retry.disabled=busy;retry.onclick=async()=>{retry.disabled=true;try{await api('queue',{id:s.id});await refresh();message.textContent='Your attempt is queued.';}catch(e){const data=await refresh();const attempt=data?.submissions.find(item=>item.id===s.id);if(attempt && (['queued','running','completed'].includes(attempt.status) || (attempt.status==='failed' && attempt.error_category!=='upload_error')))message.textContent=`Upload completed; evaluation is ${attempt.status}.`;else if(!data)message.textContent='Queue confirmation was lost. Check your history when the connection returns.';else message.textContent=e.message;}finally{retry.disabled=false;}};details.append(retry);
-    const cancel=text('button','Cancel incomplete upload');cancel.type='button';cancel.className='model-retry';cancel.disabled=busy;cancel.onclick=async()=>{cancel.disabled=true;try{await api('abort',{id:s.id});const data=await refresh();const current=data?.submissions.find(item=>item.id===s.id);message.textContent=current?.status==='failed' && current.error_category==='upload_error'?'Incomplete upload cancelled.':`Attempt status: ${current?.status || 'unavailable'}.`;}catch(e){await refresh();message.textContent=e.message;}finally{cancel.disabled=false;}};details.append(' ',cancel);
+    const retry=text('button','Retry queueing');retry.type='button';retry.className='model-retry';retry.disabled=busy;retry.onclick=async()=>{retry.disabled=true;try{await api('queue',{id:s.id});await refresh();message.textContent='Your attempt is queued.';}catch(e){const data=await refresh();const attempt=data?.submissions.find(item=>item.id===s.id);if(attempt && (['queued','running','completed'].includes(attempt.status) || (attempt.status==='failed' && attempt.error_category!=='upload_error')))message.textContent=`Upload completed; evaluation is ${attempt.status}.`;else if(!data)message.textContent='Queue confirmation was lost. Check your history when the connection returns.';else message.textContent=e.message;}finally{retry.disabled=false;}};content.append(retry);
+    const cancel=text('button','Cancel incomplete upload');cancel.type='button';cancel.className='model-retry';cancel.disabled=busy;cancel.onclick=async()=>{cancel.disabled=true;try{await api('abort',{id:s.id});const data=await refresh();const current=data?.submissions.find(item=>item.id===s.id);message.textContent=current?.status==='failed' && current.error_category==='upload_error'?'Incomplete upload cancelled.':`Attempt status: ${current?.status || 'unavailable'}.`;}catch(e){await refresh();message.textContent=e.message;}finally{cancel.disabled=false;}};content.append(' ',cancel);
    }
    if(s.status==='completed' && s.metrics && typeof s.metrics[config.primary_metric]==='number') {
-    const button=text('button',s.selected?'Remove from leaderboard':'Publish this attempt');button.type='button';button.onclick=async()=>{button.disabled=true;try{await api('publish',{id:s.selected?null:s.id});await refresh();message.textContent=s.selected?'Entry removed.':'Attempt published.';}catch(e){message.textContent=e.message;}finally{button.disabled=false;}};details.append(button);
+    const button=text('button',s.selected?'Remove from leaderboard':'Publish this attempt');button.type='button';button.onclick=async()=>{button.disabled=true;try{await api('publish',{id:s.selected?null:s.id});await refresh();message.textContent=s.selected?'Entry removed.':'Attempt published.';}catch(e){message.textContent=e.message;}finally{button.disabled=false;}};content.append(button);
    }
    history.append(details);
   }
+  if(focusState){const run=Array.from(history.querySelectorAll('.model-attempt')).find(item=>item.dataset.id===focusState.id);const target=focusState.summary?run?.querySelector('summary'):Array.from(run?.querySelectorAll('button')||[]).find(button=>button.textContent===focusState.label);target?.focus({preventScroll:true});}
   board.replaceChildren();
   if(!data.leaderboard.length){const row=board.insertRow(),cell=row.insertCell();cell.colSpan=5;cell.textContent='No published attempts yet.';}
   data.leaderboard.forEach((entry,i)=>{const row=board.insertRow();if(entry.is_current)row.className='own';[i+1,entry.name+(entry.is_current?' (you)':''),String(entry.score)+Object.entries(entry.metrics||{}).map(([key,value])=>` | ${key}: ${value}`).join(''),duration(entry.duration_ms),time(entry.created_at)].forEach(v=>{row.insertCell().textContent=String(v);});});
