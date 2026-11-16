@@ -1,0 +1,24 @@
+{
+  "name": "a-level-revision-checks",
+  "private": true,
+  "scripts": {
+    "test": "node database.cjs && node question-metadata.cjs && node admin.cjs && node coverage.cjs && node exams.cjs && node options.cjs && node browser.cjs",
+    "test:coverage": "node coverage.cjs",
+    "test:question-metadata": "node question-metadata.cjs",
+    "test:delete-questions": "node delete-questions.cjs",
+    "test:options": "node options.cjs",
+    "test:exams": "node exams.cjs",
+    "test:admin": "node admin.cjs",
+    "test:db": "node database.cjs",
+    "test:browser": "node browser.cjs",
+    "vendor": "node vendor.cjs"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.3.14",
+    "@supabase/supabase-js": "2.81.1",
+    "dompurify": "3.4.17",
+    "katex": "0.19.1",
+    "marked": "15.0.12",
+    "playwright": "1.56.1"
+  }
+}
