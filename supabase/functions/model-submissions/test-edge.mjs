@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';
+let handler, calls=[];
+globalThis.Deno={env:{get:key=>({MODEL_SITE_ORIGIN:'https://site.example',SUPABASE_URL:'https://db.example',SUPABASE_SERVICE_ROLE_KEY:'server-secret'})[key]},serve:fn=>{handler=fn;}};
+globalThis.fetch=async(url,options)=>{const action=new URL(url).pathname.split('/').pop();const body=JSON.parse(options.body);calls.push({action,body});assert.equal(options.headers.apikey,'server-secret');if(action==='model_identity'||action==='model_lookup')return Response.json('11111111-1111-4111-8111-111111111111');if(action==='model_dashboard')return Response.json({name:'Anonymous',config:{},submissions:[],leaderboard:[]});if(action==='model_create')return Response.json({id:'22222222-2222-4222-8222-222222222222'});return new Response(null,{status:204});};
+await import('./index.ts');
+const req=(action,opts={})=>new Request(`https://db.example/functions/v1/model-submissions?action=${action}`,{headers:{origin:'https://site.example',...opts.headers},method:opts.method||'GET',body:opts.body});
+let response=await handler(req('dashboard'));assert.equal(response.status,200);const cookie=response.headers.get('set-cookie');assert.match(cookie,/HttpOnly/);assert.match(cookie,/Secure/);assert.match(cookie,/Partitioned/);assert.equal((await response.json()).identity_new,true);
+assert.equal(calls.some(c=>c.action==='model_identity'),false);assert.equal(calls.at(-1).body.p_participant,null);
+const cookiePair=cookie.split(';')[0];
+response=await handler(req('dashboard',{headers:{cookie:cookiePair}}));assert.equal((await response.json()).identity_new,false);const identityHash=calls.find(c=>c.action==='model_lookup').body.p_hash;assert.match(identityHash,/^[a-f0-9]{64}$/);assert.ok(!cookie.includes(identityHash));assert.match(response.headers.get('set-cookie'),/Max-Age=31536000/);
+response=await handler(req('dashboard',{headers:{cookie:cookiePair}}));assert.equal(calls.filter(c=>c.action==='model_lookup').at(-1).body.p_hash,identityHash);
+response=await handler(req('create',{method:'POST',body:'{}'}));assert.equal(response.status,401);
+response=await handler(req('create',{method:'POST',headers:{cookie:cookiePair},body:'{}'}));assert.equal(response.status,200);
+response=await handler(req('create',{method:'POST',headers:{cookie:cookiePair},body:'x'.repeat(5000)}));assert.equal(response.status,413);
+response=await handler(req('dashboard',{headers:{origin:'https://evil.example'}}));assert.equal(response.status,403);
+response=await handler(req('queue',{method:'POST',headers:{cookie:cookiePair},body:JSON.stringify({id:'not-a-uuid'})}));assert.equal(response.status,400);
+console.log('Model submissions gateway tests passed');

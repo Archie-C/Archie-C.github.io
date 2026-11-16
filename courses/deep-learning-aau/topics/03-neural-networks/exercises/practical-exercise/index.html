@@ -91,6 +91,40 @@
 <section class="flight"><div class="scenehead"><h2>Flight window</h2><div class="row"><span id="clock" hidden>0.00 s</span><label class="file">Import JSON<input id="import" type="file" accept="application/json,.json"></label></div></div><div id="replay-empty" class="replay-empty"><div class="replay-empty-icon" aria-hidden="true">▶</div><h3>No replay loaded</h3><p>Choose a validation flight or import a recording to view it here.</p></div><div id="replay-view" hidden><div class="canvaswrap"><canvas id="scene" tabindex="0" aria-label="Rocket flight view. Drag to pan and use the mouse wheel to zoom."></canvas><div class="canvasnote">Drag to pan · Scroll to zoom</div></div><div class="scenefoot"><button id="camera">Reset camera</button><label><input type="checkbox" id="trail" checked> Trail</label><label><input type="checkbox" id="thrustVector"> Thrust</label><label><input type="checkbox" id="velocityVector"> Velocity</label><label><input type="checkbox" id="contactMarker" checked> Contact marker</label><span>Thrust: rocket length at maximum; velocity: 1 s</span></div>
 <div class="playback"><div class="playhead"><div><span class="eyebrow">Flight recording</span><h2>Replay & inspect</h2></div><span id="replaytime">0.00 / 0.00 s</span></div><input id="timeline" type="range" min="0" max="0" value="0" step="1" aria-label="Replay frame"><div class="row"><button id="begin">|◀</button><button id="backtime">−1 s</button><button id="back">◀ Frame</button><button id="replay">Play replay</button><button id="forward">Frame ▶</button><button id="forwardtime">+1 s</button><button id="terminal">Terminal event</button><label>Speed <select id="replayspeed"><option>.25</option><option>.5</option><option selected>1</option><option>2</option><option>5</option></select>×</label><button id="live">Close replay</button><button id="export">Export JSON</button></div></div></div><p id="message" role="status" class="message flight-message"></p></section>
 
+﻿<section class="panel model-panel" aria-labelledby="model-title">
+<h2 id="model-title">Submit a PyTorch model</h2>
+<p class="hint">Submit both files for a separate, asynchronous evaluation. Your previous attempts remain available. This does not run your model in the browser.</p>
+<p class="hint">For this submission, <code>model.py</code> must expose <code>create_model()</code>, returning a PyTorch module. It receives a batch of 12 raw observations and returns thrust and gimbal as a two-column tensor. Include any normalization in the model; save its state as <code>weights.safetensors</code>.</p>
+<details class="exercise-help"><summary>Export the example notebook model</summary>
+<p>Download <a href="./submission-example/model.py" download="model.py">the example model.py</a> into the notebook folder. After training, install <code>safetensors</code> in your notebook environment and run the following cell. It includes the training-set normalization in the model state. Upload the downloaded <code>model.py</code> and the resulting <code>weights.safetensors</code>.</p>
+<pre><code>from model import create_model as create_submission_model
+from safetensors.torch import save_file
+
+submission = create_submission_model()
+submission.network.load_state_dict(model.state_dict())
+with torch.no_grad():
+    submission.mean.copy_(torch.as_tensor(mean))
+    submission.std.copy_(torch.as_tensor(std))
+submission.eval()
+save_file({k: v.detach().cpu().contiguous()
+           for k, v in submission.state_dict().items()},
+          "weights.safetensors")</code></pre>
+<p>For a different architecture, adapt <code>model.py</code> and export its matching state dictionary. The notebook's <code>weights.npz</code> is for the browser simulator.</p></details>
+<form id="model-form">
+<div class="upload-grid">
+<label class="model-drop"> <strong>model.py</strong><span>Choose or drop your model architecture</span><input id="model-python" type="file" accept=".py" required></label>
+<label class="model-drop"> <strong>weights.safetensors</strong><span>Choose or drop your trained parameters</span><input id="model-weights" type="file" accept=".safetensors" required></label>
+</div>
+<button class="primary" type="submit">Submit for evaluation</button>
+<progress id="model-progress" max="100" value="0" hidden aria-label="Upload progress"></progress>
+</form><p id="model-message" class="hint" role="status" aria-live="polite">Loading submissions…</p>
+<h2>Your submissions</h2><p class="hint">Only this browser can see your attempts. Publishing an eligible attempt is optional.</p>
+<div id="model-history"></div>
+<h2>Leaderboard</h2><p class="hint">Ranked by evaluation score; ties are ordered by submission time.</p>
+<form id="model-name-form" class="model-name"><label>Public display name <input id="model-name" maxlength="40" required autocomplete="nickname"></label> <button type="submit">Save name</button></form>
+<div class="result-table"><table><thead><tr><th>Rank</th><th>Name</th><th>Score</th><th>Execution</th><th>Submitted</th></tr></thead><tbody id="model-leaderboard"><tr><td colspan="5">Loading…</td></tr></tbody></table></div>
+</section>
+
 </main>
       <nav class="course-endbar" aria-label="Exercise navigation">
         <a href="../">← Neural networks exercises</a>
@@ -98,4 +132,4 @@
       </nav>
     </div>
   </div>
-</div><script src="./app.js"></script></body></html>
+</div><script src="./app.js"></script><script src="./model-submissions.js" defer></script></body></html>
