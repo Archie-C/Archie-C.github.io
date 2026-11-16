@@ -46,10 +46,11 @@
               <p>For $\mathbf{x} = \begin{pmatrix} 1 \\ 2 \end{pmatrix}$, use</p>
               <p>$$W^{(1)} = \begin{pmatrix} 1 &amp; -1 \\ 2 &amp; 1 \end{pmatrix}, \quad \mathbf{b}^{(1)} = \begin{pmatrix} 0 \\ -1 \end{pmatrix}, \quad W^{(2)} = \begin{pmatrix} 2 &amp; -1 \end{pmatrix}, \quad b^{(2)} = 1.$$</p>
               <ol type="a">
-                <li>Calculate the network output, showing your intermediate calculations.</li>
+                <li>Calculate the network output $y$, showing $\mathbf{z}$ and $\mathbf{h}$.</li>
                 <li>Calculate the total number of trainable parameters.</li>
                 <li>Recalculate the output if the hidden neurons use identity activations instead of ReLU.</li>
-                <li>Explain why nonlinear activation functions are important in neural networks.</li>
+                <li>For the ReLU network, compute the gradients of $y$ with respect to $W^{(1)}$ and $\mathbf{b}^{(1)}$ at this input.</li>
+                <li>Using your answer to the previous part, state how a gradient descent step on this input changes the parameters of the first hidden neuron. Name the problem that arises if the same holds for every training input.</li>
               </ol>
             </div>
           </div>
@@ -60,10 +61,10 @@
           <div>
             <h2 class="question-title" id="question-2">Question 2</h2>
             <div class="question-content">
-              <p>A neural network controls a rocket by predicting continuous thrust $T \in [0, T_{\max}]$ and gimbal angle $g \in [-g_{\max}, g_{\max}]$.</p>
+              <p>A neural network controls a rocket by predicting continuous thrust $T \in [0, T_{\max}]$ and gimbal angle $g \in [-g_{\max}, g_{\max}]$. It is trained by supervised learning on expert demonstrations.</p>
               <ol type="a">
                 <li>How many output neurons are required? Explain whether softmax is appropriate for these outputs.</li>
-                <li>Suggest output activations or transformations that enforce the control limits.</li>
+                <li>Suggest an output activation or transformation for each output that enforces its control limits. State one drawback of your choice when the best control lies at a limit, such as full thrust.</li>
                 <li>What problems can arise when ordinary mean squared error is applied to outputs with very different scales? Propose a solution.</li>
                 <li>Why might a model with low prediction error on expert demonstrations still fail to land successfully in closed-loop control?</li>
               </ol>
@@ -79,11 +80,12 @@
               <p>Consider a single-hidden-layer network with scalar input and output:</p>
               <p>$$f(x) = b + \sum_{j=1}^{M} v_j h(w_j x + b_j).$$</p>
               <ol type="a">
-                <li>Prove that if $h$ is the identity activation, the network reduces to a linear function of $x$.</li>
-                <li>Find weights and biases for a two-hidden-neuron ReLU network that exactly represents $f(x) = |x|$.</li>
-                <li>Explain why an ordinary linear model cannot represent $|x|$ exactly over the real numbers.</li>
-                <li>Explain why universal approximation does not make deep networks unnecessary.</li>
-                <li>Does universal approximation guarantee successful training? Explain.</li>
+                <li>Prove that if $h$ is the identity activation, the network reduces to an affine function $f(x) = ax + c$. Give $a$ and $c$ in terms of the parameters.</li>
+                <li>Find weights and biases for a ReLU network with $M = 2$ that represents $f(x) = |x|$ exactly.</li>
+                <li>Prove that no function of the form $ax + c$ equals $|x|$ for all real $x$.</li>
+                <li>Show that with ReLU activations, $f$ is piecewise linear with at most $M + 1$ linear pieces.</li>
+                <li>The universal approximation theorem says one hidden layer can approximate any continuous function on a compact set. Using the previous part, explain why this does not make deep networks unnecessary.</li>
+                <li>Does universal approximation guarantee that training will find a good approximation? Explain.</li>
               </ol>
             </div>
           </div>
