@@ -1,35 +1,575 @@
 <!DOCTYPE html>
-<html lang="en" data-palette="paper">
-<head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Presentation 02 — Archie Carpenter</title>
-  <link rel="icon" href="../../design_system/assets/favicon.svg"/>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.2.1/dist/reset.css"/>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.2.1/dist/reveal.css"/>
-  <link rel="stylesheet" href="../shared/theme.css"/>
-  <script defer src="https://cdn.jsdelivr.net/npm/reveal.js@5.2.1/dist/reveal.js"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/reveal.js@5.2.1/plugin/notes/notes.js"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/reveal.js@5.2.1/plugin/math/math.js"></script>
-  <script defer src="../shared/presentation.js"></script>
-</head>
-<body>
-  <div class="reveal">
-    <div class="slides">
-      <!-- Edit this intro; add sibling sections here for more slides. -->
-      <section class="title-slide" aria-labelledby="presentation-title">
-        <p class="slide-kicker">Introduction</p>
-        <div class="title-content">
-          <h1 id="presentation-title">Presentation 02</h1>
-          <p class="slide-subtitle">Add a short subtitle or opening question.</p>
-          <p class="slide-presenter">Archie Carpenter</p>
-        </div>
-        <footer class="slide-footer">
-          <span class="wordmark" aria-label="Archie Carpenter">a<span class="wordmark-dot">.</span>c</span>
-        </footer>
-        <aside class="notes">Add your opening speaker notes here.</aside>
-      </section>
+<html lang="en" data-palette="paper"><head><meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Classification exercise slides | Deep Learning</title>
+<link rel="icon" href="../../design_system/assets/favicon.svg"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.2.1/dist/reset.css"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.2.1/dist/reveal.css"/>
+<link rel="stylesheet" href="../shared/theme.css"/>
+<link rel="stylesheet" href="classification.css"/>
+<script defer src="https://cdn.jsdelivr.net/npm/reveal.js@5.2.1/dist/reveal.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/reveal.js@5.2.1/plugin/notes/notes.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/reveal.js@5.2.1/plugin/math/math.js"></script>
+<script defer src="../shared/presentation.js"></script>
+<script defer src="classification.js"></script>
+<script defer src="regularisation.js"></script></head>
+<body><nav class="deck-nav" aria-label="Presentation sections"><a href="#/question-1-predictions">Written answers</a><a href="#/rocket-walkthrough">Practical exercise</a><a href="../../courses/deep-learning-aau/topics/02-classification/exercises/">Exercises &nearr;</a></nav><div class="reveal"><div class="slides">
+<section class="title-slide"><p class="slide-kicker">Exercise 2 · classification</p>
+<div class="title-content"><h1>Classification exercises</h1><p class="slide-subtitle">Written answers and practical exercise</p><p class="slide-presenter">Archie Carpenter</p></div>
+<footer class="slide-footer"><span class="wordmark">a<span class="wordmark-dot">.</span>c</span></footer></section>
+<!-- Written-answer source: inserted into the generated exercise 2 deck. -->
+<section id="question-1-predictions">
+  <p class="step-label">Written answers · Question 1a</p>
+  <h2>Classifier predictions</h2>
+  <p>We assign an observation to class A when $z(\mathbf{x})=-1+2x_1-3x_2&gt;0$.</p>
+  <div class="equation">$z(1,1)=-1+2-3=-2$<br/>$z(0,1)=-1+0-3=-4$</div>
+  <p>Both scores are negative, so <strong>neither observation is assigned to class A</strong>.</p>
+  <aside class="notes">The classification rule uses a strict inequality. A score of zero lies on the boundary and is not assigned to class A under this rule.</aside>
+</section>
+
+<section id="question-1-boundary">
+  <p class="step-label">Written answers · Question 1b–d</p>
+  <h2>Decision boundary</h2>
+  <p>To find the decision boundary, we set the score to $z=0$.</p>
+  <div class="equation">$-1+2x_1-3x_2=0\quad\Longrightarrow\quad x_2=\frac{2}{3}x_1-\frac{1}{3}$</div>
+  <ul>
+    <li>The weight vector $\mathbf{w}=(2,-3)$ is normal to the boundary and points towards increasing scores.</li>
+    <li>If we increase $b$ while keeping the weights fixed, the boundary moves along $-\mathbf{w}$ and the class A region expands.</li>
+  </ul>
+  <aside class="notes">For fixed nonzero weights, the signed position of the boundary along the weight direction is -b divided by the norm of w. Changing the bias therefore shifts the boundary without changing its slope.</aside>
+</section>
+
+<section id="question-1-geometry" class="graph-slide">
+<p class="step-label">Written answers · Question 1b–d · geometry</p><h2>Effect of the bias</h2>
+<figure><img src="./assets/boundary-shift.svg" alt="Parallel decision boundaries for b=-1 and b=2. The weight vector points into class A. Increasing b moves the boundary opposite the weights and expands class A."/><figcaption>Here we keep the weights fixed and increase $b$. Every score increases, so more observations satisfy $z&gt;0$.</figcaption></figure>
+<aside class="notes">The shaded region is class A when b=-1. The dashed boundary uses b=2. To remain on the boundary after adding 3 to b, we move by -3w/||w||². Increasing b changes the position of the line. Multiplying both w and b by the same positive constant leaves the line in place. The axes use equal scales so that the normal vector is perpendicular to the line in the drawing.</aside></section>
+
+<section id="question-2-matrix" class="metric-slide">
+  <p class="step-label">Written answers · Question 2a</p>
+  <h2>Confusion matrix</h2>
+  <p class="metric-matrix-caption">There are 1,000 components; positive means defective.</p>
+  <table class="metric-matrix" aria-label="Confusion matrix: rows are actual labels and columns are predicted labels">
+    <thead><tr><th scope="col">Actual ↓<br/>Predicted →</th><th scope="col">Defective (+)</th><th scope="col">Non-defective (−)</th></tr></thead>
+    <tbody><tr><th scope="row">Defective (+)</th><td class="metric-tp metric-selected"><strong>12</strong><span>TP · true positive</span></td><td class="metric-fn metric-selected"><strong>8</strong><span>FN · false negative</span></td></tr>
+    <tr><th scope="row">Non-defective (−)</th><td class="metric-fp metric-selected"><strong>30</strong><span>FP · false positive</span></td><td class="metric-tn metric-selected"><strong>950</strong><span>TN · true negative</span></td></tr></tbody>
+  </table>
+  <aside class="notes">We place actual labels in rows and predicted labels in columns. There are 20 defective components, with 12 detected and 8 missed. Of the 980 non-defective components, 30 are incorrectly flagged, leaving 950 true negatives. These counts are used in the following metric calculations.</aside>
+</section>
+
+<section id="question-2-metrics" class="metric-slide">
+  <p class="step-label">Written answers · Question 2b–c · accuracy</p>
+  <h2>Accuracy</h2>
+  <div class="metric-layout">
+    <div class="metric-definition">
+      <div class="metric-equation">$\displaystyle\frac{\textcolor{#4A6A2E}{TP}+\textcolor{#2C4A7A}{TN}}{\textcolor{#4A6A2E}{TP}+\textcolor{#2C4A7A}{TN}+\textcolor{#A67012}{FP}+\textcolor{#A82A20}{FN}}$</div>
+      <p>To calculate accuracy, we divide the <strong>correct predictions by all predictions</strong>.</p>
+      <div class="metric-key"><span class="metric-tp">TP · true positive</span><span class="metric-tn">TN · true negative</span><span class="metric-fp">FP · false positive</span><span class="metric-fn">FN · false negative</span></div>
+      <p class="metric-comparison">Always predicting non-defective gives $980/1000=98\%$ accuracy, although it detects no defects.</p>
+    </div>
+    <div class="metric-worked">
+      <p class="metric-matrix-caption">There are 1,000 components; positive means defective.</p>
+      <table class="metric-matrix" aria-label="Confusion matrix for accuracy: all four cells form the denominator; TP and TN form the numerator">
+        <thead><tr><th scope="col">Actual ↓<br/>Predicted →</th><th scope="col">Defective (+)</th><th scope="col">Non-defective (−)</th></tr></thead>
+        <tbody><tr><th scope="row">Defective (+)</th><td class="metric-tp metric-selected"><strong>12</strong><span>TP</span></td><td class="metric-fn"><strong>8</strong><span>FN</span></td></tr>
+        <tr><th scope="row">Non-defective (−)</th><td class="metric-fp"><strong>30</strong><span>FP</span></td><td class="metric-tn metric-selected"><strong>950</strong><span>TN</span></td></tr></tbody>
+      </table>
+      <p class="metric-focus">We use the diagonal for the numerator and all four cells for the denominator.</p>
+      <div class="metric-calculation"><p>Substituting the counts gives</p><div>$\displaystyle\frac{\textcolor{#4A6A2E}{12}+\textcolor{#2C4A7A}{950}}{\textcolor{#4A6A2E}{12}+\textcolor{#2C4A7A}{950}+\textcolor{#A67012}{30}+\textcolor{#A82A20}{8}}=\frac{962}{1000}=96.2\%$</div></div>
     </div>
   </div>
-</body>
-</html>
+  <aside class="notes">The green true-positive and blue true-negative cells contain the correct predictions. We add these for the numerator, then divide by the total number of components. The actual non-defective row contains 30+950=980 components. This is why a classifier that always predicts non-defective achieves 98% accuracy without detecting a defect.</aside>
+</section>
+
+<section id="question-2-precision" class="metric-slide">
+  <p class="step-label">Written answers · Question 2b · precision</p>
+  <h2>Precision</h2>
+  <div class="metric-layout">
+    <div class="metric-definition">
+      <div class="metric-equation">$\displaystyle\frac{\textcolor{#4A6A2E}{TP}}{\textcolor{#4A6A2E}{TP}+\textcolor{#A67012}{FP}}$</div>
+      <p>Precision is the proportion of <strong>flagged components that are actually defective</strong>.</p>
+      <div class="metric-key"><span class="metric-tp">TP · true positive</span><span class="metric-tn">TN · true negative</span><span class="metric-fp">FP · false positive</span><span class="metric-fn">FN · false negative</span></div>
+      <p class="metric-comparison">The classifier flags 42 components. Of these, 12 are defective and 30 are false alarms.</p>
+    </div>
+    <div class="metric-worked">
+      <p class="metric-matrix-caption">There are 1,000 components; positive means defective.</p>
+      <table class="metric-matrix" aria-label="Confusion matrix for precision: use the predicted-defective column, TP and FP">
+        <thead><tr><th scope="col">Actual ↓<br/>Predicted →</th><th scope="col">Defective (+)</th><th scope="col">Non-defective (−)</th></tr></thead>
+        <tbody><tr><th scope="row">Defective (+)</th><td class="metric-tp metric-selected"><strong>12</strong><span>TP</span></td><td class="metric-fn metric-unused"><strong>8</strong><span>FN</span></td></tr>
+        <tr><th scope="row">Non-defective (−)</th><td class="metric-fp metric-selected"><strong>30</strong><span>FP</span></td><td class="metric-tn metric-unused"><strong>950</strong><span>TN</span></td></tr></tbody>
+      </table>
+      <p class="metric-focus">We use the predicted-defective column, which contains TP + FP.</p>
+      <div class="metric-calculation"><p>Substituting the counts gives</p><div>$\displaystyle\frac{\textcolor{#4A6A2E}{12}}{\textcolor{#4A6A2E}{12}+\textcolor{#A67012}{30}}=\frac{12}{42}\approx28.6\%$</div></div>
+    </div>
+  </div>
+  <aside class="notes">For precision, we start with the components predicted to be defective and ask how many predictions were correct. This selects the predicted-defective column. Twelve of the 42 flags are correct, giving about 28.6% precision. FN and TN are shown for context but do not enter the calculation. Precision is undefined if there are no predicted positives.</aside>
+</section>
+
+<section id="question-2-recall" class="metric-slide">
+  <p class="step-label">Written answers · Question 2b–c · recall</p>
+  <h2>Recall</h2>
+  <div class="metric-layout">
+    <div class="metric-definition">
+      <div class="metric-equation">$\displaystyle\frac{\textcolor{#4A6A2E}{TP}}{\textcolor{#4A6A2E}{TP}+\textcolor{#A82A20}{FN}}$</div>
+      <p>Recall is the proportion of <strong>actual defects that the classifier detects</strong>.</p>
+      <div class="metric-key"><span class="metric-tp">TP · true positive</span><span class="metric-tn">TN · true negative</span><span class="metric-fp">FP · false positive</span><span class="metric-fn">FN · false negative</span></div>
+      <p class="metric-comparison">The classifier detects 12 of the 20 defects and misses 8. Always predicting non-defective gives 0% recall.</p>
+    </div>
+    <div class="metric-worked">
+      <p class="metric-matrix-caption">There are 1,000 components; positive means defective.</p>
+      <table class="metric-matrix" aria-label="Confusion matrix for recall: use the actual-defective row, TP and FN">
+        <thead><tr><th scope="col">Actual ↓<br/>Predicted →</th><th scope="col">Defective (+)</th><th scope="col">Non-defective (−)</th></tr></thead>
+        <tbody><tr><th scope="row">Defective (+)</th><td class="metric-tp metric-selected"><strong>12</strong><span>TP</span></td><td class="metric-fn metric-selected"><strong>8</strong><span>FN</span></td></tr>
+        <tr><th scope="row">Non-defective (−)</th><td class="metric-fp metric-unused"><strong>30</strong><span>FP</span></td><td class="metric-tn metric-unused"><strong>950</strong><span>TN</span></td></tr></tbody>
+      </table>
+      <p class="metric-focus">We use the actual-defective row, which contains TP + FN.</p>
+      <div class="metric-calculation"><p>Substituting the counts gives</p><div>$\displaystyle\frac{\textcolor{#4A6A2E}{12}}{\textcolor{#4A6A2E}{12}+\textcolor{#A82A20}{8}}=\frac{12}{20}=60\%$</div></div>
+    </div>
+  </div>
+  <aside class="notes">For recall, we start with the components that are actually defective and ask how many were detected. This selects the actual-defective row. We detect 12/20=60% and miss 8/20=40%. FP and TN do not enter the calculation. Recall is undefined if there are no actual positives. In this question there are 20, so the always-negative classifier has zero recall.</aside>
+</section>
+
+<section id="question-2-interpretation" class="metric-slide">
+  <p class="step-label">Written answers · Question 2d–e</p>
+  <h2>Class imbalance</h2>
+  <p>Only <strong>20 of the 1,000 components are defective (2%)</strong>. A classifier that always predicts non-defective therefore achieves <strong>98% accuracy</strong> while missing every defect. Most of its correct predictions come from the larger non-defective class.</p>
+  <p>The classifier in the question has lower accuracy, <strong>96.2%</strong>, but detects <strong>12 of the 20 defects</strong>, giving <strong>60% recall</strong>. It therefore detects defects that the always-negative classifier misses.</p>
+  <p class="interpretation-priority">If allowing a defective component through is particularly dangerous, we would <strong>prioritise recall</strong>. The aim is to reduce the <span class="metric-fn"><strong>8 false negatives</strong></span>, which are defective components incorrectly classified as safe.</p>
+  <p>We should also consider false alarms. Only 12 of the 42 flags are real defects (<strong>28.6% precision</strong>), so the <span class="metric-fp"><strong>30 false positives</strong></span> require extra inspections. Flagging every component gives 100% recall but only 2% precision.</p>
+  <aside class="notes">Class imbalance means that the classes occur at different frequencies. Here there are 980 non-defective components and only 20 defective components. Accuracy counts each observation equally, so correct predictions for the larger class can hide missed defects. Prioritising recall gives greater importance to detecting those defects, while precision helps us assess the resulting inspection workload. An always-positive rule catches all 20 defects but also flags all 980 non-defective components. Its precision is therefore 20/1000=2%. We would choose a decision threshold using the costs of missed defects and false alarms, together with the available inspection capacity.</aside>
+</section>
+
+<!-- Question 3: work through parts a–f in order. -->
+<section id="question-3-scaling">
+  <p class="step-label">Written answers · Question 3a</p>
+  <h2>Predicted probability</h2>
+  <div class="q3-math">$P(y=1\mid\mathbf x)=\sigma(\mathbf w^T\mathbf x+b)$</div>
+  <p class="q3-caption">We first calculate the score $z=\mathbf w^T\mathbf x+b$. The sigmoid turns this score into a probability for class 1.</p>
+  <p class="q3-detail">We assume the model correctly separates the training data: $z&gt;0$ for class 1 and $z&lt;0$ for class 0.</p>
+  <aside class="notes">The predicted class is determined using a probability threshold of 0.5. Strict separation means no training observation lies on the boundary. We assume that both classes occur in training.</aside>
+</section>
+
+<section id="question-3-scale-parameters">
+  <p class="step-label">Written answers · Question 3a</p>
+  <h2>Scale the weights and bias</h2>
+  <div class="q3-math">$p_c=\sigma\!\left((c\mathbf w)^T\mathbf x+cb\right)$</div>
+  <p class="q3-caption">We multiply both the weights and the bias by the same constant $c&gt;1$.</p>
+  <div class="equation">$(c\mathbf w)^T\mathbf x+cb=c(\mathbf w^T\mathbf x+b)=cz$</div>
+  <p>So the new probability is $p_c=\sigma(cz)$. The whole score is multiplied by $c$.</p>
+  <aside class="notes">We scale the bias as well as the weights. Scaling only the weights would generally move the zero-score boundary. Here c=1 recovers the original model.</aside>
+</section>
+
+<section id="question-3-probabilities">
+  <p class="step-label">Written answers · Question 3a</p>
+  <h2>Expand the sigmoid</h2>
+  <div class="q3-math">$\sigma(u)=\dfrac{1}{1+e^{-u}}$</div>
+  <p>Substituting the scaled score gives</p>
+  <div class="equation">$\displaystyle p_c=\sigma(cz)=\frac{1}{1+e^{-cz}}$</div>
+  <p class="q3-detail">Changing $c$ changes the exponent. This is how scaling the parameters changes the probability.</p>
+  <aside class="notes">We use cz for the scaled score from here on. The minus sign in the exponent applies to this whole score.</aside>
+</section>
+
+<section id="question-3-sigmoid-graph" class="graph-slide">
+  <p class="step-label">Written answers · Question 3a</p>
+  <h2>Shape of the sigmoid</h2>
+  <figure><img src="./assets/scaled-sigmoid.svg" alt="Sigmoid curves for c=1, 3 and 10 plotted against the original score z. All pass through probability 0.5 at z=0; larger c makes the transition steeper."/>
+    <figcaption>All curves pass through $p_c=0.5$ at $z=0$. Increasing $c$ makes the probability closer to 1 for positive scores and closer to 0 for negative scores.</figcaption></figure>
+  <aside class="notes">The horizontal axis is the original score z. Each curve shows sigma(cz). Scaling makes the sigmoid steeper around the same zero-score boundary.</aside>
+</section>
+
+<section id="question-3-probability-example" class="worked-example">
+  <p class="step-label">Written answers · Question 3a</p>
+  <h2>Positive score example</h2>
+  <p>Take an observation with original score $z=1$. With $c=3$, its scaled score is $cz=3$.</p>
+  <div class="equation">$\displaystyle c=1:\quad p_1=\frac{1}{1+e^{-1}}\approx0.7311$<br/>
+    $\displaystyle c=3:\quad p_3=\frac{1}{1+e^{-3}}\approx0.9526$</div>
+  <p>The exponential decreases from $e^{-1}\approx0.3679$ to $e^{-3}\approx0.0498$, so the denominator gets closer to 1.</p>
+  <aside class="notes">The predicted class remains 1. The probability assigned to that class increases because the denominator falls from about 1.3679 to 1.0498.</aside>
+</section>
+
+<section id="question-3-negative-example" class="worked-example">
+  <p class="step-label">Written answers · Question 3a</p>
+  <h2>Negative score example</h2>
+  <p>Now take an observation with original score $z=-1$. With $c=3$, its scaled score is $cz=-3$.</p>
+  <div class="equation">$\displaystyle c=1:\quad p_1=\frac{1}{1+e^1}\approx0.2689$<br/>
+    $\displaystyle c=3:\quad p_3=\frac{1}{1+e^3}\approx0.0474$</div>
+  <p>The exponential increases from $e^1\approx2.7183$ to $e^3\approx20.0855$. The denominator grows, so the probability of class 1 decreases.</p>
+  <aside class="notes">The predicted class remains 0. Its probability is 1-p_c, which increases from about 0.7311 to 0.9526. Increasing c makes a negative score more negative; it does not make its numerical value larger.</aside>
+</section>
+
+<section id="question-3-probability-limit">
+  <p class="step-label">Written answers · Question 3b</p>
+  <h2>Take the probability limit</h2>
+  <div class="q3-math">$p_c=\dfrac{1}{1+e^{-cz}}$</div>
+  <p>Start with the sigmoid from part a. As $c\to\infty$, the result depends on the sign of the original score $z$.</p>
+  <div class="equation">$z&gt;0:\quad -cz\to-\infty\;\Rightarrow\;e^{-cz}\to0\;\Rightarrow\;p_c\to1$<br/>
+    $z&lt;0:\quad -cz\to+\infty\;\Rightarrow\;e^{-cz}\to\infty\;\Rightarrow\;p_c\to0$</div>
+  <aside class="notes">The sign of the full affine score matters, including the bias. If z=0, p_c remains 0.5 for every c. Strict separation excludes this case for the training observations.</aside>
+</section>
+
+<section id="question-3-probability-graph" class="graph-slide">
+  <p class="step-label">Written answers · Question 3b</p>
+  <h2>Probabilities approach the labels</h2>
+  <figure><img src="./assets/probabilities.svg" alt="Class-one probability tends to one for original score z=1 and to zero for z=-1 as c increases."/>
+    <figcaption>Because the model separates the data correctly, class-one observations have $p_c\to1$ and class-zero observations have $p_c\to0$.</figcaption></figure>
+  <aside class="notes">These are the same two scores as in the worked examples. The exact limiting probabilities are reached only as c tends to infinity.</aside>
+</section>
+
+<section id="question-3-loss-limit">
+  <p class="step-label">Written answers · Question 3b</p>
+  <h2>Training loss approaches zero</h2>
+  <div class="equation">$y_i=1:\quad p_{i,c}\to1\quad\Rightarrow\quad-\log p_{i,c}\to0$<br/>
+    $y_i=0:\quad p_{i,c}\to0\quad\Rightarrow\quad-\log(1-p_{i,c})\to0$</div>
+  <p>Each observation gets a probability approaching 1 for its true label. Its negative log-probability therefore approaches zero.</p>
+  <div class="q3-math">$\displaystyle\lim_{c\to\infty}L_{\mathrm{BCE}}(c)=0$</div>
+  <p class="q3-detail">In part c, we derive this loss from the likelihood of the observed labels.</p>
+  <aside class="notes">This answers the training-loss question before deriving BCE in part c. We average a finite number of individual losses, each tending to zero, so the mean also tends to zero.</aside>
+</section>
+
+<section id="question-3-label-probabilities">
+  <p class="step-label">Written answers · Question 3c</p>
+  <h2>Probability of one label</h2>
+  <p>Let $p_i=P(y_i=1\mid\mathbf x_i)$. The observed label is either 0 or 1, so we use a Bernoulli model.</p>
+  <div class="q3-math">$P(y_i\mid\mathbf x_i,\mathbf w,b)=p_i^{y_i}(1-p_i)^{1-y_i}$</div>
+  <p class="q3-caption">If $y_i=1$, this gives $p_i$. If $y_i=0$, it gives $1-p_i$.</p>
+  <p class="q3-detail">The expression selects the probability assigned to the label that actually occurred.</p>
+  <aside class="notes">This follows the Bernoulli model introduced in note 2.3. The data and observed labels are fixed; the predicted probabilities depend on the parameters we want to fit.</aside>
+</section>
+
+<section id="question-3-likelihood">
+  <p class="step-label">Written answers · Question 3c</p>
+  <h2>Likelihood of the dataset</h2>
+  <p>If the observations are independent given the model parameters, their probabilities multiply.</p>
+  <div class="q3-math">$\displaystyle\mathcal L(\mathbf w,b)=\prod_{i=1}^{n}p_i^{y_i}(1-p_i)^{1-y_i}$</div>
+  <p class="q3-caption">Maximum likelihood chooses parameters that make the observed labels as probable as possible.</p>
+  <p>For labels $[1,0,1]$ and predictions $[0.9,0.2,0.7]$, we get $\mathcal L=0.9(1-0.2)0.7=0.504$.</p>
+  <aside class="notes">This is the three-observation example from note 2.3. The probability of the second observed label is 0.8 because that label is zero. The likelihood is a function of the model parameters with the dataset held fixed.</aside>
+</section>
+
+<section id="question-3-log-product">
+  <p class="step-label">Written answers · Question 3c</p>
+  <h2>Take the logarithm</h2>
+  <p>Products of many small probabilities are awkward to calculate. Using $\log(uv)=\log u+\log v$ turns the product into a sum.</p>
+  <div class="equation">$\displaystyle\log\mathcal L=\log\prod_{i=1}^{n}p_i^{y_i}(1-p_i)^{1-y_i}$<br/>
+    $\displaystyle\phantom{\log\mathcal L}=\sum_{i=1}^{n}\left[y_i\log p_i+(1-y_i)\log(1-p_i)\right]$</div>
+  <p class="q3-caption">The logarithm is strictly increasing, so maximising the likelihood also maximises the log-likelihood.</p>
+  <aside class="notes">We use natural logarithms. Taking the log changes the scale of the objective but preserves the ordering of all positive likelihood values.</aside>
+</section>
+
+<section id="question-3-cross-entropy-definition">
+  <p class="step-label">Written answers · Question 3c</p>
+  <h2>From likelihood to BCE</h2>
+  <p>We usually write optimisation as minimisation. So we negate the log-likelihood and divide by the number of observations.</p>
+  <div class="equation">$\displaystyle L_{\mathrm{BCE}}=-\frac{1}{n}\log\mathcal L$<br/>
+    $\displaystyle\phantom{L_{\mathrm{BCE}}}=-\frac{1}{n}\sum_{i=1}^{n}\left[y_i\log p_i+(1-y_i)\log(1-p_i)\right]$</div>
+  <p class="q3-caption">This gives binary cross-entropy. Minimising it is equivalent to maximising the likelihood.</p>
+  <aside class="notes">The minus sign reverses the ordering so that the most likely model has the smallest loss. Dividing by fixed n gives a mean without changing the minimiser. BCE follows from the Bernoulli likelihood rather than being an arbitrary choice.</aside>
+</section>
+
+<section id="question-3-loss-graph" class="graph-slide">
+  <p class="step-label">Written answers · Question 3c</p>
+  <h2>BCE keeps decreasing</h2>
+  <figure><img src="./assets/cross-entropy.svg" alt="Mean binary cross-entropy decreases towards zero as c increases, with no finite point attaining zero."/>
+    <figcaption>Here the correct signed scores have magnitudes $0.5$, $1$ and $2$. Their mean loss decreases as we scale the parameters.</figcaption></figure>
+  <aside class="notes">The curve averages log(1+exp(-ca)) for a=0.5, 1 and 2. Each a is the score multiplied by the true-label sign; part d introduces the name signed margin. The plotted example illustrates the general result for strictly separated observations.</aside>
+</section>
+
+<section id="question-3-optimum">
+  <p class="step-label">Written answers · Question 3c</p>
+  <h2>No finite optimum</h2>
+  <div class="equation">$L_{\mathrm{BCE}}(c)&gt;0\text{ for finite }c,\qquad L_{\mathrm{BCE}}(c)\to0$<br/>
+    $\mathcal L(c)=e^{-nL_{\mathrm{BCE}}(c)}&lt;1,\qquad\mathcal L(c)\to1$</div>
+  <p>For any finite separating parameters, we can increase $c$ again to obtain a higher likelihood and a lower BCE.</p>
+  <p class="q3-caption">The unregularised maximum-likelihood estimate therefore has <strong>no finite optimum</strong> on this strictly separable training set.</p>
+  <aside class="notes">Zero is the infimum of BCE and one is the supremum of the likelihood. Neither is attained by finite parameters. Any parameters that fail to separate also have positive BCE, and scaling a separating model eventually gives a smaller loss than any such finite candidate.</aside>
+</section>
+
+<section id="question-3-margin">
+  <p class="step-label">Written answers · Question 3d</p>
+  <h2>Margin and correct classification</h2>
+  <p>We can check whether a prediction is correct by multiplying the score by the sign of the true label.</p>
+  <div class="equation">$t_i=2y_i-1,\qquad m_i=t_i z_i=(2y_i-1)z_i$</div>
+  <table class="results compact"><thead><tr><th>True label</th><th>Correct score</th><th>Signed margin</th></tr></thead>
+    <tbody><tr><td>$y_i=1$</td><td>$z_i&gt;0$</td><td>$m_i=(+1)z_i&gt;0$</td></tr>
+    <tr><td>$y_i=0$</td><td>$z_i&lt;0$</td><td>$m_i=(-1)z_i&gt;0$</td></tr></tbody></table>
+  <p>A positive margin means the prediction is correct. A negative margin means it is incorrect; zero puts the observation on the boundary.</p>
+  <aside class="notes">This is the signed functional margin, not the geometric distance to the boundary. A point at zero needs a tie-breaking rule. Strict separation means all training margins are positive, so tie-breaking does not affect this question.</aside>
+</section>
+
+<section id="question-3-classification">
+  <p class="step-label">Written answers · Question 3d</p>
+  <h2>Scaling preserves the sign</h2>
+  <div class="q3-math">$z_i\mapsto cz_i,\qquad m_i\mapsto cm_i$</div>
+  <p class="q3-caption">For $c&gt;0$, increasing the magnitude of the score does not change its sign. Positive scores stay positive and negative scores stay negative.</p>
+  <p>So <strong>the model can correctly classify every training observation</strong> with finite parameters. It already does so before we increase $c$.</p>
+  <p class="q3-detail">For example, $z=1\to3$ and $z=-1\to-3$. Confidence changes, but both classifications stay correct.</p>
+  <aside class="notes">Increasing the magnitude of a negative score makes it more negative. An arbitrary additive increase in z would not preserve its sign. Here we specifically multiply the complete score by a positive c. The lack of a finite optimum concerns the likelihood, not the existence of a correct classifier.</aside>
+</section>
+
+<section id="question-3-regularization">
+  <p class="step-label">Written answers · Question 3e</p>
+  <h2>Penalise large weights</h2>
+  <p>$L_2$ regularisation adds a penalty for the size of the weights to the BCE.</p>
+  <div class="q3-math">$J(\mathbf w,b)=L_{\mathrm{BCE}}(\mathbf w,b)+\dfrac{\lambda}{2}\sum_{j=1}^{d}w_j^2$</div>
+  <p class="q3-caption">Large weights increase the sum of squares. The parameter $\lambda&gt;0$ controls how strongly we penalise them.</p>
+  <p class="q3-detail">Here we leave the bias unpenalised and assume both classes occur in training.</p>
+  <aside class="notes">We use mean BCE throughout and the lambda/2 convention for the penalty. All weight components are penalised. The bias is fitted jointly with the weights.</aside>
+</section>
+
+<section id="question-3-penalty-scaling">
+  <p class="step-label">Written answers · Question 3e</p>
+  <h2>Balance fit and weight size</h2>
+  <div class="equation">$\displaystyle J(c\mathbf w,cb)=L_{\mathrm{BCE}}(c)+\frac{\lambda c^2}{2}\lVert\mathbf w\rVert^2$</div>
+  <p>Increasing $c$ reduces BCE, but the penalty grows as $c^2$. Eventually, the extra penalty outweighs the improvement in BCE.</p>
+  <p class="q3-caption">We therefore get a finite optimum that minimises the <strong>sum of BCE and the weight penalty</strong>.</p>
+  <p class="q3-detail">The two terms favour different solutions. The optimum balances them; it does not minimise each term separately.</p>
+  <aside class="notes">Along this fixed nonzero separating direction, J tends to infinity as c grows. For the full optimisation, a positive penalty bounds all weights on every sublevel set. With both classes present, sending the unpenalised bias to either infinity also makes BCE diverge. Continuity then gives a finite minimiser.</aside>
+</section>
+
+<section id="question-3-regularisation-graph" class="graph-slide">
+  <p class="step-label">Written answers · Question 3e</p>
+  <h2>Minimum of the combined objective</h2>
+  <figure><img src="./assets/regularisation.svg" alt="BCE falls as c increases, while the L2 penalty grows quadratically. Their sum reaches a finite minimum marked on the plot."/>
+    <figcaption>Using the same scores as before, we add a penalty of $0.05c^2$. The total reaches its minimum where a further decrease in BCE no longer offsets the increase in penalty.</figcaption></figure>
+  <aside class="notes">This plot varies the scale of one fixed separating direction. A full regularised fit also chooses the weight direction and bias. The illustrative coefficient corresponds to lambda times the original squared weight norm divided by two equal to 0.05.</aside>
+</section>
+
+<section id="question-3-boundary-gradient" class="regularisation-slide">
+  <p class="step-label">Written answers · Question 3f</p>
+  <h2>Compare the fitted lines</h2>
+  <div class="regularisation-comparison">
+    <figure data-regularisation-example data-lambda="0.01"><h3>Weak regularisation · $\lambda=0.01$</h3><div data-reg-plot></div><figcaption data-reg-summary></figcaption></figure>
+    <figure data-regularisation-example data-lambda="1"><h3>Strong regularisation · $\lambda=1$</h3><div data-reg-plot></div><figcaption data-reg-summary></figcaption></figure>
+  </div>
+  <p class="regularisation-takeaway">The weights shrink, and the bias changes relative to them. Both lines classify these observations correctly, but their positions differ.</p>
+  <aside class="notes">Both panels use the same data, objective and axis scales as the interactive slide. The solid line is the fitted boundary; the dashed line is the weak-regularisation reference at lambda=0.01. For lambda=0.01 the fitted weights are approximately (1.966,1.311), bias -0.632 and norm 2.363. For lambda=1 they are approximately (0.405,0.270), bias 0.291 and norm 0.487. This is a concrete counterexample to guaranteed preservation of the original separating boundary.</aside>
+</section>
+
+<!-- Practical source. RESULT markers are filled from the recorded evaluation. -->
+<section id="rocket-walkthrough">
+<p class="step-label">Practical · learning task</p><h2>Rocket classification</h2>
+<div class="flow"><div>12 inputs<br/>Rocket observations</div><span>→</span><div>Classifier</div><span>→</span><div>1 output<br/>Action label, 0–9</div></div>
+<p>Each training row contains the rocket state and the action selected by an expert controller. We use these observations to fit a classifier.</p>
+<p>The target is an <strong>action label</strong>. After training, we run the classifier as a controller to measure its landing performance.</p>
+<aside class="notes">The expert uses model predictive control, or MPC. It uses a physics model to plan its commands, and we train a classifier to imitate its recorded decisions. The expert can also make unsuccessful landings. Our training objective measures agreement with its actions, so we must evaluate landing performance separately.</aside></section>
+
+<section id="rocket-observations">
+<p class="step-label">Practical · inputs</p><h2>Input observations</h2>
+<table class="results compact"><thead><tr><th>Columns, in order</th><th>Meaning</th><th>Units</th></tr></thead><tbody>
+<tr><td><code>x, y</code></td><td>Horizontal position, centre-of-mass height, relative to pad</td><td>m</td></tr>
+<tr><td><code>vx, vy</code></td><td>Horizontal and vertical velocity; up is positive</td><td>m/s</td></tr>
+<tr><td><code>theta, omega</code></td><td>Tilt and angular velocity; anticlockwise positive</td><td>rad, rad/s</td></tr>
+<tr><td><code>fuel_mass</code></td><td>Remaining fuel</td><td>kg</td></tr>
+<tr><td><code>actual_thrust, actual_gimbal</code></td><td>Current physical thrust and engine angle</td><td>N, rad</td></tr>
+<tr><td><code>wind_x, wind_y, air_density</code></td><td>Local atmosphere</td><td>m/s, m/s, kg/m³</td></tr>
+</tbody></table><p class="small">In the following equations, $h$ denotes CSV column <code>y</code>, and $a$ denotes an action label.</p>
+<aside class="notes">The table gives the order of the 12 values supplied to predict_action. Height is measured at the centre of mass, so the rocket can contact the ground while its height is still positive. We use radians in calculations and convert to degrees for display. Current thrust and gimbal readings are available at prediction time.</aside></section>
+
+<section id="rocket-labels">
+<p class="step-label">Practical · dataset</p><h2>Targets and metadata</h2>
+<table class="results"><thead><tr><th>CSV field</th><th>Role</th><th>Use</th></tr></thead><tbody>
+<tr><td><code>action</code></td><td>Target $a\in\{0,\ldots,9\}$</td><td>Fit the mapping from observations to commands</td></tr>
+<tr><td><code>run_id, step</code></td><td>Sequence metadata</td><td>Group observations by flight and order them by step</td></tr>
+<tr><td><code>success</code></td><td>Eventual flight outcome</td><td>Use for analysis; unavailable during flight</td></tr>
+</tbody></table><p>The eventual <code>success</code> value is unavailable during flight. Including it as an input would leak information from the future.</p>
+<aside class="notes">We use run_id to keep observations from a flight together when splitting the data. The numerical ID does not represent a physical measurement and is not used as a continuous input. The step field records sequence order. A model with lag features must preserve this order and reset its history at each flight boundary.</aside></section>
+
+<section id="rocket-two-evaluations">
+<p class="step-label">Practical · evaluation</p><h2>Two evaluation directions</h2>
+<div class="columns"><div><h3>Recorded observations</h3><p>We keep the recorded observations fixed and compare the model actions with the expert labels.</p><p>We report <strong>accuracy and macro F1</strong>.</p></div><div><h3>Closed-loop simulation</h3><p>We apply a model action, simulate its effect, and use the resulting state for the next prediction.</p><p>We report <strong>landing success and score</strong>.</p></div></div>
+<p class="small">The states encountered in a model-controlled flight can differ from those in the expert recordings.</p>
+<aside class="notes">The 1,095 labelled validation observations were visited by the expert. Each model simulation starts from a validation initial state and then evolves under that model. Once two trajectories differ, observations at the same clock time may represent different states. We therefore assess action agreement on fixed recordings and landing performance through separate simulations.</aside></section>
+
+<section id="rocket-success">
+<p class="step-label">Practical · landing evaluation</p><h2>Landing success criteria</h2>
+<table class="results compact"><thead><tr><th>At the first ground contact</th><th>Required</th></tr></thead><tbody>
+<tr><td>Geometry</td><td>A foot contacts first on the concrete pad; both feet lie within its edges</td></tr>
+<tr><td>Vertical velocity</td><td>$-3\le v_y\le0$ m/s</td></tr><tr><td>Horizontal speed</td><td>$|v_x|\le1.5$ m/s</td></tr>
+<tr><td>Tilt</td><td>$|\theta|\le4^\circ$</td></tr><tr><td>Angular speed</td><td>$|\omega|\le2^\circ$/s</td></tr>
+</tbody></table><p class="small">Failed landings score 0. Successful landings score up to 100 for low speeds, small tilt and a position near the centre. We average all ten scores.</p>
+<aside class="notes">These are the touchdown-v1.0 rules implemented in rocket_scoring.py. The velocity limits use centre-of-mass velocity. A foot must make the first contact on the pad, both feet must be within its edges, and all motion limits must be satisfied. Failure of any condition gives zero landing score. Missing contact or invalid states also count as unsuccessful.</aside></section>
+
+<section id="rocket-protocol">
+<p class="step-label">Practical · experimental method</p><h2>Training and evaluation procedure</h2>
+<div class="flow"><div>Training rows<br/>Parameter fitting</div><span>→</span><div>Tuning flights<br/>Setting selection</div><span>→</span><div>10 validation flights<br/>Evaluation</div></div>
+<p>We keep the separate exercise test set for the final assessment.</p>
+<p class="small">Stage 1 uses a random row split, while later stages use whole flights. This comparison also changes the training observations, so it does not isolate the effect of the splitting method.</p>
+<aside class="notes">The recorded procedure uses about 80% of landings.csv for fitting and 10% for tuning, holding out the remaining 10%. It then evaluates on the separate validation_runs.csv. Run IDs are local to each file, so equal ID numbers across files do not establish overlap. If we repeatedly choose designs using the ten validation flights, those flights become development data. We still need an untouched test set for final assessment.</aside></section>
+
+<section id="normalisation-bug">
+<p class="step-label">Step 1 · original implementation</p><h2>Normalisation error</h2>
+<p>The original feature function recalculates column means and standard deviations whenever it is called, including for a single prediction.</p>
+<div class="equation">$X=\begin{bmatrix}100&-20\end{bmatrix}\quad\Rightarrow\quad\mu=(100,-20),\;\sigma=(0,0)$<br/>$\tilde X=(X-\mu)/(\sigma+\epsilon)=\begin{bmatrix}0&0\end{bmatrix}$</div>
+<p>This gives the feature vector $[1,0,\ldots,0]$ for every single-observation prediction. The selected action then depends only on the learned biases.</p>
+<aside class="notes">Normalisation is calculated independently for each column over its rows. With one row, the column mean equals its observation and the standard deviation is zero. Epsilon avoids division by zero, but every standardised feature is still zero. Validation batches were also being standardised using their own statistics, changing the coordinates supplied to the model.</aside></section>
+
+<section id="normalisation-fix">
+<p class="step-label">Step 1 · corrected implementation</p><h2>Training-set normalisation</h2>
+<div class="equation">$\tilde x_j=\frac{x_j-\mu_j^{\rm train}}{\sigma_j^{\rm train}+\epsilon}$</div>
+<p>For example, a training height mean of 80 m and standard deviation of 20 m transform a height of 100 m to $+1$ in training, validation and flight.</p>
+<p>We calculate these statistics from the training features, save them with the weights, and reuse them for every prediction. The bias column is added afterwards.</p>
+<aside class="notes">The feature helper fits normalisation only when fit_normalization=True is used on the training design. All other calls reuse the stored values. For the baseline comparison, the same fitted stage-1 weights are used with broken and corrected single-observation normalisation. This isolates that prediction error rather than reconstructing every detail of an original training run.</aside></section>
+<section id="result-1"><p class="step-label">Step 1 · validation</p><h2>Normalisation results</h2>
+      <div class="result-layout"><table class="results"><thead><tr><th>Measure</th><th>Before</th><th>After</th><th>Change</th></tr></thead><tbody><tr><td>Action accuracy</td><td>67.0%</td><td>78.4%</td><td>+11.4 pp</td></tr><tr><td>Action macro F1</td><td>8.0%</td><td>20.4%</td><td>+12.3 pp</td></tr><tr><td>Successful landings</td><td>0/10</td><td>1/10</td><td>+1 flights</td></tr><tr><td>Mean score</td><td>0.0/100</td><td>9.1/100</td><td>+9.1 points</td></tr></tbody></table>
+      <figure><img src="./assets/result-1.svg" alt="Landing measures: before 0/10 and 0.0/100; after 1/10 and 9.1/100."/></figure></div>
+      <p class="result-takeaway">Reusing training statistics lets the prediction depend on the current state.</p>
+      <p class="small">1,095 validation rows; ten starting states. Failures score 0. Values rounded; pp = percentage points.</p>
+      <aside class="notes">We evaluate both controllers on the same labelled expert observations and the same ten validation initial states. Failed landings receive a score of zero. Macro F1 averages the action-level F1 scores, while landing success is measured in the simulations. Observations from the same flight are correlated, and ten flights give only a small sample of landing outcomes.</aside></section>
+
+<section id="flight-split">
+<p class="step-label">Step 2 · data partition</p><h2>Splitting by flight</h2>
+<div class="sequence"><span>Flight A: 0.0 s</span><span>0.1 s</span><span>0.2 s</span><span>0.3 s</span></div>
+<div class="columns"><div><h3>Random row split</h3><p>We train on A at 0.0 and 0.2 s.<br/>We tune on A at 0.1 and 0.3 s.</p><p>The two partitions contain very similar states from the same trajectory.</p></div><div><h3>Whole-flight split</h3><p>We train on all of flight A.<br/>We tune on all of flight B.</p><p>This assesses performance on a different flight.</p></div></div>
+<aside class="notes">Even without a run_id input, nearby observations contain very similar physical states. A random row split can therefore give an optimistic estimate of performance on another flight. Splitting by flight changes how we evaluate generalisation and need not increase the reported score. Different flights may still have similar conditions, so grouping does not establish complete independence.</aside></section>
+
+<section id="result-2"><p class="step-label">Step 2 · validation</p><h2>Flight-level split results</h2>
+      <div class="result-layout"><table class="results"><thead><tr><th>Measure</th><th>Before</th><th>After</th><th>Change</th></tr></thead><tbody><tr><td>Action accuracy</td><td>78.4%</td><td>78.5%</td><td>+0.1 pp</td></tr><tr><td>Action macro F1</td><td>20.4%</td><td>21.3%</td><td>+1.0 pp</td></tr><tr><td>Successful landings</td><td>1/10</td><td>1/10</td><td>+0 flights</td></tr><tr><td>Mean score</td><td>9.1/100</td><td>8.1/100</td><td>-1.0 points</td></tr></tbody></table>
+      <figure><img src="./assets/result-2.svg" alt="Landing measures: before 1/10 and 9.1/100; after 1/10 and 8.1/100."/></figure></div>
+      <p class="result-takeaway">The landing count stays at 1/10 and mean score falls slightly. The new split assesses different flights and also changes the training rows.</p>
+      <p class="small">1,095 validation rows; ten starting states. Failures score 0. Values rounded; pp = percentage points.</p>
+      <aside class="notes">We evaluate both controllers on the same labelled expert observations and the same ten validation initial states. Failed landings receive a score of zero. Macro F1 averages the action-level F1 scores, while landing success is measured in the simulations. Observations from the same flight are correlated, and ten flights give only a small sample of landing outcomes.</aside></section>
+
+<section id="action-frequency" class="graph-slide">
+<p class="step-label">Step 3 · class frequencies</p><h2>Training action frequencies</h2>
+<figure><img src="./assets/action-frequency.svg" alt="Histogram of action labels in the whole-flight training partition; action 2 dominates and several actions occur in less than one percent of rows."/><figcaption>These frequencies are calculated from the whole-flight training partition. The counts and flight IDs are recorded with the figures.</figcaption></figure>
+<aside class="notes">Only the training rows used from stage 2 onwards are included. Without weighting, frequent actions contribute more terms to the mean cross-entropy. A rare action is not necessarily more important physically, so we also need the landing evaluation.</aside></section>
+
+<section id="class-weighting">
+<p class="step-label">Step 3 · option A</p><h2>Class weighting</h2>
+<div class="equation">$q_c=\frac{N}{C n_c},\qquad L_q=-\frac{\sum_i q_{a_i}\log p_{i,a_i}}{\sum_i q_{a_i}}$</div>
+<p>Here $N$ is the number of training rows, $C$ the number of represented classes, and $n_c$ the number of rows with action $c$.</p>
+<p>For 90 examples of A and 10 of B, the weights $100/(2\times90)=0.556$ and $100/(2\times10)=5$ give each class a total weight of 50.</p>
+<aside class="notes">We use q for class weights to distinguish them from model weights. The inverse-frequency rule gives every represented training class equal total influence on the loss. We calculate it from training counts only. This changes the training objective without changing the expert labels. It may improve recognition of rare actions while reducing accuracy or probability calibration on the original class distribution.</aside></section>
+
+<section id="class-sampling">
+<p class="step-label">Step 3 · option B</p><h2>Class sampling</h2>
+<div class="equation">$P(\text{choose row }i)\propto\frac{1}{n_{a_i}}$</div>
+<p>Alternatively, sample a class uniformly, then sample a training row from that class. Fit the sampled rows using ordinary cross-entropy.</p>
+<p>With 90 examples of A and 10 of B, 100 draws contain about 50 of each. Rare rows can appear more than once.</p>
+<p class="small">Use weighting <strong>or</strong> balanced sampling here. The saved example uses weighting only; sampling has no measured result in this comparison.</p>
+<aside class="notes">Sample with replacement. Class balance holds in expectation, rather than exactly in every batch. Sampling changes which rows are presented; weighting changes their contributions. Both use training counts only. Applying inverse-frequency weights again to balanced samples would give the rare class extra influence beyond the intended balance. Keep validation unchanged. The actual controller uses a weighted loss and weights its gradient consistently; it does not implement the sampling alternative.</aside></section>
+<section id="result-3"><p class="step-label">Step 3 · validation</p><h2>Class weighting results</h2>
+      <div class="result-layout"><table class="results"><thead><tr><th>Measure</th><th>Before</th><th>After</th><th>Change</th></tr></thead><tbody><tr><td>Action accuracy</td><td>78.5%</td><td>45.7%</td><td>-32.9 pp</td></tr><tr><td>Action macro F1</td><td>21.3%</td><td>27.8%</td><td>+6.5 pp</td></tr><tr><td>Successful landings</td><td>1/10</td><td>4/10</td><td>+3 flights</td></tr><tr><td>Mean score</td><td>8.1/100</td><td>30.8/100</td><td>+22.6 points</td></tr></tbody></table>
+      <figure><img src="./assets/result-3.svg" alt="Landing measures: before 1/10 and 8.1/100; after 4/10 and 30.8/100."/></figure></div>
+      <p class="result-takeaway">This example uses class weighting only. Macro F1 and landing success rise, while action accuracy falls. Balanced sampling is an alternative.</p>
+      <p class="small">1,095 validation rows; ten starting states. Failures score 0. Values rounded; pp = percentage points.</p>
+      <aside class="notes">We evaluate both controllers on the same labelled expert observations and the same ten validation initial states. Failed landings receive a score of zero. Macro F1 averages the action-level F1 scores, while landing success is measured in the simulations. Observations from the same flight are correlated, and ten flights give only a small sample of landing outcomes.</aside></section>
+<section id="projection-intuition">
+<p class="step-label">Step 4 · feature construction</p><h2>Projection features</h2>
+<p>A rocket at 100 m descending at 20 m/s requires a different response from one descending at 2 m/s. Height alone does not describe how quickly the state is changing.</p>
+<p>We calculate approximate future states from the current observation and include them as additional features for the classifier.</p>
+<div class="flow"><div>Current state</div><span>→</span><div>State projection</div><span>→</span><div>Projected features</div></div>
+<aside class="notes">A basis function transforms the observed inputs. In this case, the transformation uses assumptions about the rocket dynamics to project its state. These calculations use only information available in the current observation. The classifier continues to learn expert action labels.</aside></section>
+
+<section id="constant-velocity-forces" class="graph-slide">
+<p class="step-label">Step 4 · motion assumption</p><h2>Constant velocity</h2>
+<figure><img src="./assets/forces-constant-velocity.svg" alt="Rocket schematic with constant downward velocity and angular velocity; the approximation sets linear and angular acceleration to zero."/><figcaption>First assume zero acceleration and zero angular acceleration. Vertical velocity and angular velocity remain constant.</figcaption></figure>
+<aside class="notes">This is a kinematic approximation. It ignores gravity, drag and engine forces in the projection even though those forces act in the simulator. Constant angular velocity allows the tilt angle to change.</aside></section>
+
+<section id="projection-example">
+<p class="step-label">Step 4 · feature example</p><h2>Constant-velocity projections</h2>
+<div class="equation">$\hat h(t)=h+v_yt,\quad\hat v_y(t)=v_y$<br/>$\hat\theta(t)=\theta+\omega t,\quad\hat\omega(t)=\omega$</div>
+<p>For $h=100$ m and $v_y=-20$ m/s, the projected heights are $\hat h(1)=80$ m and $\hat h(2)=60$ m.</p>
+<p>For $\theta=0.10$ rad and $\omega=-0.02$ rad/s, the projected angle is $\hat\theta(2)=0.06$ rad.</p>
+<aside class="notes">We assume constant vertical and angular velocities until estimated contact. The hat indicates a calculated future state. A negative angular velocity reduces the positive tilt in this example. Reaching zero tilt with nonzero angular velocity does not mean that rotation has stopped.</aside></section>
+
+<section id="projection-landing" class="graph-slide">
+<p class="step-label">Step 4 · worked projection</p><h2>Projecting to ground contact</h2>
+<figure><img src="./assets/constant-velocity-contact.svg" alt="Constant-velocity projected path and tilt until estimated flat-pad contact, with one, two and three second samples and the contact position, angle and velocities labelled."/><figcaption>Continuing the approximation gives a contact position, angle and velocity. The dashed part extends beyond the model's 3 s feature horizon.</figcaption></figure>
+<aside class="notes">The illustration uses x = −10 m, h = 100 m, vx = 3 m/s, vy = −20 m/s, theta = .10 rad, omega = −.02 rad/s and 10,000 kg fuel. We continue the constant-velocity equations to contact to explain the idea; the model samples only up to three seconds. The model appends vertical and angular quantities, not horizontal landing position. The flat-pad contact estimate uses the calibrated hull and feet.</aside></section>
+
+<section id="projection-design">
+<p class="step-label">Step 4 · design matrix</p><h2>Projected feature vector</h2>
+<div class="feature-vector"><div>12 raw observations</div><div>+ 4 projected values at 1 s</div><div>+ 4 at 2 s</div><div>+ 4 at 3 s</div></div>
+<p>At each horizon we append $[\hat h,\hat v_y,\hat\theta,\hat\omega]$. This gives <strong>24 features in total</strong>, followed by the bias column.</p>
+<p>Use <strong>12 steps of 0.25 s</strong>, saving after steps 4, 8 and 12. If estimated contact occurs earlier, hold that state for later samples.</p>
+<p class="small">We normalise all 24 columns using training statistics, then add the bias. The projection runs for at most 3 s, rather than until landing.</p>
+<aside class="notes">The feature order is the original 12 observations followed by four projected values at each of 1, 2 and 3 seconds. We run the same helper during fitting and prediction. Each projection starts from the current observation and does not advance the actual simulator. The horizon choices can be varied and assessed using tuning flights.</aside></section>
+
+<section id="projection-contact">
+<p class="step-label">Step 4 · contact approximation</p><h2>Estimated ground contact</h2>
+<p>At each step, estimate the height of the lowest point on the hull or feet above a flat pad. This depends on the rocket's height, tilt and centre of mass.</p>
+<div class="flow"><div>Lowest point above pad</div><span>→</span><div>Advance 0.25 s</div><span>→</span><div>Check for contact</div></div>
+<p>If a step crosses the pad surface, interpolate back to contact and hold that state for the remaining feature samples.</p>
+<p class="small">Because height is measured at the centre of mass, contact occurs at a positive height. This approximation does not use horizontal terrain.</p>
+<aside class="notes">The implementation calculates old_gap/(old_gap-new_gap), clips it to [0,1], and integrates for that fraction of the step. This interpolates clearance rather than solving for exact contact. Once contact is estimated, h, vy, theta and omega are held fixed, even if velocity is nonzero. This stopping rule defines the features rather than simulating a collision. An initially contacting state is held immediately.</aside></section>
+
+<section id="projection-redundancy">
+<p class="step-label">Step 4 · model representation</p><h2>Linear and nonlinear features</h2>
+<div class="equation">$a h+b(h+t v_y)=(a+b)h+(bt)v_y$</div>
+<p>At a fixed horizon $t$, the unrestricted constant-velocity projection is an affine combination of inputs already available to the classifier.</p>
+<p>The implemented transformation also includes <strong>trigonometric geometry and state-dependent stopping at contact</strong>. These operations make the feature map nonlinear.</p>
+<p class="small">Repeated or related columns can also change optimisation and regularisation, so improved results do not by themselves establish which part of the transformation helped.</p>
+<aside class="notes">A deterministic transformation adds no new measured information. It can still allow a linear classifier to represent more complex decisions when the transformation is nonlinear. Without stopping, projected vertical and angular velocities repeat existing inputs. Fixed-gravity projections add affine terms that can also be represented using the original inputs and bias. The measured changes therefore should not be attributed solely to the unrestricted projection equations.</aside></section>
+<section id="result-4"><p class="step-label">Step 4 · validation</p><h2>Constant velocity results</h2>
+      <div class="result-layout"><table class="results"><thead><tr><th>Measure</th><th>Before</th><th>After</th><th>Change</th></tr></thead><tbody><tr><td>Action accuracy</td><td>45.7%</td><td>50.2%</td><td>+4.6 pp</td></tr><tr><td>Action macro F1</td><td>27.8%</td><td>28.7%</td><td>+0.9 pp</td></tr><tr><td>Successful landings</td><td>4/10</td><td>7/10</td><td>+3 flights</td></tr><tr><td>Mean score</td><td>30.8/100</td><td>63.5/100</td><td>+32.8 points</td></tr></tbody></table>
+      <figure><img src="./assets/result-4.svg" alt="Landing measures: before 4/10 and 30.8/100; after 7/10 and 63.5/100."/></figure></div>
+      <p class="result-takeaway">Adding the projection features increases successful landings from 4/10 to 7/10.</p>
+      <p class="small">1,095 validation rows; ten starting states. Failures score 0. Values rounded; pp = percentage points.</p>
+      <aside class="notes">We evaluate both controllers on the same labelled expert observations and the same ten validation initial states. Failed landings receive a score of zero. Macro F1 averages the action-level F1 scores, while landing success is measured in the simulations. Observations from the same flight are correlated, and ten flights give only a small sample of landing outcomes.</aside></section>
+
+<section id="gravity-forces" class="graph-slide">
+<p class="step-label">Step 5 · force assumption</p><h2>Add gravity</h2>
+<figure><img src="./assets/forces-gravity.svg" alt="Rocket schematic with gravity acting downward through the centre of mass, giving vertical acceleration minus g and no torque about the centre."/><figcaption>Gravity acts downward through the centre of mass. It changes vertical velocity and leaves angular velocity unchanged in this approximation.</figcaption></figure>
+<aside class="notes">Here g = 9.80665 m/s². The projection still omits engine and aerodynamic forces. A force through the centre of mass produces no torque about that point.</aside></section>
+
+<section id="gravity-projection">
+<p class="step-label">Step 5 · feature construction</p><h2>Projections with gravity</h2>
+<div class="equation">$\hat h(t)=h+v_yt-\tfrac12gt^2,\qquad\hat v_y(t)=v_y-gt$<br/>$\hat\theta(t)=\theta+\omega t,\qquad\hat\omega(t)=\omega$</div>
+<p>For $g=9.80665$ m/s², $h=100$ m and $v_y=-20$ m/s, we calculate the state at 2 s.</p>
+<p>Before estimated contact, this gives $\hat h\approx40.39$ m and $\hat v_y\approx-39.61$ m/s.</p>
+<p class="small">Keep the same 12 steps, 1–3 s samples, contact rule and 24 feature columns. Gravity changes the projected values and estimated contact time.</p>
+<aside class="notes">The positive vertical direction is up, so gravity has a negative sign. Quarter-second integration of constant acceleration gives the analytic expressions shown here before contact. Angle and angular velocity retain the constant-angular-velocity assumption. As before, the state-dependent contact calculation is important to the nonlinear feature map.</aside></section>
+<section id="projection-picture" class="graph-slide">
+<p class="step-label">Step 5 · feature comparison</p><h2>Projected heights at contact</h2>
+<figure><img src="./assets/projection-features.svg" alt="For an upright rocket at height 100 m descending at 20 m/s, constant-velocity and gravity height features are sampled at one, two and three seconds. At three seconds the free gravity equation goes below ground but the implemented feature holds at estimated contact height."/><figcaption>The dots show feature-helper outputs for $h=100$ m, $v_y=-20$ m/s, an upright rocket and 10,000 kg of fuel. They are projected states.</figcaption></figure>
+<aside class="notes">The preparation script evaluates _basis on the specified observation. Dotted curves show the unrestricted equations, and the dots show values actually supplied to the classifier. The gravity projection has reached estimated contact before the final sample, so it holds all four projected quantities at contact. The contact height depends on geometry and the fuel-dependent centre of mass.</aside></section>
+<section id="result-5"><p class="step-label">Step 5 · validation</p><h2>Gravity results</h2>
+      <div class="result-layout"><table class="results"><thead><tr><th>Measure</th><th>Before</th><th>After</th><th>Change</th></tr></thead><tbody><tr><td>Action accuracy</td><td>50.2%</td><td>55.4%</td><td>+5.2 pp</td></tr><tr><td>Action macro F1</td><td>28.7%</td><td>34.7%</td><td>+6.0 pp</td></tr><tr><td>Successful landings</td><td>7/10</td><td>8/10</td><td>+1 flights</td></tr><tr><td>Mean score</td><td>63.5/100</td><td>72.5/100</td><td>+9.0 points</td></tr></tbody></table>
+      <figure><img src="./assets/result-5.svg" alt="Landing measures: before 7/10 and 63.5/100; after 8/10 and 72.5/100."/></figure></div>
+      <p class="result-takeaway">Including gravity increases successful landings from 7/10 to 8/10.</p>
+      <p class="small">1,095 validation rows; ten starting states. Failures score 0. Values rounded; pp = percentage points.</p>
+      <aside class="notes">We evaluate both controllers on the same labelled expert observations and the same ten validation initial states. Failed landings receive a score of zero. Macro F1 averages the action-level F1 scores, while landing success is measured in the simulations. Observations from the same flight are correlated, and ten flights give only a small sample of landing outcomes.</aside></section>
+
+<section id="forces-picture" class="graph-slide">
+<p class="step-label">Step 6 · force assumption</p><h2>Add aerodynamic drag</h2>
+<figure><img src="./assets/forces-drag.svg" alt="Rocket schematic with gravity at the centre of mass and drag at a pressure point; the lever arm can produce a torque."/><figcaption>Drag opposes motion relative to the air. Applied away from the centre of mass, it can also change the rocket's rotation.</figcaption></figure>
+<aside class="notes">This uses the same schematic as the full force diagram, showing the forces included in the drag projection. Engine thrust remains omitted. Translational acceleration is force divided by mass; angular acceleration is torque divided by moment of inertia.</aside></section>
+
+<section id="drag-relative">
+<p class="step-label">Step 6 · drag force</p><h2>Air-relative drag</h2>
+<div class="equation">$\mathbf u=\mathbf v-\mathbf v_{\rm wind}$<br/>$\mathbf F_D=-\tfrac12\rho C_D A\|\mathbf u\|\mathbf u$<br/>$a_x=F_{D,x}/m,\qquad a_y=-g+F_{D,y}/m$</div>
+<p>For example, $v_x=10$ m/s with a tailwind of 8 m/s gives an air-relative speed of 2 m/s. A headwind of −8 m/s gives 18 m/s.</p>
+<p class="small">The example uses $C_D=0.65+15\sin^2\beta$ and $A=10.5209$ m². Here $\beta$ is the angle between the tail axis and air-relative velocity.</p>
+<aside class="notes">This example uses one dimension to show the effect of wind. The implementation uses both air-relative velocity components. The negative sign makes drag oppose that velocity. Density is in kg/m³, reference area is in m², and the drag coefficient is dimensionless, giving force in newtons. Zero air-relative velocity gives zero drag.</aside></section>
+
+<section id="drag-torque">
+<p class="step-label">Step 6 · angular acceleration</p><h2>Aerodynamic torque</h2>
+<div class="equation">$\tau_D=r_xF_{D,y}-r_yF_{D,x},\qquad\alpha_D=\tau_D/I$</div>
+<p>The lever arm $\mathbf r$ runs from the centre of mass to the force application point. We divide the resulting torque by the moment of inertia $I$.</p>
+<p>A force through the centre gives zero torque. Increasing the perpendicular lever arm increases torque, while increasing inertia reduces angular acceleration.</p>
+<aside class="notes">Positive torque increases anticlockwise angular velocity. The approximation applies aerodynamic force at axial coordinate 37 m and calculates its displacement from the centre of mass. Torque is measured in N m and inertia in kg m². Fuel affects mass, centre of mass and inertia between observations, but their current values are held fixed within each projection.</aside></section>
+
+<section id="rollout-update">
+<p class="step-label">Step 6 · implementation</p><h2>Projection integration</h2>
+<div class="equation">$h_{k+1}=h_k+v_{y,k}\Delta t+\tfrac12a_{y,k}\Delta t^2$<br/>$v_{y,k+1}=v_{y,k}+a_{y,k}\Delta t$<br/>$\theta_{k+1}=\theta_k+\omega_k\Delta t+\tfrac12\alpha_k\Delta t^2$<br/>$\omega_{k+1}=\omega_k+\alpha_k\Delta t$</div>
+<p class="small">Recalculate drag each 0.25 s step. Keep the same 12-step maximum, samples and contact rule. Update $v_x$ as well, because it affects the next drag calculation.</p>
+<aside class="notes">We calculate acceleration from the current projected state, hold it constant for one step, then recalculate it after the update. We save features after 4, 8 and 12 steps, giving the 1, 2 and 3 second horizons. A contact step uses only the estimated fraction before contact. The feature integration interval is separate from the 0.1 second interval between real controller decisions.</aside></section>
+
+<section id="drag-projection-picture" class="graph-slide">
+<p class="step-label">Step 6 · projected features</p><h2>Effect of drag on the projection</h2>
+<figure><img src="./assets/drag-projection.svg" alt="Height and angle features for a fast, tilted descent from 300 m at minus 60 m/s, comparing gravity with gravity plus drag at one, two and three seconds."/><figcaption>For this faster, tilted descent, drag changes projected height and angle. Both models still append four quantities at each horizon.</figcaption></figure>
+<aside class="notes">Points come directly from the feature helpers; lines connect samples rather than measured flight states. Both start with h = 300 m, vx = 15 m/s, vy = −60 m/s, theta = .35 rad, omega = −.03 rad/s, 10,000 kg fuel, zero wind and density 1.225 kg/m³. Wind, density, fuel, mass and inertia stay fixed within the projection; lift, rotational damping, thrust and fuel burn are omitted. A faster, tilted example makes the difference between the assumptions easier to see.</aside></section>
+<section id="result-6"><p class="step-label">Step 6 · validation</p><h2>Drag results</h2>
+      <div class="result-layout"><table class="results"><thead><tr><th>Measure</th><th>Before</th><th>After</th><th>Change</th></tr></thead><tbody><tr><td>Action accuracy</td><td>55.4%</td><td>54.4%</td><td>-1.0 pp</td></tr><tr><td>Action macro F1</td><td>34.7%</td><td>33.7%</td><td>-1.1 pp</td></tr><tr><td>Successful landings</td><td>8/10</td><td>9/10</td><td>+1 flights</td></tr><tr><td>Mean score</td><td>72.5/100</td><td>80.4/100</td><td>+7.9 points</td></tr></tbody></table>
+      <figure><img src="./assets/result-6.svg" alt="Landing measures: before 8/10 and 72.5/100; after 9/10 and 80.4/100."/></figure></div>
+      <p class="result-takeaway">Including drag increases successful landings from 8/10 to 9/10, while action accuracy and macro F1 fall slightly.</p>
+      <p class="small">1,095 validation rows; ten starting states. Failures score 0. Values rounded; pp = percentage points.</p>
+      <aside class="notes">We evaluate both controllers on the same labelled expert observations and the same ten validation initial states. Failed landings receive a score of zero. Macro F1 averages the action-level F1 scores, while landing success is measured in the simulations. Observations from the same flight are correlated, and ten flights give only a small sample of landing outcomes.</aside></section>
+
+<section id="results-limits">
+<p class="step-label">Practical · interpretation</p><h2>Limitations of the comparison</h2>
+<ul><li>There are ten flights, so one additional successful flight changes the success rate by 10 percentage points. Observations within a flight are correlated.</li><li>The selected fits reached the limit of 300 optimiser iterations without reporting convergence.</li><li>Changing the split also changes the training observations. Adding features can affect optimisation as well as the model representation.</li></ul>
+<p class="small">These results describe the saved models on this validation set. We need controlled comparisons and further flights to assess the causes of the changes.</p>
+<aside class="notes">Every selected fit reports converged=False in the saved results. The diagnostic plots reproduce these fits without retraining. Repeatedly comparing designs on the same validation flights can also overfit the selection process. The 9/10 landing count is therefore a result for this set rather than a guarantee of 90% success on future flights.</aside></section>
+
+</div></div></body></html>

@@ -1,0 +1,326 @@
+<!-- Written-answer source: inserted into the generated exercise 2 deck. -->
+<section id="question-1-predictions">
+  <p class="step-label">Written answers · Question 1a</p>
+  <h2>Classifier predictions</h2>
+  <p>We assign an observation to class A when $z(\mathbf{x})=-1+2x_1-3x_2&gt;0$.</p>
+  <div class="equation">$z(1,1)=-1+2-3=-2$<br/>$z(0,1)=-1+0-3=-4$</div>
+  <p>Both scores are negative, so <strong>neither observation is assigned to class A</strong>.</p>
+  <aside class="notes">The classification rule uses a strict inequality. A score of zero lies on the boundary and is not assigned to class A under this rule.</aside>
+</section>
+
+<section id="question-1-boundary">
+  <p class="step-label">Written answers · Question 1b–d</p>
+  <h2>Decision boundary</h2>
+  <p>To find the decision boundary, we set the score to $z=0$.</p>
+  <div class="equation">$-1+2x_1-3x_2=0\quad\Longrightarrow\quad x_2=\frac{2}{3}x_1-\frac{1}{3}$</div>
+  <ul>
+    <li>The weight vector $\mathbf{w}=(2,-3)$ is normal to the boundary and points towards increasing scores.</li>
+    <li>If we increase $b$ while keeping the weights fixed, the boundary moves along $-\mathbf{w}$ and the class A region expands.</li>
+  </ul>
+  <aside class="notes">For fixed nonzero weights, the signed position of the boundary along the weight direction is -b divided by the norm of w. Changing the bias therefore shifts the boundary without changing its slope.</aside>
+</section>
+
+<section id="question-1-geometry" class="graph-slide">
+<p class="step-label">Written answers · Question 1b–d · geometry</p><h2>Effect of the bias</h2>
+<figure><img src="./assets/boundary-shift.svg" alt="Parallel decision boundaries for b=-1 and b=2. The weight vector points into class A. Increasing b moves the boundary opposite the weights and expands class A."/><figcaption>Here we keep the weights fixed and increase $b$. Every score increases, so more observations satisfy $z&gt;0$.</figcaption></figure>
+<aside class="notes">The shaded region is class A when b=-1. The dashed boundary uses b=2. To remain on the boundary after adding 3 to b, we move by -3w/||w||². Increasing b changes the position of the line. Multiplying both w and b by the same positive constant leaves the line in place. The axes use equal scales so that the normal vector is perpendicular to the line in the drawing.</aside></section>
+
+<section id="question-2-matrix" class="metric-slide">
+  <p class="step-label">Written answers · Question 2a</p>
+  <h2>Confusion matrix</h2>
+  <p class="metric-matrix-caption">There are 1,000 components; positive means defective.</p>
+  <table class="metric-matrix" aria-label="Confusion matrix: rows are actual labels and columns are predicted labels">
+    <thead><tr><th scope="col">Actual ↓<br/>Predicted →</th><th scope="col">Defective (+)</th><th scope="col">Non-defective (−)</th></tr></thead>
+    <tbody><tr><th scope="row">Defective (+)</th><td class="metric-tp metric-selected"><strong>12</strong><span>TP · true positive</span></td><td class="metric-fn metric-selected"><strong>8</strong><span>FN · false negative</span></td></tr>
+    <tr><th scope="row">Non-defective (−)</th><td class="metric-fp metric-selected"><strong>30</strong><span>FP · false positive</span></td><td class="metric-tn metric-selected"><strong>950</strong><span>TN · true negative</span></td></tr></tbody>
+  </table>
+  <aside class="notes">We place actual labels in rows and predicted labels in columns. There are 20 defective components, with 12 detected and 8 missed. Of the 980 non-defective components, 30 are incorrectly flagged, leaving 950 true negatives. These counts are used in the following metric calculations.</aside>
+</section>
+
+<section id="question-2-metrics" class="metric-slide">
+  <p class="step-label">Written answers · Question 2b–c · accuracy</p>
+  <h2>Accuracy</h2>
+  <div class="metric-layout">
+    <div class="metric-definition">
+      <div class="metric-equation">$\displaystyle\frac{\textcolor{#4A6A2E}{TP}+\textcolor{#2C4A7A}{TN}}{\textcolor{#4A6A2E}{TP}+\textcolor{#2C4A7A}{TN}+\textcolor{#A67012}{FP}+\textcolor{#A82A20}{FN}}$</div>
+      <p>To calculate accuracy, we divide the <strong>correct predictions by all predictions</strong>.</p>
+      <div class="metric-key"><span class="metric-tp">TP · true positive</span><span class="metric-tn">TN · true negative</span><span class="metric-fp">FP · false positive</span><span class="metric-fn">FN · false negative</span></div>
+      <p class="metric-comparison">Always predicting non-defective gives $980/1000=98\%$ accuracy, although it detects no defects.</p>
+    </div>
+    <div class="metric-worked">
+      <p class="metric-matrix-caption">There are 1,000 components; positive means defective.</p>
+      <table class="metric-matrix" aria-label="Confusion matrix for accuracy: all four cells form the denominator; TP and TN form the numerator">
+        <thead><tr><th scope="col">Actual ↓<br/>Predicted →</th><th scope="col">Defective (+)</th><th scope="col">Non-defective (−)</th></tr></thead>
+        <tbody><tr><th scope="row">Defective (+)</th><td class="metric-tp metric-selected"><strong>12</strong><span>TP</span></td><td class="metric-fn"><strong>8</strong><span>FN</span></td></tr>
+        <tr><th scope="row">Non-defective (−)</th><td class="metric-fp"><strong>30</strong><span>FP</span></td><td class="metric-tn metric-selected"><strong>950</strong><span>TN</span></td></tr></tbody>
+      </table>
+      <p class="metric-focus">We use the diagonal for the numerator and all four cells for the denominator.</p>
+      <div class="metric-calculation"><p>Substituting the counts gives</p><div>$\displaystyle\frac{\textcolor{#4A6A2E}{12}+\textcolor{#2C4A7A}{950}}{\textcolor{#4A6A2E}{12}+\textcolor{#2C4A7A}{950}+\textcolor{#A67012}{30}+\textcolor{#A82A20}{8}}=\frac{962}{1000}=96.2\%$</div></div>
+    </div>
+  </div>
+  <aside class="notes">The green true-positive and blue true-negative cells contain the correct predictions. We add these for the numerator, then divide by the total number of components. The actual non-defective row contains 30+950=980 components. This is why a classifier that always predicts non-defective achieves 98% accuracy without detecting a defect.</aside>
+</section>
+
+<section id="question-2-precision" class="metric-slide">
+  <p class="step-label">Written answers · Question 2b · precision</p>
+  <h2>Precision</h2>
+  <div class="metric-layout">
+    <div class="metric-definition">
+      <div class="metric-equation">$\displaystyle\frac{\textcolor{#4A6A2E}{TP}}{\textcolor{#4A6A2E}{TP}+\textcolor{#A67012}{FP}}$</div>
+      <p>Precision is the proportion of <strong>flagged components that are actually defective</strong>.</p>
+      <div class="metric-key"><span class="metric-tp">TP · true positive</span><span class="metric-tn">TN · true negative</span><span class="metric-fp">FP · false positive</span><span class="metric-fn">FN · false negative</span></div>
+      <p class="metric-comparison">The classifier flags 42 components. Of these, 12 are defective and 30 are false alarms.</p>
+    </div>
+    <div class="metric-worked">
+      <p class="metric-matrix-caption">There are 1,000 components; positive means defective.</p>
+      <table class="metric-matrix" aria-label="Confusion matrix for precision: use the predicted-defective column, TP and FP">
+        <thead><tr><th scope="col">Actual ↓<br/>Predicted →</th><th scope="col">Defective (+)</th><th scope="col">Non-defective (−)</th></tr></thead>
+        <tbody><tr><th scope="row">Defective (+)</th><td class="metric-tp metric-selected"><strong>12</strong><span>TP</span></td><td class="metric-fn metric-unused"><strong>8</strong><span>FN</span></td></tr>
+        <tr><th scope="row">Non-defective (−)</th><td class="metric-fp metric-selected"><strong>30</strong><span>FP</span></td><td class="metric-tn metric-unused"><strong>950</strong><span>TN</span></td></tr></tbody>
+      </table>
+      <p class="metric-focus">We use the predicted-defective column, which contains TP + FP.</p>
+      <div class="metric-calculation"><p>Substituting the counts gives</p><div>$\displaystyle\frac{\textcolor{#4A6A2E}{12}}{\textcolor{#4A6A2E}{12}+\textcolor{#A67012}{30}}=\frac{12}{42}\approx28.6\%$</div></div>
+    </div>
+  </div>
+  <aside class="notes">For precision, we start with the components predicted to be defective and ask how many predictions were correct. This selects the predicted-defective column. Twelve of the 42 flags are correct, giving about 28.6% precision. FN and TN are shown for context but do not enter the calculation. Precision is undefined if there are no predicted positives.</aside>
+</section>
+
+<section id="question-2-recall" class="metric-slide">
+  <p class="step-label">Written answers · Question 2b–c · recall</p>
+  <h2>Recall</h2>
+  <div class="metric-layout">
+    <div class="metric-definition">
+      <div class="metric-equation">$\displaystyle\frac{\textcolor{#4A6A2E}{TP}}{\textcolor{#4A6A2E}{TP}+\textcolor{#A82A20}{FN}}$</div>
+      <p>Recall is the proportion of <strong>actual defects that the classifier detects</strong>.</p>
+      <div class="metric-key"><span class="metric-tp">TP · true positive</span><span class="metric-tn">TN · true negative</span><span class="metric-fp">FP · false positive</span><span class="metric-fn">FN · false negative</span></div>
+      <p class="metric-comparison">The classifier detects 12 of the 20 defects and misses 8. Always predicting non-defective gives 0% recall.</p>
+    </div>
+    <div class="metric-worked">
+      <p class="metric-matrix-caption">There are 1,000 components; positive means defective.</p>
+      <table class="metric-matrix" aria-label="Confusion matrix for recall: use the actual-defective row, TP and FN">
+        <thead><tr><th scope="col">Actual ↓<br/>Predicted →</th><th scope="col">Defective (+)</th><th scope="col">Non-defective (−)</th></tr></thead>
+        <tbody><tr><th scope="row">Defective (+)</th><td class="metric-tp metric-selected"><strong>12</strong><span>TP</span></td><td class="metric-fn metric-selected"><strong>8</strong><span>FN</span></td></tr>
+        <tr><th scope="row">Non-defective (−)</th><td class="metric-fp metric-unused"><strong>30</strong><span>FP</span></td><td class="metric-tn metric-unused"><strong>950</strong><span>TN</span></td></tr></tbody>
+      </table>
+      <p class="metric-focus">We use the actual-defective row, which contains TP + FN.</p>
+      <div class="metric-calculation"><p>Substituting the counts gives</p><div>$\displaystyle\frac{\textcolor{#4A6A2E}{12}}{\textcolor{#4A6A2E}{12}+\textcolor{#A82A20}{8}}=\frac{12}{20}=60\%$</div></div>
+    </div>
+  </div>
+  <aside class="notes">For recall, we start with the components that are actually defective and ask how many were detected. This selects the actual-defective row. We detect 12/20=60% and miss 8/20=40%. FP and TN do not enter the calculation. Recall is undefined if there are no actual positives. In this question there are 20, so the always-negative classifier has zero recall.</aside>
+</section>
+
+<section id="question-2-interpretation" class="metric-slide">
+  <p class="step-label">Written answers · Question 2d–e</p>
+  <h2>Class imbalance</h2>
+  <p>Only <strong>20 of the 1,000 components are defective (2%)</strong>. A classifier that always predicts non-defective therefore achieves <strong>98% accuracy</strong> while missing every defect. Most of its correct predictions come from the larger non-defective class.</p>
+  <p>The classifier in the question has lower accuracy, <strong>96.2%</strong>, but detects <strong>12 of the 20 defects</strong>, giving <strong>60% recall</strong>. It therefore detects defects that the always-negative classifier misses.</p>
+  <p class="interpretation-priority">If allowing a defective component through is particularly dangerous, we would <strong>prioritise recall</strong>. The aim is to reduce the <span class="metric-fn"><strong>8 false negatives</strong></span>, which are defective components incorrectly classified as safe.</p>
+  <p>We should also consider false alarms. Only 12 of the 42 flags are real defects (<strong>28.6% precision</strong>), so the <span class="metric-fp"><strong>30 false positives</strong></span> require extra inspections. Flagging every component gives 100% recall but only 2% precision.</p>
+  <aside class="notes">Class imbalance means that the classes occur at different frequencies. Here there are 980 non-defective components and only 20 defective components. Accuracy counts each observation equally, so correct predictions for the larger class can hide missed defects. Prioritising recall gives greater importance to detecting those defects, while precision helps us assess the resulting inspection workload. An always-positive rule catches all 20 defects but also flags all 980 non-defective components. Its precision is therefore 20/1000=2%. We would choose a decision threshold using the costs of missed defects and false alarms, together with the available inspection capacity.</aside>
+</section>
+
+<!-- Question 3: work through parts a–f in order. -->
+<section id="question-3-scaling">
+  <p class="step-label">Written answers · Question 3a</p>
+  <h2>Predicted probability</h2>
+  <div class="q3-math">$P(y=1\mid\mathbf x)=\sigma(\mathbf w^T\mathbf x+b)$</div>
+  <p class="q3-caption">We first calculate the score $z=\mathbf w^T\mathbf x+b$. The sigmoid turns this score into a probability for class 1.</p>
+  <p class="q3-detail">We assume the model correctly separates the training data: $z&gt;0$ for class 1 and $z&lt;0$ for class 0.</p>
+  <aside class="notes">The predicted class is determined using a probability threshold of 0.5. Strict separation means no training observation lies on the boundary. We assume that both classes occur in training.</aside>
+</section>
+
+<section id="question-3-scale-parameters">
+  <p class="step-label">Written answers · Question 3a</p>
+  <h2>Scale the weights and bias</h2>
+  <div class="q3-math">$p_c=\sigma\!\left((c\mathbf w)^T\mathbf x+cb\right)$</div>
+  <p class="q3-caption">We multiply both the weights and the bias by the same constant $c&gt;1$.</p>
+  <div class="equation">$(c\mathbf w)^T\mathbf x+cb=c(\mathbf w^T\mathbf x+b)=cz$</div>
+  <p>So the new probability is $p_c=\sigma(cz)$. The whole score is multiplied by $c$.</p>
+  <aside class="notes">We scale the bias as well as the weights. Scaling only the weights would generally move the zero-score boundary. Here c=1 recovers the original model.</aside>
+</section>
+
+<section id="question-3-probabilities">
+  <p class="step-label">Written answers · Question 3a</p>
+  <h2>Expand the sigmoid</h2>
+  <div class="q3-math">$\sigma(u)=\dfrac{1}{1+e^{-u}}$</div>
+  <p>Substituting the scaled score gives</p>
+  <div class="equation">$\displaystyle p_c=\sigma(cz)=\frac{1}{1+e^{-cz}}$</div>
+  <p class="q3-detail">Changing $c$ changes the exponent. This is how scaling the parameters changes the probability.</p>
+  <aside class="notes">We use cz for the scaled score from here on. The minus sign in the exponent applies to this whole score.</aside>
+</section>
+
+<section id="question-3-sigmoid-graph" class="graph-slide">
+  <p class="step-label">Written answers · Question 3a</p>
+  <h2>Shape of the sigmoid</h2>
+  <figure><img src="./assets/scaled-sigmoid.svg" alt="Sigmoid curves for c=1, 3 and 10 plotted against the original score z. All pass through probability 0.5 at z=0; larger c makes the transition steeper."/>
+    <figcaption>All curves pass through $p_c=0.5$ at $z=0$. Increasing $c$ makes the probability closer to 1 for positive scores and closer to 0 for negative scores.</figcaption></figure>
+  <aside class="notes">The horizontal axis is the original score z. Each curve shows sigma(cz). Scaling makes the sigmoid steeper around the same zero-score boundary.</aside>
+</section>
+
+<section id="question-3-probability-example" class="worked-example">
+  <p class="step-label">Written answers · Question 3a</p>
+  <h2>Positive score example</h2>
+  <p>Take an observation with original score $z=1$. With $c=3$, its scaled score is $cz=3$.</p>
+  <div class="equation">$\displaystyle c=1:\quad p_1=\frac{1}{1+e^{-1}}\approx0.7311$<br/>
+    $\displaystyle c=3:\quad p_3=\frac{1}{1+e^{-3}}\approx0.9526$</div>
+  <p>The exponential decreases from $e^{-1}\approx0.3679$ to $e^{-3}\approx0.0498$, so the denominator gets closer to 1.</p>
+  <aside class="notes">The predicted class remains 1. The probability assigned to that class increases because the denominator falls from about 1.3679 to 1.0498.</aside>
+</section>
+
+<section id="question-3-negative-example" class="worked-example">
+  <p class="step-label">Written answers · Question 3a</p>
+  <h2>Negative score example</h2>
+  <p>Now take an observation with original score $z=-1$. With $c=3$, its scaled score is $cz=-3$.</p>
+  <div class="equation">$\displaystyle c=1:\quad p_1=\frac{1}{1+e^1}\approx0.2689$<br/>
+    $\displaystyle c=3:\quad p_3=\frac{1}{1+e^3}\approx0.0474$</div>
+  <p>The exponential increases from $e^1\approx2.7183$ to $e^3\approx20.0855$. The denominator grows, so the probability of class 1 decreases.</p>
+  <aside class="notes">The predicted class remains 0. Its probability is 1-p_c, which increases from about 0.7311 to 0.9526. Increasing c makes a negative score more negative; it does not make its numerical value larger.</aside>
+</section>
+
+<section id="question-3-probability-limit">
+  <p class="step-label">Written answers · Question 3b</p>
+  <h2>Take the probability limit</h2>
+  <div class="q3-math">$p_c=\dfrac{1}{1+e^{-cz}}$</div>
+  <p>Start with the sigmoid from part a. As $c\to\infty$, the result depends on the sign of the original score $z$.</p>
+  <div class="equation">$z&gt;0:\quad -cz\to-\infty\;\Rightarrow\;e^{-cz}\to0\;\Rightarrow\;p_c\to1$<br/>
+    $z&lt;0:\quad -cz\to+\infty\;\Rightarrow\;e^{-cz}\to\infty\;\Rightarrow\;p_c\to0$</div>
+  <aside class="notes">The sign of the full affine score matters, including the bias. If z=0, p_c remains 0.5 for every c. Strict separation excludes this case for the training observations.</aside>
+</section>
+
+<section id="question-3-probability-graph" class="graph-slide">
+  <p class="step-label">Written answers · Question 3b</p>
+  <h2>Probabilities approach the labels</h2>
+  <figure><img src="./assets/probabilities.svg" alt="Class-one probability tends to one for original score z=1 and to zero for z=-1 as c increases."/>
+    <figcaption>Because the model separates the data correctly, class-one observations have $p_c\to1$ and class-zero observations have $p_c\to0$.</figcaption></figure>
+  <aside class="notes">These are the same two scores as in the worked examples. The exact limiting probabilities are reached only as c tends to infinity.</aside>
+</section>
+
+<section id="question-3-loss-limit">
+  <p class="step-label">Written answers · Question 3b</p>
+  <h2>Training loss approaches zero</h2>
+  <div class="equation">$y_i=1:\quad p_{i,c}\to1\quad\Rightarrow\quad-\log p_{i,c}\to0$<br/>
+    $y_i=0:\quad p_{i,c}\to0\quad\Rightarrow\quad-\log(1-p_{i,c})\to0$</div>
+  <p>Each observation gets a probability approaching 1 for its true label. Its negative log-probability therefore approaches zero.</p>
+  <div class="q3-math">$\displaystyle\lim_{c\to\infty}L_{\mathrm{BCE}}(c)=0$</div>
+  <p class="q3-detail">In part c, we derive this loss from the likelihood of the observed labels.</p>
+  <aside class="notes">This answers the training-loss question before deriving BCE in part c. We average a finite number of individual losses, each tending to zero, so the mean also tends to zero.</aside>
+</section>
+
+<section id="question-3-label-probabilities">
+  <p class="step-label">Written answers · Question 3c</p>
+  <h2>Probability of one label</h2>
+  <p>Let $p_i=P(y_i=1\mid\mathbf x_i)$. The observed label is either 0 or 1, so we use a Bernoulli model.</p>
+  <div class="q3-math">$P(y_i\mid\mathbf x_i,\mathbf w,b)=p_i^{y_i}(1-p_i)^{1-y_i}$</div>
+  <p class="q3-caption">If $y_i=1$, this gives $p_i$. If $y_i=0$, it gives $1-p_i$.</p>
+  <p class="q3-detail">The expression selects the probability assigned to the label that actually occurred.</p>
+  <aside class="notes">This follows the Bernoulli model introduced in note 2.3. The data and observed labels are fixed; the predicted probabilities depend on the parameters we want to fit.</aside>
+</section>
+
+<section id="question-3-likelihood">
+  <p class="step-label">Written answers · Question 3c</p>
+  <h2>Likelihood of the dataset</h2>
+  <p>If the observations are independent given the model parameters, their probabilities multiply.</p>
+  <div class="q3-math">$\displaystyle\mathcal L(\mathbf w,b)=\prod_{i=1}^{n}p_i^{y_i}(1-p_i)^{1-y_i}$</div>
+  <p class="q3-caption">Maximum likelihood chooses parameters that make the observed labels as probable as possible.</p>
+  <p>For labels $[1,0,1]$ and predictions $[0.9,0.2,0.7]$, we get $\mathcal L=0.9(1-0.2)0.7=0.504$.</p>
+  <aside class="notes">This is the three-observation example from note 2.3. The probability of the second observed label is 0.8 because that label is zero. The likelihood is a function of the model parameters with the dataset held fixed.</aside>
+</section>
+
+<section id="question-3-log-product">
+  <p class="step-label">Written answers · Question 3c</p>
+  <h2>Take the logarithm</h2>
+  <p>Products of many small probabilities are awkward to calculate. Using $\log(uv)=\log u+\log v$ turns the product into a sum.</p>
+  <div class="equation">$\displaystyle\log\mathcal L=\log\prod_{i=1}^{n}p_i^{y_i}(1-p_i)^{1-y_i}$<br/>
+    $\displaystyle\phantom{\log\mathcal L}=\sum_{i=1}^{n}\left[y_i\log p_i+(1-y_i)\log(1-p_i)\right]$</div>
+  <p class="q3-caption">The logarithm is strictly increasing, so maximising the likelihood also maximises the log-likelihood.</p>
+  <aside class="notes">We use natural logarithms. Taking the log changes the scale of the objective but preserves the ordering of all positive likelihood values.</aside>
+</section>
+
+<section id="question-3-cross-entropy-definition">
+  <p class="step-label">Written answers · Question 3c</p>
+  <h2>From likelihood to BCE</h2>
+  <p>We usually write optimisation as minimisation. So we negate the log-likelihood and divide by the number of observations.</p>
+  <div class="equation">$\displaystyle L_{\mathrm{BCE}}=-\frac{1}{n}\log\mathcal L$<br/>
+    $\displaystyle\phantom{L_{\mathrm{BCE}}}=-\frac{1}{n}\sum_{i=1}^{n}\left[y_i\log p_i+(1-y_i)\log(1-p_i)\right]$</div>
+  <p class="q3-caption">This gives binary cross-entropy. Minimising it is equivalent to maximising the likelihood.</p>
+  <aside class="notes">The minus sign reverses the ordering so that the most likely model has the smallest loss. Dividing by fixed n gives a mean without changing the minimiser. BCE follows from the Bernoulli likelihood rather than being an arbitrary choice.</aside>
+</section>
+
+<section id="question-3-loss-graph" class="graph-slide">
+  <p class="step-label">Written answers · Question 3c</p>
+  <h2>BCE keeps decreasing</h2>
+  <figure><img src="./assets/cross-entropy.svg" alt="Mean binary cross-entropy decreases towards zero as c increases, with no finite point attaining zero."/>
+    <figcaption>Here the correct signed scores have magnitudes $0.5$, $1$ and $2$. Their mean loss decreases as we scale the parameters.</figcaption></figure>
+  <aside class="notes">The curve averages log(1+exp(-ca)) for a=0.5, 1 and 2. Each a is the score multiplied by the true-label sign; part d introduces the name signed margin. The plotted example illustrates the general result for strictly separated observations.</aside>
+</section>
+
+<section id="question-3-optimum">
+  <p class="step-label">Written answers · Question 3c</p>
+  <h2>No finite optimum</h2>
+  <div class="equation">$L_{\mathrm{BCE}}(c)&gt;0\text{ for finite }c,\qquad L_{\mathrm{BCE}}(c)\to0$<br/>
+    $\mathcal L(c)=e^{-nL_{\mathrm{BCE}}(c)}&lt;1,\qquad\mathcal L(c)\to1$</div>
+  <p>For any finite separating parameters, we can increase $c$ again to obtain a higher likelihood and a lower BCE.</p>
+  <p class="q3-caption">The unregularised maximum-likelihood estimate therefore has <strong>no finite optimum</strong> on this strictly separable training set.</p>
+  <aside class="notes">Zero is the infimum of BCE and one is the supremum of the likelihood. Neither is attained by finite parameters. Any parameters that fail to separate also have positive BCE, and scaling a separating model eventually gives a smaller loss than any such finite candidate.</aside>
+</section>
+
+<section id="question-3-margin">
+  <p class="step-label">Written answers · Question 3d</p>
+  <h2>Margin and correct classification</h2>
+  <p>We can check whether a prediction is correct by multiplying the score by the sign of the true label.</p>
+  <div class="equation">$t_i=2y_i-1,\qquad m_i=t_i z_i=(2y_i-1)z_i$</div>
+  <table class="results compact"><thead><tr><th>True label</th><th>Correct score</th><th>Signed margin</th></tr></thead>
+    <tbody><tr><td>$y_i=1$</td><td>$z_i&gt;0$</td><td>$m_i=(+1)z_i&gt;0$</td></tr>
+    <tr><td>$y_i=0$</td><td>$z_i&lt;0$</td><td>$m_i=(-1)z_i&gt;0$</td></tr></tbody></table>
+  <p>A positive margin means the prediction is correct. A negative margin means it is incorrect; zero puts the observation on the boundary.</p>
+  <aside class="notes">This is the signed functional margin, not the geometric distance to the boundary. A point at zero needs a tie-breaking rule. Strict separation means all training margins are positive, so tie-breaking does not affect this question.</aside>
+</section>
+
+<section id="question-3-classification">
+  <p class="step-label">Written answers · Question 3d</p>
+  <h2>Scaling preserves the sign</h2>
+  <div class="q3-math">$z_i\mapsto cz_i,\qquad m_i\mapsto cm_i$</div>
+  <p class="q3-caption">For $c&gt;0$, increasing the magnitude of the score does not change its sign. Positive scores stay positive and negative scores stay negative.</p>
+  <p>So <strong>the model can correctly classify every training observation</strong> with finite parameters. It already does so before we increase $c$.</p>
+  <p class="q3-detail">For example, $z=1\to3$ and $z=-1\to-3$. Confidence changes, but both classifications stay correct.</p>
+  <aside class="notes">Increasing the magnitude of a negative score makes it more negative. An arbitrary additive increase in z would not preserve its sign. Here we specifically multiply the complete score by a positive c. The lack of a finite optimum concerns the likelihood, not the existence of a correct classifier.</aside>
+</section>
+
+<section id="question-3-regularization">
+  <p class="step-label">Written answers · Question 3e</p>
+  <h2>Penalise large weights</h2>
+  <p>$L_2$ regularisation adds a penalty for the size of the weights to the BCE.</p>
+  <div class="q3-math">$J(\mathbf w,b)=L_{\mathrm{BCE}}(\mathbf w,b)+\dfrac{\lambda}{2}\sum_{j=1}^{d}w_j^2$</div>
+  <p class="q3-caption">Large weights increase the sum of squares. The parameter $\lambda&gt;0$ controls how strongly we penalise them.</p>
+  <p class="q3-detail">Here we leave the bias unpenalised and assume both classes occur in training.</p>
+  <aside class="notes">We use mean BCE throughout and the lambda/2 convention for the penalty. All weight components are penalised. The bias is fitted jointly with the weights.</aside>
+</section>
+
+<section id="question-3-penalty-scaling">
+  <p class="step-label">Written answers · Question 3e</p>
+  <h2>Balance fit and weight size</h2>
+  <div class="equation">$\displaystyle J(c\mathbf w,cb)=L_{\mathrm{BCE}}(c)+\frac{\lambda c^2}{2}\lVert\mathbf w\rVert^2$</div>
+  <p>Increasing $c$ reduces BCE, but the penalty grows as $c^2$. Eventually, the extra penalty outweighs the improvement in BCE.</p>
+  <p class="q3-caption">We therefore get a finite optimum that minimises the <strong>sum of BCE and the weight penalty</strong>.</p>
+  <p class="q3-detail">The two terms favour different solutions. The optimum balances them; it does not minimise each term separately.</p>
+  <aside class="notes">Along this fixed nonzero separating direction, J tends to infinity as c grows. For the full optimisation, a positive penalty bounds all weights on every sublevel set. With both classes present, sending the unpenalised bias to either infinity also makes BCE diverge. Continuity then gives a finite minimiser.</aside>
+</section>
+
+<section id="question-3-regularisation-graph" class="graph-slide">
+  <p class="step-label">Written answers · Question 3e</p>
+  <h2>Minimum of the combined objective</h2>
+  <figure><img src="./assets/regularisation.svg" alt="BCE falls as c increases, while the L2 penalty grows quadratically. Their sum reaches a finite minimum marked on the plot."/>
+    <figcaption>Using the same scores as before, we add a penalty of $0.05c^2$. The total reaches its minimum where a further decrease in BCE no longer offsets the increase in penalty.</figcaption></figure>
+  <aside class="notes">This plot varies the scale of one fixed separating direction. A full regularised fit also chooses the weight direction and bias. The illustrative coefficient corresponds to lambda times the original squared weight norm divided by two equal to 0.05.</aside>
+</section>
+
+<section id="question-3-boundary-gradient" class="regularisation-slide">
+  <p class="step-label">Written answers · Question 3f</p>
+  <h2>Compare the fitted lines</h2>
+  <div class="regularisation-comparison">
+    <figure data-regularisation-example data-lambda="0.01"><h3>Weak regularisation · $\lambda=0.01$</h3><div data-reg-plot></div><figcaption data-reg-summary></figcaption></figure>
+    <figure data-regularisation-example data-lambda="1"><h3>Strong regularisation · $\lambda=1$</h3><div data-reg-plot></div><figcaption data-reg-summary></figcaption></figure>
+  </div>
+  <p class="regularisation-takeaway">The weights shrink, and the bias changes relative to them. Both lines classify these observations correctly, but their positions differ.</p>
+  <aside class="notes">Both panels use the same data, objective and axis scales as the interactive slide. The solid line is the fitted boundary; the dashed line is the weak-regularisation reference at lambda=0.01. For lambda=0.01 the fitted weights are approximately (1.966,1.311), bias -0.632 and norm 2.363. For lambda=1 they are approximately (0.405,0.270), bias 0.291 and norm 0.487. This is a concrete counterexample to guaranteed preservation of the original separating boundary.</aside>
+</section>

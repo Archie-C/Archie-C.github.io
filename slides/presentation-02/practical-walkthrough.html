@@ -1,0 +1,197 @@
+<!-- Practical source. RESULT markers are filled from the recorded evaluation. -->
+<section id="rocket-walkthrough">
+<p class="step-label">Practical · learning task</p><h2>Rocket classification</h2>
+<div class="flow"><div>12 inputs<br/>Rocket observations</div><span>→</span><div>Classifier</div><span>→</span><div>1 output<br/>Action label, 0–9</div></div>
+<p>Each training row contains the rocket state and the action selected by an expert controller. We use these observations to fit a classifier.</p>
+<p>The target is an <strong>action label</strong>. After training, we run the classifier as a controller to measure its landing performance.</p>
+<aside class="notes">The expert uses model predictive control, or MPC. It uses a physics model to plan its commands, and we train a classifier to imitate its recorded decisions. The expert can also make unsuccessful landings. Our training objective measures agreement with its actions, so we must evaluate landing performance separately.</aside></section>
+
+<section id="rocket-observations">
+<p class="step-label">Practical · inputs</p><h2>Input observations</h2>
+<table class="results compact"><thead><tr><th>Columns, in order</th><th>Meaning</th><th>Units</th></tr></thead><tbody>
+<tr><td><code>x, y</code></td><td>Horizontal position, centre-of-mass height, relative to pad</td><td>m</td></tr>
+<tr><td><code>vx, vy</code></td><td>Horizontal and vertical velocity; up is positive</td><td>m/s</td></tr>
+<tr><td><code>theta, omega</code></td><td>Tilt and angular velocity; anticlockwise positive</td><td>rad, rad/s</td></tr>
+<tr><td><code>fuel_mass</code></td><td>Remaining fuel</td><td>kg</td></tr>
+<tr><td><code>actual_thrust, actual_gimbal</code></td><td>Current physical thrust and engine angle</td><td>N, rad</td></tr>
+<tr><td><code>wind_x, wind_y, air_density</code></td><td>Local atmosphere</td><td>m/s, m/s, kg/m³</td></tr>
+</tbody></table><p class="small">In the following equations, $h$ denotes CSV column <code>y</code>, and $a$ denotes an action label.</p>
+<aside class="notes">The table gives the order of the 12 values supplied to predict_action. Height is measured at the centre of mass, so the rocket can contact the ground while its height is still positive. We use radians in calculations and convert to degrees for display. Current thrust and gimbal readings are available at prediction time.</aside></section>
+
+<section id="rocket-labels">
+<p class="step-label">Practical · dataset</p><h2>Targets and metadata</h2>
+<table class="results"><thead><tr><th>CSV field</th><th>Role</th><th>Use</th></tr></thead><tbody>
+<tr><td><code>action</code></td><td>Target $a\in\{0,\ldots,9\}$</td><td>Fit the mapping from observations to commands</td></tr>
+<tr><td><code>run_id, step</code></td><td>Sequence metadata</td><td>Group observations by flight and order them by step</td></tr>
+<tr><td><code>success</code></td><td>Eventual flight outcome</td><td>Use for analysis; unavailable during flight</td></tr>
+</tbody></table><p>The eventual <code>success</code> value is unavailable during flight. Including it as an input would leak information from the future.</p>
+<aside class="notes">We use run_id to keep observations from a flight together when splitting the data. The numerical ID does not represent a physical measurement and is not used as a continuous input. The step field records sequence order. A model with lag features must preserve this order and reset its history at each flight boundary.</aside></section>
+
+<section id="rocket-two-evaluations">
+<p class="step-label">Practical · evaluation</p><h2>Two evaluation directions</h2>
+<div class="columns"><div><h3>Recorded observations</h3><p>We keep the recorded observations fixed and compare the model actions with the expert labels.</p><p>We report <strong>accuracy and macro F1</strong>.</p></div><div><h3>Closed-loop simulation</h3><p>We apply a model action, simulate its effect, and use the resulting state for the next prediction.</p><p>We report <strong>landing success and score</strong>.</p></div></div>
+<p class="small">The states encountered in a model-controlled flight can differ from those in the expert recordings.</p>
+<aside class="notes">The 1,095 labelled validation observations were visited by the expert. Each model simulation starts from a validation initial state and then evolves under that model. Once two trajectories differ, observations at the same clock time may represent different states. We therefore assess action agreement on fixed recordings and landing performance through separate simulations.</aside></section>
+
+<section id="rocket-success">
+<p class="step-label">Practical · landing evaluation</p><h2>Landing success criteria</h2>
+<table class="results compact"><thead><tr><th>At the first ground contact</th><th>Required</th></tr></thead><tbody>
+<tr><td>Geometry</td><td>A foot contacts first on the concrete pad; both feet lie within its edges</td></tr>
+<tr><td>Vertical velocity</td><td>$-3\le v_y\le0$ m/s</td></tr><tr><td>Horizontal speed</td><td>$|v_x|\le1.5$ m/s</td></tr>
+<tr><td>Tilt</td><td>$|\theta|\le4^\circ$</td></tr><tr><td>Angular speed</td><td>$|\omega|\le2^\circ$/s</td></tr>
+</tbody></table><p class="small">Failed landings score 0. Successful landings score up to 100 for low speeds, small tilt and a position near the centre. We average all ten scores.</p>
+<aside class="notes">These are the touchdown-v1.0 rules implemented in rocket_scoring.py. The velocity limits use centre-of-mass velocity. A foot must make the first contact on the pad, both feet must be within its edges, and all motion limits must be satisfied. Failure of any condition gives zero landing score. Missing contact or invalid states also count as unsuccessful.</aside></section>
+
+<section id="rocket-protocol">
+<p class="step-label">Practical · experimental method</p><h2>Training and evaluation procedure</h2>
+<div class="flow"><div>Training rows<br/>Parameter fitting</div><span>→</span><div>Tuning flights<br/>Setting selection</div><span>→</span><div>10 validation flights<br/>Evaluation</div></div>
+<p>We keep the separate exercise test set for the final assessment.</p>
+<p class="small">Stage 1 uses a random row split, while later stages use whole flights. This comparison also changes the training observations, so it does not isolate the effect of the splitting method.</p>
+<aside class="notes">The recorded procedure uses about 80% of landings.csv for fitting and 10% for tuning, holding out the remaining 10%. It then evaluates on the separate validation_runs.csv. Run IDs are local to each file, so equal ID numbers across files do not establish overlap. If we repeatedly choose designs using the ten validation flights, those flights become development data. We still need an untouched test set for final assessment.</aside></section>
+
+<section id="normalisation-bug">
+<p class="step-label">Step 1 · original implementation</p><h2>Normalisation error</h2>
+<p>The original feature function recalculates column means and standard deviations whenever it is called, including for a single prediction.</p>
+<div class="equation">$X=\begin{bmatrix}100&-20\end{bmatrix}\quad\Rightarrow\quad\mu=(100,-20),\;\sigma=(0,0)$<br/>$\tilde X=(X-\mu)/(\sigma+\epsilon)=\begin{bmatrix}0&0\end{bmatrix}$</div>
+<p>This gives the feature vector $[1,0,\ldots,0]$ for every single-observation prediction. The selected action then depends only on the learned biases.</p>
+<aside class="notes">Normalisation is calculated independently for each column over its rows. With one row, the column mean equals its observation and the standard deviation is zero. Epsilon avoids division by zero, but every standardised feature is still zero. Validation batches were also being standardised using their own statistics, changing the coordinates supplied to the model.</aside></section>
+
+<section id="normalisation-fix">
+<p class="step-label">Step 1 · corrected implementation</p><h2>Training-set normalisation</h2>
+<div class="equation">$\tilde x_j=\frac{x_j-\mu_j^{\rm train}}{\sigma_j^{\rm train}+\epsilon}$</div>
+<p>For example, a training height mean of 80 m and standard deviation of 20 m transform a height of 100 m to $+1$ in training, validation and flight.</p>
+<p>We calculate these statistics from the training features, save them with the weights, and reuse them for every prediction. The bias column is added afterwards.</p>
+<aside class="notes">The feature helper fits normalisation only when fit_normalization=True is used on the training design. All other calls reuse the stored values. For the baseline comparison, the same fitted stage-1 weights are used with broken and corrected single-observation normalisation. This isolates that prediction error rather than reconstructing every detail of an original training run.</aside></section>
+<!-- RESULT:1 -->
+
+<section id="flight-split">
+<p class="step-label">Step 2 · data partition</p><h2>Splitting by flight</h2>
+<div class="sequence"><span>Flight A: 0.0 s</span><span>0.1 s</span><span>0.2 s</span><span>0.3 s</span></div>
+<div class="columns"><div><h3>Random row split</h3><p>We train on A at 0.0 and 0.2 s.<br/>We tune on A at 0.1 and 0.3 s.</p><p>The two partitions contain very similar states from the same trajectory.</p></div><div><h3>Whole-flight split</h3><p>We train on all of flight A.<br/>We tune on all of flight B.</p><p>This assesses performance on a different flight.</p></div></div>
+<aside class="notes">Even without a run_id input, nearby observations contain very similar physical states. A random row split can therefore give an optimistic estimate of performance on another flight. Splitting by flight changes how we evaluate generalisation and need not increase the reported score. Different flights may still have similar conditions, so grouping does not establish complete independence.</aside></section>
+
+<!-- RESULT:2 -->
+
+<section id="action-frequency" class="graph-slide">
+<p class="step-label">Step 3 · class frequencies</p><h2>Training action frequencies</h2>
+<figure><img src="./assets/action-frequency.svg" alt="Histogram of action labels in the whole-flight training partition; action 2 dominates and several actions occur in less than one percent of rows."/><figcaption>These frequencies are calculated from the whole-flight training partition. The counts and flight IDs are recorded with the figures.</figcaption></figure>
+<aside class="notes">Only the training rows used from stage 2 onwards are included. Without weighting, frequent actions contribute more terms to the mean cross-entropy. A rare action is not necessarily more important physically, so we also need the landing evaluation.</aside></section>
+
+<section id="class-weighting">
+<p class="step-label">Step 3 · option A</p><h2>Class weighting</h2>
+<div class="equation">$q_c=\frac{N}{C n_c},\qquad L_q=-\frac{\sum_i q_{a_i}\log p_{i,a_i}}{\sum_i q_{a_i}}$</div>
+<p>Here $N$ is the number of training rows, $C$ the number of represented classes, and $n_c$ the number of rows with action $c$.</p>
+<p>For 90 examples of A and 10 of B, the weights $100/(2\times90)=0.556$ and $100/(2\times10)=5$ give each class a total weight of 50.</p>
+<aside class="notes">We use q for class weights to distinguish them from model weights. The inverse-frequency rule gives every represented training class equal total influence on the loss. We calculate it from training counts only. This changes the training objective without changing the expert labels. It may improve recognition of rare actions while reducing accuracy or probability calibration on the original class distribution.</aside></section>
+
+<section id="class-sampling">
+<p class="step-label">Step 3 · option B</p><h2>Class sampling</h2>
+<div class="equation">$P(\text{choose row }i)\propto\frac{1}{n_{a_i}}$</div>
+<p>Alternatively, sample a class uniformly, then sample a training row from that class. Fit the sampled rows using ordinary cross-entropy.</p>
+<p>With 90 examples of A and 10 of B, 100 draws contain about 50 of each. Rare rows can appear more than once.</p>
+<p class="small">Use weighting <strong>or</strong> balanced sampling here. The saved example uses weighting only; sampling has no measured result in this comparison.</p>
+<aside class="notes">Sample with replacement. Class balance holds in expectation, rather than exactly in every batch. Sampling changes which rows are presented; weighting changes their contributions. Both use training counts only. Applying inverse-frequency weights again to balanced samples would give the rare class extra influence beyond the intended balance. Keep validation unchanged. The actual controller uses a weighted loss and weights its gradient consistently; it does not implement the sampling alternative.</aside></section>
+<!-- RESULT:3 -->
+<section id="projection-intuition">
+<p class="step-label">Step 4 · feature construction</p><h2>Projection features</h2>
+<p>A rocket at 100 m descending at 20 m/s requires a different response from one descending at 2 m/s. Height alone does not describe how quickly the state is changing.</p>
+<p>We calculate approximate future states from the current observation and include them as additional features for the classifier.</p>
+<div class="flow"><div>Current state</div><span>→</span><div>State projection</div><span>→</span><div>Projected features</div></div>
+<aside class="notes">A basis function transforms the observed inputs. In this case, the transformation uses assumptions about the rocket dynamics to project its state. These calculations use only information available in the current observation. The classifier continues to learn expert action labels.</aside></section>
+
+<section id="constant-velocity-forces" class="graph-slide">
+<p class="step-label">Step 4 · motion assumption</p><h2>Constant velocity</h2>
+<figure><img src="./assets/forces-constant-velocity.svg" alt="Rocket schematic with constant downward velocity and angular velocity; the approximation sets linear and angular acceleration to zero."/><figcaption>First assume zero acceleration and zero angular acceleration. Vertical velocity and angular velocity remain constant.</figcaption></figure>
+<aside class="notes">This is a kinematic approximation. It ignores gravity, drag and engine forces in the projection even though those forces act in the simulator. Constant angular velocity allows the tilt angle to change.</aside></section>
+
+<section id="projection-example">
+<p class="step-label">Step 4 · feature example</p><h2>Constant-velocity projections</h2>
+<div class="equation">$\hat h(t)=h+v_yt,\quad\hat v_y(t)=v_y$<br/>$\hat\theta(t)=\theta+\omega t,\quad\hat\omega(t)=\omega$</div>
+<p>For $h=100$ m and $v_y=-20$ m/s, the projected heights are $\hat h(1)=80$ m and $\hat h(2)=60$ m.</p>
+<p>For $\theta=0.10$ rad and $\omega=-0.02$ rad/s, the projected angle is $\hat\theta(2)=0.06$ rad.</p>
+<aside class="notes">We assume constant vertical and angular velocities until estimated contact. The hat indicates a calculated future state. A negative angular velocity reduces the positive tilt in this example. Reaching zero tilt with nonzero angular velocity does not mean that rotation has stopped.</aside></section>
+
+<section id="projection-landing" class="graph-slide">
+<p class="step-label">Step 4 · worked projection</p><h2>Projecting to ground contact</h2>
+<figure><img src="./assets/constant-velocity-contact.svg" alt="Constant-velocity projected path and tilt until estimated flat-pad contact, with one, two and three second samples and the contact position, angle and velocities labelled."/><figcaption>Continuing the approximation gives a contact position, angle and velocity. The dashed part extends beyond the model's 3 s feature horizon.</figcaption></figure>
+<aside class="notes">The illustration uses x = −10 m, h = 100 m, vx = 3 m/s, vy = −20 m/s, theta = .10 rad, omega = −.02 rad/s and 10,000 kg fuel. We continue the constant-velocity equations to contact to explain the idea; the model samples only up to three seconds. The model appends vertical and angular quantities, not horizontal landing position. The flat-pad contact estimate uses the calibrated hull and feet.</aside></section>
+
+<section id="projection-design">
+<p class="step-label">Step 4 · design matrix</p><h2>Projected feature vector</h2>
+<div class="feature-vector"><div>12 raw observations</div><div>+ 4 projected values at 1 s</div><div>+ 4 at 2 s</div><div>+ 4 at 3 s</div></div>
+<p>At each horizon we append $[\hat h,\hat v_y,\hat\theta,\hat\omega]$. This gives <strong>24 features in total</strong>, followed by the bias column.</p>
+<p>Use <strong>12 steps of 0.25 s</strong>, saving after steps 4, 8 and 12. If estimated contact occurs earlier, hold that state for later samples.</p>
+<p class="small">We normalise all 24 columns using training statistics, then add the bias. The projection runs for at most 3 s, rather than until landing.</p>
+<aside class="notes">The feature order is the original 12 observations followed by four projected values at each of 1, 2 and 3 seconds. We run the same helper during fitting and prediction. Each projection starts from the current observation and does not advance the actual simulator. The horizon choices can be varied and assessed using tuning flights.</aside></section>
+
+<section id="projection-contact">
+<p class="step-label">Step 4 · contact approximation</p><h2>Estimated ground contact</h2>
+<p>At each step, estimate the height of the lowest point on the hull or feet above a flat pad. This depends on the rocket's height, tilt and centre of mass.</p>
+<div class="flow"><div>Lowest point above pad</div><span>→</span><div>Advance 0.25 s</div><span>→</span><div>Check for contact</div></div>
+<p>If a step crosses the pad surface, interpolate back to contact and hold that state for the remaining feature samples.</p>
+<p class="small">Because height is measured at the centre of mass, contact occurs at a positive height. This approximation does not use horizontal terrain.</p>
+<aside class="notes">The implementation calculates old_gap/(old_gap-new_gap), clips it to [0,1], and integrates for that fraction of the step. This interpolates clearance rather than solving for exact contact. Once contact is estimated, h, vy, theta and omega are held fixed, even if velocity is nonzero. This stopping rule defines the features rather than simulating a collision. An initially contacting state is held immediately.</aside></section>
+
+<section id="projection-redundancy">
+<p class="step-label">Step 4 · model representation</p><h2>Linear and nonlinear features</h2>
+<div class="equation">$a h+b(h+t v_y)=(a+b)h+(bt)v_y$</div>
+<p>At a fixed horizon $t$, the unrestricted constant-velocity projection is an affine combination of inputs already available to the classifier.</p>
+<p>The implemented transformation also includes <strong>trigonometric geometry and state-dependent stopping at contact</strong>. These operations make the feature map nonlinear.</p>
+<p class="small">Repeated or related columns can also change optimisation and regularisation, so improved results do not by themselves establish which part of the transformation helped.</p>
+<aside class="notes">A deterministic transformation adds no new measured information. It can still allow a linear classifier to represent more complex decisions when the transformation is nonlinear. Without stopping, projected vertical and angular velocities repeat existing inputs. Fixed-gravity projections add affine terms that can also be represented using the original inputs and bias. The measured changes therefore should not be attributed solely to the unrestricted projection equations.</aside></section>
+<!-- RESULT:4 -->
+
+<section id="gravity-forces" class="graph-slide">
+<p class="step-label">Step 5 · force assumption</p><h2>Add gravity</h2>
+<figure><img src="./assets/forces-gravity.svg" alt="Rocket schematic with gravity acting downward through the centre of mass, giving vertical acceleration minus g and no torque about the centre."/><figcaption>Gravity acts downward through the centre of mass. It changes vertical velocity and leaves angular velocity unchanged in this approximation.</figcaption></figure>
+<aside class="notes">Here g = 9.80665 m/s². The projection still omits engine and aerodynamic forces. A force through the centre of mass produces no torque about that point.</aside></section>
+
+<section id="gravity-projection">
+<p class="step-label">Step 5 · feature construction</p><h2>Projections with gravity</h2>
+<div class="equation">$\hat h(t)=h+v_yt-\tfrac12gt^2,\qquad\hat v_y(t)=v_y-gt$<br/>$\hat\theta(t)=\theta+\omega t,\qquad\hat\omega(t)=\omega$</div>
+<p>For $g=9.80665$ m/s², $h=100$ m and $v_y=-20$ m/s, we calculate the state at 2 s.</p>
+<p>Before estimated contact, this gives $\hat h\approx40.39$ m and $\hat v_y\approx-39.61$ m/s.</p>
+<p class="small">Keep the same 12 steps, 1–3 s samples, contact rule and 24 feature columns. Gravity changes the projected values and estimated contact time.</p>
+<aside class="notes">The positive vertical direction is up, so gravity has a negative sign. Quarter-second integration of constant acceleration gives the analytic expressions shown here before contact. Angle and angular velocity retain the constant-angular-velocity assumption. As before, the state-dependent contact calculation is important to the nonlinear feature map.</aside></section>
+<section id="projection-picture" class="graph-slide">
+<p class="step-label">Step 5 · feature comparison</p><h2>Projected heights at contact</h2>
+<figure><img src="./assets/projection-features.svg" alt="For an upright rocket at height 100 m descending at 20 m/s, constant-velocity and gravity height features are sampled at one, two and three seconds. At three seconds the free gravity equation goes below ground but the implemented feature holds at estimated contact height."/><figcaption>The dots show feature-helper outputs for $h=100$ m, $v_y=-20$ m/s, an upright rocket and 10,000 kg of fuel. They are projected states.</figcaption></figure>
+<aside class="notes">The preparation script evaluates _basis on the specified observation. Dotted curves show the unrestricted equations, and the dots show values actually supplied to the classifier. The gravity projection has reached estimated contact before the final sample, so it holds all four projected quantities at contact. The contact height depends on geometry and the fuel-dependent centre of mass.</aside></section>
+<!-- RESULT:5 -->
+
+<section id="forces-picture" class="graph-slide">
+<p class="step-label">Step 6 · force assumption</p><h2>Add aerodynamic drag</h2>
+<figure><img src="./assets/forces-drag.svg" alt="Rocket schematic with gravity at the centre of mass and drag at a pressure point; the lever arm can produce a torque."/><figcaption>Drag opposes motion relative to the air. Applied away from the centre of mass, it can also change the rocket's rotation.</figcaption></figure>
+<aside class="notes">This uses the same schematic as the full force diagram, showing the forces included in the drag projection. Engine thrust remains omitted. Translational acceleration is force divided by mass; angular acceleration is torque divided by moment of inertia.</aside></section>
+
+<section id="drag-relative">
+<p class="step-label">Step 6 · drag force</p><h2>Air-relative drag</h2>
+<div class="equation">$\mathbf u=\mathbf v-\mathbf v_{\rm wind}$<br/>$\mathbf F_D=-\tfrac12\rho C_D A\|\mathbf u\|\mathbf u$<br/>$a_x=F_{D,x}/m,\qquad a_y=-g+F_{D,y}/m$</div>
+<p>For example, $v_x=10$ m/s with a tailwind of 8 m/s gives an air-relative speed of 2 m/s. A headwind of −8 m/s gives 18 m/s.</p>
+<p class="small">The example uses $C_D=0.65+15\sin^2\beta$ and $A=10.5209$ m². Here $\beta$ is the angle between the tail axis and air-relative velocity.</p>
+<aside class="notes">This example uses one dimension to show the effect of wind. The implementation uses both air-relative velocity components. The negative sign makes drag oppose that velocity. Density is in kg/m³, reference area is in m², and the drag coefficient is dimensionless, giving force in newtons. Zero air-relative velocity gives zero drag.</aside></section>
+
+<section id="drag-torque">
+<p class="step-label">Step 6 · angular acceleration</p><h2>Aerodynamic torque</h2>
+<div class="equation">$\tau_D=r_xF_{D,y}-r_yF_{D,x},\qquad\alpha_D=\tau_D/I$</div>
+<p>The lever arm $\mathbf r$ runs from the centre of mass to the force application point. We divide the resulting torque by the moment of inertia $I$.</p>
+<p>A force through the centre gives zero torque. Increasing the perpendicular lever arm increases torque, while increasing inertia reduces angular acceleration.</p>
+<aside class="notes">Positive torque increases anticlockwise angular velocity. The approximation applies aerodynamic force at axial coordinate 37 m and calculates its displacement from the centre of mass. Torque is measured in N m and inertia in kg m². Fuel affects mass, centre of mass and inertia between observations, but their current values are held fixed within each projection.</aside></section>
+
+<section id="rollout-update">
+<p class="step-label">Step 6 · implementation</p><h2>Projection integration</h2>
+<div class="equation">$h_{k+1}=h_k+v_{y,k}\Delta t+\tfrac12a_{y,k}\Delta t^2$<br/>$v_{y,k+1}=v_{y,k}+a_{y,k}\Delta t$<br/>$\theta_{k+1}=\theta_k+\omega_k\Delta t+\tfrac12\alpha_k\Delta t^2$<br/>$\omega_{k+1}=\omega_k+\alpha_k\Delta t$</div>
+<p class="small">Recalculate drag each 0.25 s step. Keep the same 12-step maximum, samples and contact rule. Update $v_x$ as well, because it affects the next drag calculation.</p>
+<aside class="notes">We calculate acceleration from the current projected state, hold it constant for one step, then recalculate it after the update. We save features after 4, 8 and 12 steps, giving the 1, 2 and 3 second horizons. A contact step uses only the estimated fraction before contact. The feature integration interval is separate from the 0.1 second interval between real controller decisions.</aside></section>
+
+<section id="drag-projection-picture" class="graph-slide">
+<p class="step-label">Step 6 · projected features</p><h2>Effect of drag on the projection</h2>
+<figure><img src="./assets/drag-projection.svg" alt="Height and angle features for a fast, tilted descent from 300 m at minus 60 m/s, comparing gravity with gravity plus drag at one, two and three seconds."/><figcaption>For this faster, tilted descent, drag changes projected height and angle. Both models still append four quantities at each horizon.</figcaption></figure>
+<aside class="notes">Points come directly from the feature helpers; lines connect samples rather than measured flight states. Both start with h = 300 m, vx = 15 m/s, vy = −60 m/s, theta = .35 rad, omega = −.03 rad/s, 10,000 kg fuel, zero wind and density 1.225 kg/m³. Wind, density, fuel, mass and inertia stay fixed within the projection; lift, rotational damping, thrust and fuel burn are omitted. A faster, tilted example makes the difference between the assumptions easier to see.</aside></section>
+<!-- RESULT:6 -->
+
+<section id="results-limits">
+<p class="step-label">Practical · interpretation</p><h2>Limitations of the comparison</h2>
+<ul><li>There are ten flights, so one additional successful flight changes the success rate by 10 percentage points. Observations within a flight are correlated.</li><li>The selected fits reached the limit of 300 optimiser iterations without reporting convergence.</li><li>Changing the split also changes the training observations. Adding features can affect optimisation as well as the model representation.</li></ul>
+<p class="small">These results describe the saved models on this validation set. We need controlled comparisons and further flights to assess the causes of the changes.</p>
+<aside class="notes">Every selected fit reports converged=False in the saved results. The diagnostic plots reproduce these fits without retraining. Repeatedly comparing designs on the same validation flights can also overfit the selection process. The 9/10 landing count is therefore a result for this set rather than a guarantee of 90% success on future flights.</aside></section>

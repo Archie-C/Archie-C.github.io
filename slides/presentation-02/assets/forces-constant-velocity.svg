@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="360" viewBox="0 0 1100 360" role="img" aria-labelledby="title desc">
+<title id="title">Constant-velocity approximation</title><desc id="desc">Vertical and angular velocity stay constant; forces and torques are omitted.</desc>
+<defs><marker id="arrow" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8" fill="#6B2C5C"/></marker><marker id="dark" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8" fill="#15120B"/></marker></defs>
+<g font-family="sans-serif" font-size="22" fill="#15120B">
+<path d="M400 315 L400 85 L425 30 L450 85 L450 315 Z" fill="#6B2C5C" fill-opacity=".08" stroke="#6B2C5C" stroke-width="3"/>
+<path d="M400 315 L382 333 M450 315 L468 333" stroke="#15120B" stroke-width="3"/>
+<circle cx="425" cy="200" r="7"/>
+<path d="M425 200 L485 200" stroke="#15120B" stroke-width="2"/><text x="500" y="205">Centre of mass</text>
+<path d="M285 160 L285 290" stroke="#6B2C5C" stroke-width="4" marker-end="url(#arrow)"/>
+<text x="75" y="125">Vertical velocity</text><text x="75" y="153" font-size="18" fill="#6B6149">Constant in this example</text>
+<path d="M365 94 C335 25 505 10 495 93" fill="none" stroke="#6B2C5C" stroke-width="3" marker-end="url(#arrow)"/>
+<text x="550" y="75">Angular velocity stays constant</text>
+<text x="550" y="108" font-size="18" fill="#6B6149">The tilt can still change</text>
+<text x="550" y="275">a = 0, α = 0</text>
+<text x="550" y="308" font-size="18" fill="#6B6149">Forces omitted from this projection</text><text x="720" y="345" font-size="16" fill="#6B6149">Schematic; arrows are illustrative</text></g></svg>

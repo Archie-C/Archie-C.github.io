@@ -1,0 +1,180 @@
+.reveal .step-label {
+  margin-bottom: 18px;
+  font-family: var(--font-mono);
+  font-size: 18px;
+  letter-spacing: .02em;
+  color: var(--accent);
+}
+/* Equations are the visual anchor; notes sit below them in a quieter column. */
+.reveal .equation, .reveal .q3-math {
+  box-sizing: border-box;
+  border-left: 4px solid var(--accent);
+  background: var(--accent-soft);
+  color: var(--fg);
+}
+.reveal .equation {
+  margin: 30px 0 24px;
+  padding: 18px 26px;
+  font-size: 34px;
+  line-height: 1.6;
+}
+.reveal .q3-math {
+  margin: 54px 0 30px;
+  padding: 32px 34px;
+  font-size: 46px;
+  line-height: 1.45;
+}
+.reveal .worked-example .q3-math { font-size: 38px; }
+.reveal .q3-caption {
+  margin: 0 0 12px;
+  padding-left: 22px;
+  border-left: 3px solid var(--rule);
+  color: var(--fg-2);
+  font-size: 27px;
+  line-height: 1.4;
+}
+.reveal .q3-detail {
+  margin: 0 0 12px;
+  padding-left: 25px;
+  color: var(--fg-3);
+  font-size: 23px;
+  line-height: 1.4;
+}
+.reveal .graph-slide figure { margin: 8px 0 0; }
+.reveal .graph-slide figure img { display: block; width: 100%; max-height: 400px; object-fit: contain; border: 0; }
+.reveal .graph-slide figcaption {
+  margin-top: 12px;
+  padding: 10px 16px;
+  border-left: 3px solid var(--rule);
+  background: var(--bg-2);
+  color: var(--fg-2);
+  font-size: 21px;
+}
+.reveal table.results { width: 100%; margin-top: 28px; border-collapse: collapse; font-size: 25px; }
+.reveal table.results th, .reveal table.results td { padding: 14px 12px; border-bottom: 1px solid var(--rule); text-align: left; }
+.reveal table.results th { background: var(--bg-2); color: var(--fg-2); font-family: var(--font-mono); font-size: 20px; }
+.reveal .small { margin-top: 24px; padding-left: 14px; border-left: 3px solid var(--rule); font-size: 19px; color: var(--fg-3); }
+
+/* Local teaching layouts; preserve the shared palette and presentation canvas. */
+.reveal { font-size: 26px; line-height: 1.35; }
+.reveal .slides > section { padding: 64px 72px; }
+.reveal h2 { font-size: 40px; line-height: 1.15; margin-bottom: 20px; }
+.reveal h3 { font-size: 27px; margin-bottom: 15px; }
+.reveal p, .reveal ul, .reveal ol { max-width: none; margin-bottom: 18px; }
+.reveal li + li { margin-top: 14px; }
+.reveal .step-label { margin-bottom: 16px; }
+.reveal .equation { margin: 22px 0; padding: 16px 22px; font-size: 29px; line-height: 1.65; }
+.reveal .q3-math { margin: 34px 0 26px; padding: 26px; font-size: 40px; }
+.reveal .q3-detail { font-size: 23px; }
+.reveal table.results { margin-top: 22px; font-size: 24px; }
+.reveal table.results th, .reveal table.results td { padding: 12px 10px; }
+.reveal table.compact { font-size: 22px; }
+.reveal table.compact th, .reveal table.compact td { padding: 10px; }
+.reveal table.compact th { font-size: 18px; }
+.reveal #rocket-observations table td { padding-top: 9px; padding-bottom: 9px; }
+.reveal .small { margin-top: 20px; font-size: 20px; line-height: 1.4; }
+.reveal .graph-slide figure img { height: 340px; max-height: 340px; }
+.reveal .graph-slide figcaption { font-size: 22px; line-height: 1.35; }
+.reveal .columns { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin: 26px 0; }
+.reveal .columns > div { border-top: 3px solid var(--accent); padding: 20px; background: var(--bg-2); }
+.reveal .flow { display: flex; align-items: center; gap: 15px; margin: 28px 0; }
+.reveal .flow > div { flex: 1; padding: 22px 18px; background: var(--accent-soft); border-left: 3px solid var(--accent); font-size: 25px; }
+.reveal .flow > span { color: var(--accent); }
+.reveal .sequence, .reveal .feature-vector { display: flex; gap: 10px; margin: 24px 0; }
+.reveal .sequence span, .reveal .feature-vector div { flex: 1; padding: 18px 14px; background: var(--bg-2); border: 1px solid var(--rule); font-size: 22px; }
+.reveal pre { width: 100%; margin: 22px 0; padding: 20px; box-sizing: border-box; background: var(--bg-2); border-left: 3px solid var(--accent); box-shadow: none; font-size: 21px; }
+.reveal pre code { white-space: pre-wrap; overflow-wrap: anywhere; max-height: none; padding: 0; }
+.reveal code { font-family: var(--font-mono); font-size: .85em; }
+.reveal .katex { font-size: 1.05em; }
+/* Result tables retain exact values; paired bars show the landing measures. */
+.reveal .result-layout { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); gap: 22px; align-items: center; margin: 14px 0 18px; }
+.reveal .result-layout > * { min-width: 0; }
+.reveal .result-layout table.results { margin: 0; font-size: 21px; }
+.reveal .result-layout table.results th { font-size: 17px; }
+.reveal .result-layout table.results td, .reveal .result-layout table.results th { padding: 12px 8px; }
+.reveal .result-layout table.results td:first-child { width: 30%; }
+.reveal .result-layout table.results td:not(:first-child) { white-space: nowrap; }
+.reveal .result-layout figure { margin: 0; }
+.reveal .result-layout img { display: block; width: 100%; height: 300px; object-fit: contain; margin: 0; border: 0; }
+.reveal p.result-takeaway { padding: 12px 18px; margin: 0 0 14px; background: var(--accent-soft); border-left: 3px solid var(--accent); font-size: 24px; }
+.reveal .result-takeaway + .small { margin-top: 12px; font-size: 18px; }
+/* Match each confusion-matrix cell to the same terms in both equations. */
+.metric-slide { --metric-tp: #4A6A2E; --metric-tn: #2C4A7A; --metric-fp: #A67012; --metric-fn: #A82A20; }
+.reveal .metric-layout { display: grid; grid-template-columns: .9fr 1.2fr; gap: 36px; align-items: start; margin-top: 18px; }
+.reveal .metric-layout > div { min-width: 0; }
+.reveal .metric-definition { padding: 24px; background: var(--bg-2); border-top: 3px solid var(--accent); }
+.reveal .metric-equation { display: flex; align-items: center; justify-content: center; min-height: 116px; margin-bottom: 24px; font-size: 37px; }
+.reveal .metric-definition > p { font-size: 25px; line-height: 1.4; }
+.reveal .metric-key { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 16px; margin: 24px 0; font-size: 17px; font-weight: 600; }
+.reveal p.metric-comparison { border-top: 1px solid var(--rule); padding-top: 18px; margin-bottom: 0; color: var(--fg-2); font-size: 21px; }
+.reveal .metric-tp { color: var(--metric-tp); --metric-tint: #E5ECD9; }
+.reveal .metric-tn { color: var(--metric-tn); --metric-tint: #E1E7F0; }
+.reveal .metric-fp { color: var(--metric-fp); --metric-tint: #F3E7CC; }
+.reveal .metric-fn { color: var(--metric-fn); --metric-tint: #F3DED9; }
+.reveal p.metric-matrix-caption { font-size: 19px; color: var(--fg-2); margin-bottom: 12px; }
+.reveal table.metric-matrix { width: 100%; table-layout: fixed; border-collapse: collapse; margin: 0; font-size: 20px; }
+.reveal .metric-matrix th, .reveal .metric-matrix td { padding: 12px 10px; border: 1px solid var(--rule); text-align: center; vertical-align: middle; }
+.reveal .metric-matrix thead th { font-size: 17px; font-weight: 500; color: var(--fg-2); background: var(--bg-2); }
+.reveal .metric-matrix thead th:first-child { width: 29%; }
+.reveal .metric-matrix tbody th { text-align: left; font-size: 19px; font-weight: 500; color: var(--fg-2); }
+.reveal .metric-matrix td strong { display: block; font-size: 35px; line-height: 1.15; color: inherit; }
+.reveal .metric-matrix td span { display: block; margin-top: 6px; font: 17px var(--font-mono); }
+.reveal .metric-matrix td.metric-selected { background: var(--metric-tint); box-shadow: inset 0 -3px currentColor; }
+.reveal .metric-matrix td.metric-unused { opacity: .50; }
+.reveal p.metric-focus { font-size: 19px; color: var(--fg-2); margin: 12px 0 20px; }
+.reveal .metric-calculation { padding: 16px 18px 20px; background: var(--accent-soft); border-left: 3px solid var(--accent); }
+.reveal .metric-calculation > p { margin-bottom: 18px; font: 17px var(--font-mono); color: var(--fg-2); }
+.reveal .metric-calculation > div { text-align: center; font-size: 28px; }
+.reveal p.interpretation-priority { padding: 16px 20px; border-left: 3px solid var(--accent); background: var(--accent-soft); }
+.reveal .interpretation-priority .metric-fn strong,
+.reveal #question-2-interpretation .metric-fp strong { color: inherit; }
+/* The two-location L2 example shares the deck's geometry and palette. */
+.reveal .regularisation-layout { display: grid; grid-template-columns: 1.5fr 1fr; gap: 26px; align-items: start; }
+.reveal .regularisation-layout > * { min-width: 0; }
+.reveal .regularisation-figure { margin: 0; }
+.reveal .regularisation-plot { display: block; width: 100%; height: 310px; overflow: visible; }
+.regularisation-plot .reg-grid { stroke: var(--rule); stroke-width: 1; }
+.regularisation-plot .reg-frame { fill: none; stroke: var(--fg-3); stroke-width: 1; }
+.regularisation-plot text { fill: var(--fg); font-family: var(--font-sans); font-size: 18px; }
+.regularisation-plot .reg-tick, .regularisation-plot .reg-point-probability { fill: var(--fg-2); font-size: 16px; }
+.regularisation-plot .reg-reference line { stroke: var(--fg-3); stroke-width: 2; stroke-dasharray: 7 5; }
+.regularisation-plot .reg-boundary line { stroke: var(--accent); stroke-width: 3; }
+.regularisation-plot .reg-weight { stroke: var(--accent); stroke-width: 3; }
+.regularisation-plot .reg-arrowhead, .regularisation-plot .reg-origin, .regularisation-plot .reg-positive { fill: var(--accent); }
+.regularisation-plot .reg-negative { fill: none; stroke: var(--fg); stroke-width: 3; }
+.regularisation-plot .reg-weight-label { font-style: italic; font-weight: 600; }
+.reveal .regularisation-demo .regularisation-plot { height: 280px; }
+.reveal .regularisation-figure figcaption { margin: 4px 0 0; font-size: 20px; line-height: 1.35; color: var(--fg-2); }
+.reveal .regularisation-values { padding: 18px 22px; background: var(--bg-2); border-top: 3px solid var(--accent); }
+.reveal .regularisation-formula { font-size: 26px; margin-bottom: 16px; }
+.reveal .regularisation-values p { font-size: 22px; line-height: 1.35; margin: 0 0 14px; }
+.reveal .regularisation-values dl { margin: 0; font-size: 21px; }
+.reveal .regularisation-values dl > div { display: flex; justify-content: space-between; gap: 10px; margin: 0 0 13px; }
+.reveal .regularisation-values dt { color: var(--fg-2); }
+.reveal .regularisation-values dd { margin: 0; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.reveal p.regularisation-note { margin: 12px 0 0; font-size: 21px; line-height: 1.35; color: var(--fg-2); }
+.reveal .regularisation-controls { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 10px 24px; margin-bottom: 12px; }
+.reveal .regularisation-controls label { display: flex; justify-content: space-between; gap: 16px; font-size: 22px; }
+.reveal .regularisation-controls output { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.reveal .regularisation-controls input { grid-column: 1; width: 100%; margin: 0; accent-color: var(--accent); }
+.reveal .regularisation-presets { display: flex; gap: 8px; grid-column: 2; grid-row: 1 / 3; }
+.reveal .regularisation-presets button { padding: 10px 12px; border: 1px solid var(--rule); background: var(--bg-2); color: var(--fg); font: 17px var(--font-sans); }
+.reveal .regularisation-presets button[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); }
+.reveal .regularisation-controls :focus-visible { outline: 3px solid var(--accent); outline-offset: 4px; }
+.reveal .regularisation-losses { border-top: 1px solid var(--rule); padding-top: 16px; margin-top: 16px; }
+.reveal .regularisation-losses .reg-total { margin: 0; font-weight: 600; }
+.reveal p.regularisation-takeaway { margin: 16px 0 0; padding: 10px 18px; border-left: 3px solid var(--accent); background: var(--accent-soft); font-size: 24px; line-height: 1.35; }
+.reveal .regularisation-comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; margin-top: 26px; }
+.reveal .regularisation-comparison figure { margin: 0; }
+.reveal .regularisation-comparison h3 { font-size: 23px; margin: 0 0 10px; }
+.reveal .regularisation-comparison .regularisation-plot { height: 260px; }
+.reveal .regularisation-comparison figcaption { font-size: 21px; line-height: 1.5; }
+.reveal .regularisation-comparison figcaption span { display: block; font-variant-numeric: tabular-nums; }
+.deck-nav { position: fixed; z-index: 20; top: 0; left: 0; right: 0; display: flex; justify-content: center; gap: 22px; padding: 9px 12px; font: 13px var(--font-mono); background: var(--bg); border-bottom: 1px solid var(--rule); }
+.deck-nav a { color: var(--fg-2); text-decoration: none; }
+.deck-nav a:hover, .deck-nav a:focus-visible { color: var(--accent); text-decoration: underline; }
+.layout-status { position: fixed; z-index: 30; bottom: 8px; left: 8px; background: var(--bg); color: var(--fg); padding: 10px; border: 1px solid var(--accent); font: 14px monospace; }
+@media (max-width: 650px) { .deck-nav { gap: 10px; flex-wrap: wrap; font-size: 10px; padding: 6px; } }
+/* Reveal moves slides into .pdf-page wrappers and otherwise removes padding. */
+html.reveal-print .reveal .slides section { padding: 64px 72px !important; height: 720px; }
+@media print { .deck-nav, .layout-status { display: none; } }
