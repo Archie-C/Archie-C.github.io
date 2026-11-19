@@ -1,117 +1,222 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" data-palette="paper">
-<head>
-<meta charset="utf-8"/>
-<title>Neural networks exercises 2026 | Deep Learning</title>
-<meta name="description" content="Exercises in preparation for building, training, and evaluating neural networks in the 2026 Deep Learning course."/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<link rel="icon" href="../../../../../design_system/assets/favicon.svg"/>
-<link rel="stylesheet" href="../../../../../design_system/colors_and_type.css"/>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"/>
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
-  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
-<link rel="stylesheet" href="../../../styles/exercises.css"/>
-</head>
-<body>
-<div class="frame">
-  <div class="topbar">
-    <a href="../../../../../" class="mark">a<span class="dot">.</span>c</a>
-    <span class="crumb">
-      <a href="../../../">Deep Learning</a><span class="sep">&rsaquo;</span>
-      <a href="../">03 neural networks</a><span class="sep">&rsaquo;</span>
-      exercises
-    </span>
-    <nav aria-label="Course navigation"><a href="../../../">syllabus</a><a href="../../../../../contact/">contact</a></nav>
-  </div>
+  <head>
+    <meta charset="utf-8" />
+    <title>Neural networks exercises 2026 | Deep Learning</title>
+    <meta
+      name="description"
+      content="Exercises in preparation for building, training, and evaluating neural networks in the 2026 Deep Learning course."
+    />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <link rel="icon" href="../../../../../design_system/assets/favicon.svg" />
+    <link
+      rel="stylesheet"
+      href="../../../../../design_system/colors_and_type.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
+    />
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"
+    ></script>
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+      onload="
+        renderMathInElement(document.body, {
+          delimiters: [
+            { left: '$$', right: '$$', display: true },
+            { left: '$', right: '$', display: false },
+          ],
+        })
+      "
+    ></script>
+    <link rel="stylesheet" href="../../../styles/exercises.css" />
+  </head>
+  <body>
+    <div class="frame">
+      <div class="topbar">
+        <a href="../../../../../" class="mark">a<span class="dot">.</span>c</a>
+        <span class="crumb">
+          <a href="../../../">Deep Learning</a><span class="sep">&rsaquo;</span>
+          <a href="../">03 neural networks</a><span class="sep">&rsaquo;</span>
+          exercises
+        </span>
+        <nav aria-label="Course navigation">
+          <a href="../../../">syllabus</a
+          ><a href="../../../../../contact/">contact</a>
+        </nav>
+      </div>
 
-  <main class="content">
-    <h1>Neural networks exercises 2026</h1>
-    <p class="standfirst">Exercises in preparation for building, training, and evaluating neural networks.</p>
+      <main class="content">
+        <h1>Neural networks exercises 2026</h1>
+        <p class="standfirst">
+          Exercises in preparation for building, training, and evaluating neural
+          networks.
+        </p>
 
-    <nav class="exercise-nav" aria-label="Exercise navigation">
-      <a href="#question-1">Question 1</a>
-      <a href="#question-2">Question 2</a>
-      <a href="#question-3">Question 3*</a>
-      <a href="#practical">Practical exercise</a>
-    </nav>
+        <nav class="exercise-nav" aria-label="Exercise navigation">
+          <a href="#question-1">Question 1</a>
+          <a href="#question-2">Question 2</a>
+          <a href="#question-3">Question 3*</a>
+          <a href="#practical">Practical exercise</a>
+        </nav>
 
-    <section aria-label="Neural networks exercises">
-      <ol class="question-list">
-        <li class="question">
-          <span class="question-number">01</span>
-          <div>
-            <h2 class="question-title" id="question-1">Question 1</h2>
-            <div class="question-content">
-              <p>Consider a neural network with two inputs, two ReLU hidden neurons and one linear output:</p>
-              <p>$$\mathbf{z} = \mathbf{W}^{(1)}\mathbf{x} + \mathbf{b}^{(1)}, \qquad \mathbf{a} = \operatorname{ReLU}(\mathbf{z}), \qquad \hat{y} = \mathbf{W}^{(2)}\mathbf{a} + b^{(2)}.$$</p>
-              <p>For $\mathbf{x} = \begin{pmatrix} 1 \\ 2 \end{pmatrix}$, use</p>
-              <p>$$\mathbf{W}^{(1)} = \begin{pmatrix} 1 &amp; -1 \\ 2 &amp; 1 \end{pmatrix}, \quad \mathbf{b}^{(1)} = \begin{pmatrix} 0 \\ -1 \end{pmatrix}, \quad \mathbf{W}^{(2)} = \begin{pmatrix} 2 &amp; -1 \end{pmatrix}, \quad b^{(2)} = 1.$$</p>
-              <ol type="a">
-                <li>Calculate the network output $\hat{y}$, showing $\mathbf{z}$ and $\mathbf{a}$.</li>
-                <li>Calculate the total number of trainable parameters.</li>
-                <li>Recalculate the output if the hidden neurons use identity activations instead of ReLU.</li>
-                <li>For the ReLU network, compute the gradients of $\hat{y}$ with respect to $\mathbf{W}^{(1)}$ and $\mathbf{b}^{(1)}$ at this input.</li>
-                <li>Suppose the loss is differentiable with respect to the output and has no direct parameter penalty. Using your previous answer, state how a gradient descent step on this input changes the parameters of the first hidden neuron. Name the problem that arises if the same holds for every training input.</li>
-              </ol>
-            </div>
-          </div>
-        </li>
+        <section aria-label="Neural networks exercises">
+          <ol class="question-list">
+            <li class="question">
+              <span class="question-number">01</span>
+              <div>
+                <h2 class="question-title" id="question-1">Question 1</h2>
+                <div class="question-content">
+                  <p>
+                    Consider a neural network with two inputs, two ReLU hidden
+                    neurons and one linear output:
+                  </p>
+                  <p>
+                    $$\mathbf{z} = \mathbf{W}^{(1)}\mathbf{x} +
+                    \mathbf{b}^{(1)}, \qquad \mathbf{a} =
+                    \operatorname{ReLU}(\mathbf{z}), \qquad \hat{y} =
+                    \mathbf{W}^{(2)}\mathbf{a} + b^{(2)}.$$
+                  </p>
+                  <p>
+                    For $\mathbf{x} = \begin{pmatrix} 1 \\ 2 \end{pmatrix}$, use
+                  </p>
+                  <p>
+                    $$\mathbf{W}^{(1)} = \begin{pmatrix} 1 &amp; -1 \\ 2 &amp; 1
+                    \end{pmatrix}, \quad \mathbf{b}^{(1)} = \begin{pmatrix} 0 \\
+                    -1 \end{pmatrix}, \quad \mathbf{W}^{(2)} = \begin{pmatrix} 2
+                    &amp; -1 \end{pmatrix}, \quad b^{(2)} = 1.$$
+                  </p>
+                  <ol type="a">
+                    <li>
+                      Calculate the network output $\hat{y}$, showing
+                      $\mathbf{z}$ and $\mathbf{a}$.
+                    </li>
+                    <li>Calculate the total number of trainable parameters.</li>
+                    <li>
+                      Recalculate the output if the hidden neurons use identity
+                      activations instead of ReLU.
+                    </li>
+                  </ol>
+                </div>
+              </div>
+            </li>
 
-        <li class="question">
-          <span class="question-number">02</span>
-          <div>
-            <h2 class="question-title" id="question-2">Question 2</h2>
-            <div class="question-content">
-              <p>A neural network controls a rocket by predicting continuous thrust $T \in [0, T_{\max}]$ and gimbal angle $g \in [-g_{\max}, g_{\max}]$. It is trained by supervised learning on expert demonstrations.</p>
-              <ol type="a">
-                <li>How many output neurons are required? Explain whether softmax is appropriate for these outputs.</li>
-                <li>Suggest an output activation or transformation for each output that enforces its control limits. State one drawback of your choice when the best control lies at a limit, such as full thrust.</li>
-                <li>What problems can arise when ordinary mean squared error is applied to outputs with very different scales? Propose a solution.</li>
-                <li>Why might a model with low prediction error on expert demonstrations still fail to land successfully in closed-loop control?</li>
-              </ol>
-            </div>
-          </div>
-        </li>
+            <li class="question">
+              <span class="question-number">02</span>
+              <div>
+                <h2 class="question-title" id="question-2">Question 2</h2>
+                <div class="question-content">
+                  <p>
+                    A neural network controls a rocket by predicting continuous
+                    thrust $T \in [0, T_{\max}]$ and gimbal angle $g \in
+                    [-g_{\max}, g_{\max}]$. It is trained by supervised learning
+                    on expert demonstrations.
+                  </p>
+                  <ol type="a">
+                    <li>
+                      How many output neurons are required? Explain whether
+                      softmax is appropriate for these outputs.
+                    </li>
+                    <li>
+                      Suggest an output activation or transformation for each
+                      output that enforces its control limits. State one
+                      drawback of your choice when the best control lies at a
+                      limit, such as full thrust.
+                    </li>
+                    <li>
+                      What problems can arise when ordinary mean squared error
+                      is applied to outputs with very different scales? Propose
+                      a solution.
+                    </li>
+                    <li>
+                      Why might a model with low prediction error on expert
+                      demonstrations still fail to land successfully in
+                      closed-loop control?
+                    </li>
+                  </ol>
+                </div>
+              </div>
+            </li>
 
-        <li class="question">
-          <span class="question-number">03</span>
-          <div>
-            <h2 class="question-title" id="question-3">Question 3*</h2>
-            <div class="question-content">
-              <p>Consider a single-hidden-layer network with scalar input and output:</p>
-              <p>$$f(x) = b + \sum_{j=1}^{d_1} v_j \sigma(w_j x + b_j).$$</p>
-              <ol type="a">
-                <li>Prove that if $\sigma$ is the identity activation, the network reduces to an affine function $f(x) = mx + c$. Give $m$ and $c$ in terms of the parameters.</li>
-                <li>Find weights and biases for a ReLU network with $d_1 = 2$ that represents $f(x) = |x|$ exactly.</li>
-                <li>Prove that no function of the form $mx + c$ equals $|x|$ for all real $x$.</li>
-                <li>Show that with ReLU activations, $f$ is piecewise linear with at most $d_1 + 1$ linear pieces.</li>
-                <li>The universal approximation theorem says one hidden layer can approximate any continuous function on a compact set. Using the previous part, explain why this does not make deep networks unnecessary.</li>
-                <li>Does universal approximation guarantee that training will find a good approximation? Explain.</li>
-              </ol>
-            </div>
-          </div>
-        </li>
+            <li class="question">
+              <span class="question-number">03</span>
+              <div>
+                <h2 class="question-title" id="question-3">Question 3*</h2>
+                <div class="question-content">
+                  <p>
+                    Consider a single-hidden-layer network with scalar input and
+                    output:
+                  </p>
+                  <p>
+                    $$f(x) = b + \sum_{j=1}^{d_1} v_j \sigma(w_j x + b_j).$$
+                  </p>
+                  <ol type="a">
+                    <li>
+                      Prove that if $\sigma$ is the identity activation, the
+                      network reduces to an affine function $f(x) = mx + c$.
+                      Give $m$ and $c$ in terms of the parameters.
+                    </li>
+                    <li>
+                      Find weights and biases for a ReLU network with $d_1 = 2$
+                      that represents $f(x) = |x|$ exactly.
+                    </li>
+                    <li>
+                      Prove that no function of the form $mx + c$ equals $|x|$
+                      for all real $x$.
+                    </li>
+                    <li>
+                      Show that with ReLU activations, $f$ is piecewise linear
+                      (more precisely, piecewise affine) with at most $d_1 + 1$
+                      linear pieces.
+                    </li>
+                    <li>
+                      The universal approximation theorem says one hidden layer
+                      can approximate any continuous function on a compact set.
+                      Using the previous part, explain why this does not make
+                      deep networks unnecessary.
+                    </li>
+                    <li>
+                      Does universal approximation guarantee that training will
+                      find a good approximation? Explain.
+                    </li>
+                  </ol>
+                </div>
+              </div>
+            </li>
 
-        <li class="question">
-          <span class="question-number">04</span>
-          <div>
-            <h2 class="question-title" id="practical">Practical exercises</h2>
-            <div class="question-content">
-              <p><a class="question-link" href="./practical-exercise/">Rocket control exercise &nearr;</a></p>
-            </div>
-          </div>
-        </li>
-      </ol>
-    </section>
+            <li class="question">
+              <span class="question-number">04</span>
+              <div>
+                <h2 class="question-title" id="practical">
+                  Practical exercises
+                </h2>
+                <div class="question-content">
+                  <p>
+                    <a class="question-link" href="./practical-exercise/"
+                      >Rocket control exercise &nearr;</a
+                    >
+                  </p>
+                </div>
+              </div>
+            </li>
+          </ol>
+        </section>
 
-    <p class="exam-note"><em>* denotes exam-level questions (not necessarily exam length).</em></p>
+        <p class="exam-note">
+          <em>* denotes exam-level questions (not necessarily exam length).</em>
+        </p>
 
-    <div class="page-links">
-      <a href="../">&larr; 03 neural networks topic guide</a>
-      <a href="../implementing-neural-networks/">3.7 How do I implement them? &nearr;</a>
+        <div class="page-links">
+          <a href="../">&larr; 03 neural networks topic guide</a>
+          <a href="../implementing-neural-networks/"
+            >3.7 How do I implement them? &nearr;</a
+          >
+        </div>
+      </main>
     </div>
-  </main>
-</div>
-</body>
+  </body>
 </html>

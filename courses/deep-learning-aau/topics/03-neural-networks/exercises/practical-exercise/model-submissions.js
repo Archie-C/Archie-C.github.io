@@ -10,6 +10,11 @@
  const errorDetails={missing_entrypoint:'model.py must define create_model().',incompatible_weights:'The saved weights do not match the model architecture.',dependency_missing:'The model uses a dependency unavailable to the evaluator.',input_shape:'The model could not accept the expected input shape.',output_shape:'The model returned an output with the wrong shape.',non_finite:'The model returned a non-finite value.',out_of_range:'The model returned a control value outside the permitted range.',controller_exception:'The model raised an exception during evaluation.',time_limit:'The evaluation exceeded its time limit.',memory_limit:'The evaluation exceeded its memory limit.',evaluation_failed:'The evaluator could not complete this evaluation.',worker_interrupted:'The evaluation worker was interrupted. Please submit again.'};
  const time=v=>v ? new Date(v).toLocaleString() : '—';
  const duration=ms=>Number.isFinite(ms) ? `${(Math.max(0,ms)/1000).toFixed(1)} s` : '—';
+ const leaderboardDuration=ms=>{
+  if(!Number.isFinite(ms))return '—';
+  const tenths=Math.round(Math.max(0,ms)/100),minutes=Math.floor(tenths/600),seconds=((tenths%600)/10).toFixed(1);
+  return minutes ? `${minutes} min ${seconds} s` : `${seconds} s`;
+ };
  const span=(start,end)=>start ? duration((end ? Date.parse(end):Date.now())-Date.parse(start)) : '—';
  const queueWait=s=>s.queued_at && Number.isFinite(s.queue_wait_ms) ? duration(s.queue_wait_ms+(s.status==='queued' ? Math.max(0,Date.now()-Date.parse(s.queued_at)) : 0)) : 'unavailable';
  const text=(tag,value)=>{const e=document.createElement(tag);e.textContent=value;return e;};
@@ -102,8 +107,18 @@
   }
   if(focusState){const run=Array.from(history.querySelectorAll('.model-attempt')).find(item=>item.dataset.id===focusState.id);const target=focusState.summary?run?.querySelector('summary'):Array.from(run?.querySelectorAll('button')||[]).find(button=>button.textContent===focusState.label);target?.focus({preventScroll:true});}
   board.replaceChildren();
-  if(!data.leaderboard.length){const row=board.insertRow(),cell=row.insertCell();cell.colSpan=5;cell.textContent='No published attempts yet.';}
-  data.leaderboard.forEach((entry,i)=>{const row=board.insertRow();if(entry.is_current)row.className='own';[i+1,entry.name+(entry.is_current?' (you)':''),String(entry.score)+Object.entries(entry.metrics||{}).map(([key,value])=>` | ${key}: ${value}`).join(''),duration(entry.duration_ms),time(entry.created_at)].forEach(v=>{row.insertCell().textContent=String(v);});});
+  if(!data.leaderboard.length){const row=board.insertRow(),cell=row.insertCell();cell.colSpan=4;cell.textContent='No published attempts yet.';}
+  data.leaderboard.forEach((entry,i)=>{
+   const row=board.insertRow();if(entry.is_current)row.className='own';
+   row.insertCell().textContent=String(i+1);
+   row.insertCell().textContent=entry.name+(entry.is_current?' (you)':'');
+   const scoreCell=row.insertCell(),score=text('strong',Number.isFinite(entry.score)?entry.score.toFixed(2):'—');score.className='standings-score';scoreCell.append(score);
+   for(const [key,value] of Object.entries(entry.metrics||{})){
+    if(key===config.primary_metric||!Number.isFinite(value))continue;
+    const label=key==='landing_success_pct'?'Landing success':key.replaceAll('_',' '),metric=text('span',`${label}: ${value.toFixed(2)}${key.endsWith('_pct')?'%':''}`);metric.className='standings-metric';scoreCell.append(metric);
+   }
+   row.insertCell().textContent=leaderboardDuration(entry.duration_ms);
+  });
  }
  async function refresh(){try{let data=await api('dashboard'); if(data.identity_new){data=await api('dashboard'); if(data.identity_new) { render(data); config=null; history.replaceChildren(text('p','Enable cookies to see your submissions.')); message.textContent='Browser cookies are blocked. Enable cross-site cookies to submit and manage attempts.'; return; }} if(!data.config)throw Error('This exercise is not configured.');render(data);if(!busy)message.textContent='';return data;}catch(e){message.textContent=`${e.message} Retrying automatically.`;return null;}finally{clearTimeout(timer);if(!paused)timer=setTimeout(refresh,10000);}}
  for(const input of [$('model-python'),$('model-weights')]) {const zone=input.closest('.model-drop'); ['dragenter','dragover'].forEach(type=>zone.addEventListener(type,e=>{e.preventDefault();zone.classList.add('dragover');}));['dragleave','drop'].forEach(type=>zone.addEventListener(type,e=>{e.preventDefault();zone.classList.remove('dragover');}));zone.addEventListener('drop',e=>{if(e.dataTransfer.files.length)input.files=e.dataTransfer.files;});}

@@ -218,6 +218,13 @@ body { background: var(--bg-2); }
 .model-name { display: flex; flex-wrap: wrap; align-items: end; gap: 10px; margin: 0 0 18px; }
 .model-name label { display: grid; gap: 6px; font-size: 12px; color: var(--fg-2); }
 .model-name input { width: min(100%, 300px); min-width: 220px; border: 1px solid var(--rule); border-radius: var(--radius-sm); background: var(--bg-2); color: var(--fg); }
+.model-standings table { font-size: .875rem; }
+.model-standings th, .model-standings td { padding: 14px 12px; }
+.model-standings th:nth-child(n+3), .model-standings td:nth-child(n+3) { text-align: right; font-variant-numeric: tabular-nums; }
+.model-standings td:nth-child(2) { overflow-wrap: anywhere; }
+.model-standings th:last-child, .model-standings td:last-child { white-space: nowrap; }
+.standings-score { display: block; font: 600 1rem/1.4 var(--font-mono); }
+.standings-metric { display: block; margin-top: 4px; color: var(--fg-3); font-size: .875rem; }
 @media (max-width: 600px) {
  .model-panel, .controller-panel { padding: 20px; }
  .model-section { margin-top: 26px; padding-top: 24px; }
@@ -228,4 +235,6 @@ body { background: var(--bg-2); }
  .model-name { align-items: stretch; flex-direction: column; }
  .model-name input { width: 100%; min-width: 0; }
  .model-name button { align-self: start; }
+ .model-standings th, .model-standings td { padding: 12px 6px; }
+ .model-standings th:last-child, .model-standings td:last-child { white-space: normal; }
 }
