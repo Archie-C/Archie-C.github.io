@@ -1,0 +1,6 @@
+torch
+safetensors
+numpy
+pandas
+matplotlib
+jupyter

@@ -54,7 +54,8 @@ def state_packet(run, t, state, command, sequence, contact=None):
 
 
 class Run:
-    def __init__(self, scenario_name='demo_descent'):
+    def __init__(self, scenario_name='demo_descent', *, record=True):
+        self.recording = record
         self.scenario_name = scenario_name
         self.p, self.initial = scenario() if scenario_name == 'demo_descent' else scenario(scenario_name)
         self.envelope_left = False
@@ -71,6 +72,10 @@ class Run:
         self.credit = 0.
         self.last_wall = time.monotonic()
         self.tick = 0
+        self.snapshots = []
+        self.config = {}
+        if not self.recording:
+            return
         numeric = {k:v for k,v in asdict(self.p).items() if not callable(v)}
         meta = calibration.metadata(scenario_name)
         engine_hash = hashlib.sha256(Path(rocket_physics.__file__).read_bytes()).hexdigest()
@@ -139,7 +144,7 @@ class Run:
     def advance(self):
         # Reserve space for both an optional command-boundary frame and the
         # next physics frame. Never discard a state that has been integrated.
-        if len(self.snapshots) >= MAX_SNAPSHOTS - 1:
+        if self.recording and len(self.snapshots) >= MAX_SNAPSHOTS - 1:
             self.status = 'completed'
             self.event = dict(run_id=self.id, type='completed', time=self.t, reason='recording capacity reached', scoring=rocket_scoring.score_contact(None, self.p))
             return
@@ -154,12 +159,14 @@ class Run:
             # timestamp and physical pose of the preceding integration frame.
             self.state = apply_actuators(self.state, Command(self.command['throttle'], self.command['gimbal']), self.p)
             self.tick += 1
-            self.snapshots.append(state_packet(self, self.t, self.state, self.command.copy(), self.tick))
+            if self.recording:
+                self.snapshots.append(state_packet(self, self.t, self.state, self.command.copy(), self.tick))
         h = min(self.p.timestep, (math.floor((self.t+1e-10)/self.p.control_interval)+1)*self.p.control_interval-self.t)
         self.state, contact = step(self.t, self.state, Command(self.command['throttle'], self.command['gimbal']), self.p, h)
         self.t = contact.time if contact else self.t + h
         self.tick += 1
-        self.snapshots.append(state_packet(self, self.t, self.state, self.command.copy(), self.tick, contact))
+        if self.recording:
+            self.snapshots.append(state_packet(self, self.t, self.state, self.command.copy(), self.tick, contact))
         if contact:
             self.status = 'contact'
             self.event = dict(run_id=self.id, type='contact', time=contact.time, point=contact.point, state=asdict(contact.state), reason='first ground contact', quality=contact_quality(contact, self.p), scoring=rocket_scoring.score_contact(contact, self.p))

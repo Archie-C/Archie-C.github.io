@@ -9,7 +9,7 @@ from pathlib import Path
 class ModalTests(unittest.TestCase):
     def setUp(self):
         modules = {
-            'rocket_closed_loop': types.SimpleNamespace(evaluate_closed_loop=None),
+            'rocket_closed_loop': types.SimpleNamespace(evaluate_closed_loop_batch=None),
             'rocket_runtime': types.SimpleNamespace(scenario=None),
             'rocket_physics': types.SimpleNamespace(Command=lambda a, b: (a, b)),
         }
@@ -37,7 +37,7 @@ class ModalTests(unittest.TestCase):
         app.sandbox_image = object()
         with mock.patch.dict(sys.modules, {'modal': modal, 'modal.stream_type': stream_type, 'modal_app': app}):
             model = self.evaluate.ModalModel('artifacts', 'job-name')
-            self.assertEqual(model.predict(mock.Mock(tolist=lambda: [0] * 12)), (0.5, 0.1))
+            self.assertEqual(model.predict(self.evaluate.np.zeros(12)), (0.5, 0.1))
             model.close()
         kwargs = modal.Sandbox.create.call_args.kwargs
         self.assertTrue(kwargs['block_network'])
@@ -105,6 +105,16 @@ class ModalTests(unittest.TestCase):
         image.add_local_file.assert_not_called()
         self.assertIsNone(namespace['sandbox_image'])
         self.assertTrue(callable(namespace['notify_queued']))
+
+    def test_batch_uses_one_flush_for_multiple_observations(self):
+        model = self.evaluate.ModalModel.__new__(self.evaluate.ModalModel)
+        model.process = mock.Mock()
+        model.read = mock.Mock(return_value={'output': [[0.5, 0], [0.25, -0.5]]})
+        commands = model.predict_batch(self.evaluate.np.zeros((2, 12)))
+        self.assertEqual(commands, [(0.5, 0), (0.25, -0.5)])
+        model.process.stdin.write.assert_called_once()
+        model.process.stdin.drain.assert_called_once()
+        model.read.assert_called_once()
 
     def test_invalid_output_is_rejected(self):
         with self.assertRaises(self.evaluate.EvaluationError) as error:

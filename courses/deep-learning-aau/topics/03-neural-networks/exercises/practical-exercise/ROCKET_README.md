@@ -1,6 +1,14 @@
 # Rocket regression exercise
 
-Submit `model.py` and `weights.safetensors` for server-side evaluation. `create_model()` must return a PyTorch module accepting batches of the 12 observations listed on the exercise page and returning finite thrust and gimbal values in `[0, 1]` and `[-1, 1]`.
+Submit your existing Python model source as `model.py`, together with `weights.safetensors`, for server-side evaluation. The form requires these exact filenames. If you trained from `scaffold.py`, rename it after exporting the weights; no duplicate source file is needed. `create_model()` must return a PyTorch module accepting batches of the 12 observations listed on the exercise page and returning finite thrust and gimbal values in `[0, 1]` and `[-1, 1]`.
+
+## Notebook evaluation and simulation
+
+The training notebook separates prediction evaluation, local landing simulation and weights export. Keep `rocket_closed_loop.py`, `rocket_runtime.py`, `rocket_physics.py`, `rocket_calibration.py`, `rocket_scoring.py` and `rocket_wind.py` alongside the notebook to run its public scenarios. Simulation requires NumPy; SciPy and the expert are only needed for generating demonstrations.
+
+The notebook's `simulate(model, scenario_name)` helper uses raw observations and puts the model in evaluation mode for single-observation inference. It reports invalid commands explicitly. The public scenarios produce scores, landing feedback and flight paths; an optional cell saves replay JSON for the exercise page's **Import JSON** viewer. Online scores use only held-out flights; the public starting scenarios are for local development.
+
+Export saves only `weights.safetensors` and checks that the current model source can reload those weights and reproduce a prediction. Retrain after changing the architecture or output activations, then submit that source file with its matching weights.
 
 ## Continuous MPC expert
 

@@ -36,7 +36,7 @@ def make_observation(state, time, parameters):
     return observation
 
 
-def evaluate_closed_loop(policy, initial_state, parameters, scenario_id, *, max_time=30.0, control_mode="discrete", measure_time=False, constant_wind=None, wind_profile=None):
+def _closed_loop_steps(policy, initial_state, parameters, scenario_id, *, max_time=30.0, control_mode="discrete", measure_time=False, constant_wind=None, wind_profile=None, record=True):
     """Run a trusted stateless policy at fixed simulation-time boundaries.
 
     The scenario must describe the supplied configuration, so replay metadata
@@ -51,7 +51,7 @@ def evaluate_closed_loop(policy, initial_state, parameters, scenario_id, *, max_
             raise ValueError('max_time must be a control boundary')
     if constant_wind is not None and wind_profile is not None:
         raise ValueError('choose constant_wind or wind_profile, not both')
-    run = Run(scenario_id)
+    run = Run(scenario_id, record=record)
     if constant_wind is not None:
         if len(constant_wind) != 2 or not all(math.isfinite(v) for v in constant_wind):
             raise ValueError('constant_wind must contain two finite values')
@@ -64,45 +64,47 @@ def evaluate_closed_loop(policy, initial_state, parameters, scenario_id, *, max_
         from rocket_wind import gust_field
         parameters = replace(parameters, wind=gust_field(wind_profile))
     run.p = parameters
-    run.config['parameters']['control_interval'] = parameters.control_interval
-    run.config['parameters']['timestep'] = parameters.timestep
-    metadata = __import__('rocket_calibration').metadata(scenario_id)
-    if constant_wind is not None:
-        metadata['wind_model'] = 'constant-wind-v1'
-        metadata['environment']['wind'] = list(wind)
-        run.config.update(metadata)
-    if wind_profile is not None:
-        metadata['wind_model'] = 'smooth-gusts-v1'
-        metadata['environment']['wind'] = dict(wind_profile)
-        run.config.update(metadata)
-    definition = dict(parameters=run.config['parameters'], **metadata,
-                      physics_engine_sha256=run.config['physics_engine_sha256'])
-    run.config['physics_config'] = __import__('rocket_calibration').NAME + ':' + hashlib.sha256(
-        json.dumps(definition, sort_keys=True).encode()).hexdigest()
     run.initial = run.state = initial_state
-    run.config['initial_state'] = asdict(initial_state)
     owner = getattr(policy, '__self__', None)
     if owner is not None and hasattr(owner, 'reset'):
         owner.reset()
-    try:
-        source = inspect.getsourcefile(policy)
-    except TypeError:
-        source = inspect.getsourcefile(type(policy))
-    module = inspect.getmodule(policy)
-    source_hash = getattr(module, 'SOURCE_SHA256', None)
-    if source_hash is None and source and Path(source).is_file():
-        source_hash = hashlib.sha256(Path(source).read_bytes()).hexdigest()
-    provenance = dict(name=getattr(policy, '__qualname__', type(policy).__name__),
-                      version=getattr(owner, 'version', None),
-                      settings=getattr(owner, 'solver_settings', None),
-                      source_sha256=source_hash)
-    identity = json.dumps([run.config['physics_config'], asdict(initial_state), max_time, control_mode, provenance], sort_keys=True)
-    run.id = hashlib.sha256(identity.encode()).hexdigest()[:32]
-    run.config['run_id'] = run.id
-    run.config['observation_version'] = OBSERVATION_VERSION
-    run.config['closed_loop'] = dict(max_time=max_time, control_mode=control_mode, policy=provenance)
-    run.snapshots = [state_packet(run, 0, initial_state, run.command.copy(), 0)]
+    if record:
+        run.config['parameters']['control_interval'] = parameters.control_interval
+        run.config['parameters']['timestep'] = parameters.timestep
+        metadata = __import__('rocket_calibration').metadata(scenario_id)
+        if constant_wind is not None:
+            metadata['wind_model'] = 'constant-wind-v1'
+            metadata['environment']['wind'] = list(wind)
+            run.config.update(metadata)
+        if wind_profile is not None:
+            metadata['wind_model'] = 'smooth-gusts-v1'
+            metadata['environment']['wind'] = dict(wind_profile)
+            run.config.update(metadata)
+        definition = dict(parameters=run.config['parameters'], **metadata,
+                          physics_engine_sha256=run.config['physics_engine_sha256'])
+        run.config['physics_config'] = __import__('rocket_calibration').NAME + ':' + hashlib.sha256(
+            json.dumps(definition, sort_keys=True).encode()).hexdigest()
+        run.config['initial_state'] = asdict(initial_state)
+        try:
+            source = inspect.getsourcefile(policy)
+        except TypeError:
+            source = inspect.getsourcefile(type(policy))
+        module = inspect.getmodule(policy)
+        source_hash = getattr(module, 'SOURCE_SHA256', None)
+        if source_hash is None and source and Path(source).is_file():
+            source_hash = hashlib.sha256(Path(source).read_bytes()).hexdigest()
+        provenance = dict(name=getattr(policy, '__qualname__', type(policy).__name__),
+                          version=getattr(owner, 'version', None),
+                          settings=getattr(owner, 'solver_settings', None),
+                          source_sha256=source_hash)
+        identity = json.dumps([run.config['physics_config'], asdict(initial_state), max_time, control_mode, provenance], sort_keys=True)
+        run.id = hashlib.sha256(identity.encode()).hexdigest()[:32]
+        run.config['run_id'] = run.id
+        run.config['observation_version'] = OBSERVATION_VERSION
+        run.config['closed_loop'] = dict(max_time=max_time, control_mode=control_mode, policy=provenance)
+        run.snapshots = [state_packet(run, 0, initial_state, run.command.copy(), 0)]
     decisions = []
+    decision_count = 0
     policy_seconds = 0.
     run.status = 'running'
     # Detect initial contact before asking the policy for an action.
@@ -118,7 +120,7 @@ def evaluate_closed_loop(policy, initial_state, parameters, scenario_id, *, max_
         try:
             started = time.perf_counter() if measure_time else None
             try:
-                output = policy(obs.copy())
+                output = yield obs.copy()
             finally:
                 if measure_time:
                     policy_seconds += time.perf_counter() - started
@@ -130,23 +132,82 @@ def evaluate_closed_loop(policy, initial_state, parameters, scenario_id, *, max_
             else:
                 action = int(output) if isinstance(output, np.integer) else output
                 payload = dict(action=action)
-            run.queue(dict(command_sequence=len(decisions), effective_time=run.t, **payload))
+            run.queue(dict(command_sequence=decision_count, effective_time=run.t, **payload))
         except Exception as exc:
             run.status = 'error'
             run.error = f'Policy error ({type(exc).__name__}): {exc}'
             run.event = dict(run_id=run.id, type='error', time=run.t,
                              reason=run.error, scoring=score_contact(None, parameters))
             break
-        diagnostics = getattr(getattr(policy, '__self__', None), 'diagnostics', None)
-        decisions.append(dict(time=run.t, observation=obs.tolist(), action=action, command=payload,
-                              diagnostics=diagnostics.copy() if diagnostics else None))
-        boundary = (len(decisions)) * parameters.control_interval
+        if record:
+            diagnostics = getattr(getattr(policy, '__self__', None), 'diagnostics', None)
+            decisions.append(dict(time=run.t, observation=obs.tolist(), action=action, command=payload,
+                                  diagnostics=diagnostics.copy() if diagnostics else None))
+        decision_count += 1
+        boundary = decision_count * parameters.control_interval
         while run.status == 'running' and run.t < boundary - 1e-10:
             run.advance()
-    replay = run.record()
-    replay['decisions'] = decisions
-    result = dict(scenario_id=scenario_id, decisions=decisions,
+    replay = run.record() if record else None
+    if record:
+        replay['decisions'] = decisions
+    result = dict(scenario_id=scenario_id, status=run.status, decisions=decisions,
                   scoring=run.event['scoring'], termination_reason=run.event['reason'], replay=replay)
     if measure_time:
         result['policy_seconds'] = policy_seconds
     return result
+
+
+def evaluate_closed_loop(policy, initial_state, parameters, scenario_id, *, max_time=30.0,
+                         control_mode="discrete", measure_time=False, constant_wind=None,
+                         wind_profile=None, record=True):
+    """Evaluate one flight; recording stays enabled for notebook and replay users."""
+    flight = _closed_loop_steps(policy, initial_state, parameters, scenario_id,
+                               max_time=max_time, control_mode=control_mode,
+                               measure_time=measure_time, constant_wind=constant_wind,
+                               wind_profile=wind_profile, record=record)
+    try:
+        observation = next(flight)
+        while True:
+            try:
+                command = policy(observation)
+            except Exception as error:
+                observation = flight.throw(error)
+            else:
+                observation = flight.send(command)
+    except StopIteration as finished:
+        return finished.value
+    finally:
+        flight.close()
+
+
+def evaluate_closed_loop_batch(policy, flights, *, max_time=30.0, record=False):
+    """Advance independent flights with one inference batch per control boundary.
+
+    Each flight is a dictionary of initial_state, parameters, scenario_id and
+    optional wind settings. Finished flights leave the batch; result order is fixed.
+    """
+    steps = [_closed_loop_steps(policy, **flight, max_time=max_time,
+                                control_mode="continuous", record=record) for flight in flights]
+    results = [None] * len(steps)
+    active = []
+    try:
+        for index, flight in enumerate(steps):
+            try:
+                active.append((index, next(flight)))
+            except StopIteration as finished:
+                results[index] = finished.value
+        while active:
+            commands = policy(np.stack([observation for _, observation in active]))
+            if len(commands) != len(active):
+                raise ValueError('batch policy must return one Command per active flight')
+            remaining = []
+            for (index, _), command in zip(active, commands):
+                try:
+                    remaining.append((index, steps[index].send(command)))
+                except StopIteration as finished:
+                    results[index] = finished.value
+            active = remaining
+        return results
+    finally:
+        for flight in steps:
+            flight.close()

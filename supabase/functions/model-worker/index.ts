@@ -53,6 +53,12 @@ Deno.serve(async(request:Request)=>{
    return reply({uploaded:true});
   }
   if(action==='heartbeat')return reply({accepted:await rpc('model_heartbeat',{p_submission:submission,p_token:claim})});
+  if(action==='reuse'){
+   const reused=await rpc('model_reuse_result',{p_submission:submission,p_token:claim,
+    p_model_sha256:data.model_sha256,p_weights_sha256:data.weights_sha256,
+    p_evaluator_version:data.evaluator_version,p_test_set_version:data.test_set_version,p_duration_ms:data.duration_ms});
+   return reply({reused});
+  }
   if(action==='finish'){
    const result=await rpc('model_finish',{p_submission:submission,p_token:claim,p_metrics:data.metrics??null,p_duration_ms:data.duration_ms,
     p_evaluator_version:data.evaluator_version??null,p_test_set_version:data.test_set_version??null,p_error_category:data.error_category??null,p_metadata:data.metadata??{}});

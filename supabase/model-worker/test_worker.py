@@ -60,6 +60,35 @@ class WorkerTests(unittest.TestCase):
         self.assertEqual(finish[0]['metrics']['score'], 75)
         self.assertEqual(finish[0]['claim_token'], 'claim')
         self.assertEqual(finish[0]['test_set_version'], worker.test_version('a' * 64))
+        self.assertEqual(finish[0]['evaluator_version'], 'rocket-worker-v4')
+        self.assertEqual(finish[0]['metadata']['public_replays'], [])
+
+    def test_cache_hit_skips_sandbox_and_finish(self):
+        class CachedAPI(FakeAPI):
+            def json(self, action, body):
+                self.calls.append((action, body))
+                return {'reused': True} if action == 'reuse' else {'accepted': True}
+        api = CachedAPI()
+        with mock.patch.object(worker.subprocess, 'Popen') as spawn, \
+             mock.patch.object(worker.subprocess, 'run') as cleanup:
+            worker.run_job(api, self.claim, 10)
+        spawn.assert_not_called()
+        cleanup.assert_not_called()
+        self.assertFalse(any(action == 'finish' for action, _ in api.calls))
+        request = next(body for action, body in api.calls if action == 'reuse')
+        self.assertEqual(request['model_sha256'], hashlib.sha256(b'model').hexdigest())
+        self.assertEqual(request['weights_sha256'], hashlib.sha256(b'weights').hexdigest())
+        self.assertEqual(request['test_set_version'], worker.test_version('a' * 64))
+        self.assertEqual(request['claim_token'], 'claim')
+
+    def test_bad_artifact_is_not_looked_up_in_cache(self):
+        api = FakeAPI()
+        self.claim['weights_sha256'] = '0' * 64
+        with mock.patch.object(worker.subprocess, 'Popen') as spawn:
+            with self.assertRaises(worker.APIError):
+                worker.run_job(api, self.claim, 10)
+        spawn.assert_not_called()
+        self.assertFalse(any(action == 'reuse' for action, _ in api.calls))
 
     def test_public_replays_upload_before_finish_on_both_backends(self):
         for backend in ('docker', 'modal'):

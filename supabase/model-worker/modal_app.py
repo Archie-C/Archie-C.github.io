@@ -23,7 +23,7 @@ if modal.is_local():
         .pip_install("safetensors==0.4.5")
         .add_local_file(WORKER / "sandbox.py", "/opt/worker/sandbox.py", copy=True))
     worker_image = modal.Image.debian_slim(python_version="3.11").pip_install("numpy==1.26.4", "modal==1.6.4")
-    for filename in ("worker.py", "evaluate.py", "modal_app.py", "sandbox.py", "private_cases.py"):
+    for filename in ("worker.py", "evaluate.py", "modal_app.py", "sandbox.py", "private_cases.py", "Dockerfile"):
         worker_image = worker_image.add_local_file(WORKER / filename, str(REMOTE_WORKER / filename), copy=True)
     for filename in ("rocket_closed_loop.py", "rocket_runtime.py", "rocket_physics.py",
                      "rocket_scoring.py", "rocket_wind.py", "rocket_calibration.py", "rocket_sampling.py"):

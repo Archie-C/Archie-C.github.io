@@ -38,6 +38,7 @@ alter table public.model_submissions add column if not exists error_detail_code 
 alter table public.model_submissions add column if not exists replay_manifest jsonb not null default '[]'::jsonb;
 create index if not exists model_submission_history on public.model_submissions(participant_id,exercise_id,created_at desc,id desc);
 create index if not exists model_submission_queue on public.model_submissions(status,queued_at,id) where status in ('queued','running');
+create index if not exists model_submission_result_cache on public.model_submissions(participant_id,exercise_id,model_sha256,weights_sha256,evaluator_version,test_set_version) where status='completed' and error_category is null;
 create table if not exists public.model_rate_events (participant_id uuid not null references public.model_participants(id), action text not null, created_at timestamptz not null default now());
 create index if not exists model_rate_recent on public.model_rate_events(action,created_at);
 create table if not exists public.model_leaderboard (
@@ -257,6 +258,29 @@ begin
  update model_submissions set status=case when p_error_category is null then 'completed' else 'failed' end,completed_at=now(),evaluated_at=now(),result=p_metrics,replay_manifest=manifest,duration_ms=p_duration_ms,evaluator_version=p_evaluator_version,test_set_version=p_test_set_version,error_category=p_error_category,error_detail_code=p_metadata->>'public_error_code',evaluation_metadata=p_metadata,claim_token=null,lease_until=null where id=s.id;
  return true;
 end $$;
+-- Only the trusted worker supplies hashes after checking the downloaded artifacts.
+create or replace function public.model_reuse_result(p_submission uuid,p_token uuid,p_model_sha256 text,p_weights_sha256 text,p_evaluator_version text,p_test_set_version text,p_duration_ms bigint) returns boolean language plpgsql security definer set search_path=public,pg_temp as $$
+declare s model_submissions; cached model_submissions;
+begin
+ select * into s from model_submissions where id=p_submission and status='running' and claim_token=p_token and lease_until>now() for update;
+ if not found then return false; end if;
+ if p_model_sha256 is null or p_model_sha256 !~ '^[a-f0-9]{64}$' or p_weights_sha256 is null or p_weights_sha256 !~ '^[a-f0-9]{64}$'
+  or p_evaluator_version is null or length(p_evaluator_version) not between 1 and 100
+  or p_test_set_version is null or length(p_test_set_version) not between 1 and 100
+  or p_duration_ms is null or p_duration_ms not between 0 and 86400000 then raise exception 'Invalid cache request'; end if;
+ if (s.model_sha256 is not null and lower(s.model_sha256)<>p_model_sha256) or (s.weights_sha256 is not null and lower(s.weights_sha256)<>p_weights_sha256) then raise exception 'Artifact digest mismatch'; end if;
+ -- Populate hashes when queueing raced the optional upload metadata update.
+ update model_submissions set model_sha256=p_model_sha256,weights_sha256=p_weights_sha256 where id=s.id and (model_sha256 is distinct from p_model_sha256 or weights_sha256 is distinct from p_weights_sha256);
+ select * into cached from model_submissions where participant_id=s.participant_id and exercise_id=s.exercise_id
+  and status='completed' and error_category is null and model_sha256=p_model_sha256 and weights_sha256=p_weights_sha256
+  and evaluator_version=p_evaluator_version and test_set_version=p_test_set_version and id<>s.id
+  order by evaluated_at,id limit 1;
+ if not found then return false; end if;
+ return public.model_finish(s.id,p_token,cached.result,p_duration_ms,p_evaluator_version,p_test_set_version,null,
+  jsonb_build_object('public_replays','[]'::jsonb,'cache_hit',true,'cache_source_submission',cached.id));
+end $$;
+revoke all on function public.model_reuse_result(uuid,uuid,text,text,text,text,bigint) from public,anon,authenticated;
+grant execute on function public.model_reuse_result(uuid,uuid,text,text,text,text,bigint) to service_role;
 revoke all on function public.model_worker_replay(uuid,uuid,integer),public.model_replay_info(uuid,uuid,text,integer) from public,anon,authenticated;
 grant execute on function public.model_worker_replay(uuid,uuid,integer),public.model_replay_info(uuid,uuid,text,integer) to service_role;
 revoke all on function public.model_lookup(text), public.model_identity(text), public.model_rate(uuid,text), public.model_create(uuid,text), public.model_upload_info(uuid,uuid,text), public.model_record_upload(uuid,uuid,text,text), public.model_queue(uuid,uuid), public.model_abort(uuid,uuid), public.model_name(uuid,text), public.model_publish(uuid,text,uuid), public.model_dashboard(uuid,text), public.model_claim(text), public.model_worker_artifact(uuid,uuid,text), public.model_heartbeat(uuid,uuid), public.model_finish(uuid,uuid,jsonb,bigint,text,text,text,jsonb) from public,anon,authenticated;

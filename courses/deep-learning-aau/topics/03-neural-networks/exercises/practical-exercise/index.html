@@ -40,8 +40,8 @@
 <span class="problem-eyebrow">practical exercise</span>
 <p class="problem-body">Implement a neural network regression controller that predicts two normalized control values: thrust in <code>[0, 1]</code> and gimbal angle in <code>[-1, 1]</code>.</p>
 <p class="problem-body">Submit a <code>model.py</code> file defining <code>create_model()</code> and matching <code>weights.safetensors</code>. Your model is evaluated on simulated landing flights and receives observations every 0.1 seconds.</p>
-<p class="problem-body">Start with the <a href="./train.ipynb" download>training notebook</a>, <a href="./scaffold.py" download>controller scaffold</a>, and <a href="./landings-varied.csv" download>training dataset</a>. Keep the three files in the same folder and run the notebook to train and export a basic model.</p>
-<p class="problem-body">See <a href="./physics.pdf" download>the physics behind the simulation</a> for more detail.</p>
+<p class="problem-body">Download the <a href="./rocket-control-materials.zip" download>complete exercise ZIP</a>. It includes the exercise PDF, training notebook, starter <code>model.py</code>, training dataset, local simulator, physics notes and setup instructions. Extract the ZIP and keep its files together.</p>
+<p class="problem-body">Complete the model's output activations, then make two informed changes, explaining and evaluating each in your notebook as described in the exercise PDF. Normalisation and regularisation do not count towards these two changes.</p>
 </div>
 <details class="exercise-help">
 <summary>Model inputs and outputs</summary>
@@ -65,8 +65,9 @@
 <p class="hint">Submit both files for asynchronous evaluation. Your previous attempts remain available.</p>
 <p class="hint">For this submission, <code>model.py</code> must expose <code>create_model()</code>, returning a PyTorch module. It receives a batch of 12 raw observations and returns thrust and gimbal as a two-column tensor. Include any normalization in the model; save its state as <code>weights.safetensors</code>.</p>
 <details class="exercise-help"><summary>Train and export the starter model</summary>
-<p>Download the <a href="./train.ipynb" download>notebook</a>, <a href="./scaffold.py" download>scaffold</a>, and <a href="./landings-varied.csv" download>dataset</a> to the same folder. Install PyTorch, safetensors, NumPy, pandas, matplotlib and Jupyter, then run the notebook. Its final cell saves <code>model.py</code> and <code>weights.safetensors</code> for this form.</p>
-<p>The scaffold includes a small network and its normalization. If you change its architecture, retrain the model and export matching files.</p></details>
+<p>Extract the <a href="./rocket-control-materials.zip" download>complete exercise ZIP</a>, open its <code>rocket-control</code> folder and follow <code>README.md</code>. Install the dependencies with <code>python -m pip install -r requirements.txt</code>, then open <code>train.ipynb</code>. All simulator files for the notebook's local flights and replay export are included.</p>
+<p>Edit <code>model.py</code> to complete the two output activations before training. The notebook's final cell saves <code>weights.safetensors</code>. Submit those weights with the same <code>model.py</code> you trained. Retrain and export new weights whenever you change the architecture or output activations.</p>
+<p>Keep copies of your model after the first informed change and after the final change, and record your reasoning, comparisons and analysis in <code>train.ipynb</code> for the Moodle submission described in the exercise PDF.</p></details>
 <form id="model-form">
 <div class="upload-grid">
 <label class="model-drop"> <strong>model.py</strong><span>Choose or drop your model architecture</span><input id="model-python" type="file" accept=".py" required></label>

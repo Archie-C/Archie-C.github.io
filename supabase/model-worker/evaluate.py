@@ -12,12 +12,11 @@ from pathlib import Path
 
 PRACTICAL = Path(__file__).resolve().parents[2] / 'courses/deep-learning-aau/topics/03-neural-networks/exercises/practical-exercise'
 sys.path.insert(0, str(PRACTICAL))
-from rocket_closed_loop import evaluate_closed_loop
-from rocket_runtime import scenario
-from rocket_physics import Command
-from private_cases import PUBLIC_TESTS, private_flights
+import numpy as np
 
-SCENARIOS = PUBLIC_TESTS
+from rocket_closed_loop import evaluate_closed_loop_batch
+from rocket_physics import Command
+from private_cases import private_flights
 
 class EvaluationError(Exception):
     def __init__(self, category):
@@ -75,31 +74,43 @@ class ModalModel:
         except (ValueError, UnicodeDecodeError):
             raise EvaluationError('invalid_shape')
 
-    def predict(self, obs):
+    def predict_batch(self, obs):
         try:
             self.process.stdin.write((json.dumps(obs.tolist()) + '\n').encode())
             self.process.stdin.drain()
             response = self.read(float(os.getenv('MODEL_INFERENCE_TIMEOUT', '5')))
         except (BrokenPipeError, OSError):
             raise EvaluationError('runtime')
-        return validate_response(response)
+        return validate_batch_response(response, len(obs))
+
+    def predict(self, obs):
+        return self.predict_batch(np.asarray(obs).reshape(1, 12))[0]
 
     def close(self):
         self.sandbox.terminate()
 
 
-def validate_response(response):
+def validate_batch_response(response, batch_size):
     if 'error' in response:
         raise EvaluationError(response['error'] if response['error'] in ('model_loading', 'invalid_shape', 'runtime') else 'runtime')
     value = response.get('output')
-    if not isinstance(value, list) or len(value) != 1 or not isinstance(value[0], list) or len(value[0]) != 2:
+    if not isinstance(value, list) or len(value) != batch_size:
         raise EvaluationError('invalid_shape')
-    a, b = value[0]
-    if any(isinstance(x, bool) or not isinstance(x, (int, float)) or not math.isfinite(x) for x in (a, b)):
-        raise EvaluationError('invalid_shape')
-    if not 0 <= a <= 1 or not -1 <= b <= 1:
-        raise EvaluationError('invalid_shape')
-    return Command(a, b)
+    commands = []
+    for row in value:
+        if not isinstance(row, list) or len(row) != 2:
+            raise EvaluationError('invalid_shape')
+        a, b = row
+        if any(isinstance(x, bool) or not isinstance(x, (int, float)) or not math.isfinite(x) for x in row):
+            raise EvaluationError('invalid_shape')
+        if not 0 <= a <= 1 or not -1 <= b <= 1:
+            raise EvaluationError('invalid_shape')
+        commands.append(Command(a, b))
+    return commands
+
+
+def validate_response(response):
+    return validate_batch_response(response, 1)[0]
 
 class Model:
     def __init__(self, directory, name):
@@ -143,13 +154,16 @@ class Model:
         except (ValueError, UnicodeDecodeError):
             raise EvaluationError('invalid_shape')
 
-    def predict(self, obs):
+    def predict_batch(self, obs):
         try:
             self.process.stdin.write((json.dumps(obs.tolist()) + '\n').encode())
             response = self.read(float(os.getenv('MODEL_INFERENCE_TIMEOUT', '5')))
         except (BrokenPipeError, OSError):
             raise EvaluationError('runtime')
-        return validate_response(response)
+        return validate_batch_response(response, len(obs))
+
+    def predict(self, obs):
+        return self.predict_batch(np.asarray(obs).reshape(1, 12))[0]
 
     def close(self):
         subprocess.run(['docker', 'rm', '-f', self.name], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=15, check=False)
@@ -157,46 +171,23 @@ class Model:
 
 def main():
     directory, name = sys.argv[1:3]
-    output_directory = Path(sys.argv[3]) if len(sys.argv) > 3 else None
     model = None
     try:
-        private = list(private_flights(os.environ.get('MODEL_PRIVATE_SEED', '')))
-        flights = [(item, *scenario(item), None, None) for item in SCENARIOS]
-        flights += [(case.scenario, parameters, case.initial, case.constant_wind, case.gusts)
-                    for parameters, case in private]
+        flights = list(private_flights(os.environ.get('MODEL_PRIVATE_SEED', '')))
+        if not flights:
+            raise EvaluationError('infrastructure')
         model = (ModalModel if os.getenv('MODEL_BACKEND') == 'modal' else Model)(directory, name)
-        results, public_replays = [], []
-        if output_directory is not None:
-            output_directory.mkdir(parents=True, exist_ok=True)
-        for index, (item, parameters, state, wind, gusts) in enumerate(flights):
-            failure = []
-            def policy(obs):
-                try:
-                    return model.predict(obs)
-                except EvaluationError as exc:
-                    failure.append(exc.category)
-                    raise
-            result = evaluate_closed_loop(policy, state, parameters, item, max_time=30.0, control_mode='continuous',
-                                          constant_wind=wind, wind_profile=gusts)
-            if failure:
-                raise EvaluationError(failure[0])
-            if result['replay']['status'] == 'error':
-                raise EvaluationError('evaluation')
-            results.append(result['scoring'])
-            # Only public flights leave the evaluator. Held-out configurations,
-            # trajectories and per-flight scores remain private.
-            if output_directory is not None and index < len(SCENARIOS):
-                replay = result['replay']
-                encoded = json.dumps(replay, allow_nan=False, separators=(',', ':')).encode()
-                if len(encoded) > 8 * 1024 * 1024:
-                    raise EvaluationError('evaluation')
-                (output_directory / f'run-{index}.json').write_bytes(encoded)
-                public_replays.append(dict(run_id=index, scenario=item,
-                    score=result['scoring']['score'], success=bool(result['scoring']['success']),
-                    duration=replay['snapshots'][-1]['time']))
-        print(json.dumps({'metrics': {'score': sum(x['score'] for x in results) / len(results),
-              'landing_success_pct': 100 * sum(bool(x['success']) for x in results) / len(results)},
-              'public_replays': public_replays}))
+        flight_configs = [dict(initial_state=case.initial, parameters=parameters,
+                               scenario_id=case.scenario, constant_wind=case.constant_wind,
+                               wind_profile=case.gusts) for parameters, case in flights]
+        results = evaluate_closed_loop_batch(model.predict_batch, flight_configs, record=False)
+        if any(result['status'] == 'error' for result in results):
+            raise EvaluationError('evaluation')
+        scores = [result['scoring'] for result in results]
+        # Only aggregate metrics leave the evaluator; held-out recordings stay private.
+        print(json.dumps({'metrics': {'score': sum(x['score'] for x in scores) / len(scores),
+              'landing_success_pct': 100 * sum(bool(x['success']) for x in scores) / len(scores)},
+              'public_replays': []}))
     except EvaluationError as exc:
         print(json.dumps({'error_category': exc.category}))
     except Exception:

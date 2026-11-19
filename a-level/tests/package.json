@@ -14,7 +14,7 @@
     "test:db": "node database.cjs",
     "test:browser": "node browser.cjs",
     "vendor": "node vendor.cjs",
-    "test:model-submissions": "node model-submissions.cjs && node ../../supabase/functions/model-submissions/test-edge.mjs && node ../../supabase/functions/model-submissions/test-integration.mjs && node ../../supabase/model-submissions/test-gateway.mjs && node ../../supabase/functions/model-worker/test-integration.mjs",
+    "test:model-submissions": "node model-submissions.cjs && node ../../supabase/functions/model-submissions/test-edge.mjs && node ../../supabase/functions/model-submissions/test-integration.mjs && node ../../supabase/model-submissions/test-gateway.mjs && node ../../supabase/model-submissions/test-result-cache.mjs && node ../../supabase/functions/model-worker/test-integration.mjs",
     "test:model-submissions-browser": "node model-submissions-browser.cjs && node model-replays-browser.cjs && node model-submissions-gateway-browser.cjs && node model-submissions-lifecycle.cjs"
   },
   "devDependencies": {

@@ -18,7 +18,7 @@ import urllib.parse
 import urllib.request
 import uuid
 
-from private_cases import test_version
+from private_cases import EVALUATOR_VERSION, test_version
 
 ROOT = Path(__file__).resolve().parent
 LOG = logging.getLogger('model-worker')
@@ -105,16 +105,26 @@ def run_job(api, claim, timeout):
         with tempfile.TemporaryDirectory(prefix='rocket-artifacts-') as directory, \
              tempfile.TemporaryDirectory(prefix='rocket-replays-') as replay_directory:
             os.chmod(directory, 0o755)
+            digests = {}
             for file, digest, limit in (('model.py', 'model_sha256', 131072), ('weights.safetensors', 'weights_sha256', 20971520)):
                 data = api.call('artifact', dict(identity, file=file), limit)
+                digests[digest] = hashlib.sha256(data).hexdigest()
                 expected = claim.get(digest)
-                if expected is not None and hashlib.sha256(data).hexdigest() != expected.lower():
+                if expected is not None and digests[digest] != expected.lower():
                     raise APIError('artifact digest mismatch')
                 path = Path(directory) / file
                 path.write_bytes(data)
                 path.chmod(0o644)
                 if lost.is_set() or STOP.is_set():
                     return
+            reused = api.json('reuse', dict(identity, **digests,
+                              evaluator_version=EVALUATOR_VERSION, test_set_version=version,
+                              duration_ms=min(86400000, int((time.monotonic() - start) * 1000))))
+            if reused.get('reused') is True:
+                LOG.info('Reused successful evaluation for submission %s', identity['submission_id'])
+                return
+            if lost.is_set() or STOP.is_set():
+                return
             process = subprocess.Popen([sys.executable, str(ROOT / 'evaluate.py'), directory, name, replay_directory],
                                        stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
             while process.poll() is None:
@@ -151,7 +161,7 @@ def run_job(api, claim, timeout):
             body = dict(identity, metrics=result.get('metrics'),
                         error_category=result.get('error_category'),
                         duration_ms=min(86400000, int((time.monotonic() - start) * 1000)),
-                        evaluator_version='rocket-worker-v2', test_set_version=version,
+                        evaluator_version=EVALUATOR_VERSION, test_set_version=version,
                         metadata={'public_replays': manifest})
             if body['metrics'] is None and body['error_category'] is None:
                 body['error_category'] = 'infrastructure'
@@ -169,7 +179,9 @@ def run_job(api, claim, timeout):
                 process.kill()
                 process.wait()
         try:
-            if os.getenv('MODEL_BACKEND') == 'modal':
+            if process is None:
+                pass
+            elif os.getenv('MODEL_BACKEND') == 'modal':
                 import modal
                 try:
                     modal.Sandbox.from_name('rocket-model-worker', name).terminate()

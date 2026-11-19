@@ -40,7 +40,7 @@ When a participant queues a submission, the Supabase `model-submissions` Edge Fu
    supabase functions deploy model-submissions --no-verify-jwt
    ```
 
-   Link the CLI to the intended project first, or pass `--project-ref YOUR_PROJECT_REF`. If not already deployed, also deploy `model-worker` with `supabase functions deploy model-worker --no-verify-jwt`. Existing installations do **not** need SQL changes for this switch; new installations still need `setup.sql`. Test with a controlled submission after both deployments.
+   Link the CLI to the intended project first, or pass `--project-ref YOUR_PROJECT_REF`. Existing installations must reapply `setup.sql` for the result-cache function and index, then deploy the `model-worker` gateway before the updated Modal app. Follow the deployment check below and test with a controlled submission after deployment.
 
 Each successful queue operation sends a background notification; an HTTP failure or a missing or invalid trigger configuration is logged without undoing the queued submission. There is no scheduled recovery: failed notifications and expired claims require another notification or an operator to invoke the deployed `consume_queue` function. Each invocation handles one job and claims the next eligible submission, not necessarily the submission that caused the notification. Repeated manual invocations may be needed for a backlog. Only one consumer container is allowed. Expired running jobs become eligible after their lease expires (900 seconds by default). The initial Sandbox image build downloads CPU PyTorch and can take time. A job has a 1,800-second deadline and a Sandbox has a 1,860-second maximum lifetime. If heartbeat renewal fails, the worker stops the job and discards its result. Sandbox creation, execution and endpoint invocations incur Modal charges. Set account spending controls and monitor usage before opening the anonymous submission endpoint.
 
@@ -56,51 +56,33 @@ Modal references: [Sandboxes](https://modal.com/docs/guide/sandboxes), [filesyst
 
 ## Evaluation scenarios and scoring
 
-Each submission runs 14 closed-loop flights: the four public calibrated scenarios in `rocket_calibration.py` and ten deterministic held-out flights derived from `MODEL_PRIVATE_SEED`. The held-out set has two cases each for descent, mid-flight, approach, recovery and crosswind; the initial states, actuator conditions and wind vary. They are sampled using the feasibility checks in `rocket_sampling.py`, which do not guarantee that a landing is possible for every controller. The same seed, sampler and dependencies give all participants the same private cases. Each flight runs up to 30 simulated seconds.
+Each submission runs ten deterministic held-out flights derived from `MODEL_PRIVATE_SEED`. The four public calibrated starting scenarios are excluded from evaluation. The held-out set has two cases each for descent, mid-flight, approach, recovery and crosswind; the initial states, actuator conditions and wind vary. They are sampled using the feasibility checks in `rocket_sampling.py`, which do not guarantee a successful landing. The same seed, sampler and dependencies give all participants the same private cases. Each flight runs up to 30 simulated seconds. The standalone Docker evaluator uses the same benchmark.
 
-The evaluator uses only the existing `touchdown-v1.0` first-contact landing score and success result; it does not compare actions or predictions to an expert. An unsuccessful flight scores zero. `score` is the arithmetic mean across all 14 flights, and `landing_success_pct` is the percentage of successful flights. The evaluator version is `rocket-worker-v2`; the test-set version includes a short hash of the seed so a changed seed produces a distinct version. The model receives its current observations and can infer information about each held-out flight. Repeated submissions and aggregate scores can also reveal information about the set; the private cases are not a cryptographic secret from an adversarial participant.
+The evaluator uses the existing `touchdown-v1.0` first-contact landing score and success result; it does not compare actions or predictions to an expert. An unsuccessful flight scores zero. `score` is the arithmetic mean across all ten held-out flights, and `landing_success_pct` is the percentage of successful flights. The evaluator version is `rocket-worker-v4`; the test-set version is `landing-private-10-v4-<fingerprint>`. The fingerprint covers the private seed, evaluator and simulator sources, configured inference images and dependencies, backend, and the worker Python/NumPy versions.
 
-**Leaderboard transition:** Scores from the previous four-flight `public-scenarios-v1` benchmark are not directly comparable to the 14-flight benchmark. Existing published entries remain visible and the leaderboard currently does not separate versions. Before opening the updated benchmark, decide whether to unpublish or reset old results, or keep the leaderboard closed until all relevant models have been re-evaluated. Changing the seed, sampler, physics, dependencies or scoring similarly requires a new comparison policy. Do not rotate the seed mid-leaderboard without planning the transition.
+Active flights advance together at control boundaries. Their observations are sent to the sandbox in one batch of shape `(N, 12)`, with `1 <= N <= 10`; the model must return `(N, 2)`. Completed flights leave subsequent batches. The sandbox loads the model once, sets Python/PyTorch random seeds to zero, and runs in evaluation/inference mode. Physics, contact detection and scoring remain in the trusted process.
+
+Grading uses `record=False`: per-step replay snapshots, visualisation diagnostics, policy provenance and decision recordings are skipped. The notebook simulator keeps recording enabled by default. Only aggregate metrics leave the evaluator. It returns an empty public replay manifest and does not write or upload held-out recordings or individual flight results. The public scenarios remain available for local notebook experiments, including JSON replay export. Historical public recordings remain accessible through the existing owner-only replay API.
+
+**Leaderboard transition:** Scores from the previous four-public-plus-ten-private benchmark are not directly comparable to the ten-private-flight benchmark. Existing published entries are not automatically recalculated or removed, and the leaderboard does not separate versions. Re-evaluate models under the same benchmark before comparing their scores. Keep the seed fixed for a leaderboard; changes to the seed, sampler, physics, dependencies or scoring need a deliberate version transition.
+
+## Reusing successful evaluations
+
+After downloading and verifying both artifacts, the worker calls the worker gateway's `reuse` action before starting the evaluator or a model sandbox. A database lookup matches the participant, exercise, source SHA-256, weights SHA-256, evaluator version and test-set fingerprint. Only completed successful evaluations can be reused. Cache hits finish the current valid claim with copied metrics and no replays; stale claims cannot complete. No scores are shared between participants, and publishing remains a separate action.
+
+The cache lives in the submission database and survives worker cold starts. Verified artifact hashes are populated when upload metadata was missing. Source/runtime/seed changes invalidate reuse through the benchmark fingerprint. A hit's duration records its current processing time, not the duration of the original model run; cache provenance is kept in private evaluation metadata. Identical files are expected to define reproducible evaluation behaviour. Failed and in-progress attempts are never reused.
 
 ## Deployment check
 
-### Public replay upgrade
-
-Reapply the rerunnable `supabase/model-submissions/setup.sql` as the project owner,
-then redeploy both Edge Functions before deploying the updated Modal worker:
+Apply the rerunnable `supabase/model-submissions/setup.sql` as the project owner first. It adds a partial cache index and a service-role-only `model_reuse_result` function. Then run the checks and deploy the gateway before the Modal app:
 
 ```sh
+python -m unittest discover -s supabase/model-worker -p 'test_*.py' -v
+npm --prefix a-level/tests run test:model-submissions
 supabase functions deploy model-worker --no-verify-jwt
-supabase functions deploy model-submissions --no-verify-jwt
 modal deploy supabase/model-worker/modal_app.py
 ```
 
-Publish the updated website files, including `courses/deep-learning-aau/rocket-replay.js`.
-Keep the existing Modal notification URL and proxy secrets; this works with
-`notify_queued()` spawning `consume_queue()` and requires no polling process,
-schedule, new secret, or Modal Volume. The standalone worker uses the same upload
-code. Existing attempts retain their metrics but have no recordings; submit a new
-attempt to create replays.
+Keep the existing Modal notification URL, proxy secrets and private seed. No schedule, new secret or Modal Volume is required. Docker users must rebuild the sandbox image because the inference protocol now accepts batches; use the same image identifier configured on the worker. Resource requests, concurrency and timeouts are unchanged.
 
-The trusted evaluator writes only the four public `rocket-run-v1` recordings to a
-temporary output directory outside the model sandbox. After evaluation, the
-worker uploads each recording through the worker gateway (8 MiB per recording),
-then finishes with a small public-run manifest. Heartbeats continue during
-uploads. Storage paths include the current claim and uploads cannot overwrite
-files. Completion validates that every listed recording exists for the accepted
-claim. Failed uploads leave the job unfinished; recovery follows the existing
-expired-claim/manual-notification policy. Abandoned claim files remain private
-and follow the same operator-controlled retention policy as other artifacts.
-
-The submitting browser can view or download recordings from its completed
-attempt. Downloads check the participant cookie and exercise on every request
-and use `Cache-Control: no-store`; publishing a score does not publish recordings.
-Held-out trajectories and individual held-out results are never uploaded. Overall
-metrics still include all 14 flights.
-
-For a deployed check, submit through the normal page, confirm the Modal
-notification starts the job, and open all four public recordings after completion.
-Check playback and JSON downloads, then verify that another browser profile
-cannot retrieve the same recordings, including after the score is published.
-
-The local unit tests mock the gateway and execution; they cannot validate Modal, the deployed Edge Function, Storage, or real queue concurrency. Before opening submissions, use a controlled submission and confirm it queues, is claimed, completes, displays privately, and is published only when requested. Also test bad weights, invalid output, a slow model, interruption and lease expiry. The example architecture is under `submission-example`; generate matching safetensors weights. Watch Modal logs and billing during the test. Verify that a normal submission starts after its notification, then test manual recovery with an intentionally unavailable trigger and after a lease expires. Check Supabase Edge Function logs for notification failures and Modal logs for consumer errors.
+The tests exercise the real simulator, sandbox protocol in local subprocesses, cache SQL and the gateway, while mocking the Modal execution boundary. They do not exercise a deployed queue or live sandbox. After deployment, use a controlled submission to confirm completion, then resubmit identical files from the same browser: the repeat should complete without creating another model sandbox. Verify that different files or a different benchmark do trigger evaluation. Existing entries and historical recordings are preserved.

@@ -60,6 +60,29 @@ try {
  assert.equal((await call('finish',{...failure,metadata:{public_error_code:'missing_entrypoint'}})).status,400);
  assert.equal((await (await call('finish',{...failure,metadata:{public_error_code:'non_finite',internal_path:'/secret/test/file'}})).json()).accepted,true);
  const owner=(await db.query("select model_dashboard($1,'nn-rocket') data",[participant])).rows[0].data;const visible=owner.submissions.find(x=>x.id===second);assert.equal(visible.error_detail_code,'non_finite');assert.ok(!JSON.stringify(owner).includes('/secret/test/file'));
+ const privateOnly=(await db.query("select model_create($1,'nn-rocket') data",[participant])).rows[0].data.id;
+ await db.query(`insert into storage.objects(bucket_id,name,metadata) select 'model-artifacts',p,'{"size":4}'::jsonb from model_submissions s,lateral unnest(array[s.model_path,s.weights_path]) p where id=$1`,[privateOnly]);
+ await db.query('select model_queue($1,$2)',[participant,privateOnly]);
+ const privateClaim=(await (await call('claim',{exercise:'nn-rocket'})).json()).claim;
+ const writesBeforePrivate=storageWrites;
+ const cacheKey={model_sha256:'1'.repeat(64),weights_sha256:'2'.repeat(64),evaluator_version:'rocket-worker-v4',test_set_version:'landing-private-10-v4-test',duration_ms:50};
+ assert.equal((await (await call('reuse',{submission_id:privateOnly,claim_token:privateClaim.claim_token,...cacheKey})).json()).reused,false);
+ r=await call('finish',{submission_id:privateOnly,claim_token:privateClaim.claim_token,metrics:{score:42,landing_success_pct:50},duration_ms:100,evaluator_version:cacheKey.evaluator_version,test_set_version:cacheKey.test_set_version,metadata:{public_replays:[]}});
+ assert.equal((await r.json()).accepted,true);assert.equal(storageWrites,writesBeforePrivate);
+ const privateResult=(await db.query("select model_dashboard($1,'nn-rocket') data",[participant])).rows[0].data.submissions.find(x=>x.id===privateOnly);
+ assert.equal(privateResult.status,'completed');assert.deepEqual(privateResult.metrics,{score:42,landing_success_pct:50});assert.deepEqual(privateResult.runs,[]);
+ // Age an earlier fixture so the fourth test submission respects the three-per-minute limit.
+ await db.query("update model_submissions set created_at=now()-interval '2 minutes' where id=$1",[id]);
+ const duplicate=(await db.query("select model_create($1,'nn-rocket') data",[participant])).rows[0].data.id;
+ await db.query(`insert into storage.objects(bucket_id,name,metadata) select 'model-artifacts',p,'{"size":4}'::jsonb from model_submissions s,lateral unnest(array[s.model_path,s.weights_path]) p where id=$1`,[duplicate]);
+ await db.query('select model_queue($1,$2)',[participant,duplicate]);
+ const duplicateClaim=(await (await call('claim',{exercise:'nn-rocket'})).json()).claim;
+ const duplicateArgs={submission_id:duplicate,claim_token:duplicateClaim.claim_token,...cacheKey};
+ assert.equal((await call('reuse',{...duplicateArgs,model_sha256:'invalid'})).status,400);
+ assert.equal((await (await call('reuse',duplicateArgs)).json()).reused,true);
+ assert.equal(storageWrites,writesBeforePrivate);
+ const cachedResult=(await db.query("select model_dashboard($1,'nn-rocket') data",[participant])).rows[0].data.submissions.find(x=>x.id===duplicate);
+ assert.equal(cachedResult.status,'completed');assert.deepEqual(cachedResult.metrics,privateResult.metrics);assert.deepEqual(cachedResult.runs,[]);
  await db.exec('set role anon');await assert.rejects(db.query("select model_worker_artifact($1,$2,'model.py')",[id,claim.claim_token]),/permission denied/);
  console.log('Least-privilege worker gateway tests passed');
 } finally {await db.close();}
