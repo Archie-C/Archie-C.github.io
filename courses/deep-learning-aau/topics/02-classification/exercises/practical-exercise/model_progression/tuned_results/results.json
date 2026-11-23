@@ -5095,7 +5095,7 @@
           }
         ]
       },
-      "elapsed_seconds": 36.193224799993914
+      "elapsed_seconds": 29.89381389999835
     },
     "07_thrust": {
       "source_sha256": "74769eadf48844b40c88c46db72cafb454a0613133a0cf38761bbeba5008b801",
@@ -5691,6 +5691,575 @@
         ]
       },
       "elapsed_seconds": 46.28459809999913
+    },
+    "08_horizontal": {
+      "source_sha256": "9c0c0ec3691ae461b09c6bea6d68c35b233b6c6ed2024da7425b9cc4d64903b0",
+      "selection": {
+        "l2": 0.0,
+        "tune_macro_f1": 0.3037620521277364,
+        "tune_accuracy": 0.47094310805651013,
+        "iterations": 300,
+        "converged": false,
+        "optimizer_message": "STOP: TOTAL NO. OF ITERATIONS REACHED LIMIT"
+      },
+      "candidates": [
+        {
+          "l2": 0.0,
+          "tune_macro_f1": 0.3037620521277364,
+          "tune_accuracy": 0.47094310805651013,
+          "iterations": 300,
+          "converged": false,
+          "optimizer_message": "STOP: TOTAL NO. OF ITERATIONS REACHED LIMIT"
+        },
+        {
+          "l2": 0.001,
+          "tune_macro_f1": 0.2597061646552318,
+          "tune_accuracy": 0.4122947689957999,
+          "iterations": 141,
+          "converged": true,
+          "optimizer_message": "CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH"
+        },
+        {
+          "l2": 0.01,
+          "tune_macro_f1": 0.25388462793759947,
+          "tune_accuracy": 0.4027491408934708,
+          "iterations": 60,
+          "converged": true,
+          "optimizer_message": "CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH"
+        }
+      ],
+      "validation_classification": {
+        "accuracy": 0.554337899543379,
+        "macro_f1": 0.3391150234056856,
+        "rows": 1095
+      },
+      "validation_simulations": {
+        "summary": {
+          "total_runs": 10,
+          "successful_runs": 9,
+          "success_rate": 0.9,
+          "mean_successful_quality": 92.37631766882006,
+          "mean_score": 83.13868590193806,
+          "mean_diagnostic_score": 77.45335228248535
+        },
+        "runs": [
+          {
+            "run_id": "0",
+            "status": "contact",
+            "reason": "first ground contact",
+            "scoring": {
+              "success": true,
+              "reasons": [],
+              "contact_time": 49.93393554687143,
+              "surface": "concrete",
+              "first_geometry": "foot 2",
+              "feet": [
+                [
+                  -11.056300746540078,
+                  0.10783743509054133
+                ],
+                [
+                  6.94337629555756,
+                  1.174156998118292e-05
+                ]
+              ],
+              "midpoint_offset": -2.056462225491259,
+              "vx": -0.04343049780574776,
+              "vy": -1.3512565128298124,
+              "theta": -0.005990352133251068,
+              "omega": 0.002753190980982984,
+              "foot_velocity": [
+                0.014584424284147551,
+                -1.3268248833799148
+              ],
+              "errors": {
+                "vertical": 0.45041883760993745,
+                "horizontal": 0.02895366520383184,
+                "tilt": 0.08580547375811888,
+                "angular_rate": 0.07887311170190393,
+                "centre": 0.06107336141278388
+              },
+              "score": 93.585946188587
+            },
+            "diagnostic": {
+              "metrics": {
+                "vy": -1.3512565128298124,
+                "vx": -0.04343049780574776,
+                "theta": -0.005990352133251068,
+                "omega": 0.002753190980982984,
+                "midpoint_offset": -2.056462225491259,
+                "clearance": 1.174156998118292e-05
+              },
+              "diagnostic_score": 86.43333611846427
+            },
+            "duration": 49.93393554687143
+          },
+          {
+            "run_id": "1",
+            "status": "contact",
+            "reason": "first ground contact",
+            "scoring": {
+              "success": true,
+              "reasons": [],
+              "contact_time": 37.18618164062397,
+              "surface": "concrete",
+              "first_geometry": "foot 2",
+              "feet": [
+                [
+                  -8.280312816192374,
+                  0.0870469452178213
+                ],
+                [
+                  9.719476777514458,
+                  1.4869043816645444e-05
+                ]
+              ],
+              "midpoint_offset": 0.719581980661042,
+              "vx": -0.5657669671183669,
+              "vy": -0.9123468169266392,
+              "theta": -0.004835134182693971,
+              "omega": -0.014616191928081746,
+              "foot_velocity": [
+                -0.8707783696162548,
+                -1.0424192994156387
+              ],
+              "errors": {
+                "vertical": 0.30411560564221307,
+                "horizontal": 0.3771779780789113,
+                "tilt": 0.06925819551195031,
+                "angular_rate": 0.41872305501613266,
+                "centre": 0.021370336797963945
+              },
+              "score": 92.35645981409142
+            },
+            "diagnostic": {
+              "metrics": {
+                "vy": -0.9123468169266392,
+                "vx": -0.5657669671183669,
+                "theta": -0.004835134182693971,
+                "omega": -0.014616191928081746,
+                "midpoint_offset": 0.719581980661042,
+                "clearance": 1.4869043816645444e-05
+              },
+              "diagnostic_score": 82.75491415740379
+            },
+            "duration": 37.18618164062397
+          },
+          {
+            "run_id": "2",
+            "status": "contact",
+            "reason": "first ground contact",
+            "scoring": {
+              "success": true,
+              "reasons": [],
+              "contact_time": 33.10535156249978,
+              "surface": "concrete",
+              "first_geometry": "foot 1",
+              "feet": [
+                [
+                  -9.829774374576326,
+                  1.0592343365090073e-05
+                ],
+                [
+                  8.170182240229016,
+                  0.03953103168036165
+                ]
+              ],
+              "midpoint_offset": -0.8297960671736551,
+              "vx": 0.2554246736751126,
+              "vy": -0.7393524666865365,
+              "theta": 0.0021955817271621324,
+              "omega": 0.016634186978661678,
+              "foot_velocity": [
+                0.598471821597856,
+                -0.8883073210742772
+              ],
+              "errors": {
+                "vertical": 0.2464508222288455,
+                "horizontal": 0.1702831157834084,
+                "tilt": 0.031449391635608503,
+                "angular_rate": 0.47653435475439226,
+                "centre": 0.024643504014423116
+              },
+              "score": 94.30471247446324
+            },
+            "diagnostic": {
+              "metrics": {
+                "vy": -0.7393524666865365,
+                "vx": 0.2554246736751126,
+                "theta": 0.0021955817271621324,
+                "omega": 0.016634186978661678,
+                "midpoint_offset": -0.8297960671736551,
+                "clearance": 1.0592343365090073e-05
+              },
+              "diagnostic_score": 85.95384747681297
+            },
+            "duration": 33.10535156249978
+          },
+          {
+            "run_id": "3",
+            "status": "contact",
+            "reason": "first ground contact",
+            "scoring": {
+              "success": true,
+              "reasons": [],
+              "contact_time": 38.0349218749988,
+              "surface": "concrete",
+              "first_geometry": "foot 1",
+              "feet": [
+                [
+                  -12.525848915105101,
+                  8.924468907878236e-06
+                ],
+                [
+                  5.473933012956626,
+                  0.08861221008808684
+                ]
+              ],
+              "midpoint_offset": -3.5259579510742376,
+              "vx": 0.22566553762065863,
+              "vy": -1.338139059857439,
+              "theta": 0.004922424635205459,
+              "omega": -0.0012339626152176894,
+              "foot_velocity": [
+                0.19986136076221128,
+                -1.3271602819143116
+              ],
+              "errors": {
+                "vertical": 0.446046353285813,
+                "horizontal": 0.15044369174710576,
+                "tilt": 0.07050853914212417,
+                "angular_rate": 0.03535042496444959,
+                "centre": 0.10471483580049412
+              },
+              "score": 93.35430214906424
+            },
+            "diagnostic": {
+              "metrics": {
+                "vy": -1.338139059857439,
+                "vx": 0.22566553762065863,
+                "theta": 0.004922424635205459,
+                "omega": -0.0012339626152176894,
+                "midpoint_offset": -3.5259579510742376,
+                "clearance": 8.924468907878236e-06
+              },
+              "diagnostic_score": 85.05944816990281
+            },
+            "duration": 38.0349218749988
+          },
+          {
+            "run_id": "4",
+            "status": "contact",
+            "reason": "first ground contact",
+            "scoring": {
+              "success": true,
+              "reasons": [],
+              "contact_time": 37.59416015624889,
+              "surface": "concrete",
+              "first_geometry": "foot 1",
+              "feet": [
+                [
+                  -5.139595350144487,
+                  1.2167793819628514e-05
+                ],
+                [
+                  12.860403577289365,
+                  0.006226053871110082
+                ]
+              ],
+              "midpoint_offset": 3.860404113572439,
+              "vx": -0.44789111552145405,
+              "vy": -0.7750156175630788,
+              "theta": 0.0003452159000396953,
+              "omega": -0.014832223392001301,
+              "foot_velocity": [
+                -0.7571339912493249,
+                -0.6416323546427124
+              ],
+              "errors": {
+                "vertical": 0.25833853918769295,
+                "horizontal": 0.2985940770143027,
+                "tilt": 0.0049448535232711616,
+                "angular_rate": 0.4249119005784443,
+                "centre": 0.11464730677038605
+              },
+              "score": 93.68883865337155
+            },
+            "diagnostic": {
+              "metrics": {
+                "vy": -0.7750156175630788,
+                "vx": -0.44789111552145405,
+                "theta": 0.0003452159000396953,
+                "omega": -0.014832223392001301,
+                "midpoint_offset": 3.860404113572439,
+                "clearance": 1.2167793819628514e-05
+              },
+              "diagnostic_score": 83.7633661601653
+            },
+            "duration": 37.59416015624889
+          },
+          {
+            "run_id": "5",
+            "status": "contact",
+            "reason": "first ground contact",
+            "scoring": {
+              "success": true,
+              "reasons": [],
+              "contact_time": 37.83195312499884,
+              "surface": "concrete",
+              "first_geometry": "foot 2",
+              "feet": [
+                [
+                  -11.00998821454638,
+                  0.21546416475730368
+                ],
+                [
+                  6.98872235133406,
+                  1.5874757547607032e-05
+                ]
+              ],
+              "midpoint_offset": -2.0106329316061604,
+              "vx": -0.40432131121982096,
+              "vy": -1.417313702468871,
+              "theta": -0.011969635261649668,
+              "omega": -0.0022256476708075357,
+              "foot_velocity": [
+                -0.4509676359146624,
+                -1.4367876003627003
+              ],
+              "errors": {
+                "vertical": 0.47243790082295695,
+                "horizontal": 0.26954754081321397,
+                "tilt": 0.1714523957008737,
+                "angular_rate": 0.06376010911019689,
+                "centre": 0.059712310869748174
+              },
+              "score": 91.49402479067751
+            },
+            "diagnostic": {
+              "metrics": {
+                "vy": -1.417313702468871,
+                "vx": -0.40432131121982096,
+                "theta": -0.011969635261649668,
+                "omega": -0.0022256476708075357,
+                "midpoint_offset": -2.0106329316061604,
+                "clearance": 1.5874757547607032e-05
+              },
+              "diagnostic_score": 82.23640051947079
+            },
+            "duration": 37.83195312499884
+          },
+          {
+            "run_id": "6",
+            "status": "contact",
+            "reason": "first ground contact",
+            "scoring": {
+              "success": true,
+              "reasons": [],
+              "contact_time": 34.75952148437445,
+              "surface": "concrete",
+              "first_geometry": "foot 1",
+              "feet": [
+                [
+                  -0.8884259099746359,
+                  1.5946432533553434e-05
+                ],
+                [
+                  17.11060460852604,
+                  0.18683241808674467
+                ]
+              ],
+              "midpoint_offset": 8.111089349275701,
+              "vx": 0.12487363766032897,
+              "vy": -1.5316208453087672,
+              "theta": 0.010378879206113559,
+              "omega": -0.010068549372650334,
+              "foot_velocity": [
+                -0.08432853886688821,
+                -1.4431703821434447
+              ],
+              "errors": {
+                "vertical": 0.5105402817695891,
+                "horizontal": 0.08324909177355265,
+                "tilt": 0.14866649364659934,
+                "angular_rate": 0.2884426924359784,
+                "centre": 0.24088528597278755
+              },
+              "score": 89.22596570257897
+            },
+            "diagnostic": {
+              "metrics": {
+                "vy": -1.5316208453087672,
+                "vx": 0.12487363766032897,
+                "theta": 0.010378879206113559,
+                "omega": -0.010068549372650334,
+                "midpoint_offset": 8.111089349275701,
+                "clearance": 1.5946432533553434e-05
+              },
+              "diagnostic_score": 78.87865502264304
+            },
+            "duration": 34.75952148437445
+          },
+          {
+            "run_id": "7",
+            "status": "contact",
+            "reason": "first ground contact",
+            "scoring": {
+              "success": true,
+              "reasons": [],
+              "contact_time": 24.542929687500006,
+              "surface": "concrete",
+              "first_geometry": "foot 2",
+              "feet": [
+                [
+                  -17.369851918747273,
+                  0.23843029846996444
+                ],
+                [
+                  0.6285690531391328,
+                  1.360702493258259e-05
+                ]
+              ],
+              "midpoint_offset": -8.37064143280407,
+              "vx": -0.23467785020032608,
+              "vy": -0.6572641857969167,
+              "theta": -0.013245759071914257,
+              "omega": 0.01001585587129424,
+              "foot_velocity": [
+                -0.02707292926950014,
+                -0.5698636202011471
+              ],
+              "errors": {
+                "vertical": 0.21908806193230557,
+                "horizontal": 0.15645190013355073,
+                "tilt": 0.1897315228169523,
+                "angular_rate": 0.2869331348182429,
+                "centre": 0.2485935326919717
+              },
+              "score": 95.00195941494776
+            },
+            "diagnostic": {
+              "metrics": {
+                "vy": -0.6572641857969167,
+                "vx": -0.23467785020032608,
+                "theta": -0.013245759071914257,
+                "omega": 0.01001585587129424,
+                "midpoint_offset": -8.37064143280407,
+                "clearance": 1.360702493258259e-05
+              },
+              "diagnostic_score": 82.06342226940302
+            },
+            "duration": 24.542929687500006
+          },
+          {
+            "run_id": "8",
+            "status": "contact",
+            "reason": "first ground contact",
+            "scoring": {
+              "success": true,
+              "reasons": [],
+              "contact_time": 19.486630859375015,
+              "surface": "concrete",
+              "first_geometry": "foot 1",
+              "feet": [
+                [
+                  0.19152158895350269,
+                  1.6486166675377945e-05
+                ],
+                [
+                  18.187533397314834,
+                  0.3789082824878598
+                ]
+              ],
+              "midpoint_offset": 9.189527493134168,
+              "vx": -0.047660715319493355,
+              "vy": -0.6174593842136673,
+              "theta": 0.021051099000384307,
+              "omega": -0.023898918623194845,
+              "foot_velocity": [
+                -0.5434266839899392,
+                -0.4127594096992283
+              ],
+              "errors": {
+                "vertical": 0.2058197947378891,
+                "horizontal": 0.03177381021299557,
+                "tilt": 0.3015347817085217,
+                "angular_rate": 0.6846535860178343,
+                "centre": 0.2729130284252248
+              },
+              "score": 88.37464983159894
+            },
+            "diagnostic": {
+              "metrics": {
+                "vy": -0.6174593842136673,
+                "vx": -0.047660715319493355,
+                "theta": 0.021051099000384307,
+                "omega": -0.023898918623194845,
+                "midpoint_offset": 9.189527493134168,
+                "clearance": 1.6486166675377945e-05
+              },
+              "diagnostic_score": 79.39978349716527
+            },
+            "duration": 19.486630859375015
+          },
+          {
+            "run_id": "9",
+            "status": "contact",
+            "reason": "first ground contact",
+            "scoring": {
+              "success": false,
+              "reasons": [
+                "vertical velocity outside limits",
+                "tilt outside limits",
+                "angular velocity outside limits"
+              ],
+              "contact_time": 0.14484375,
+              "surface": "concrete",
+              "first_geometry": "foot 1",
+              "feet": [
+                [
+                  2.578891590997493,
+                  0.0026291825157898074
+                ],
+                [
+                  17.68903652037316,
+                  9.78442452965237
+                ]
+              ],
+              "midpoint_offset": 10.133964055685327,
+              "vx": -0.8859072255569866,
+              "vy": -98.41895464474871,
+              "theta": 0.5745213807764304,
+              "omega": 3.921799535156979,
+              "foot_velocity": [
+                79.98353221053381,
+                -88.11350870535627
+              ],
+              "errors": {
+                "vertical": 1.0,
+                "horizontal": 0.5906048170379911,
+                "tilt": 1.0,
+                "angular_rate": 1.0,
+                "centre": 0.300961156322325
+              },
+              "score": 0.0
+            },
+            "diagnostic": {
+              "metrics": {
+                "vy": -98.41895464474871,
+                "vx": -0.8859072255569866,
+                "theta": 0.5745213807764304,
+                "omega": 3.921799535156979,
+                "midpoint_offset": 10.133964055685327,
+                "clearance": 0.0026291825157898074
+              },
+              "diagnostic_score": 27.990349433422363
+            },
+            "duration": 0.14484375
+          }
+        ]
+      },
+      "elapsed_seconds": 27.632169400003477
     }
   }
 }

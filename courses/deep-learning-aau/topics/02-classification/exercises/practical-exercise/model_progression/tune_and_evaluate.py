@@ -1,4 +1,5 @@
 """Reproducible tuning and closed-loop validation for the model progression."""
+import argparse
 import contextlib
 import hashlib
 import importlib.util
@@ -128,7 +129,14 @@ def simulations(model, cases, label):
 
 
 def main():
-    OUTPUT.mkdir(exist_ok=True)
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--model', action='append',
+                        help='Only tune this stage (file stem); repeat for several. Other stages already in '
+                             'results.json are kept.')
+    parser.add_argument('--output', type=Path, default=OUTPUT)
+    args = parser.parse_args()
+    output = args.output
+    output.mkdir(parents=True, exist_ok=True)
     ids, X, y = load_data(EXERCISE / 'landings.csv')
     val_ids, val_X, val_y = load_data(EXERCISE / 'validation_runs.csv')
     cases = read_validation_runs(EXERCISE / 'validation_runs.csv')
@@ -153,7 +161,15 @@ def main():
                          'group_training_flight_ids': np.unique(ids[group_train]).tolist(),
                          'group_tuning_flight_ids': np.unique(ids[group_tune]).tolist()},
                'models': {}}
+    previous = output / 'results.json'
+    if args.model and previous.exists():
+        old = json.loads(previous.read_text(encoding='utf-8'))
+        if old.get('split') != results['split'] or old.get('training_sha256') != results['training_sha256']:
+            raise ValueError('Existing results.json used a different split or dataset; rerun all stages.')
+        results['models'] = old['models']
     for path in sorted(HERE.glob('[0-9][0-9]_*.py')):
+        if args.model and path.stem not in args.model:
+            continue
         started = time.perf_counter()
         print('\n', path.stem, flush=True)
         spec = importlib.util.spec_from_file_location(path.stem, path)
@@ -163,7 +179,7 @@ def main():
         stage = int(path.name[:2])
         training, tune = (row_train, row_tune) if stage == 1 else (group_train, group_tune)
         best, candidates = train_and_tune(model, X[training], y[training], X[tune], y[tune])
-        model.save(OUTPUT / (path.stem + '.npz'))
+        model.save(output / (path.stem + '.npz'))
         record = {'source_sha256': digest(path), 'selection': best, 'candidates': candidates,
                   'validation_classification': metrics(model, val_X, val_y)}
         if stage == 1:
@@ -174,7 +190,7 @@ def main():
         record['validation_simulations'] = simulations(model, cases, path.stem)
         record['elapsed_seconds'] = time.perf_counter()-started
         results['models'][path.stem] = record
-        write_json(OUTPUT / 'results.json', results)
+        write_json(output / 'results.json', results)
         print('  finished', path.stem, record['validation_classification'],
               record['validation_simulations']['summary'], flush=True)
 

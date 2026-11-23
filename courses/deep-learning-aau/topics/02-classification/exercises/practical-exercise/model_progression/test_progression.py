@@ -48,7 +48,7 @@ class ProgressionTests(unittest.TestCase):
         X, y, ids = self.data()
         train, val, _ = train_models.flight_split(ids)
         with tempfile.TemporaryDirectory() as directory:
-            for stage in range(1, 8):
+            for stage in range(1, 9):
                 with self.subTest(stage=stage), contextlib.redirect_stdout(io.StringIO()):
                     model = load(stage)(epochs=3)
                     model.fit(X[train], y[train], X[val], y[val])

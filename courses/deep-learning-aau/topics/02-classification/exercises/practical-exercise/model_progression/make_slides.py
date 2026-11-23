@@ -106,7 +106,7 @@ def verify_teaching_assets():
 def main():
     data = json.loads(RESULTS.read_text(encoding='utf-8'))
     models = data['models']
-    if set(models) != {step[0] for step in STEPS}:
+    if not {step[0] for step in STEPS} <= set(models):
         raise ValueError('Run the complete tuning and validation before generating slides.')
     written_answers = (DECK.parent / 'written-answers.html').read_text(encoding='utf-8')
     practical = (DECK.parent / 'practical-walkthrough.html').read_text(encoding='utf-8')
