@@ -1,13 +1,34 @@
-"""Standalone NumPy softmax controller. See README for the staged comparison."""
+"""Standalone NumPy softmax controller, stage 06: adds drag, wind and drag torque to the projection.
+
+See README.md for the staged comparison. Every stage is generated from the same template; only the
+switches below differ.
+"""
 import numpy as np
 
 STAGE = 6
-FEATURE_VERSION = 100 + STAGE
+FEATURE_VERSION = 200 + STAGE
+CLASS_WEIGHTS = True   # inverse-frequency class weights in the training loss
+OPTIMIZER = 'lbfgs'      # 'gd' (fixed-step gradient descent) or 'lbfgs'
+PROJECTION = True     # add the state projected 1, 2 and 3 seconds ahead
+GRAVITY = True        # projection includes gravity
+DRAG = True           # projection includes drag, wind and drag torque
+THRUST = False         # projection holds the current thrust and gimbal fixed
+HORIZONTAL = False     # projection also reports x and vx
 
 
 class Controller:
-    def __init__(self, learning_rate=0.1, epochs=10, random_state=42):
+    optimizer = OPTIMIZER
+
+    def __init__(self, learning_rate=0.1, epochs=1000, random_state=42, patience=None,
+                 min_delta=0.0, l2=0.0):
+        # learning_rate is only used by gradient descent; L-BFGS chooses its own step sizes.
+        # epochs is the maximum number of weight updates (L-BFGS iterations for OPTIMIZER == 'lbfgs').
         self.learning_rate, self.epochs, self.random_state = learning_rate, int(epochs), int(random_state)
+        # Early stopping: stop after `patience` epochs without the validation loss improving by
+        # more than `min_delta`, then restore the best weights. None disables it.
+        self.patience, self.min_delta = patience, float(min_delta)
+        # L2 penalty 0.5 * l2 * ||W||^2 on every weight except the bias row.
+        self.l2 = float(l2)
         self.weights = None
         self.train_loss_history, self.validation_loss_history = [], []
 
@@ -31,11 +52,11 @@ class Controller:
 
     def _basis(self, X):
         X = self._observations(X)
-        if STAGE < 4:
+        if not PROJECTION:
             return X
         # Sample a short state-dependent trajectory at 1, 2 and 3 seconds.
         # The observed thrust and gimbal are held fixed, not the future action.
-        h, vy, theta, omega = (X[:, i].copy() for i in (1, 3, 4, 5))
+        x, h, vy, theta, omega = (X[:, i].copy() for i in (0, 1, 3, 4, 5))
         vx = X[:, 2].copy()
         fuel = np.clip(X[:, 6], 0, 411000)
         mass = 28000 + fuel
@@ -56,9 +77,9 @@ class Controller:
         columns = [X]
         dt = .25
         for step in range(12):
-            ay = np.full(len(X), -9.80665 if STAGE >= 5 else 0.0)
+            ay = np.full(len(X), -9.80665 if GRAVITY else 0.0)
             ax, angular = np.zeros(len(X)), np.zeros(len(X))
-            if STAGE >= 6:
+            if DRAG:
                 rx, ry = vx-X[:, 9], vy-X[:, 10]
                 speed = np.hypot(rx, ry)
                 # Simulator's angle-dependent drag coefficient; no lift or damping.
@@ -70,7 +91,7 @@ class Controller:
                 ax += fx/mass
                 ay += fy/mass
                 angular += (37-centre)*(-np.sin(theta)*fy-np.cos(theta)*fx)/inertia
-            if STAGE >= 7:
+            if THRUST:
                 thrust = np.where(fuel > 0, np.maximum(X[:, 7], 0), 0)
                 gimbal = X[:, 8]
                 ax += -thrust*np.sin(theta+gimbal)/mass
@@ -84,6 +105,7 @@ class Controller:
             hit = active & (new_gap <= 0)
             fraction[hit] = np.clip(old_gap[hit] / (old_gap[hit]-new_gap[hit]), 0, 1)
             duration = dt*fraction*active
+            x += vx*duration + .5*ax*duration**2
             h += vy*duration + .5*ay*duration**2
             theta += omega*duration + .5*angular*duration**2
             vx += ax*duration
@@ -91,8 +113,23 @@ class Controller:
             omega += angular*duration
             active &= ~hit
             if step in (3, 7, 11):
-                columns.append(np.column_stack((h.copy(), vy.copy(), theta.copy(), omega.copy())))
+                state = (x, vx, h, vy, theta, omega) if HORIZONTAL else (h, vy, theta, omega)
+                columns.append(np.column_stack([value.copy() for value in state]))
         return np.column_stack(columns)
+
+    @staticmethod
+    def classification_metrics(y_true, y_pred):
+        """Accuracy, macro F1 and per-class F1 over every label seen in y_true or y_pred."""
+        y_true, y_pred = np.asarray(y_true), np.asarray(y_pred)
+        per_class = {}
+        for label in np.union1d(y_true, y_pred):
+            tp = np.sum((y_pred == label) & (y_true == label))
+            fp = np.sum((y_pred == label) & (y_true != label))
+            fn = np.sum((y_pred != label) & (y_true == label))
+            per_class[label.item()] = float(2*tp/(2*tp+fp+fn)) if 2*tp+fp+fn else 0.
+        return {'accuracy': float(np.mean(y_pred == y_true)),
+                'macro_f1': float(np.mean(list(per_class.values()))),
+                'per_class_f1': per_class, 'rows': len(y_true)}
 
     def _create_design_matrix(self, X, fit_normalization=False):
         features = self._basis(X)
@@ -100,6 +137,33 @@ class Controller:
             self.X_mean_ = features.mean(axis=0)
             self.X_std_ = features.std(axis=0)
         return np.column_stack((np.ones(len(features)), (features-self.X_mean_)/(self.X_std_+1e-12)))
+
+    def _objective(self, flat, design, targets, sample_weight):
+        """Weighted cross-entropy + L2 penalty, its gradient, and the cross-entropy on its own."""
+        weights = flat.reshape(design.shape[1], -1)
+        probabilities = self._softmax(design @ weights)
+        data_loss = self.cross_entropy_loss(targets, probabilities, sample_weight)
+        gradient = design.T @ ((probabilities-targets)*sample_weight[:, None]) / sample_weight.sum()
+        penalised = weights.copy()
+        penalised[0] = 0  # the bias is not regularised
+        loss = data_loss + .5*self.l2*np.sum(penalised**2)
+        return loss, (gradient + self.l2*penalised).ravel(), data_loss
+
+    @staticmethod
+    def _lbfgs_direction(gradient, steps, changes):
+        """Two-loop recursion: approximate inverse-Hessian @ gradient from the last few updates."""
+        q = gradient.copy()
+        alphas = []
+        for s, y in reversed(list(zip(steps, changes))):
+            rho = 1/(y @ s)
+            alpha = rho*(s @ q)
+            q -= alpha*y
+            alphas.append((rho, alpha))
+        if steps:
+            q *= (steps[-1] @ changes[-1]) / (changes[-1] @ changes[-1])
+        for (s, y), (rho, alpha) in zip(zip(steps, changes), reversed(alphas)):
+            q += s*(alpha - rho*(y @ q))
+        return q
 
     def fit(self, train_X, train_y, validation_X=None, validation_y=None, run_ids=None):
         train_X = self._observations(train_X)
@@ -126,10 +190,10 @@ class Controller:
         self.classes_, labels = np.unique(train_y, return_inverse=True)
         targets = np.eye(len(self.classes_))[labels]
         counts = np.bincount(labels)
-        self.class_weights_ = len(labels)/(len(counts)*counts) if STAGE >= 3 else np.ones(len(counts))
+        self.class_weights_ = len(labels)/(len(counts)*counts) if CLASS_WEIGHTS else np.ones(len(counts))
         sample_weight = self.class_weights_[labels]
         design = self._create_design_matrix(train_X, fit_normalization=True)
-        self.weights = np.zeros((design.shape[1], len(self.classes_)))
+        shape = (design.shape[1], len(self.classes_))
         val_design, val_targets = None, None
         if validation_X is not None:
             validation_y = np.asarray(validation_y)
@@ -137,16 +201,88 @@ class Controller:
             if validation_y.shape != (len(val_design),) or not np.isin(validation_y, self.classes_).all():
                 raise ValueError('Validation labels must be present in training and match observations.')
             val_targets = (validation_y[:, None] == self.classes_).astype(float)
+
         self.train_loss_history, self.validation_loss_history = [], []
-        for _ in range(self.epochs):
-            probabilities = self._softmax(design @ self.weights)
-            self.train_loss_history.append(self.cross_entropy_loss(targets, probabilities, sample_weight))
-            if val_design is not None:
-                # Unweighted validation loss makes the metric comparable across models.
-                self.validation_loss_history.append(self.cross_entropy_loss(val_targets, self._softmax(val_design @ self.weights)))
-            error = (probabilities-targets)*sample_weight[:, None]
-            self.weights -= self.learning_rate*(design.T @ error)/sample_weight.sum()
-        return self
+        best = {'loss': np.inf, 'weights': None, 'epoch': None}
+        state = {'wait': 0, 'stopped_epoch': None}
+
+        def monitor(epoch, flat, data_loss):
+            """Record the losses of these weights; return True when early stopping triggers."""
+            self.train_loss_history.append(data_loss)
+            if val_design is None:
+                return False
+            # Unweighted validation loss makes the metric comparable across models.
+            val_loss = self.cross_entropy_loss(val_targets, self._softmax(val_design @ flat.reshape(shape)))
+            self.validation_loss_history.append(val_loss)
+            if val_loss < best['loss'] - self.min_delta:
+                best.update(loss=val_loss, weights=flat.copy(), epoch=epoch)
+                state['wait'] = 0
+            else:
+                state['wait'] += 1
+                if self.patience is not None and state['wait'] >= self.patience:
+                    state['stopped_epoch'] = epoch
+                    return True
+            return False
+
+        # Losses are recorded for the starting weights and after every update, so a run of
+        # `epochs` updates has epochs + 1 entries.
+        flat = np.zeros(np.prod(shape))
+        loss, gradient, data_loss = self._objective(flat, design, targets, sample_weight)
+        stop_reason = 'max_epochs'
+        steps, changes = [], []
+        for epoch in range(self.epochs + 1):
+            if monitor(epoch, flat, data_loss):
+                stop_reason = 'early_stopping'
+                break
+            if epoch == self.epochs:
+                break
+            if OPTIMIZER == 'gd':
+                flat = flat - self.learning_rate*gradient
+                loss, gradient, data_loss = self._objective(flat, design, targets, sample_weight)
+                continue
+            # L-BFGS: quasi-Newton direction, then backtrack until the loss falls enough (Armijo).
+            if np.max(np.abs(gradient)) < 1e-6:
+                stop_reason = 'converged'
+                break
+            direction = -self._lbfgs_direction(gradient, steps, changes)
+            slope = gradient @ direction
+            if slope >= 0:  # not a descent direction: forget the history and use the gradient
+                steps, changes = [], []
+                direction, slope = -gradient, -(gradient @ gradient)
+            step = 1.0 if steps else 1/max(1.0, np.linalg.norm(gradient))
+            while True:
+                new_flat = flat + step*direction
+                new_loss, new_gradient, new_data_loss = self._objective(new_flat, design, targets, sample_weight)
+                if new_loss <= loss + 1e-4*step*slope or step < 1e-10:
+                    break
+                step *= .5
+            if new_loss > loss:
+                stop_reason = 'converged'  # no step reduces the loss any further
+                break
+            s, y = new_flat - flat, new_gradient - gradient
+            if s @ y > 1e-10:
+                steps.append(s)
+                changes.append(y)
+                if len(steps) > 10:
+                    steps.pop(0)
+                    changes.pop(0)
+            flat, loss, gradient, data_loss = new_flat, new_loss, new_gradient, new_data_loss
+
+        # With early stopping on, return the best validation weights; otherwise the final ones.
+        best_epoch = len(self.train_loss_history) - 1
+        if val_design is not None and self.patience is not None:
+            flat, best_epoch = best['weights'], best['epoch']
+        self.weights = flat.reshape(shape)
+        validation_metrics = None
+        if val_design is not None:
+            validation_metrics = self.classification_metrics(
+                validation_y, self.classes_[np.argmax(val_design @ self.weights, axis=1)])
+        self.history_ = {'train_loss': list(self.train_loss_history),
+                         'validation_loss': list(self.validation_loss_history),
+                         'validation_metrics': validation_metrics,
+                         'best_epoch': best_epoch, 'stopped_epoch': state['stopped_epoch'],
+                         'stop_reason': stop_reason}
+        return self.history_
 
     def decision_function(self, X):
         if self.weights is None:
@@ -169,7 +305,7 @@ class Controller:
             np.savez_compressed(target, feature_version=FEATURE_VERSION, weights=self.weights,
                                 classes=self.classes_, mean=self.X_mean_, std=self.X_std_,
                                 class_weights=self.class_weights_, learning_rate=self.learning_rate,
-                                epochs=self.epochs, random_state=self.random_state,
+                                epochs=self.epochs, random_state=self.random_state, l2=self.l2,
                                 train_loss_history=self.train_loss_history,
                                 validation_loss_history=self.validation_loss_history)
 
@@ -181,7 +317,7 @@ class Controller:
             self.X_mean_, self.X_std_ = saved['mean'], saved['std']
             self.class_weights_ = saved['class_weights']
             self.learning_rate, self.epochs = float(saved['learning_rate']), int(saved['epochs'])
-            self.random_state = int(saved['random_state'])
+            self.random_state, self.l2 = int(saved['random_state']), float(saved['l2'])
             self.train_loss_history = saved['train_loss_history'].tolist()
             self.validation_loss_history = saved['validation_loss_history'].tolist()
         return self

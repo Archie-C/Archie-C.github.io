@@ -10,9 +10,9 @@ DECK = ROOT / 'slides' / 'presentation-02' / 'index.html'
 RESULTS = HERE / 'tuned_results' / 'results.json'
 
 STEPS = [
-    ('01_normalization', 'Normalisation'),
-    ('02_flight_split', 'Flight split'),
-    ('03_class_weighted', 'Class weighting'),
+    ('01_flight_split', 'Flight split'),
+    ('02_class_weighted', 'Class weighting'),
+    ('03_lbfgs', 'L-BFGS with L2'),
     ('04_constant_velocity', 'Constant velocity'),
     ('05_gravity', 'Gravity'),
     ('06_drag', 'Drag'),
@@ -72,8 +72,7 @@ def result_slide(index, before, after):
     note = ('We evaluate both controllers on the same labelled expert observations and the same ten validation initial states. '
             'Failed landings receive a score of zero. Macro F1 averages the action-level F1 scores, while landing success is measured in the simulations. '
             'Observations from the same flight are correlated, and ten flights give only a small sample of landing outcomes.')
-    result_titles = ('Normalisation', 'Flight-level split', 'Class weighting',
-                     'Constant velocity', 'Gravity', 'Drag', 'Thrust and gimbal')
+    result_titles = tuple(title for _, title in STEPS)
     takeaways = (
         'Reusing training statistics lets the prediction depend on the current state.',
         'The landing count stays at 1/10 and mean score falls slightly. The new split assesses different flights and also changes the training rows.',
@@ -110,7 +109,7 @@ def main():
         raise ValueError('Run the complete tuning and validation before generating slides.')
     written_answers = (DECK.parent / 'written-answers.html').read_text(encoding='utf-8')
     practical = (DECK.parent / 'practical-walkthrough.html').read_text(encoding='utf-8')
-    previous = models['01_normalization']['original_single_observation_scaffold']
+    previous = models['01_flight_split']['original_single_observation_scaffold']
     for i, step in enumerate(SLIDE_STEPS, 1):
         marker = f'<!-- RESULT:{i} -->'
         if practical.count(marker) != 1:
@@ -140,27 +139,6 @@ def main():
 <footer class="slide-footer"><span class="wordmark">a<span class="wordmark-dot">.</span>c</span></footer></section>
 ''' + content + '\n</div></div></body></html>\n'
     DECK.write_text(html, encoding='utf-8')
-    summary = ['# Tuned progression: validation results', '',
-               'Models were selected using an internal tuning split, then evaluated on the separate '
-               'validation dataset: 1,095 labelled observations from 10 flights. All flight results are '
-               'closed-loop runs; failed flights contribute zero to mean landing score. See results.json '
-               'for every flight, hyperparameter candidate and optimizer status.', '',
-               '| Model | Accuracy | Macro F1 | Successful flights | Mean score | Selected L2 | Iterations |',
-               '|---|---:|---:|---:|---:|---:|---:|']
-    baseline = models['01_normalization']['original_single_observation_scaffold']
-    for name, record in [('Original scaffold prediction', baseline)] + [(s[0], models[s[0]]) for s in STEPS]:
-        classification = record['validation_classification']
-        simulation = record['validation_simulations']['summary']
-        selection = record.get('selection', {})
-        summary.append(f"| {name} | {fmt(classification['accuracy'])} | {fmt(classification['macro_f1'])} | "
-                       f"{simulation['successful_runs']}/10 | {simulation['mean_score']:.1f}/100 | "
-                       f"{selection.get('l2', 'same as stage 1')} | {selection.get('iterations', 'same as stage 1')} |")
-    summary.extend(['', 'The first model uses a row-level training/tuning split; the others use a '
-                    'flight-level split. The slide deck compares each stage with its predecessor, so '
-                    'the split comparison also changes the training data. Several fits reached the '
-                    'iteration limit. These results describe this small validation set, not a guarantee '
-                    'of future landing performance.', ''])
-    (RESULTS.parent / 'summary.md').write_text('\n'.join(summary), encoding='utf-8')
     print('Wrote', DECK)
 
 

@@ -1,23 +1,13 @@
 """Behavioral checks for the standalone progression and its training split."""
 import contextlib
-import importlib.util
 import io
 from pathlib import Path
 import tempfile
 import unittest
 
 import numpy as np
-import train_models
 
-HERE = Path(__file__).resolve().parent
-
-
-def load(stage):
-    path = next(HERE.glob(f'{stage:02d}_*.py'))
-    spec = importlib.util.spec_from_file_location(path.stem, path)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module.Controller
+from experiment import flight_split, load_stage as load, metrics
 
 
 class ProgressionTests(unittest.TestCase):
@@ -38,7 +28,7 @@ class ProgressionTests(unittest.TestCase):
 
     def test_split_keeps_flights_disjoint(self):
         _, _, ids = self.data()
-        masks = train_models.flight_split(ids)
+        masks = flight_split(ids)
         groups = [set(ids[mask]) for mask in masks]
         self.assertEqual(sum(map(len, groups)), len(set(ids)))
         self.assertTrue(all(not groups[i] & groups[j] for i in range(3) for j in range(i)))
@@ -46,11 +36,11 @@ class ProgressionTests(unittest.TestCase):
 
     def test_fit_save_predict_and_normalization_all_stages(self):
         X, y, ids = self.data()
-        train, val, _ = train_models.flight_split(ids)
+        train, val, _ = flight_split(ids)
         with tempfile.TemporaryDirectory() as directory:
             for stage in range(1, 9):
                 with self.subTest(stage=stage), contextlib.redirect_stdout(io.StringIO()):
-                    model = load(stage)(epochs=3)
+                    model = load(stage)(epochs=3, l2=1e-3)
                     model.fit(X[train], y[train], X[val], y[val])
                     mean, std = model.X_mean_.copy(), model.X_std_.copy()
                     batch = model.predict_proba(X[val])
@@ -61,6 +51,7 @@ class ProgressionTests(unittest.TestCase):
                     path = Path(directory) / f'{stage}.npz'
                     model.save(path)
                     restored = load(stage)().load(path)
+                    self.assertEqual(restored.l2, 1e-3)
                     np.testing.assert_allclose(restored.predict_proba(X[val]), batch)
                     self.assertEqual(restored.predict_action(X[val][0]), int(restored.predict(X[val][:1])[0]))
                     if stage > 1:
@@ -69,16 +60,61 @@ class ProgressionTests(unittest.TestCase):
 
     def test_split_variant_and_weighted_loss(self):
         X, y, ids = self.data()
-        model = load(2)(epochs=1).fit(X, y, run_ids=ids)
+        model = load(1)(epochs=1)
+        model.fit(X, y, run_ids=ids)
         self.assertFalse(set(model.training_run_ids_) & set(model.validation_run_ids_))
-        self.assertEqual(len(model.validation_loss_history), 1)
-        weighted = load(3)(epochs=1).fit(X, y)
+        self.assertEqual(len(model.validation_loss_history), 2)  # start + one update
+        np.testing.assert_array_equal(model.class_weights_, 1)
+        weighted = load(2)(epochs=1)
+        weighted.fit(X, y)
         self.assertGreater(weighted.class_weights_[1], weighted.class_weights_[0])
         np.testing.assert_allclose(weighted.class_weights_ * np.bincount(y), len(y)/3)
+
+    def test_early_stopping_returns_history_and_restores_best_weights(self):
+        X, y, ids = self.data()
+        train, val, _ = flight_split(ids)
+        for stage in range(1, 9):
+            with self.subTest(stage=stage), contextlib.redirect_stdout(io.StringIO()):
+                # An impossible improvement threshold: only epoch 0 counts as "best".
+                model = load(stage)(epochs=1000, patience=3, min_delta=1e9)
+                history = model.fit(X[train], y[train], X[val], y[val])
+                self.assertEqual(len(history['train_loss']), 4)
+                self.assertEqual(len(history['validation_loss']), 4)
+                self.assertEqual((history['best_epoch'], history['stopped_epoch']), (0, 3))
+                self.assertEqual(history['stop_reason'], 'early_stopping')
+                np.testing.assert_array_equal(model.weights, 0)
+                scores = history['validation_metrics']
+                expected = metrics(model, X[val], y[val])
+                self.assertAlmostEqual(scores['accuracy'], expected['accuracy'])
+                self.assertAlmostEqual(scores['macro_f1'], expected['macro_f1'])
+                # Without validation data, training runs every epoch and there are no metrics.
+                history = load(stage)(epochs=5, patience=1, l2=1e-3).fit(X[train], y[train])
+                self.assertEqual(len(history['train_loss']), 6)
+                self.assertEqual(history['best_epoch'], 5)
+                self.assertIsNone(history['validation_metrics'])
+
+    def test_optimizers(self):
+        X, y, _ = self.data()
+        self.assertEqual([load(s).optimizer for s in range(1, 9)], ['gd', 'gd'] + ['lbfgs']*6)
+        with contextlib.redirect_stdout(io.StringIO()):
+            gd = load(2)(epochs=20, learning_rate=.1)
+            gd.fit(X, y)
+            lbfgs = load(3)(epochs=20)
+            lbfgs.fit(X, y)
+        # Same features and weighted loss; L-BFGS gets much further in the same number of updates.
+        np.testing.assert_array_equal(gd.class_weights_, lbfgs.class_weights_)
+        self.assertLess(lbfgs.train_loss_history[-1], gd.train_loss_history[-1])
+        self.assertTrue(np.all(np.diff(lbfgs.train_loss_history) <= 1e-12))
+        # A strong L2 penalty runs to convergence and shrinks the (non-bias) weights.
+        strong = load(3)(epochs=1000, l2=1.0)
+        history = strong.fit(X, y)
+        self.assertEqual(history['stop_reason'], 'converged')
+        self.assertLess(np.linalg.norm(strong.weights[1:]), np.linalg.norm(lbfgs.weights[1:]))
 
     def test_trajectory_progression(self):
         X = np.zeros((1, 12))
         X[0, 1] = 1000
+        X[0, 2] = 2
         X[0, 3] = -10
         X[0, 4] = .02
         X[0, 5] = .01
@@ -86,15 +122,23 @@ class ProgressionTests(unittest.TestCase):
         X[0, 7] = 500000
         X[0, 8] = .05
         X[0, 11] = 1.2
+        for stage in (1, 2, 3):
+            np.testing.assert_array_equal(load(stage)()._basis(X), X)
         base = load(4)()._basis(X)[0]
         gravity = load(5)()._basis(X)[0]
         drag = load(6)()._basis(X)[0]
         thrust = load(7)()._basis(X)[0]
+        horizontal = load(8)()._basis(X)[0]
         np.testing.assert_allclose(base[12:16], [990, -10, .03, .01], atol=1e-12)
         np.testing.assert_allclose(gravity[12:16], [990-9.80665/2, -10-9.80665, .03, .01], atol=1e-12)
         self.assertGreater(drag[12], gravity[12])
         self.assertGreater(thrust[12], drag[12])
         self.assertLess(thrust[14], drag[14])
+        # Stage 8 is stage 6 plus (x, vx) at each horizon: 12 + 3*6 features.
+        self.assertEqual(len(horizontal), 30)
+        np.testing.assert_allclose(horizontal[[14, 15, 16, 17]], drag[12:16])
+        self.assertLess(horizontal[12], 2)   # drag slows the horizontal drift below 2 m in 1 s
+        self.assertGreater(horizontal[12], 1.5)
         empty = X.copy()
         empty[0, 6] = 0
         np.testing.assert_allclose(load(7)()._basis(empty), load(6)()._basis(empty))
