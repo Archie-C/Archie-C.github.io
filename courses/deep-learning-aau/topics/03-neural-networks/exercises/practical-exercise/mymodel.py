@@ -45,9 +45,9 @@ def create_model():
             
             
             self.layers = nn.Sequential(
-                nn.BatchNorm1d(len(FEATURES)),
+                nn.BatchNorm1d(len(FEATURES)-2+3),
                 # Linear is in the form (number_of_input_features, number_of_output_features)
-                nn.Linear(len(FEATURES), 64),
+                nn.Linear(len(FEATURES)-2+3, 64),
                 nn.Dropout(0.2),
                 nn.ReLU(),
                 nn.Linear(64, 64),
@@ -69,18 +69,23 @@ def create_model():
             return x + (clamped - x).detach()
 
         def features(self, observation):
-            y = observation[..., 1]
-            u_y = observation[..., 3]
-            g = -9.80655
-            # suvat solution for time to ground, assuming constant acceleration of gravity and no wind
-            time_to_ground = - u_y / g + torch.sqrt(u_y**2 - 2 * g * y) / g
-            projected_landing_x = observation[..., 0] + observation[..., 2] * time_to_ground
-            projected_landing_v_y = u_y + g * time_to_ground
-            # Remove observation 8 and 9
-            return torch.cat((observation[..., :8], observation[..., 10:], time_to_ground.unsqueeze(-1), projected_landing_v_y, projected_landing_x), dim=-1)
+            x, y = observation[..., 0], observation[..., 1]
+            u_x, u_y = observation[..., 2], observation[..., 3]
+            g = -9.80665
+            # 0 = y + u_y*t + 0.5*g*t^2; g < 0, so the minus root is the future one
+            root = torch.sqrt(torch.clamp(u_y**2 - 2 * g * y, min=0.0))
+            time_to_ground = (-u_y - root) / g
+            projected_landing_x = x + u_x * time_to_ground
+            projected_landing_v_y = -root  # same as u_y + g * time_to_ground
+            extra = torch.stack(
+                (time_to_ground, projected_landing_v_y, projected_landing_x), dim=-1
+            )
+            # Drop wind_x (9) and wind_y (10)
+            return torch.cat((observation[..., :7], observation[..., 9:], extra), dim=-1)
 
         def forward(self, observation):
-            x = self.layers(observation)
+            x = self.features(observation)
+            x = self.layers(x)
 
             # Keep the unclamped thrust so training can push engine-off rows clearly below 0.
             self.raw_thrust = x[..., 0]
