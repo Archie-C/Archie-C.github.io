@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en" data-palette="paper">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="description" content="Worked answers to the 2026 classification exercises: decision boundaries, confusion matrices and metrics, and logistic regression on separable data."/>
+  <title>Classification exercise answers 2026 | Deep Learning</title>
+  <link rel="icon" href="../../../../../../design_system/assets/favicon.svg"/>
+  <link rel="stylesheet" href="../../../../../../design_system/colors_and_type.css"/>
+  <link rel="stylesheet" href="../../../../styles/exercises.css"/>
+  <link rel="stylesheet" href="../../../../styles/exercise-answers.css"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"/>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+    onload="renderMathInElement(document.querySelector('main'),{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false})"></script>
+  <!-- Cloudflare Web Analytics -->
+  <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "f63b2ef074b74a5e8e78014b83a4071d"}'></script>
+  <!-- End Cloudflare Web Analytics -->
+</head>
+<body>
+  <div class="frame">
+    <header class="topbar">
+      <a href="../../../../../../" class="mark" aria-label="Archie Carpenter home">a<span class="dot">.</span>c</a>
+      <span class="crumb">
+        <a href="../../../../">Deep Learning</a><span class="sep">&rsaquo;</span>
+        <a href="../../">02 classification</a><span class="sep">&rsaquo;</span>
+        <a href="../">exercises</a><span class="sep">&rsaquo;</span>
+        <span aria-current="page">answers</span>
+      </span>
+    </header>
+
+    <main class="content">
+      <h1>Classification exercise answers 2026</h1>
+      <p class="standfirst">Worked answers to the written questions.</p>
+      <nav class="exercise-nav" aria-label="Exercise materials">
+        <a href="../">Exercises</a>
+        <a href="./" aria-current="page">Written answers</a>
+        <a href="../practical-exercise/">Practical exercise</a>
+        <a href="../../../../../../slides/presentation-02/">Slides</a>
+      </nav>
+      <nav class="answer-nav" aria-label="Jump to an answer">
+        <span>On this page</span>
+        <a href="#question-1">Question 1</a>
+        <a href="#question-2">Question 2</a>
+        <a href="#question-3">Question 3</a>
+      </nav>
+
+      <section aria-label="Classification exercise answers">
+        <ol class="question-list">
+          <li class="question" aria-labelledby="question-1">
+            <span class="question-number" aria-hidden="true">01</span>
+            <div>
+              <h2 class="question-title" id="question-1">Question 1</h2>
+              <p class="question-source"><a href="../#question-1">View question 1 &nearr;</a></p>
+              <div class="question-content">
+                <p>A binary classifier predicts class A when $z(\mathbf{x}) = b + w_1 x_1 + w_2 x_2 &gt; 0$, with $b=-1$, $w_1=2$, $w_2=-3$.</p>
+                <ol class="answer-parts" type="a">
+                  <li>
+                    <p><strong>Predict the class for $\mathbf{x}=(1,1)$ and $\mathbf{x}=(0,1)$.</strong></p>
+                    <div class="answer">
+                      <p>Substituting the weights gives:</p>
+                      <p>$$ z(\mathbf{x}) = -1 + 2x_1 - 3x_2. $$</p>
+                      <p>$$
+                        \begin{aligned}
+                          z(1,1) &amp;= -1 + 2 - 3 = -2 &lt; 0 \quad\Rightarrow\quad \text{not A}, \\
+                          z(0,1) &amp;= -1 + 0 - 3 = -4 &lt; 0 \quad\Rightarrow\quad \text{not A}.
+                        \end{aligned}
+                      $$</p>
+                      <p>Answering "B" is fine, but the question never names the other class, so "not A" is more precise.</p>
+                    </div>
+                  </li>
+                  <li>
+                    <p><strong>Derive the decision boundary.</strong></p>
+                    <div class="answer">
+                      <p>The boundary is where the score is exactly zero:</p>
+                      <p>$$ -1 + 2x_1 - 3x_2 = 0. $$</p>
+                      <p>That is the boundary, but it is easier to interpret once rearranged for either $x_1$ or $x_2$:</p>
+                      <p>$$ x_2 = \frac{2x_1 - 1}{3}, \qquad x_1 = \frac{3x_2 + 1}{2}. $$</p>
+                      <p>So the boundary is a straight line with gradient $\tfrac{2}{3}$ and $x_2$-intercept $-\tfrac{1}{3}$.</p>
+                    </div>
+                  </li>
+                  <li>
+                    <p><strong>Explain geometrically what $b$ and $\mathbf{w}$ control.</strong></p>
+                    <div class="answer">
+                      <p>The vector $\mathbf{w}$ sets the <em>orientation</em> of the boundary: it is perpendicular to the boundary and points towards the region classified as A. For a fixed $\mathbf{w}$, the bias $b$ sets <em>where</em> the boundary sits in space.</p>
+                      <p>This is the familiar hyperplane equation $\mathbf{r}\cdot\mathbf{n} = k$, with $\mathbf{n}=\mathbf{w}$ and $k=-b$. The perpendicular distance from the origin to the boundary is $|b|/\|\mathbf{w}\|$.</p>
+                    </div>
+                  </li>
+                  <li>
+                    <p><strong>What happens if only $b$ is increased?</strong></p>
+                    <div class="answer">
+                      <p>The boundary moves parallel to itself: its orientation, set by $\mathbf{w}$, is unchanged. Changing $b$ changes the perpendicular distance $|b|/\|\mathbf{w}\|$ from the origin to the boundary.</p>
+                      <p>Here, increasing $b$ shifts the line in the direction of $-\mathbf{w}$, so more of the input space is classified as A.</p>
+                    </div>
+                  </li>
+                </ol>
+              </div>
+            </div>
+          </li>
+
+          <li class="question" aria-labelledby="question-2">
+            <span class="question-number" aria-hidden="true">02</span>
+            <div>
+              <h2 class="question-title" id="question-2">Question 2</h2>
+              <p class="question-source"><a href="../#question-2">View question 2 &nearr;</a></p>
+              <div class="question-content">
+                <p>A defect detector is tested on 1000 components: 20 are defective, 12 are detected, and 30 non-defective components are wrongly flagged.</p>
+                <ol class="answer-parts" type="a">
+                  <li>
+                    <p><strong>Construct a confusion matrix.</strong></p>
+                    <div class="answer">
+                      <p>Treat "defective" as the positive class. There are 20 defects and 12 are detected, so $TP=12$ and $FN=20-12=8$. 30 good components are flagged, so $FP=30$, which leaves $TN=1000-12-8-30=950$.</p>
+                      <p>As in the notes, actual classes are in the rows and predicted classes in the columns:</p>
+                      <table aria-label="Confusion matrix with actual classes in rows and predicted classes in columns">
+                        <thead>
+                          <tr><th>Actual \ Predicted</th><th>Defective</th><th>Non-defective</th></tr>
+                        </thead>
+                        <tbody>
+                          <tr><th>Defective</th><td>TP = 12</td><td>FN = 8</td></tr>
+                          <tr><th>Non-defective</th><td>FP = 30</td><td>TN = 950</td></tr>
+                        </tbody>
+                      </table>
+                      <p>Some sources swap the axes. That is fine as long as the axes are labelled.</p>
+                    </div>
+                  </li>
+                  <li>
+                    <p><strong>Calculate accuracy, precision and recall.</strong></p>
+                    <div class="answer">
+                      <p>$$
+                        \begin{aligned}
+                          \text{Accuracy} &amp;= \frac{TP+TN}{N} = \frac{12+950}{1000} = 96.2\%, \\
+                          \text{Precision} &amp;= \frac{TP}{TP+FP} = \frac{12}{42} \approx 28.6\%, \\
+                          \text{Recall} &amp;= \frac{TP}{TP+FN} = \frac{12}{20} = 60\%.
+                        \end{aligned}
+                      $$</p>
+                    </div>
+                  </li>
+                  <li>
+                    <p><strong>Accuracy of always predicting "non-defective".</strong></p>
+                    <div class="answer">
+                      <p>It correctly classifies all 980 non-defective components and misses all 20 defects:</p>
+                      <p>$$ \text{Accuracy} = \frac{980}{1000} = 98\%. $$</p>
+                    </div>
+                  </li>
+                  <li>
+                    <p><strong>Why is accuracy a poor metric here?</strong></p>
+                    <div class="answer">
+                      <p>A classifier that never detects a single defect scores 98%, which is <em>higher</em> than the real model's 96.2%. The large class imbalance inflates accuracy: almost every observation is non-defective, so predicting the majority class is rewarded even though the classifier is useless for the actual task.</p>
+                    </div>
+                  </li>
+                  <li>
+                    <p><strong>Which metric to prioritise if missed defects are dangerous?</strong></p>
+                    <div class="answer">
+                      <p>Letting a defect through is a false negative. To catch every defect, we want to maximise TPs and minimise FNs, so <strong>recall</strong> is the most informative metric.</p>
+                      <p>There is a drawback. A classifier that predicts "non-defective" for everything gets 98% accuracy, and one that flags everything as defective gets 100% recall. A better metric here is the F1 score, which balances precision and recall:</p>
+                      <p>$$ F_1 = \frac{2\cdot\text{Precision}\cdot\text{Recall}}{\text{Precision}+\text{Recall}} = \frac{2TP}{2TP+FP+FN} = \frac{24}{62} \approx 0.39. $$</p>
+                    </div>
+                  </li>
+                </ol>
+              </div>
+            </div>
+          </li>
+
+          <li class="question" aria-labelledby="question-3">
+            <span class="question-number" aria-hidden="true">03</span>
+            <div>
+              <h2 class="question-title" id="question-3">Question 3</h2>
+              <p class="question-source"><a href="../#question-3">View question 3 &nearr;</a></p>
+              <div class="question-content">
+                <p>Logistic regression trained by maximum likelihood on a perfectly linearly separable binary training set.</p>
+                <ol class="answer-parts" type="a">
+                  <li>
+                    <p><strong>What happens to the predicted probabilities when $\mathbf{w}$ and $b$ are multiplied by $c&gt;1$?</strong></p>
+                    <div class="answer">
+                      <p>The output before the sigmoid is:</p>
+                      <p>$$ z = \mathbf{w}^\top\mathbf{x} + b. $$</p>
+                      <p>Scaling both $\mathbf{w}$ and $b$ by $c$ just scales the score:</p>
+                      <p>$$ (c\mathbf{w})^\top\mathbf{x} + cb = c\,z. $$</p>
+                      <p>The sign of $z$ does not change, so the decision boundary $z=0$ and every predicted class stay the same. The predicted probability of class 1 is the sigmoid of the score:</p>
+                      <p>$$ P(y=1\mid\mathbf{x}) = \sigma(cz) = \frac{1}{1+e^{-cz}}. $$</p>
+                      <p>If $z&gt;0$, increasing $c$ shrinks $e^{-cz}$ and pushes the probability towards 1. If $z&lt;0$, the opposite happens and it is pushed towards 0. Because the data are separable, every observation has the correct sign, so every prediction becomes <em>more confident and more correct</em>.</p>
+                    </div>
+                  </li>
+                  <li>
+                    <p><strong>What happens to the cross-entropy loss as $c\to\infty$?</strong></p>
+                    <div class="answer">
+                      <p>As $c\to\infty$, $p_i\to1$ for every positive observation and $p_i\to0$ for every negative one. The binary cross-entropy is:</p>
+                      <p>$$ \mathcal{L}_{\text{BCE}} = -\frac{1}{n}\sum_{i=1}^{n}\Big[y_i\log p_i + (1-y_i)\log(1-p_i)\Big]. $$</p>
+                      <p>When $y_i=1$, only the first term remains and $\log p_i\to0$. When $y_i=0$, only the second term remains and $\log(1-p_i)\to0$. So, for a perfectly separable training set:</p>
+                      <p>$$ \mathcal{L}_{\text{BCE}} \to 0. $$</p>
+                      <p>The loss decreases strictly as $c$ grows but never actually reaches 0.</p>
+                    </div>
+                  </li>
+                  <li>
+                    <p><strong>Why is there no finite maximum-likelihood optimum?</strong></p>
+                    <div class="answer">
+                      <p>Maximum likelihood chooses the parameters that maximise the likelihood of the observed labels:</p>
+                      <p>$$ \text{likelihood} = \prod_{i=1}^{n} p_i^{\,y_i}(1-p_i)^{1-y_i}. $$</p>
+                      <p>For an observation with $y_i=1$, the second factor has power 0, so its contribution is just $p_i$. For $y_i=0$ it is $1-p_i$. From (a), scaling by $c$ pushes every one of these contributions towards 1, so the product also tends to 1.</p>
+                      <p>But 1 is only reached in the limit $c\to\infty$. For any finite parameters, scaling them by a larger $c$ gives a strictly higher likelihood (equivalently, a strictly lower cross-entropy). The supremum is never attained, so there is no finite optimum and the weights diverge during training.</p>
+                    </div>
+                  </li>
+                  <li>
+                    <p><strong>Does this mean logistic regression cannot classify all observations correctly?</strong></p>
+                    <div class="answer">
+                      <p>No. Not having a finite optimum does not mean the classification is wrong. Any separating $(\mathbf{w}, b)$ already classifies every training observation correctly. The problem is that the optimum is not unique or finite: infinitely many boundaries separate the data, and each one can be made arbitrarily confident.</p>
+                    </div>
+                  </li>
+                  <li>
+                    <p><strong>How does $L_2$ regularisation fix this?</strong></p>
+                    <div class="answer">
+                      <p>$L_2$ regularisation adds a penalty on the size of the weights to the loss:</p>
+                      <p>$$ \mathcal{L} = \mathcal{L}_{\text{BCE}} + \lambda\|\mathbf{w}\|_2^2, \qquad \lambda&gt;0. $$</p>
+                      <p>Now there is a trade-off. Growing the weights still lowers $\mathcal{L}_{\text{BCE}}$, but the gains shrink towards 0 while the penalty grows without bound. So $\mathcal{L}\to\infty$ as $\|\mathbf{w}\|\to\infty$, and the minimum is reached at finite weights.</p>
+                    </div>
+                  </li>
+                  <li>
+                    <p><strong>Does $L_2$ regularisation necessarily preserve the original decision boundary?</strong></p>
+                    <div class="answer">
+                      <p>No. Each weight is penalised independently, so the weights can change relative to each other. That changes the direction of $\mathbf{w}$, and therefore the orientation of the boundary. The boundary's position, $|b|/\|\mathbf{w}\|$, depends on the magnitude of the weights, so it can move too.</p>
+                      <p>With enough regularisation, the boundary may no longer separate the two classes perfectly.</p>
+                    </div>
+                  </li>
+                </ol>
+              </div>
+            </div>
+          </li>
+        </ol>
+      </section>
+
+      <nav class="page-links" aria-label="Page navigation">
+        <a href="../">&larr; Back to classification exercises</a>
+        <a href="../../">Classification topic &rarr;</a>
+      </nav>
+    </main>
+  </div>
+</body>
+</html>
